@@ -3,9 +3,11 @@
 
 ## NOMADE RUN: Um Projeto de Gestão e Gamificação de Corridas Urbanas {.unlisted .unnumbered}
 
+**Projeto:** NOMADE RUN: Um Projeto de Gestão e Gamificação de Corridas Urbanas
+
 **Versão:** 1.0 | **Data:** 10/10/2026
 
-**Autores:**
+**Autores / Analistas de Requisitos:**
 
 - Gabryel Gomes Bahmad Camapum
 - Mateus Augusto De Faria Brito
@@ -15,381 +17,332 @@
 
 ## 1.1 Finalidade e Objetivo do Documento
 
-Este documento especifica, de forma detalhada e verificável, os requisitos funcionais, não funcionais, regras de negócio, casos de uso e interfaces do sistema **NOMADE RUN**. Ele foi elaborado a partir da Documentação de Concepção do Projeto e tem três objetivos:
+Este documento apresenta a Especificação de Requisitos de Software (ERS) do sistema **NOMADE RUN**, elaborada a partir da Documentação de Concepção do Projeto. Seu objetivo é descrever, de forma detalhada e inequívoca, tudo o que o sistema deve fazer e as restrições que ele deve obedecer.
 
-1. Servir de **acordo único** entre a equipe de desenvolvimento e os interessados sobre *o que* o sistema deve fazer e *quais restrições* deve obedecer.
-2. Servir de **base de testes** para a disciplina de Teste de Software: todo requisito possui identificador único (RF-xxx, RNF-xxx, RN-xxx) e critério mensurável, permitindo rastreá-lo até casos de teste.
-3. Orientar a arquitetura e a implementação, seguindo as diretrizes técnicas das *Agent Skills* do diretório **skills.sh** adotadas como regra do projeto (ver seção 1.3 e Apêndice A).
+O documento tem três finalidades principais:
 
-Público-alvo: equipe de desenvolvimento, equipe de testes, professor orientador e avaliadores.
+1. **Estabelecer um acordo** entre a equipe de desenvolvimento, o professor orientador e os demais interessados sobre o comportamento esperado do sistema.
+2. **Servir de alicerce para a atividade de Teste de Software**: cada requisito recebe um identificador único (RF, RNF ou RN) e, sempre que possível, um critério de aceite mensurável, permitindo que seja rastreado até os casos de teste.
+3. **Orientar o projeto e a implementação**, evitando ambiguidades e retrabalho nas etapas seguintes do Projeto de Desenvolvimento de Software (PDS).
+
+Este documento destina-se à equipe de desenvolvimento, à equipe de testes, ao professor orientador e à banca avaliadora.
 
 ## 1.2 Escopo do Sistema
 
-O **NOMADE RUN** é um aplicativo móvel (Android e iOS) com painel web de apoio, que combina o **registro de corridas por GPS** (no estilo de aplicativos como o Strava) com um **jogo de conquista de território no mapa real da cidade**. O mapa é dividido em hexágonos; ao correr dentro deles, o usuário acumula pontos para si e para a sua facção, conquistando, defendendo e fortificando territórios.
+O **NOMADE RUN** é um aplicativo móvel de corrida de rua para Android e iOS. Ele reúne as funções tradicionais dos aplicativos de monitoramento de atividade física, como registro do percurso por GPS, distância, tempo, ritmo e histórico, e acrescenta como diferencial um **jogo de disputa de território sobre o mapa real da cidade**.
+
+O mapa é dividido em pequenas áreas hexagonais (zonas). Quando o usuário corre fisicamente dentro de uma zona, ele acumula pontos para si e para a sua equipe (facção). A facção com mais pontos em uma zona passa a dominá-la, e as demais podem tentar conquistá-la correndo no local. O jogo funciona em qualquer cidade, permitindo a competição entre corredores de uma mesma cidade e entre cidades diferentes.
 
 **O sistema FAZ:**
 
-- Cadastro, autenticação e gestão de perfil de corredores.
-- Registro de corridas em tempo real (distância, tempo, pace, splits, trajeto), inclusive com o aplicativo em segundo plano e sem internet.
-- Cálculo de Run Points (RP) por zona e controle de território por facção.
-- Facções globais, Crews (grupos locais), feed social, rankings, missões, badges e temporadas.
-- Notificações em tempo real de territórios sob ataque.
-- Modo Fantasma (corrida contra o melhor tempo do dono da zona).
-- Mapa interativo com hexágonos 3D, heatmap de disputas e efeitos visuais de conquista.
-- **Funcionamento em qualquer cidade** (a grade de hexágonos cobre o mundo inteiro) e **competição entre cidades**: rankings por cidade, estado, país e global, e o placar "Cidade × Cidade".
-- Detecção de fraudes (anti-cheat) por validação de velocidade, GPS falso e sensores de movimento.
-- Painel web de visualização ao vivo e moderação de atividades suspeitas.
+- Cadastro, autenticação e gestão do perfil do corredor.
+- Registro de corridas em tempo real (percurso, distância, tempo, ritmo e parciais por quilômetro), inclusive com a tela bloqueada e sem conexão com a internet.
+- Exibição do mapa da cidade, no padrão dos aplicativos de navegação, com os territórios de cada facção destacados por cima.
+- Cálculo de pontos por zona e controle de território por facção (conquista, ataque, defesa e fortificação).
+- Envio de notificações quando um território da facção do usuário estiver sendo conquistado por outra facção.
+- Facções, grupos de corrida (Crews), feed de atividades, rankings, missões, medalhas e temporadas.
+- Rankings por bairro, cidade, estado, país e geral, além de um placar de competição entre cidades.
+- Detecção de fraudes, como uso de bicicleta, carro ou GPS falsificado.
+- Painel web para a equipe de moderação revisar atividades suspeitas.
 
 **O sistema NÃO FAZ:**
 
-- **Não é um aplicativo de acompanhamento médico ou de saúde.** Não realiza diagnóstico, não prescreve treinos, não interpreta dados cardíacos para fins clínicos e não substitui orientação de profissionais de saúde ou educação física.
-- Não suporta ciclismo, natação ou deslocamentos motorizados — esses são justamente bloqueados pelo anti-cheat.
-- Não realiza vendas, pagamentos ou transações financeiras na versão 1.0.
-- Não oferece navegação curva a curva (GPS de trânsito).
-- Não integra com relógios inteligentes nem importa dados de outras plataformas na versão 1.0.
-- Não incentiva corrida em rodovias, áreas privadas ou de risco (essas áreas são zonas bloqueadas).
+- **Não é um aplicativo de acompanhamento médico ou de saúde.** Não realiza diagnósticos, não prescreve treinos, não interpreta dados cardíacos para fins clínicos e não substitui a orientação de profissionais de saúde ou de educação física.
+- Não registra ciclismo, natação ou deslocamentos motorizados. Essas atividades são justamente bloqueadas pelo sistema antifraude.
+- Não oferece navegação por rotas de trânsito ("vire à direita em 200 m").
+- Não realiza vendas, pagamentos ou qualquer transação financeira na versão 1.0.
+- Não se integra a relógios inteligentes nem importa dados de outros aplicativos na versão 1.0.
+- Não incentiva corridas em rodovias, áreas privadas ou áreas de risco: essas regiões são marcadas como zonas bloqueadas e não geram pontos.
 
 ## 1.3 Definições, Acrônimos e Abreviaturas
 
 | Termo | Definição |
-|--------|----------------------------------------------------|
-| **GPS** | *Global Positioning System* — sistema de navegação por satélite usado para obter a posição do aparelho. |
-| **Pace** | Ritmo de corrida, expresso em minutos por quilômetro (ex.: 5:30 min/km). Quanto menor, mais rápido. |
-| **Split** | Tempo gasto em cada quilômetro completo de uma atividade. |
-| **Atividade** | Registro de uma corrida, do início ao fim, com todos os pontos de GPS e sensores. |
-| **H3** | Sistema de indexação geoespacial hexagonal hierárquico (desenvolvido pela Uber) usado para dividir o mapa. |
-| **Hexágono / Zona** | Célula H3 de resolução 9 (≈ 0,1 km², lado ≈ 200 m). Unidade mínima de território que pode ser conquistada. |
-| **Distrito** | Célula H3 de resolução 7 (≈ 5 km²), que agrupa zonas. Base do título de "Prefeito". |
-| **Cidade** | Município ao qual uma zona pertence (definido pelo limite oficial do IBGE no Brasil ou do OpenStreetMap no exterior). Unidade dos rankings e da competição Cidade × Cidade. |
-| **Cidade natal** | Cidade escolhida pelo usuário para representar no placar Cidade × Cidade (troca permitida 1 vez por temporada). |
-| **Zona bloqueada** | Zona sobre rodovia, água, aeroporto ou área de risco, que não gera pontos. |
-| **RP (Run Points)** | Pontos gerados por metro corrido válido dentro de uma zona (ver RN-001). |
-| **Influência** | Soma de RP acumulada por uma facção em uma zona, sujeita a decaimento diário. |
-| **Facção** | Um dos quatro times globais: Neon Striders, Urban Coyotes, Night Owls e Volt Runners. |
-| **Crew** | Grupo local de até 30 corredores de uma mesma facção. |
-| **Dono da zona** | Facção com a maior influência em uma zona, desde que ≥ 100. |
-| **Sob ataque** | Estado de uma zona quando uma facção inimiga atinge ≥ 50% da influência do dono. |
-| **Escudo / Fortificação** | Nível 0–3 que reduz os RP inimigos recebidos por uma zona (RN-004). |
-| **Modo Fantasma (Ghost Run)** | Desafio em que o usuário corre contra a gravação do melhor tempo do dono da zona. |
-| **Heatmap** | Mapa de calor que mostra a intensidade de corridas/disputas em uma área num período. |
-| **Anti-Cheat** | Conjunto de validações que detectam fraude na atividade. |
-| **Anti-Spoofing** | Parte do anti-cheat que detecta localização falsificada (*GPS spoofing* / *mock location*). |
-| **Mock location** | Recurso do sistema operacional (ou app de terceiros) que injeta coordenadas falsas. |
-| **Trust Score** | Índice de confiança do usuário (0–100) reduzido a cada indício de fraude. |
-| **Temporada** | Ciclo mensal de competição, com reset parcial do mapa e premiações. |
-| **Push** | Notificação enviada ao aparelho mesmo com o app fechado. |
-| **HMAC** | *Hash-based Message Authentication Code* — assinatura que garante a integridade dos dados enviados. |
-| **JWT** | *JSON Web Token* — token de autenticação assinado. |
-| **RLS** | *Row Level Security* — controle de acesso por linha no banco PostgreSQL. |
-| **API** | *Application Programming Interface*. |
-| **SDK** | *Software Development Kit*. |
-| **LGPD** | Lei Geral de Proteção de Dados (Lei nº 13.709/2018). |
-| **WCAG** | *Web Content Accessibility Guidelines* — diretrizes de acessibilidade. |
-| **p95 / p99** | Percentil 95 / 99 do tempo de resposta: 95% / 99% das requisições respondem abaixo desse valor. |
-| **VU** | *Virtual User* — usuário simulado em teste de carga (k6). |
-| **E2E** | *End-to-End* — teste de ponta a ponta simulando o usuário real. |
-| **skills.sh** | Diretório aberto de *Agent Skills* (pacotes de instruções procedurais para agentes de IA) mantido pela Vercel. |
+|---|---|
+| **GPS** | *Global Positioning System*. Sistema de navegação por satélite usado para obter a posição do aparelho. |
+| **Pace (ritmo)** | Tempo gasto para percorrer um quilômetro, expresso em minutos por quilômetro (ex.: 5:30 min/km). Quanto menor, mais rápido. |
+| **Parcial (split)** | Tempo gasto em cada quilômetro completo de uma corrida. |
+| **Atividade** | Registro de uma corrida, do início ao fim, contendo os pontos de GPS e os dados dos sensores. |
+| **Zona** | Área hexagonal do mapa com aproximadamente 0,1 km² (cerca de 200 m de lado). É a menor unidade de território que pode ser conquistada. |
+| **Distrito** | Agrupamento de zonas vizinhas, com aproximadamente 5 km², usado para o título de "Prefeito". |
+| **H3** | Sistema público de divisão do globo terrestre em hexágonos, utilizado para gerar as zonas e os distritos. |
+| **Zona bloqueada** | Zona localizada sobre rodovia, lago, rio, aeroporto ou área de risco, que não gera pontos. |
+| **Run Points (RP)** | Pontos gerados para cada metro corrido de forma válida dentro de uma zona (RN-001). |
+| **Influência** | Soma dos RP acumulados por uma facção em uma zona, sujeita a redução diária. |
+| **Facção** | Uma das quatro equipes globais do jogo: Neon Striders, Urban Coyotes, Night Owls e Volt Runners. |
+| **Crew** | Grupo de até 30 corredores de uma mesma facção, normalmente amigos ou assessorias esportivas. |
+| **Dono da zona** | Facção com a maior influência em uma zona, desde que essa influência seja igual ou superior a 100. |
+| **Sob ataque** | Situação em que uma facção adversária atinge 50% ou mais da influência do dono da zona. |
+| **Escudo (fortificação)** | Nível de 0 a 3 que reduz os pontos que as facções adversárias conseguem ganhar em uma zona (RN-004). |
+| **Modo Fantasma** | Desafio em que o usuário corre contra a gravação do melhor tempo do dono da zona naquele trecho. |
+| **Mapa de calor (heatmap)** | Camada do mapa que indica, por cores, a intensidade de corridas e disputas em cada região. |
+| **Cidade natal** | Cidade que o usuário escolhe representar no placar entre cidades. |
+| **Antifraude (anti-cheat)** | Conjunto de verificações que identificam atividades que não foram realizadas correndo a pé. |
+| **GPS spoofing / localização simulada** | Uso de recurso do sistema operacional ou de aplicativo de terceiros para informar uma posição falsa. |
+| **Índice de Confiança** | Nota de 0 a 100 atribuída a cada usuário, reduzida a cada indício de fraude (RN-009). |
+| **Temporada** | Ciclo mensal de competição, ao final do qual os rankings são encerrados e premiados. |
+| **Notificação push** | Mensagem enviada ao celular mesmo com o aplicativo fechado. |
+| **API** | *Application Programming Interface*. Interface que permite a comunicação entre sistemas. |
+| **SDK** | *Software Development Kit*. Conjunto de bibliotecas fornecido por terceiros. |
+| **JWT** | *JSON Web Token*. Padrão de token de autenticação assinado digitalmente. |
+| **HMAC** | *Hash-based Message Authentication Code*. Assinatura que garante que os dados não foram alterados no caminho. |
+| **LGPD** | Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018). |
+| **WCAG** | *Web Content Accessibility Guidelines*. Diretrizes internacionais de acessibilidade. |
+| **p95** | Percentil 95: valor abaixo do qual estão 95% das medições de tempo de resposta. |
+| **E2E** | *End-to-End*. Teste que simula o uso completo do sistema pelo usuário. |
+| **RF / RNF / RN** | Requisito Funcional / Requisito Não Funcional / Regra de Negócio. |
+| **UC** | *Use Case* (Caso de Uso). |
 
 ## 1.4 Visão Geral do Documento
 
-- **Seção 2** descreve o produto em alto nível: contexto, funções, usuários, restrições e dependências.
-- **Seção 3** lista os Requisitos Funcionais (RF).
-- **Seção 4** lista os Requisitos Não Funcionais (RNF), com critérios de aceite mensuráveis baseados nas skills do skills.sh.
-- **Seção 5** define as Regras de Negócio (RN), incluindo fórmulas de pontuação e regras anti-cheat.
-- **Seção 6** apresenta os Casos de Uso, os requisitos de interface com o usuário (com wireframes) e as interfaces de hardware e software.
-- **Seção 7** registra a aprovação e o controle de revisões.
-- **Apêndice A** relaciona as skills do skills.sh adotadas; **Apêndice B** traz a matriz de rastreabilidade para os testes.
+O documento está organizado da seguinte forma:
+
+- **Seção 1 (Introdução):** finalidade, escopo, definições e organização do documento.
+- **Seção 2 (Descrição Geral):** contexto do produto, principais funções, perfis de usuários, restrições, suposições e dependências.
+- **Seção 3 (Requisitos Funcionais):** o que o sistema deve fazer.
+- **Seção 4 (Requisitos Não Funcionais):** critérios de qualidade e restrições técnicas, com metas mensuráveis.
+- **Seção 5 (Regras de Negócio):** regras do jogo, fórmulas de pontuação e regras antifraude.
+- **Seção 6 (Casos de Uso e Interfaces):** diagrama e descrição dos casos de uso, protótipos das telas e interfaces com hardware e sistemas externos.
+- **Seção 7 (Aprovação e Controle de Revisões):** histórico de versões e aprovação do documento.
 
 # 2. DESCRIÇÃO GERAL
 
 ## 2.1 Perspectiva do Produto
 
-O NOMADE RUN é um produto novo e independente, composto por três partes:
+O NOMADE RUN é um produto novo e independente, formado por três componentes:
 
-1. **Aplicativo móvel** (Android 8.0+ / iOS 15+), desenvolvido em React Native com Expo — interface principal do corredor.
-2. **Back-end em nuvem** (Supabase: PostgreSQL com PostGIS e H3, autenticação, tempo real, funções serverless e armazenamento) — fonte da verdade para pontuação, território e anti-cheat.
-3. **Painel web** (Next.js) — mapa ao vivo da cidade e fila de moderação de atividades suspeitas.
+1. **Aplicativo móvel** (Android 8.0 ou superior e iOS 15 ou superior): é a interface utilizada pelo corredor para registrar corridas, visualizar o mapa, acompanhar os territórios e interagir com outros usuários.
+2. **Servidor em nuvem**: armazena os dados, recalcula os pontos de cada corrida, aplica as regras de território e antifraude e envia as notificações. É a fonte oficial de todas as pontuações.
+3. **Painel web administrativo**: utilizado pela equipe de moderação para acompanhar o mapa em tempo real e revisar atividades suspeitas.
 
-O produto se posiciona entre os aplicativos de registro de corrida (Strava, Nike Run Club) e os jogos baseados em localização (Pokémon GO, Ingress), trazendo o *registro esportivo* dos primeiros e a *mecânica de disputa territorial* dos segundos.
+O produto se posiciona entre os aplicativos de monitoramento de corrida, como Strava e Nike Run Club, e os jogos baseados em localização, como Pokémon GO. Dos primeiros, herda o registro esportivo; dos segundos, a motivação de explorar a cidade e competir.
 
 ## 2.2 Funções do Produto (Resumo de Alto Nível)
 
-- **Registrar corridas:** gravação por GPS com métricas ao vivo, funcionamento offline e resumo detalhado.
-- **Disputar território (núcleo do produto):** cada metro corrido gera RP na zona em que foi percorrido; a facção com mais influência domina a zona; zonas são **conquistadas**, **atacadas**, **defendidas** e **fortificadas**, e a influência **decai** se a zona não for patrulhada.
-- **Jogar em equipe:** facções globais, Crews locais, bônus de corrida em grupo e rankings.
-- **Competir em qualquer lugar:** o jogo funciona em qualquer cidade do mundo; o corredor pode conquistar zonas em várias cidades e representar sua cidade natal no placar Cidade × Cidade.
-- **Ser avisado em tempo real:** alertas de invasão com janela de defesa de 24 h.
-- **Desafiar o Fantasma:** correr contra o melhor tempo do dono da zona para ganhar multiplicador.
-- **Progredir:** níveis, missões, badges, título de Prefeito de distrito e temporadas mensais.
-- **Socializar:** feed, "Respect" (curtida), comentários e recap compartilhável.
-- **Jogar limpo:** anti-cheat automático com Trust Score e moderação manual.
-- **Acompanhar a cidade:** painel web com mapa ao vivo e heatmap.
+- **Registrar corridas:** gravação do percurso por GPS, com métricas em tempo real, funcionamento sem internet e resumo ao final.
+- **Disputar território (principal diferencial):** cada metro corrido gera pontos na zona onde foi percorrido. A facção com mais influência domina a zona. Zonas podem ser conquistadas, atacadas, defendidas e fortificadas, e a influência diminui com o tempo quando ninguém corre no local.
+- **Jogar em equipe:** escolha de facção, criação de Crews, bônus para corridas em grupo e rankings.
+- **Receber alertas de invasão:** notificação quando um território da facção estiver sendo conquistado, com prazo de 24 horas para a defesa.
+- **Desafiar o Fantasma:** correr contra o melhor tempo do dono da zona para ganhar pontos extras.
+- **Competir entre cidades:** o jogo funciona em qualquer cidade, e os pontos de cada corredor somam para a sua cidade natal no placar entre cidades.
+- **Progredir:** níveis, missões, medalhas, título de "Prefeito" de um distrito e temporadas mensais.
+- **Interagir socialmente:** feed de atividades, curtidas ("Respect"), comentários e compartilhamento do resumo da corrida.
+- **Garantir partidas justas:** verificação automática de fraudes e revisão manual pela moderação.
 
 ## 2.3 Perfil dos Usuários
 
 | Perfil | Descrição | Conhecimento técnico | Uso principal |
-|---------|--------------------|---------|-----------------------|
-| **Corredor casual** | 16+ anos, corre 1–3 vezes por semana, motivado por diversão e metas. | Básico (usa apps comuns de celular). | Registrar corridas, conquistar zonas próximas de casa. |
-| **Corredor competitivo** | Treina com frequência, acompanha pace e recordes. | Intermediário. | Dominar distritos, ranking, Modo Fantasma. |
-| **Líder de Crew** | Organiza grupos de corrida (assessorias, amigos). | Intermediário. | Gerenciar Crew, metas, corridas em grupo. |
+|---|---|---|---|
+| **Corredor iniciante** | Pessoa a partir de 16 anos que corre de 1 a 3 vezes por semana e busca motivação. | Básico: utiliza aplicativos comuns de celular. | Registrar corridas e conquistar zonas próximas de casa. |
+| **Corredor frequente** | Treina várias vezes por semana e acompanha ritmo e recordes pessoais. | Intermediário. | Dominar distritos, subir no ranking e usar o Modo Fantasma. |
+| **Líder de Crew** | Organiza grupos de corrida de amigos ou de assessorias esportivas. | Intermediário. | Gerenciar a Crew, definir metas e organizar corridas em grupo. |
 | **Moderador** | Membro da equipe do NOMADE RUN. | Avançado. | Revisar atividades suspeitas no painel web. |
-| **Administrador** | Equipe técnica. | Avançado. | Configurar temporadas, zonas bloqueadas, parâmetros do jogo. |
+| **Administrador** | Responsável técnico pelo sistema. | Avançado. | Configurar temporadas, zonas bloqueadas e parâmetros do jogo. |
 
 ## 2.4 Restrições Gerais
 
-- **Precisão do GPS:** em áreas urbanas densas, túneis e sob árvores, o erro pode passar de 30 m; pontos com precisão pior que 30 m são descartados (RN-007), o que pode reduzir a distância registrada.
-- **Bateria:** o GPS contínuo é o maior consumidor de energia; o sistema deve respeitar o limite do RNF-004.
-- **Sistema operacional:** Android e iOS limitam execução em segundo plano; o usuário precisa conceder permissão de localização "sempre" e, no Android, desativar a otimização de bateria para o app.
-- **Sensores:** aparelhos sem pedômetro/acelerômetro funcionam, mas suas atividades recebem validação reduzida e ficam sujeitas a revisão (RN-008).
-- **Conectividade:** a gravação não pode depender de internet; a pontuação só é confirmada após sincronização.
-- **Legais:** conformidade com a LGPD (consentimento, finalidade, exclusão de dados); idade mínima de 16 anos.
-- **Tecnológicas:** React Native/Expo no app, Supabase no back-end, Mapbox como provedor de mapas.
-- **Prazo e equipe:** projeto acadêmico desenvolvido por 2 integrantes.
+- **Precisão do GPS:** em regiões com prédios altos, túneis ou muitas árvores, o erro de posição pode passar de 30 metros. Pontos com precisão pior que 30 m são descartados (RN-007), o que pode reduzir a distância registrada.
+- **Consumo de bateria:** o uso contínuo do GPS é o principal consumidor de energia. O aplicativo deve respeitar o limite definido no RNF-004.
+- **Execução em segundo plano:** Android e iOS limitam aplicativos que rodam com a tela desligada. O usuário precisa permitir o acesso à localização "o tempo todo" e, no Android, desativar a otimização de bateria para o aplicativo.
+- **Sensores do aparelho:** celulares sem sensor de passos (pedômetro) funcionam normalmente, mas suas corridas longas passam por revisão (RN-008).
+- **Conectividade:** a gravação da corrida não pode depender de internet. A pontuação só é confirmada após a sincronização com o servidor.
+- **Legislação:** o sistema deve cumprir a LGPD (consentimento, finalidade e exclusão de dados). A idade mínima de uso é de 16 anos.
+- **Tecnologia:** o aplicativo será desenvolvido em React Native com Expo e o servidor utilizará PostgreSQL com a extensão PostGIS (dados geográficos).
+- **Prazo e equipe:** trata-se de um projeto acadêmico desenvolvido por dois integrantes, dentro do calendário da disciplina.
 
 ## 2.5 Suposições e Dependências
 
-- **Mapbox** (Maps SDK para Android/iOS e Mapbox GL JS) disponível no plano gratuito/estudante para renderização do mapa; **Google Maps Platform** é a alternativa caso haja mudança de custo.
-- **Supabase** disponível como serviço gerenciado (PostgreSQL 15+ com extensões PostGIS e h3-pg).
-- **Expo Push Notification Service**, que depende de **Firebase Cloud Messaging (Android)** e **Apple Push Notification service (iOS)**.
-- **OpenStreetMap** como fonte de dados para identificar rodovias, água e aeroportos (zonas bloqueadas).
-- **Malha municipal do IBGE** (Brasil) e limites administrativos do OpenStreetMap (exterior) para associar cada zona a uma cidade.
+- Disponibilidade do **Mapbox** (SDK de mapas para Android/iOS e biblioteca para web) no plano gratuito para fins acadêmicos. A **Google Maps Platform** é a alternativa caso haja mudança nas condições de uso.
+- Disponibilidade de um serviço de banco de dados e autenticação em nuvem (Supabase), com PostgreSQL, PostGIS e notificações em tempo real.
+- Disponibilidade dos serviços de notificação **Firebase Cloud Messaging** (Android) e **Apple Push Notification service** (iOS).
+- Uso dos dados do **OpenStreetMap** para identificar rodovias, rios, lagos e aeroportos (zonas bloqueadas).
+- Uso da **malha municipal do IBGE** para identificar a qual cidade cada zona pertence. Fora do Brasil, são usados os limites administrativos do OpenStreetMap.
 - Supõe-se que o usuário corre com o celular junto ao corpo (bolso, braçadeira ou mão).
-- Supõe-se que os aparelhos-alvo possuem GPS, acelerômetro e, na maioria, pedômetro.
-- As diretrizes técnicas seguem as skills do **skills.sh** listadas no Apêndice A; mudanças nessas skills não alteram este documento sem nova revisão.
+- Supõe-se que a maioria dos aparelhos possui GPS, acelerômetro e pedômetro.
 
 # 3. REQUISITOS FUNCIONAIS (RF)
 
-| ID | Nome | Descrição Detalhada | Prioridade |
-|----|-----|-----------------------------------------------------|----|
-| RF-001 | Cadastro e Autenticação | O sistema deve permitir cadastro e login por e-mail/senha e por Google/Apple, emitindo token JWT com validade de 1 h e *refresh token*. Deve permitir recuperação de senha por e-mail e exigir confirmação de idade ≥ 16 anos e aceite dos termos e da política de privacidade. | Alta |
-| RF-002 | Gestão de Perfil | O usuário deve poder editar nome de usuário (único, 3–20 caracteres), avatar, cidade, unidades (km/mi), raio de privacidade (100–1000 m) e preferências de voz e notificação; deve poder **exportar** seus dados (JSON) e **excluir** a conta. | Média |
-| RF-003 | Escolha de Facção | No primeiro acesso, o usuário deve escolher uma das 4 facções. A troca é permitida 1 vez por temporada e zera a contribuição pessoal do usuário na temporada corrente. | Alta |
-| RF-004 | Rastreamento de Corrida | O sistema deve gravar a atividade por GPS a cada 1 s (com precisão, velocidade e altitude) e ler pedômetro e acelerômetro, inclusive com tela bloqueada e app em segundo plano. Deve exibir ao vivo: tempo, distância, pace atual, pace médio e zona atual; deve permitir pausar, retomar e finalizar (finalizar por gesto "deslizar" para evitar toque acidental) e pausar automaticamente quando a velocidade ficar < 1 km/h por 10 s. | Alta |
-| RF-005 | Gravação Offline e Sincronização | Sem internet, o app deve armazenar os pontos em banco local (SQLite) e sincronizá-los automaticamente em lotes de até 50 pontos quando a conexão voltar, com retentativa exponencial e sem duplicidade (idempotência por atividade + sequência). | Alta |
-| RF-006 | Resumo e Histórico de Atividades | Ao finalizar, o sistema deve exibir mapa do trajeto, distância, tempo em movimento, pace médio, splits por km, gráfico de pace, recordes pessoais, **lista de zonas afetadas** (RP ganhos, zonas conquistadas/defendidas), badges e eventuais trechos invalidados pelo anti-cheat com explicação. O histórico deve listar todas as atividades com filtros por período. | Alta |
-| RF-007 | Mapa de Território | O sistema deve exibir o mapa da cidade dividido em zonas H3 (res. 9) coloridas pela facção dona, com altura 3D proporcional à influência, zonas neutras em cinza, zonas bloqueadas hachuradas e zonas sob ataque pulsando. Ao tocar numa zona, deve abrir o detalhe: nome, dono, influência por facção, nível de escudo, top 3 corredores e últimos eventos. | Alta |
-| RF-008 | Conquista de Zona | Ao processar uma atividade válida, o servidor deve calcular os RP por zona (RN-001), atualizar a influência por facção e aplicar as regras de conquista (RN-002). Em caso de conquista, o app deve exibir o feedback visual de conquista (seção 6.2) e registrar o evento. | Alta |
-| RF-009 | Alerta de Invasão (Ataque) | Quando uma zona entrar no estado **sob ataque** (RN-003), o sistema deve enviar push aos membros da facção dona que correram nela nos últimos 30 dias, com o texto: "⚠️ Alerta de Invasão! Seu território em {zona} está sendo conquistado pelos {facção}. Corra lá nas próximas 24h para defender." O toque na notificação deve abrir o mapa centralizado na zona. | Alta |
-| RF-010 | Defesa e Fortificação | Durante a janela de defesa de 24 h, corridas da facção dona na zona atacada devem receber o multiplicador de defesa (RN-001). Corridas diárias consecutivas da facção dona devem elevar o escudo da zona (RN-004). | Alta |
-| RF-011 | Facções e Crews | O usuário deve poder criar uma Crew (nome, tag de 3–5 letras), convidar por link/código, aceitar/remover membros (líder), ver ranking interno, metas semanais e quem da Crew está correndo agora. Limite de 30 membros, todos da mesma facção. | Média |
-| RF-012 | Modo Fantasma | Ao estar dentro de uma zona dominada por outra facção, o usuário deve poder iniciar o desafio contra o fantasma do melhor tempo do dono na zona; o fantasma deve aparecer no mapa em tempo real e o resultado (vitória/derrota) deve ser exibido ao sair da zona. | Média |
-| RF-013 | Heatmap de Disputas | O sistema deve oferecer uma camada de heatmap com a intensidade de corridas e trocas de dono nas últimas 24 h, 7 dias ou temporada, no app e no painel web. | Média |
-| RF-014 | Feed Social | O usuário deve poder seguir outros corredores, ver o feed de atividades de quem segue e da sua Crew, dar "Respect" (curtida) e comentar. Atividades respeitam as zonas de privacidade (RN-009). | Média |
-| RF-015 | Rankings | O sistema deve exibir rankings individual, por Crew e por facção, filtráveis por distrito, cidade, estado, país, global e temporada, atualizados no máximo a cada 5 minutos. | Média |
-| RF-016 | Missões, Badges e Temporadas | O sistema deve oferecer missões diárias e semanais, conceder badges por conquistas (ex.: "Prefeito de {distrito}", "Muralha: 10 defesas") e executar o ciclo de temporadas mensais (RN-006). | Baixa |
-| RF-017 | Recap Compartilhável | O usuário deve poder gerar uma imagem ou vídeo curto (9:16) da corrida com o trajeto pintando as zonas e compartilhá-lo em redes sociais. | Baixa |
-| RF-018 | Moderação Anti-Cheat (Painel Web) | Moderadores devem visualizar a fila de atividades "em revisão", ver trajeto, gráficos de velocidade e cadência e as *flags* detectadas, e **aprovar** ou **rejeitar** cada uma com justificativa obrigatória; a decisão recalcula a pontuação e notifica o usuário. | Alta |
-| RF-019 | Central de Notificações | O app deve manter uma lista das notificações recebidas (invasões, conquistas, missões, moderação), marcando lidas/não lidas, e permitir configurar quais tipos o usuário deseja receber. | Baixa |
-| RF-020 | Competição entre Cidades | O sistema deve funcionar em qualquer cidade sem configuração prévia (zonas criadas automaticamente na primeira corrida em uma área). Cada usuário define uma **cidade natal**; os RP que ele ganha em **qualquer lugar** somam para a sua cidade natal no placar **Cidade × Cidade** da temporada (normalizado por corredores ativos, RN-013). O perfil deve mostrar as cidades onde o usuário já conquistou zonas e um mapa-múndi pessoal. Correr pela primeira vez em uma nova cidade concede a badge "Nômade" (1, 5 e 10 cidades). | Média |
+| ID | Nome do Requisito | Descrição Detalhada | Prioridade |
+|---|---|---|---|
+| RF-001 | Autenticação | O sistema deve permitir cadastro e login por e-mail e senha ou por conta Google/Apple, gerando um token JWT com validade de 1 hora e renovação automática. Deve permitir a recuperação de senha por e-mail e exigir, no cadastro, a confirmação de idade mínima de 16 anos e o aceite dos termos de uso e da política de privacidade. | Alta |
+| RF-002 | Gestão de Usuários | O usuário deve poder editar nome de usuário (único, de 3 a 20 caracteres), foto, cidade natal, unidade de medida (km ou milhas) e preferências de notificação. Deve poder exportar seus dados e solicitar a exclusão da conta. O administrador deve poder inativar contas. | Média |
+| RF-003 | Escolha de Facção | No primeiro acesso, o usuário deve escolher uma das quatro facções. A troca de facção é permitida uma vez por temporada e zera a contribuição pessoal do usuário na temporada atual. | Alta |
+| RF-004 | Registro de Corrida | O sistema deve registrar a posição GPS a cada 1 segundo, com precisão, velocidade e altitude, além dos dados de passos e movimento, inclusive com a tela bloqueada. Durante a corrida, deve exibir tempo, distância, ritmo atual, ritmo médio e a zona atual. Deve permitir pausar, retomar e finalizar a corrida, e pausar automaticamente quando a velocidade ficar abaixo de 1 km/h por 10 segundos. | Alta |
+| RF-005 | Gravação sem Internet | Sem conexão, o aplicativo deve armazenar os pontos da corrida no próprio celular e enviá-los automaticamente quando a conexão voltar, sem perda e sem duplicação de dados. | Alta |
+| RF-006 | Resumo e Histórico | Ao finalizar a corrida, o sistema deve exibir o mapa do percurso, distância, tempo em movimento, ritmo médio, parciais por quilômetro, gráfico de ritmo, recordes pessoais e a lista de zonas afetadas, com os pontos ganhos e as zonas conquistadas ou defendidas. Trechos invalidados pelo antifraude devem aparecer destacados e com explicação. O histórico deve listar todas as corridas, com filtro por período. | Alta |
+| RF-007 | Mapa de Território | O sistema deve exibir o mapa da cidade no padrão dos aplicativos de navegação (ruas, nomes, parques e pontos de referência), com as zonas sobrepostas como hexágonos semitransparentes na cor da facção dona, sem esconder as ruas. Zonas neutras não são preenchidas, zonas bloqueadas aparecem hachuradas e zonas sob ataque aparecem com borda vermelha piscante. Ao tocar em uma zona, o sistema deve exibir nome, facção dona, influência de cada facção, nível de escudo, os três maiores corredores e os últimos eventos. | Alta |
+| RF-008 | Conquista de Zona | Ao receber uma corrida válida, o servidor deve calcular os pontos de cada zona percorrida (RN-001), atualizar a influência das facções e aplicar as regras de conquista (RN-002). Em caso de conquista, o aplicativo deve exibir o aviso "Zona conquistada" e registrar o evento. | Alta |
+| RF-009 | Alerta de Invasão | Quando uma zona ficar sob ataque (RN-003), o sistema deve enviar notificação aos membros da facção dona que correram nela nos últimos 30 dias, com o texto: "Alerta de Invasão! Seu território em {zona} está sendo conquistado pelos {facção}. Corra lá nas próximas 24h para defender." Ao tocar na notificação, o aplicativo deve abrir o mapa centralizado na zona. | Alta |
+| RF-010 | Defesa e Fortificação | Durante as 24 horas seguintes ao alerta, as corridas da facção dona na zona atacada devem receber pontuação em dobro (RN-001). Corridas em dias seguidos da facção dona devem aumentar o escudo da zona (RN-004). | Alta |
+| RF-011 | Crews | O usuário deve poder criar uma Crew (nome e sigla de 3 a 5 letras), convidar membros por link ou código e acompanhar o ranking interno, as metas semanais e os membros que estão correndo no momento. O líder pode aceitar e remover membros. Limite de 30 membros, todos da mesma facção. | Média |
+| RF-012 | Modo Fantasma | Dentro de uma zona dominada por outra facção, o usuário deve poder iniciar um desafio contra o melhor tempo do dono naquele trecho. O fantasma deve aparecer no mapa em tempo real, e o resultado deve ser exibido quando o usuário sair da zona. | Média |
+| RF-013 | Mapa de Calor | O sistema deve oferecer uma camada de mapa de calor com a intensidade de corridas e de trocas de dono nas últimas 24 horas, 7 dias ou na temporada, no aplicativo e no painel web. | Média |
+| RF-014 | Feed Social | O usuário deve poder seguir outros corredores, visualizar as corridas de quem segue e da sua Crew, curtir ("Respect") e comentar. As atividades devem respeitar a zona de privacidade do usuário (RN-010). | Média |
+| RF-015 | Rankings | O sistema deve exibir rankings individuais, por Crew e por facção, com filtros por distrito, cidade, estado, país, geral e temporada, atualizados no máximo a cada 5 minutos. | Média |
+| RF-016 | Missões, Medalhas e Temporadas | O sistema deve oferecer missões diárias e semanais, conceder medalhas por conquistas (ex.: "Prefeito de {distrito}" e "Muralha: 10 defesas") e executar o ciclo de temporadas mensais (RN-006). | Baixa |
+| RF-017 | Compartilhar Corrida | O usuário deve poder gerar uma imagem do resumo da corrida, com o mapa do percurso e as zonas conquistadas, e compartilhá-la em redes sociais. | Baixa |
+| RF-018 | Moderação de Atividades | No painel web, o moderador deve visualizar a lista de corridas em revisão, com o percurso no mapa, os gráficos de velocidade e de passos e os alertas de fraude detectados. Deve poder aprovar ou rejeitar cada corrida, com justificativa obrigatória. A decisão recalcula a pontuação e notifica o usuário. | Alta |
+| RF-019 | Central de Notificações | O aplicativo deve manter uma lista das notificações recebidas (invasões, conquistas, missões e moderação), indicando as lidas e não lidas, e permitir escolher os tipos de notificação desejados. | Baixa |
+| RF-020 | Competição entre Cidades | O sistema deve funcionar em qualquer cidade sem configuração prévia: as zonas são criadas automaticamente na primeira corrida em uma região nova. Os pontos que o usuário ganha em qualquer lugar somam para a sua cidade natal no placar entre cidades da temporada (RN-013). O perfil deve mostrar as cidades onde o usuário já conquistou zonas. Correr pela primeira vez em uma nova cidade concede a medalha "Nômade" (1, 5 e 10 cidades). | Média |
 
 # 4. REQUISITOS NÃO FUNCIONAIS (RNF)
 
-Os critérios desta seção são **mensuráveis** e foram definidos com base nas skills do skills.sh indicadas na coluna "Categoria" (ver Apêndice A).
-
 | ID | Categoria | Descrição do Requisito / Critério de Aceite |
-|----|-----------|------------------------------------------------|
-| RNF-001 | Desempenho — Ingestão de GPS *(skill k6-load-testing / k6-perf-test-website)* | O endpoint de ingestão de pontos deve suportar **5.000 VUs simultâneos** enviando 1 lote a cada 5 s com **p95 < 300 ms, p99 < 800 ms e taxa de erro < 0,5%**. Devem existir scripts k6 para os cenários *smoke* (1 VU, 1 min), *load* (rampa até 5.000 VUs, 30 min), *stress* (até 10.000 VUs), *spike* (0→5.000 em 30 s) e *soak* (2.000 VUs por 2 h), com *thresholds* que reprovam o pipeline de CI quando violados. |
-| RNF-002 | Desempenho — Mapa *(skills mapbox-web-performance-patterns, react-native-skills)* | A tela de mapa deve renderizar pela primeira vez em **< 2,5 s** em aparelho Android intermediário (4 GB RAM) com 4G, e manter **≥ 55 fps** ao arrastar/zoom com até 2.000 hexágonos visíveis. Animações devem rodar na *UI thread*. |
-| RNF-003 | Desempenho — Tempo Real *(skill supabase-realtime)* | Uma mudança de dono de zona deve aparecer no mapa de todos os usuários que visualizam o distrito em **≤ 3 s (p95)**; o push de invasão deve ser disparado em **≤ 60 s** após o processamento da atividade. |
-| RNF-004 | Eficiência Energética | Uma hora de corrida com tela desligada deve consumir **≤ 8% da bateria** em aparelho de referência (bateria ≥ 4.000 mAh). |
-| RNF-005 | Confiabilidade | **Zero perda de pontos** em corridas gravadas offline de até 3 h; disponibilidade do back-end **≥ 99,5%** mensal; distância medida com erro **≤ 3%** em percurso aferido de 5 km a céu aberto. |
-| RNF-006 | Segurança — Integridade dos Dados de Localização *(skills trailofbits insecure-defaults, sharp-edges)* | Cada lote de pontos deve ser assinado com **HMAC-SHA256** usando chave por dispositivo guardada no armazenamento seguro do SO; o servidor deve rejeitar assinatura inválida, sequência fora de ordem, *timestamp* não monotônico e reenvio. **Toda pontuação é recalculada no servidor**; nenhum valor de RP enviado pelo cliente é aceito. O sistema deve falhar de forma segura (*fail-closed*): em caso de erro de validação, a atividade não pontua. |
-| RNF-007 | Segurança — Acesso e API *(skills owasp-security, supabase-postgres-best-practices)* | Conformidade com **OWASP ASVS nível 1**; RLS habilitado em **100% das tabelas**; escrita de influência/território apenas pela *service role*; comunicação somente por **HTTPS/TLS 1.2+**; senhas com hash **bcrypt (custo ≥ 10)**; *rate limit* de 1 lote/2 s por usuário na ingestão e 10 tentativas de login/15 min por IP; nenhum segredo no código-fonte; token do Mapbox com escopo mínimo e restrito ao *bundle* do app *(skill mapbox-token-security)*. |
-| RNF-008 | Segurança — Análise Contínua *(skills static-analysis, differential-review)* | O pipeline de CI deve executar análise estática (Semgrep) e bloquear *merge* com achados de severidade **alta ou crítica**; toda mudança no módulo anti-cheat deve passar por revisão de segurança diferencial. |
-| RNF-009 | Arquitetura e Manutenibilidade *(skill clean-architecture)* | As regras de negócio (pontuação, conquista, anti-cheat) devem ficar em um módulo de domínio **independente de framework** (sem dependência de React, Supabase ou Mapbox), acessando infraestrutura apenas por interfaces. Cobertura de testes unitários do domínio **≥ 90%**; TypeScript em modo *strict* sem uso de `any`. |
-| RNF-010 | Escalabilidade *(skills clean-architecture, supabase-postgres-best-practices)* | A ingestão deve ser assíncrona (resposta `202` e processamento em fila); a tabela de pontos deve ser particionada por mês; consultas de zonas por área visível devem usar índice geoespacial e responder em **< 150 ms (p95)** para até 2.000 zonas. |
-| RNF-011 | Usabilidade e Interface *(skills frontend-design, building-native-ui, ui-ux-pro-max)* | Interface em **dark mode por padrão**, seguindo o *design system* da seção 6.2; o usuário deve conseguir iniciar uma corrida em **no máximo 2 toques** a partir da tela inicial; textos em português do Brasil. |
-| RNF-012 | Acessibilidade *(skill web-design-guidelines)* | Contraste mínimo **WCAG 2.1 AA (4,5:1)**; alvos de toque ≥ 44×44 pt; todos os controles com rótulo para leitor de tela (TalkBack/VoiceOver); com "Reduzir movimento" ativo, nenhuma animação de pulso, onda ou partícula é exibida. |
-| RNF-013 | Testabilidade — Critérios Visuais *(skills playwright, maestro-mobile-testing)* | Todo elemento interativo deve ter `testID`/atributo de teste estável. Testes E2E mobile (Maestro) devem cobrir os casos de uso UC-01 a UC-03; testes E2E web (Playwright) devem validar o painel com **comparação visual** (`toHaveScreenshot`, tolerância ≤ 0,2% de pixels) nos estados: zona neutra, zona dominada (cor da facção), zona sob ataque (pulso vermelho) e heatmap ativo. |
-| RNF-014 | Privacidade (LGPD) | Consentimento explícito e separado para localização e notificações; finalidade informada antes do pedido de permissão; exportação e exclusão de dados atendidas em **≤ 30 dias**; trajetos públicos nunca mostram pontos dentro do raio de privacidade. |
-| RNF-015 | Compatibilidade | Android 8.0 (API 26)+ e iOS 15+; telas de 4,7" a 6,9"; painel web nos navegadores Chrome, Edge, Firefox e Safari (duas últimas versões). |
+|---|---|---|
+| RNF-001 | Desempenho | O serviço que recebe os pontos de GPS deve suportar **5.000 usuários correndo ao mesmo tempo**, cada um enviando dados a cada 5 segundos, com tempo de resposta **p95 inferior a 300 ms** e **taxa de erro inferior a 0,5%**. A verificação será feita com testes de carga (ferramenta k6) nos cenários de carga normal, estresse, pico repentino e longa duração (2 horas). |
+| RNF-002 | Desempenho | A tela do mapa deve ser exibida em **menos de 2,5 segundos** em um celular Android intermediário (4 GB de RAM) com rede 4G e deve continuar fluida (**no mínimo 55 quadros por segundo**) ao arrastar e aproximar o mapa com até 2.000 zonas visíveis. |
+| RNF-003 | Desempenho | Uma troca de dono de zona deve aparecer no mapa dos demais usuários que visualizam a região em **até 3 segundos**. A notificação de invasão deve ser enviada em **até 60 segundos** após o processamento da corrida. |
+| RNF-004 | Eficiência | Uma hora de corrida com a tela desligada deve consumir **no máximo 8% da bateria** de um aparelho com bateria de 4.000 mAh ou mais. |
+| RNF-005 | Confiabilidade | **Nenhum ponto de GPS pode ser perdido** em corridas gravadas sem internet de até 3 horas. O servidor deve ter **disponibilidade mínima de 99,5%** ao mês. A distância medida deve ter **erro máximo de 3%** em um percurso aferido de 5 km a céu aberto. |
+| RNF-006 | Segurança | Os pontos de GPS enviados pelo aplicativo devem ser **assinados digitalmente (HMAC-SHA256)** com uma chave exclusiva de cada aparelho. O servidor deve rejeitar dados com assinatura inválida, fora de ordem ou reenviados. **Toda a pontuação é recalculada pelo servidor**: nenhum ponto calculado pelo aplicativo é aceito. Em caso de erro na validação, a corrida não pontua. |
+| RNF-007 | Segurança | Senhas armazenadas com **hash bcrypt (custo ≥ 10)**; comunicação exclusivamente por **HTTPS (TLS 1.2 ou superior)**; controle de acesso no banco de dados garantindo que cada usuário acesse apenas os próprios dados privados; limite de 10 tentativas de login a cada 15 minutos por endereço IP; nenhuma senha ou chave de acesso gravada no código-fonte. O sistema deve atender às recomendações do OWASP Top 10. |
+| RNF-008 | Manutenibilidade | As regras de pontuação, conquista e antifraude devem ficar em um módulo separado da interface e do banco de dados, com **cobertura mínima de 90% por testes unitários**. O código deve passar por análise estática automática a cada alteração, sem falhas de severidade alta. |
+| RNF-009 | Escalabilidade | O recebimento dos pontos de GPS deve ser assíncrono (o aplicativo não espera o processamento completo). A consulta das zonas visíveis na tela deve responder em **menos de 150 ms (p95)** para até 2.000 zonas, utilizando índices geográficos. |
+| RNF-010 | Usabilidade | O usuário deve conseguir iniciar uma corrida com **no máximo 2 toques** a partir da tela inicial. O mapa deve seguir o padrão visual dos aplicativos de navegação, com **tema claro durante o dia e tema escuro automático à noite** (ou conforme a preferência do usuário). Todos os textos em português do Brasil. |
+| RNF-011 | Acessibilidade | Contraste mínimo de **4,5:1 (WCAG 2.1 nível AA)** para textos; botões com área de toque de no mínimo **44 × 44 pontos**; todos os controles com descrição para leitores de tela (TalkBack e VoiceOver). Com a opção "Reduzir movimento" do sistema ativada, nenhuma animação de piscar ou pulsar deve ser exibida. |
+| RNF-012 | Testabilidade | Todo elemento interativo deve possuir um identificador de teste fixo. Os casos de uso UC-01, UC-02 e UC-03 devem ser cobertos por testes automatizados de ponta a ponta no aplicativo (ferramenta Maestro). O painel web deve ter testes automatizados com comparação de imagem (ferramenta Playwright, tolerância máxima de 0,2% de diferença) nos estados: zona neutra, zona dominada, zona sob ataque e mapa de calor ativo. |
+| RNF-013 | Privacidade | Consentimento separado e explícito para localização e notificações, com explicação da finalidade antes do pedido de permissão. Pedidos de exportação e exclusão de dados atendidos em **até 30 dias** (LGPD). Percursos públicos nunca exibem pontos dentro da zona de privacidade do usuário. |
+| RNF-014 | Compatibilidade | Android 8.0 ou superior e iOS 15 ou superior, telas de 4,7" a 6,9". Painel web compatível com Chrome, Edge, Firefox e Safari (duas últimas versões). |
 
 # 5. REGRAS DE NEGÓCIO (RN)
 
 | ID | Regra | Detalhamento |
-|----|----|-------------------------------------------------------|
-| RN-001 | Cálculo de Run Points (Pace × Distância) | Para cada zona percorrida em uma atividade válida: **RP = metros_válidos × 0,1 × M_pace × M_streak × M_fantasma × M_grupo × M_defesa**, arredondado para inteiro. **M_pace** = 360 ÷ pace (s/km), limitado entre 0,75 e 1,50 (referência 6:00 min/km; ex.: pace 5:00 → 1,20). **M_streak** = 1 + 0,05 × dias consecutivos de corrida (máx. 10 dias → 1,50). **M_fantasma** = 1,5 se venceu o fantasma, senão 1,0. **M_grupo** = 1,25 se ≥ 3 membros da mesma Crew correram a ≤ 50 m entre si em ≥ 60% do trecho, senão 1,0. **M_defesa** = 2,0 se a zona é da facção do corredor e está sob ataque, senão 1,0. **Teto:** 300 RP por usuário, por zona, por dia. Exemplo: 800 m a 5:00 min/km, streak de 4 dias, sem outros bônus → 800 × 0,1 × 1,20 × 1,20 = **115 RP**. |
-| RN-002 | Conquista com Histerese | Zona neutra passa a pertencer à primeira facção que atingir **influência ≥ 100**. Zona com dono só muda de dono quando **influência do desafiante ≥ influência do dono × 1,10**. Empates mantêm o dono atual. Zonas bloqueadas nunca têm dono. |
-| RN-003 | Estado "Sob Ataque" e Janela de Defesa | Uma zona entra em **sob ataque** quando alguma facção inimiga atinge **≥ 50%** da influência do dono. Nesse momento abre-se uma **janela de defesa de 24 h** e é disparado o alerta do RF-009. Cada usuário recebe no máximo **1 alerta por zona a cada 6 h** e no máximo **5 alertas de invasão por dia**. A zona sai do estado quando a razão cai abaixo de 40% ou quando muda de dono. |
-| RN-004 | Fortificação (Escudo) | Cada dia consecutivo em que a facção dona soma **≥ 500 m** corridos na zona eleva o escudo em 1 nível (máximo 3). O escudo reduz os RP de facções inimigas na zona em **10% / 20% / 30%** (níveis 1/2/3). Um dia sem a facção dona correr ali reduz o escudo em 1 nível. |
-| RN-005 | Decaimento de Influência | Diariamente às 03:00 (horário de Brasília) a influência de todas as facções em todas as zonas é multiplicada por **0,90**. Valores abaixo de 5 são zerados. Se a influência do dono ficar abaixo de 100, a zona volta a ser **neutra**. |
-| RN-006 | Temporadas | Cada temporada dura um mês civil. No encerramento: rankings são congelados e arquivados, badges de temporada são concedidas (top 10 individual, top 3 Crews, facção campeã) e a influência de todas as zonas é multiplicada por **0,30**. A troca de facção (RF-003) fica liberada novamente. |
-| RN-007 | Anti-Cheat — Validação de GPS | São aplicadas, nesta ordem: (a) pontos com precisão > 30 m são descartados; (b) **qualquer ponto com velocidade > 40 km/h** invalida o trecho; (c) **velocidade média > 25 km/h por mais de 30 s** invalida o trecho (*flag* VEHICLE_SUSPECTED); (d) **deslocamento > 50 m com intervalo ≤ 1 s** invalida o trecho (*flag* TELEPORT); (e) qualquer ponto marcado pelo SO como **localização simulada** rejeita a atividade inteira (*flag* MOCK_LOCATION). Trechos inválidos não geram RP nem distância para ranking. |
-| RN-008 | Anti-Cheat — Acelerômetro × GPS | Quando a velocidade do GPS estiver entre **8 e 20 km/h**, a cadência medida pelo pedômetro deve estar entre **120 e 220 passos/min**. Cadência **< 60 passos/min por mais de 60 s** nessa faixa de velocidade invalida o trecho (*flag* NO_STEPS — indica celular em veículo). A variância da magnitude do acelerômetro em janelas de 5 s deve ser compatível com o impacto da passada; sinal "liso" com velocidade acima de 12 km/h gera *flag* VEHICLE_SUSPECTED. Aparelhos sem pedômetro têm suas atividades com mais de 10 km enviadas para revisão. |
-| RN-009 | Trust Score e Revisão | Todo usuário inicia com Trust Score 100. Penalidades: MOCK_LOCATION −30; TELEPORT −10; VEHICLE_SUSPECTED −10; NO_STEPS −10. Recuperação: +2 por atividade 100% válida (máx. 100). Com **Trust Score < 40**, todas as atividades entram em **revisão manual** (RF-018) e não pontuam até aprovação. Com **< 10**, a conta é suspensa da competição por 30 dias. |
-| RN-010 | Privacidade do Trajeto | Pontos dentro do raio de privacidade em torno de endereços marcados pelo usuário (padrão 200 m) **contam RP**, mas **nunca** são exibidos em feed, perfil público, recap ou painel web. |
-| RN-011 | Facção e Crew | Um usuário pertence a exatamente 1 facção e a no máximo 1 Crew. A Crew deve ser da mesma facção do usuário. Ao trocar de facção, o usuário sai automaticamente da Crew. |
-| RN-012 | Título de Prefeito | O usuário com a maior soma de RP em um distrito (H3 res. 7) na temporada, desde que sua facção domine ≥ 30% das zonas do distrito, recebe o título e a badge "Prefeito de {distrito}". |
-| RN-013 | Placar Cidade × Cidade | A pontuação de cada cidade na temporada é **soma dos RP válidos dos usuários com aquela cidade natal ÷ raiz quadrada do número de corredores ativos** (≥ 1 atividade válida na temporada), para que cidades pequenas possam competir com metrópoles. Só entram no placar cidades com ≥ 20 corredores ativos. Ao fim da temporada, a cidade campeã recebe a badge coletiva "Capital Nômade" para todos os seus corredores ativos. |
+|---|---|---|
+| RN-001 | Cálculo de Pontos (Ritmo × Distância) | Para cada zona percorrida em uma corrida válida: **RP = metros válidos × 0,1 × M_ritmo × M_sequência × M_fantasma × M_grupo × M_defesa**, arredondado para número inteiro. **M_ritmo** = 360 ÷ ritmo em segundos por km, limitado entre 0,75 e 1,50 (referência de 6:00 min/km; ex.: ritmo de 5:00 min/km resulta em 1,20). **M_sequência** = 1 + 0,05 × dias seguidos de corrida (máximo de 10 dias, resultando em 1,50). **M_fantasma** = 1,5 se o usuário venceu o fantasma, senão 1,0. **M_grupo** = 1,25 se 3 ou mais membros da mesma Crew correram a até 50 m entre si em pelo menos 60% do trecho, senão 1,0. **M_defesa** = 2,0 se a zona pertence à facção do usuário e está sob ataque, senão 1,0. **Limite:** 300 RP por usuário, por zona, por dia. *Exemplo:* 800 m a 5:00 min/km com 4 dias seguidos de corrida: 800 × 0,1 × 1,20 × 1,20 = **115 RP**. |
+| RN-002 | Conquista de Zona | Uma zona neutra passa a pertencer à primeira facção que atingir **influência igual ou superior a 100**. Uma zona com dono só muda de dono quando **a influência da facção desafiante for igual ou superior a 110% da influência do dono**. Em caso de empate, o dono atual é mantido. Zonas bloqueadas nunca têm dono. |
+| RN-003 | Zona Sob Ataque | Uma zona fica **sob ataque** quando uma facção adversária atinge **50% ou mais** da influência do dono. Nesse momento é aberto um **prazo de defesa de 24 horas** e enviado o alerta do RF-009. Cada usuário recebe no máximo **1 alerta por zona a cada 6 horas** e no máximo **5 alertas de invasão por dia**. A zona deixa de estar sob ataque quando essa proporção cai abaixo de 40% ou quando a zona muda de dono. |
+| RN-004 | Fortificação (Escudo) | Cada dia seguido em que a facção dona soma **500 m ou mais** corridos na zona aumenta o escudo em 1 nível (máximo 3). O escudo reduz os pontos das facções adversárias na zona em **10%, 20% ou 30%** (níveis 1, 2 e 3). Um dia sem corridas da facção dona reduz o escudo em 1 nível. |
+| RN-005 | Redução Diária de Influência | Todos os dias, às 03:00 (horário de Brasília), a influência de todas as facções em todas as zonas é multiplicada por **0,90**. Valores abaixo de 5 são zerados. Se a influência do dono ficar abaixo de 100, a zona volta a ser **neutra**. |
+| RN-006 | Temporadas | Cada temporada dura um mês. No encerramento, os rankings são arquivados, as medalhas da temporada são entregues (10 primeiros corredores, 3 primeiras Crews, facção e cidade campeãs) e a influência de todas as zonas é multiplicada por **0,30**. A troca de facção (RF-003) é liberada novamente. |
+| RN-007 | Antifraude: Validação do GPS | As verificações são aplicadas nesta ordem: (a) pontos com precisão pior que 30 m são descartados; (b) **qualquer ponto acima de 40 km/h** invalida o trecho; (c) **velocidade média acima de 25 km/h por mais de 30 segundos** invalida o trecho (suspeita de veículo); (d) **deslocamento maior que 50 m em até 1 segundo** invalida o trecho (salto de posição); (e) qualquer ponto identificado pelo sistema operacional como **localização simulada** invalida a corrida inteira. Trechos inválidos não geram pontos nem contam distância para os rankings. |
+| RN-008 | Antifraude: Passos × Velocidade | Quando a velocidade do GPS estiver entre **8 e 20 km/h**, a cadência medida pelo sensor de passos deve estar entre **120 e 220 passos por minuto**. Cadência **abaixo de 60 passos por minuto por mais de 60 segundos** nessa faixa de velocidade invalida o trecho, pois indica que o celular está em um veículo. O acelerômetro também deve registrar a vibração típica da passada; sinal sem vibração com velocidade acima de 12 km/h indica suspeita de veículo. Em aparelhos sem sensor de passos, corridas acima de 10 km são enviadas para revisão. |
+| RN-009 | Índice de Confiança | Todo usuário começa com Índice de Confiança 100. Penalidades: localização simulada −30; salto de posição −10; suspeita de veículo −10; ausência de passos −10. Recuperação: +2 por corrida totalmente válida, até o máximo de 100. Com **índice abaixo de 40**, todas as corridas passam por **revisão manual** (RF-018) e só pontuam após aprovação. Com **índice abaixo de 10**, o usuário é suspenso da competição por 30 dias. |
+| RN-010 | Zona de Privacidade | Os pontos dentro do raio de privacidade definido pelo usuário (padrão de 200 m em torno dos endereços marcados) **geram pontos normalmente**, mas **nunca** são exibidos no feed, no perfil público, no compartilhamento ou no painel web. |
+| RN-011 | Facção e Crew | Cada usuário pertence a exatamente uma facção e a no máximo uma Crew. A Crew deve ser da mesma facção do usuário. Ao trocar de facção, o usuário sai automaticamente da Crew. |
+| RN-012 | Título de Prefeito | O usuário com a maior soma de pontos em um distrito na temporada recebe o título e a medalha "Prefeito de {distrito}", desde que a sua facção domine pelo menos 30% das zonas desse distrito. |
+| RN-013 | Placar entre Cidades | A pontuação de cada cidade na temporada é a **soma dos pontos válidos dos usuários que têm aquela cidade natal, dividida pela raiz quadrada do número de corredores ativos** (com pelo menos uma corrida válida na temporada). A divisão permite que cidades menores concorram com as capitais. Só participam do placar cidades com 20 ou mais corredores ativos. A cidade natal pode ser trocada uma vez por temporada. |
 
 # 6. CASOS DE USO E INTERFACES
 
 ## 6.1 Diagramas de Casos de Uso
 
-**Atores:** Corredor (principal), Líder de Crew (especialização de Corredor), Moderador, Administrador, Sistema Anti-Cheat (ator secundário automático), Serviço de Push (sistema externo), Provedor de Mapas (sistema externo).
+**Atores:** Corredor (ator principal); Líder de Crew (especialização do Corredor); Moderador; Administrador; Sistema Antifraude (ator secundário, automático); Serviço de Notificações (sistema externo); Provedor de Mapas (sistema externo).
 
-![Diagrama de casos de uso do NOMADE RUN](assets/casos-de-uso.png)
+![Figura 1: Diagrama de casos de uso do NOMADE RUN](assets/casos-de-uso.png)
 
-### UC-01 — Correr e Conquistar
+### UC-01: Correr e Conquistar
 
 | Campo | Descrição |
-|----------|--------------------------------------------------|
+|---|---|
 | **Ator principal** | Corredor |
-| **Atores secundários** | Sistema Anti-Cheat, Provedor de Mapas, Serviço de Push |
+| **Atores secundários** | Sistema Antifraude, Provedor de Mapas, Serviço de Notificações |
 | **Requisitos relacionados** | RF-004, RF-005, RF-006, RF-007, RF-008; RN-001, RN-002, RN-007, RN-008, RN-009 |
 | **Pré-condições** | Usuário autenticado, com facção escolhida e permissão de localização concedida. |
-| **Pós-condições (sucesso)** | Atividade salva como válida; RP creditados; influência atualizada; conquistas registradas e exibidas. |
-| **Fluxo principal** | 1. O corredor toca em **CORRER** na tela de mapa. 2. O sistema verifica o sinal de GPS e exibe contagem regressiva de 3 s. 3. O sistema inicia a gravação e exibe o HUD ao vivo (tempo, distância, pace, zona atual com barra de influência). 4. O corredor percorre uma ou mais zonas; a cada zona, o sistema mostra a prévia de RP (cálculo otimista local). 5. O corredor desliza para finalizar. 6. O sistema envia os pontos restantes ao servidor. 7. O servidor executa o anti-cheat (RN-007, RN-008) e calcula os RP por zona (RN-001). 8. O servidor aplica a regra de conquista (RN-002) e registra os eventos. 9. O sistema exibe o resumo com zonas afetadas e, para cada zona conquistada, o feedback visual de conquista. |
-| **Fluxo alternativo A1 — Sem internet** | No passo 6, sem conexão, os pontos ficam na fila local; o resumo é exibido como "provisório" e é confirmado automaticamente ao sincronizar (RF-005). |
-| **Fluxo alternativo A2 — Pausa** | Entre os passos 3 e 5, o corredor pausa (manual ou automática); o tempo parado não conta como tempo em movimento. |
-| **Fluxo de exceção E1 — Trecho inválido** | No passo 7, se houver trechos inválidos, eles são destacados em cinza no resumo, com explicação ("velocidade incompatível com corrida"); apenas os trechos válidos pontuam. |
-| **Fluxo de exceção E2 — Localização simulada** | No passo 7, se for detectado *mock location*, a atividade é rejeitada, o Trust Score é reduzido e o usuário é informado. |
-| **Fluxo de exceção E3 — GPS fraco** | No passo 2, se a precisão for > 30 m por mais de 15 s, o sistema avisa e permite iniciar mesmo assim. |
+| **Pós-condições** | Corrida salva como válida, pontos creditados, influência atualizada e conquistas registradas. |
+| **Fluxo principal** | 1. O corredor toca em **Correr** na tela do mapa. 2. O sistema verifica o sinal de GPS e exibe uma contagem regressiva de 3 segundos. 3. O sistema inicia a gravação e exibe tempo, distância, ritmo e a zona atual com a barra de influência. 4. O corredor percorre uma ou mais zonas, e o sistema mostra uma estimativa dos pontos ganhos em cada uma. 5. O corredor finaliza a corrida. 6. O aplicativo envia os pontos restantes ao servidor. 7. O servidor executa as verificações antifraude (RN-007 e RN-008) e calcula os pontos de cada zona (RN-001). 8. O servidor aplica as regras de conquista (RN-002) e registra os eventos. 9. O aplicativo exibe o resumo da corrida com as zonas afetadas e o aviso "Zona conquistada" para cada conquista. |
+| **Fluxo alternativo A1: sem internet** | No passo 6, sem conexão, os pontos ficam armazenados no celular. O resumo é exibido como "provisório" e confirmado automaticamente após a sincronização (RF-005). |
+| **Fluxo alternativo A2: pausa** | Entre os passos 3 e 5, o corredor pausa a corrida (manual ou automaticamente). O tempo parado não é contado como tempo em movimento. |
+| **Fluxo de exceção E1: trecho inválido** | No passo 7, os trechos reprovados pelo antifraude aparecem em cinza no resumo, com a explicação "velocidade incompatível com corrida a pé". Apenas os trechos válidos geram pontos. |
+| **Fluxo de exceção E2: localização simulada** | No passo 7, se for detectada localização simulada, a corrida é rejeitada, o Índice de Confiança é reduzido e o usuário é informado. |
+| **Fluxo de exceção E3: GPS fraco** | No passo 2, se a precisão ficar pior que 30 m por mais de 15 segundos, o sistema exibe um aviso e permite iniciar mesmo assim. |
 
-### UC-02 — Defender Território
-
-| Campo | Descrição |
-|----------|--------------------------------------------------|
-| **Ator principal** | Corredor (membro da facção dona) |
-| **Atores secundários** | Serviço de Push, Sistema Anti-Cheat |
-| **Requisitos relacionados** | RF-009, RF-010, RF-007; RN-003, RN-004, RN-001 (M_defesa) |
-| **Pré-condições** | A facção do corredor é dona da zona; a zona entrou no estado "sob ataque"; o corredor correu na zona nos últimos 30 dias e tem notificações de invasão ativas. |
-| **Pós-condições (sucesso)** | Influência da facção dona volta a superar o atacante; zona sai do estado "sob ataque"; evento "defendida" registrado; badge de defesa contabilizada. |
-| **Fluxo principal** | 1. O sistema detecta que uma facção inimiga atingiu ≥ 50% da influência do dono (RN-003). 2. O sistema envia o push de Alerta de Invasão. 3. O corredor toca na notificação. 4. O app abre o mapa centralizado na zona, pulsando em vermelho, com o contador regressivo da janela de 24 h e a barra de influência dono × atacante. 5. O corredor executa o **UC-01** dentro da zona. 6. O servidor aplica o multiplicador de defesa ×2,0. 7. Se a razão cair abaixo de 40%, o sistema marca a zona como **defendida**, envia notificação de sucesso à facção e exibe o feedback "ZONA DEFENDIDA". |
-| **Fluxo alternativo A1 — Defesa coletiva** | No passo 5, vários membros da facção correm na zona; os RP de todos somam para a defesa. |
-| **Fluxo alternativo A2 — Defesa insuficiente** | No passo 7, se o atacante ainda superar o dono em ≥ 10%, a zona muda de dono (RN-002) e os antigos donos recebem notificação "Território perdido". |
-| **Fluxo de exceção E1 — Janela expirada** | Se o corredor tocar na notificação após as 24 h, o app informa o estado atual da zona (defendida, perdida ou ainda em disputa). |
-
-### UC-03 — Analisar Heatmap
+### UC-02: Defender Território
 
 | Campo | Descrição |
-|----------|--------------------------------------------------|
-| **Ator principal** | Corredor (no app) ou Moderador/Administrador (no painel web) |
+|---|---|
+| **Ator principal** | Corredor (membro da facção dona da zona) |
+| **Atores secundários** | Serviço de Notificações, Sistema Antifraude |
+| **Requisitos relacionados** | RF-007, RF-009, RF-010; RN-001, RN-003, RN-004 |
+| **Pré-condições** | A facção do corredor é dona da zona; a zona está sob ataque; o corredor correu na zona nos últimos 30 dias e permite notificações de invasão. |
+| **Pós-condições** | A facção dona volta a ter vantagem; a zona deixa de estar sob ataque; o evento "Zona defendida" é registrado. |
+| **Fluxo principal** | 1. O sistema identifica que uma facção adversária atingiu 50% da influência do dono (RN-003). 2. O sistema envia a notificação "Alerta de Invasão". 3. O corredor toca na notificação. 4. O aplicativo abre o mapa centralizado na zona, com borda vermelha, contagem regressiva do prazo de 24 horas e comparação de influência entre dono e atacante. 5. O corredor executa o **UC-01** dentro da zona. 6. O servidor aplica a pontuação em dobro de defesa. 7. Quando a proporção do atacante cai abaixo de 40%, o sistema marca a zona como defendida, notifica a facção e exibe o aviso "Zona defendida". |
+| **Fluxo alternativo A1: defesa em grupo** | No passo 5, vários membros da facção correm na zona, e os pontos de todos somam para a defesa. |
+| **Fluxo alternativo A2: defesa insuficiente** | No passo 7, se o atacante atingir 110% da influência do dono, a zona muda de dono (RN-002) e os antigos donos recebem a notificação "Território perdido". |
+| **Fluxo de exceção E1: prazo encerrado** | Se o corredor abrir a notificação após as 24 horas, o aplicativo informa a situação atual da zona (defendida, perdida ou ainda em disputa). |
+
+### UC-03: Analisar Mapa de Calor
+
+| Campo | Descrição |
+|---|---|
+| **Ator principal** | Corredor (no aplicativo) ou Moderador/Administrador (no painel web) |
 | **Atores secundários** | Provedor de Mapas |
-| **Requisitos relacionados** | RF-013, RF-007, RF-015; RNF-002, RNF-003 |
-| **Pré-condições** | Usuário autenticado; dados de atividades disponíveis no período. |
-| **Pós-condições (sucesso)** | Usuário visualiza a intensidade das disputas e pode navegar até uma zona de interesse. |
-| **Fluxo principal** | 1. O usuário abre o seletor de camadas do mapa. 2. Seleciona **Heatmap**. 3. Escolhe o período (24 h, 7 dias ou temporada). 4. O sistema carrega as zonas da área visível e exibe a camada de calor (cores frias = pouca atividade; quentes = muita disputa). 5. O usuário toca em uma área quente. 6. O sistema exibe o detalhe da zona: trocas de dono no período, facções envolvidas e corredores mais ativos. 7. O usuário pode tocar em **"Ir para lá"** para iniciar uma corrida (UC-01) ou **"Desafiar Fantasma"** (RF-012). |
-| **Fluxo alternativo A1 — Painel web** | No painel, o moderador pode filtrar o heatmap por facção e exportar a imagem/CSV da área. |
-| **Fluxo de exceção E1 — Sem dados** | Se não houver atividade no período, o sistema exibe "Nenhuma disputa neste período" e sugere ampliar o intervalo. |
+| **Requisitos relacionados** | RF-007, RF-013, RF-015, RF-020; RNF-002, RNF-003 |
+| **Pré-condições** | Usuário autenticado e existência de corridas no período consultado. |
+| **Pós-condições** | O usuário visualiza as regiões com mais disputa e pode navegar até uma zona de interesse. |
+| **Fluxo principal** | 1. O usuário abre o seletor de camadas do mapa. 2. Seleciona **Mapa de calor**. 3. Escolhe o período (24 horas, 7 dias ou temporada). 4. O sistema carrega as zonas da área visível e exibe a camada de calor (cores frias para pouca atividade e quentes para muita disputa). 5. O usuário toca em uma área de alta disputa. 6. O sistema exibe os detalhes da zona: trocas de dono no período, facções envolvidas e corredores mais ativos. 7. O usuário pode tocar em **Ir até lá** para iniciar uma corrida (UC-01) ou em **Desafiar Fantasma** (RF-012). |
+| **Fluxo alternativo A1: painel web** | No painel web, o moderador pode filtrar o mapa de calor por facção e exportar os dados da região em planilha (CSV). |
+| **Fluxo de exceção E1: sem dados** | Se não houver corridas no período, o sistema exibe "Nenhuma disputa neste período" e sugere ampliar o intervalo. |
 
 ## 6.2 Requisitos de Interface com o Usuário (Mockups/Wireframes)
 
-**Diretrizes gerais (skills frontend-design, building-native-ui, ui-ux-pro-max, expo-motion):**
+A interface do NOMADE RUN combina duas referências conhecidas pelos usuários: o **mapa dos aplicativos de navegação** (Google Maps e Waze), que ocupa a maior parte da tela inicial, e o **registro de atividades dos aplicativos de corrida** (Strava). Os territórios aparecem como uma camada por cima do mapa, sem esconder as ruas, os nomes e os pontos de referência.
 
 | Elemento | Especificação |
-|---------|---------------------------------------------------|
-| **Tema** | Dark mode por padrão — fundo `#0A0B10`, superfícies `#12141C` / `#1A1D29`, bordas `#2A2F3F`, texto `#E8ECF4`, texto secundário `#8A93A8`. |
-| **Cores das facções** | Neon Striders `#00F0FF` · Urban Coyotes `#FF6B1A` · Night Owls `#B026FF` · Volt Runners `#C6FF00`. |
-| **Cores de estado** | Ataque/perigo `#FF2E63` · Sucesso `#00FF9C` · Alerta `#FFD600`. |
-| **Tipografia** | Orbitron (títulos de impacto), Space Grotesk (títulos), Inter (texto), JetBrains Mono (números: tempo, pace, distância). |
-| **Efeito neon (glow)** | Elementos da facção têm borda de 1 px com 60% de opacidade e sombra colorida com desfoque de 16–24 px. |
-| **Navegação** | Barra inferior com 5 abas: Mapa · Feed · **CORRER** (botão central destacado) · Ranking · Perfil. |
+|---|---|
+| **Mapa base** | Mapa vetorial com ruas, avenidas, nomes de vias, bairros, parques, lagos e pontos de interesse. Tema claro durante o dia e escuro automaticamente após o pôr do sol. |
+| **Camada de território** | Hexágonos com **preenchimento de 20% a 30% de opacidade** e borda de 1,5 px na cor da facção dona. Zonas neutras não recebem preenchimento. Zonas sob ataque recebem borda vermelha (`#E53935`) tracejada e piscante. |
+| **Cores das facções** | Neon Striders: ciano `#00ACC1` · Urban Coyotes: laranja `#F57C00` · Night Owls: roxo `#7E57C2` · Volt Runners: verde `#7CB342`. |
+| **Posição do usuário** | Ponto azul com indicador de direção e círculo de precisão, no mesmo padrão dos aplicativos de navegação. |
+| **Percurso da corrida** | Linha contínua de 5 px na cor da facção do usuário, com contorno branco para leitura sobre o mapa. |
+| **Tipografia** | Fonte sem serifa (Inter) em todo o aplicativo; números de tempo, distância e ritmo com algarismos de largura fixa, para não "tremerem" durante a corrida. |
+| **Navegação** | Barra inferior com 5 opções: Mapa · Feed · **Correr** (botão central em destaque) · Ranking · Perfil. |
 
-**Feedback visual obrigatório:**
+**Retorno visual obrigatório:**
 
-| Evento | Feedback | Critério de aceite |
-|---------|-----------------------------------|-----------------|
-| Carregar o mapa | Hexágonos "sobem" do chão em onda a partir da posição do usuário. | Duração total ≤ 800 ms. |
-| Zona sob ataque | Pulso de opacidade/altura na cor `#FF2E63` a cada 1,5 s. | Visível em zoom ≥ 13. |
-| **Conquista de zona** | Onda de luz no hexágono, explosão de partículas na cor da facção, vibração (*haptic* de sucesso), som curto (≤ 400 ms) e aviso "ZONA CONQUISTADA · {zona} +{RP} RP". | Exibido em ≤ 1 s após a confirmação do servidor; aviso visível por 3 s. |
-| Entrar em território inimigo | Vinheta vermelha nas bordas da tela + aviso por voz "Você entrou em território dos {facção}". | Disparado em ≤ 3 s após cruzar o limite da zona. |
-| Rastro da corrida | Linha neon com gradiente que esmaece (efeito cometa). | Atualizada a cada ponto de GPS. |
-| Resumo | Números com contagem animada. | Duração ≤ 1,2 s. |
-| Reduzir movimento ativo | Nenhum pulso, onda ou partícula; apenas troca de cor. | Verificado em teste E2E. |
+| Evento | Retorno ao usuário | Critério de aceite |
+|---|---|---|
+| Entrar em território adversário | Faixa no topo da tela na cor da facção dona com a mensagem "Você entrou em território dos {facção}" e aviso por voz. | Exibido em até 3 segundos após cruzar o limite da zona. |
+| Zona conquistada | O hexágono muda para a cor da facção do usuário com uma animação curta, o celular vibra e é exibido o aviso "Zona conquistada · {zona} +{RP} RP". | Exibido em até 1 segundo após a confirmação do servidor; aviso visível por 3 segundos. |
+| Zona sob ataque | Borda vermelha piscante a cada 1,5 segundo. | Visível em aproximação de bairro ou maior. |
+| Atualização da corrida | Tempo, distância e ritmo atualizados na tela. | Atualização a cada 1 segundo. |
+| "Reduzir movimento" ativado | Nenhuma animação de piscar, pulsar ou transição; apenas mudança de cor. | Verificado em teste automatizado. |
 
-**Wireframes das telas principais** (Mapa de Território, Corrida ao Vivo e Resumo da Corrida):
+**Protótipos das telas principais:** a Figura 2 apresenta os protótipos de alta fidelidade das três telas principais do aplicativo.
 
-![Wireframes: Mapa, Corrida ao vivo e Resumo](assets/wireframes.png)
+![Figura 2: Protótipos das telas Mapa de Território, Corrida em Andamento e Resumo da Corrida](assets/wireframes.png)
 
-## 6.3 Interfaces de Hardware e Software
+- **Tela 1, Mapa de Território:** tela inicial. Mostra o mapa da região do usuário com os territórios de cada facção. Na parte superior, a barra de busca e os filtros; na inferior, o painel da zona selecionada, com a disputa de influência e o prazo de defesa.
+- **Tela 2, Corrida em Andamento:** mapa aproximado com o percurso, aviso de entrada em território adversário e painel com tempo, distância, ritmo, cadência e progresso para conquistar a zona atual.
+- **Tela 3, Resumo da Corrida:** mapa do percurso com as zonas conquistadas, métricas da corrida e lista de zonas afetadas, com os pontos ganhos e o resultado de cada uma.
 
-**Interfaces de hardware (sensores do aparelho):**
+## 6.3 Interfaces de Hardware e Software (APIs de terceiros)
 
-| Recurso | Uso | API / Biblioteca |
-|---------|-------------------------|---------------------------|
-| GPS / GNSS | Posição a cada 1 s, com precisão, velocidade e altitude, em primeiro e segundo plano. | `expo-location` + `expo-task-manager` (Android Fused Location Provider / iOS Core Location) |
-| Pedômetro | Contagem de passos e cadência para o anti-cheat (RN-008). | `expo-sensors` — `Pedometer` (Android Step Counter / iOS Core Motion) |
-| Acelerômetro | Variância de impacto da passada (RN-008). | `expo-sensors` — `Accelerometer` (amostragem 50 Hz em lotes) |
-| Motor de vibração | Feedback tátil de conquista e alertas. | `expo-haptics` |
-| Alto-falante / fone | Avisos por voz e sons de conquista. | `expo-audio` / `expo-speech` |
-| Armazenamento seguro | Chave HMAC do dispositivo e tokens. | `expo-secure-store` (Android Keystore / iOS Keychain) |
-| Armazenamento local | Fila offline de pontos. | `expo-sqlite` |
+**Interfaces de hardware (sensores do celular):**
 
-**Interfaces de software (APIs e serviços de terceiros):**
+| Recurso | Utilização | Biblioteca / API |
+|---|---|---|
+| GPS | Posição a cada 1 segundo, com precisão, velocidade e altitude, inclusive com a tela bloqueada. | `expo-location` e `expo-task-manager` (Fused Location Provider no Android e Core Location no iOS) |
+| Sensor de passos (pedômetro) | Contagem de passos e cadência para o antifraude (RN-008). | `expo-sensors` (Pedometer) |
+| Acelerômetro | Detecção da vibração da passada (RN-008). | `expo-sensors` (Accelerometer) |
+| Motor de vibração | Retorno tátil em conquistas e alertas. | `expo-haptics` |
+| Alto-falante / fone de ouvido | Avisos por voz durante a corrida. | `expo-speech` |
+| Armazenamento seguro | Chave de assinatura do aparelho e tokens de acesso. | `expo-secure-store` (Keystore no Android e Keychain no iOS) |
+| Armazenamento local | Fila de pontos gravados sem internet. | `expo-sqlite` |
+
+**Interfaces de software (serviços e APIs de terceiros):**
 
 | Sistema | Finalidade | Interface |
-|------------|-------------------------|-----------------------|
-| **Mapbox Maps SDK** (Android/iOS) e **Mapbox GL JS** (web) | Renderização do mapa, estilo dark customizado, camadas de hexágonos 3D (*fill-extrusion*) e heatmap. | SDK nativo via `@rnmapbox/maps`; token público com escopo restrito. Alternativa: Google Maps Platform. |
-| **H3** | Conversão de coordenadas em zonas/distritos. | `h3-js` (app/web) e extensão `h3-pg` (banco). |
-| **Supabase Auth** | Cadastro, login social (Google/Apple), JWT. | REST/SDK `@supabase/supabase-js`. |
-| **Supabase Database** (PostgreSQL + PostGIS) | Persistência de usuários, atividades, zonas e influência. | SQL com RLS. |
-| **Supabase Edge Functions** | Ingestão de pontos, anti-cheat, cálculo de RP e conquista. | HTTPS/JSON: `POST /ingest-points`, `POST /finish-activity`, `GET /zones?bbox=`, `GET /zone/{h3}`, `POST /ghost/{h3}/start`. |
-| **Supabase Realtime** | Atualização ao vivo do mapa (canal por distrito) e presença da Crew. | WebSocket (Broadcast / Presence). |
-| **Expo Push Service** (FCM / APNs) | Alertas de invasão e demais notificações. | HTTPS; token por dispositivo. |
-| **OpenStreetMap** | Identificação de rodovias, água e aeroportos para zonas bloqueadas. | Importação periódica de dados (Overpass API). |
-| **Redes sociais** | Compartilhar recap. | *Share sheet* nativa do sistema operacional. |
+|---|---|---|
+| **Mapbox Maps SDK** (Android/iOS) e **Mapbox GL JS** (web) | Exibição do mapa base, da camada de territórios e do mapa de calor. | SDK nativo, com chave de acesso restrita ao aplicativo. Alternativa: Google Maps Platform. |
+| **H3** | Conversão de coordenadas geográficas em zonas e distritos hexagonais. | Biblioteca `h3-js` (aplicativo e web) e extensão `h3-pg` (banco de dados). |
+| **Supabase Auth** | Cadastro, login social (Google/Apple) e emissão de tokens JWT. | API REST e SDK JavaScript. |
+| **PostgreSQL + PostGIS** | Armazenamento de usuários, corridas, zonas e influência, com consultas geográficas. | SQL com controle de acesso por usuário. |
+| **API do NOMADE RUN** | Recebimento dos pontos de GPS, antifraude, cálculo de pontos e conquista. | HTTPS/JSON: `POST /ingest-points`, `POST /finish-activity`, `GET /zones?bbox=`, `GET /zone/{id}`, `POST /ghost/{id}/start`. |
+| **Supabase Realtime** | Atualização do mapa em tempo real e presença dos membros da Crew. | WebSocket. |
+| **Firebase Cloud Messaging / Apple Push Notification service** | Envio das notificações de invasão e demais avisos. | Expo Push API (HTTPS). |
+| **OpenStreetMap** | Identificação de rodovias, rios, lagos e aeroportos para as zonas bloqueadas. | Importação periódica de dados (Overpass API). |
+| **IBGE: malha municipal** | Associação de cada zona à sua cidade. | Arquivos geográficos públicos do IBGE. |
+| **Redes sociais** | Compartilhamento do resumo da corrida. | Menu de compartilhamento nativo do sistema operacional. |
 
 # 7. APROVAÇÃO E CONTROLE DE REVISÕES
 
 | Versão | Data | Autor | Descrição das Alterações |
-|----|----|-------------|------------------------------------------|
-| 1.0 | 10/10/2026 | Gabryel Gomes Bahmad Camapum; Mateus Augusto De Faria Brito | Criação do documento: introdução, descrição geral, 20 requisitos funcionais, 15 requisitos não funcionais, 13 regras de negócio, 3 casos de uso detalhados, interfaces e wireframes. |
+|---|---|---|---|
+| 1.0 | 10/10/2026 | Gabryel Gomes Bahmad Camapum; Mateus Augusto De Faria Brito | Versão inicial do documento: introdução, descrição geral, 20 requisitos funcionais, 14 requisitos não funcionais, 13 regras de negócio, 3 casos de uso detalhados, protótipos de interface e interfaces de hardware e software. |
 
 **Aprovação:**
 
-| Nome | Papel | Assinatura | Data |
-|----------------|-----------------------------|----|------------|
-| Gabryel Gomes Bahmad Camapum | Analista de Requisitos / Desenvolvedor | | ___/___/______ |
-| Mateus Augusto De Faria Brito | Analista de Requisitos / Desenvolvedor | | ___/___/______ |
-| | Professor(a) Orientador(a) | | ___/___/______ |
-
-# APÊNDICE A — Skills do skills.sh adotadas
-
-Regra do projeto: requisitos não funcionais, regras de negócio e critérios de teste foram baseados nas diretrizes das seguintes *Agent Skills* do diretório [skills.sh](https://skills.sh) (instalação: `npx skills add <dono/repositório> --skill <nome>`).
-
-| Área | Skill (repositório → skill) | Requisitos que embasa |
-|---------|----------------------------------------|-----------|
-| Arquitetura | pproenca/dot-skills → clean-architecture | RNF-009, RNF-010 |
-| UI mobile | expo/skills → building-native-ui | RNF-011, seção 6.2 |
-| Performance mobile | vercel-labs/agent-skills → react-native-skills | RNF-002 |
-| Mapa e visualização | mapbox/mapbox-agent-skills → mapbox-data-visualization-patterns, mapbox-cartography, mapbox-web-performance-patterns, mapbox-token-security | RF-007, RF-013, RNF-002, RNF-007 |
-| Design visual | anthropics/skills → frontend-design; nextlevelbuilder/ui-ux-pro-max-skill → ui-ux-pro-max | RNF-011, seção 6.2 |
-| Animações | bjornmelin/dev-skills → expo-motion | Seção 6.2, RNF-012 |
-| Banco de dados | supabase/agent-skills → supabase-postgres-best-practices | RNF-007, RNF-010 |
-| Tempo real | adaptationio/skrillz → supabase-realtime | RNF-003, RF-009 |
-| Segurança / Anti-Cheat | trailofbits/skills → insecure-defaults, sharp-edges, differential-review, static-analysis | RNF-006, RNF-008, RN-007, RN-008, RN-009 |
-| Segurança de API | agamm/claude-code-owasp → owasp-security | RNF-007 |
-| Teste de carga | davila7/claude-code-templates → k6-load-testing; grafana/skills → k6-perf-test-website | RNF-001 |
-| E2E mobile | tovimx/maestro-mobile-testing-skill → maestro-mobile-testing | RNF-013 |
-| E2E web / visual | bobmatnyc/claude-mpm-skills → playwright | RNF-013 |
-| Acessibilidade | vercel-labs/agent-skills → web-design-guidelines | RNF-012 |
-| Especificação | tercel/spec-forge → srs-generation (IEEE 830 / ISO/IEC/IEEE 29148) | Estrutura deste documento |
-
-# APÊNDICE B — Matriz de Rastreabilidade (base para Teste de Software)
-
-| Caso de Uso | Requisitos Funcionais | Regras de Negócio | Requisitos Não Funcionais | Tipo de teste sugerido |
-|---------|---------|---------|---------|------------------------|
-| UC-01 Correr e Conquistar | RF-004, RF-005, RF-006, RF-007, RF-008 | RN-001, RN-002, RN-007, RN-008, RN-009, RN-010 | RNF-001, RNF-004, RNF-005, RNF-006 | Unitário (fórmulas e anti-cheat com *fixtures* de GPS), E2E Maestro, carga k6 |
-| UC-02 Defender Território | RF-009, RF-010 | RN-001, RN-003, RN-004 | RNF-003 | Unitário (limiares 50%/40%/+10%), integração (push), E2E Maestro |
-| UC-03 Analisar Heatmap | RF-013, RF-007, RF-015, RF-020 | RN-005, RN-013 | RNF-002, RNF-013 | E2E Playwright com comparação visual, desempenho |
-| Moderação | RF-018 | RN-009 | RNF-007, RNF-008 | E2E Playwright, testes de RLS/segurança |
-
-**Exemplos de casos de teste derivados (análise de valor-limite):**
-
-| Caso | Entrada | Resultado esperado | Requisito |
-|----|---------------------------|----------------------|--------|
-| CT-01 | Trecho a 24,9 km/h por 40 s | Trecho válido | RN-007 (c) |
-| CT-02 | Trecho a 25,1 km/h por 31 s | Trecho inválido, *flag* VEHICLE_SUSPECTED | RN-007 (c) |
-| CT-03 | Salto de 51 m em 1 s | Trecho inválido, *flag* TELEPORT | RN-007 (d) |
-| CT-04 | Ponto com `is_mocked = true` | Atividade rejeitada, Trust Score −30 | RN-007 (e), RN-009 |
-| CT-05 | 12 km/h com 40 passos/min por 61 s | Trecho inválido, *flag* NO_STEPS | RN-008 |
-| CT-06 | Desafiante com 109,9% da influência do dono | Dono mantido | RN-002 |
-| CT-07 | Desafiante com 110% da influência do dono | Zona muda de dono | RN-002 |
-| CT-08 | 4 km na mesma zona no mesmo dia | RP limitado a 300 | RN-001 |
-| CT-09 | Pace 3:00 min/km | M_pace = 1,50 (limite superior) | RN-001 |
-| CT-10 | Influência 5,4 após decaimento (×0,90 = 4,86) | Influência zerada | RN-005 |
-| CT-11 | Atacante atinge 50% da influência do dono | Push enviado, janela de 24 h aberta | RN-003, RF-009 |
-| CT-12 | Segundo alerta da mesma zona após 3 h | Push **não** enviado | RN-003 |
-| CT-13 | Usuário com cidade natal Goiânia ganha 200 RP correndo em Brasília | 200 RP somam para Goiânia no placar Cidade × Cidade; a zona conquistada pertence a Brasília | RF-020, RN-013 |
-| CT-14 | Cidade com 19 corredores ativos | Não aparece no placar Cidade × Cidade | RN-013 |
+| Nome | Função | Assinatura | Data |
+|---|---|---|---|
+| Gabryel Gomes Bahmad Camapum | Analista de Requisitos / Desenvolvedor | | \_\_\_/\_\_\_/\_\_\_\_\_\_ |
+| Mateus Augusto De Faria Brito | Analista de Requisitos / Desenvolvedor | | \_\_\_/\_\_\_/\_\_\_\_\_\_ |
+| | Professor(a) Orientador(a) | | \_\_\_/\_\_\_/\_\_\_\_\_\_ |

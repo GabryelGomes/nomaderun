@@ -17,6 +17,7 @@ m=re.search(r'<h1 id="[^"]*introdução"',s)
 s=s[:m.start()]+nav+'\n'+s[m.start():]
 s=re.sub(r'<colgroup>.*?</colgroup>','',s,flags=re.S)
 s=s.replace('src="assets/','src="../assets/')
+s=re.sub(r'\b(RNF|RF|RN|UC|CT)-(\d{2,3})', lambda m: m.group(1)+'\u2011'+m.group(2), s)
 open(p,'w').write(s)
 PY
 node build-src/pdf.js "$D/build-src/ERS.html" "$D/NOMADE RUN - Um Projeto de Gestão e Gamificação de Corridas Urbanas.pdf"
