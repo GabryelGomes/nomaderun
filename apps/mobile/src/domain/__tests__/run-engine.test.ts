@@ -1,3 +1,5 @@
+import { describe, expect, it } from '@jest/globals';
+
 import { zoneOf } from '../grid';
 import { addPoint, averagePace, finishRun, livePace, startRun, type LiveRun } from '../run-engine';
 import { newZone } from '../territory';

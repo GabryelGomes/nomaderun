@@ -1,31 +1,33 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { useColorScheme } from 'react-native';
 
-import { Colors } from '@/constants/theme';
+import { useTheme } from '@/theme/use-theme';
 
+import { tabIcon } from './icon';
+
+/** The platform's real tab bar (expo-router skill). Tab switches never animate (expo-animation). */
 export default function AppTabs() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
-
+  const { colors } = useTheme();
   return (
-    <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
+    <NativeTabs labelStyle={{ selected: { color: colors.text } }} tintColor={colors.text}>
       <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
-        />
+        <NativeTabs.Trigger.Icon {...tabIcon('map')} />
+        <NativeTabs.Trigger.Label>Mapa</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
-        />
+      <NativeTabs.Trigger name="arena">
+        <NativeTabs.Trigger.Icon {...tabIcon('arena')} />
+        <NativeTabs.Trigger.Label>Arena</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="atividades">
+        <NativeTabs.Trigger.Icon {...tabIcon('activities')} />
+        <NativeTabs.Trigger.Label>Atividades</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="clube">
+        <NativeTabs.Trigger.Icon {...tabIcon('club')} />
+        <NativeTabs.Trigger.Label>Clube</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="perfil">
+        <NativeTabs.Trigger.Icon {...tabIcon('profile')} />
+        <NativeTabs.Trigger.Label>Perfil</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );

@@ -1,3 +1,5 @@
+import { describe, expect, it } from '@jest/globals';
+
 import { validateActivity } from '../anti-cheat';
 import { offset } from '../geo';
 import { applyTrust, trustLevel } from '../trust';

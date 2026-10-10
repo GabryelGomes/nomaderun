@@ -1,3 +1,5 @@
+import { describe, expect, it } from '@jest/globals';
+
 import { basePace, DAILY_ZONE_CAP, effortMultiplier, scoreZone, streakMultiplier } from '../scoring';
 
 describe('RN-001 v2 — esforço relativo', () => {
