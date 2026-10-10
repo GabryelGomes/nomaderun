@@ -243,6 +243,8 @@ function ActiveRun({ mode }: { mode: RunMode }) {
 
   const ghost = s.ghost !== null ? ghostStatus(s.ghost) : null;
 
+  if (s.phase === 'countdown') return <Countdown count={s.count} />;
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ height: '44%' }}>
@@ -384,7 +386,6 @@ function ActiveRun({ mode }: { mode: RunMode }) {
         </View>
       </View>
 
-      {s.phase === 'countdown' ? <Countdown count={s.count} /> : null}
       {sosSent ? (
         <Pressable
           accessibilityRole="alert"
@@ -424,7 +425,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 function Countdown({ count }: { count: number }) {
   const reduced = useReducedMotion();
   return (
-    <View style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(37,42,49,0.82)', alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ position: 'absolute', inset: 0, backgroundColor: palette.asfalto, alignItems: 'center', justifyContent: 'center', gap: space[2] }}>
       <Animated.View
         key={count}
         style={{

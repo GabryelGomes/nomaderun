@@ -85,7 +85,7 @@ export function CaptureCelebration({ faction, zone, rp }: { faction: FactionId; 
         }}>
         <Text variant="headline">Zona conquistada</Text>
         <Text variant="lead" muted>
-          {zone} · +{rp} RP
+          +{rp} RP em {zone}
         </Text>
       </Animated.View>
     </View>

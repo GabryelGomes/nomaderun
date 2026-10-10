@@ -33,18 +33,19 @@ const PLACES: { name: string; at: LatLng; landmark?: boolean }[] = [
 ];
 
 const zoneNames = new Map<string, string>();
+const hoodCounters = new Map<string, number>();
+const LANDMARK_ZONES = new Map(PLACES.filter((p) => p.landmark).map((p) => [zoneOf(p.at), p.name]));
 
-/** Human name for a zone: a landmark within 300 m, else "<bairro> <n>". */
+/** Unique human name: the zone that contains a landmark takes its name, others "<bairro> <n>". */
 export function zoneName(id: string): string {
   const cached = zoneNames.get(id);
   if (cached) return cached;
-  const c = cellCenter(id);
-  const near = PLACES.filter((p) => p.landmark).find((p) => distanceMeters(c, p.at) < 300);
-  let name: string;
-  if (near) name = near.name;
-  else {
-    const hood = [...PLACES].filter((p) => !p.landmark).sort((a, b) => distanceMeters(c, a.at) - distanceMeters(c, b.at))[0];
-    const n = (parseInt(id.slice(-4), 16) % 40) + 1;
+  let name = LANDMARK_ZONES.get(id);
+  if (!name) {
+    const c = cellCenter(id);
+    const hood = PLACES.filter((p) => !p.landmark).sort((a, b) => distanceMeters(c, a.at) - distanceMeters(c, b.at))[0];
+    const n = (hoodCounters.get(hood.name) ?? 0) + 1;
+    hoodCounters.set(hood.name, n);
     name = `${hood.name} ${n}`;
   }
   zoneNames.set(id, name);
@@ -82,6 +83,15 @@ export function seedZones(): Record<string, Zone> {
     if (rival !== owner) influence[rival] = Math.round(influence[owner] * rand() * 0.35);
     zones[id] = { ...newZone(id), owner, influence, shield: Math.floor(rand() * 3) };
   }
+  // Along the east leg of the demo run: neutral and weakly held zones, so a demo run can conquer.
+  const lakeLoop = 31;
+  const eastLeg = [...new Set(demoRoute().slice(lakeLoop).map(zoneOf))].filter((id) => id !== centerZone);
+  eastLeg.forEach((id, i) => {
+    const weak = emptyInfluence();
+    if (i % 2 === 0) weak.coyotes = 12;
+    else weak.coyotes = 40;
+    zones[id] = { ...newZone(id), owner: i % 2 === 0 ? null : 'coyotes', influence: weak };
+  });
   // The park itself is under attack by the Coyotes: the defense story of UC-02.
   const park = zones[centerZone];
   zones[centerZone] = {
@@ -92,6 +102,7 @@ export function seedZones(): Record<string, Zone> {
     attackStartedAt: Date.now() - 6.5 * 3600_000,
     attacker: 'coyotes',
   };
+  Object.keys(zones).sort().forEach(zoneName);
   return zones;
 }
 

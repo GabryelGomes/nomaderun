@@ -99,7 +99,8 @@ export default function TerritoryMap(props: TerritoryMapProps) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [{ Map: MapCtor }, mapStyle] = await Promise.all([import('maplibre-gl'), loadStyle(night)]);
+      const [{ Map: MapCtor, setWorkerUrl }, mapStyle] = await Promise.all([import('maplibre-gl'), loadStyle(night)]);
+      setWorkerUrl('/maplibre-gl-worker.mjs'); // copied to public/ by scripts/copy-maplibre-worker.js
       const el = host.current as unknown as HTMLElement | null;
       if (cancelled || !el) return;
       const zoom = Math.log2((40_075_016 * Math.cos((center.lat * Math.PI) / 180)) / span) - 0.6;
@@ -117,13 +118,13 @@ export default function TerritoryMap(props: TerritoryMapProps) {
         map.addSource('zones', { type: 'geojson', data: zonesGeoJSON(latest.current) });
         map.addSource('path', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         map.addSource('points', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-        map.addLayer({ id: 'zone-fill', type: 'fill', source: 'zones', paint: { 'fill-color': colorMatch, 'fill-opacity': ['case', ['get', 'selected'], 0.42, 0.24] } });
+        map.addLayer({ id: 'zone-fill', type: 'fill', source: 'zones', paint: { 'fill-color': colorMatch, 'fill-opacity': ['case', ['get', 'selected'], 0.4, 0.2] } });
         map.addLayer({
           id: 'zone-hatch',
           type: 'fill',
           source: 'zones',
           filter: ['!=', ['get', 'owner'], 'none'],
-          paint: { 'fill-pattern': ['concat', 'hatch-', ['get', 'owner']], 'fill-opacity': 0.55 },
+          paint: { 'fill-pattern': ['concat', 'hatch-', ['get', 'owner']], 'fill-opacity': 0.45 },
         });
         map.addLayer({ id: 'zone-edge', type: 'line', source: 'zones', paint: { 'line-color': colorMatch, 'line-width': ['case', ['get', 'selected'], 3, 1.2], 'line-opacity': 0.9 } });
         map.addLayer({ id: 'attack-under', type: 'line', source: 'zones', filter: ['==', ['get', 'attack'], true], paint: { 'line-color': palette.asfalto, 'line-width': 4 } });
