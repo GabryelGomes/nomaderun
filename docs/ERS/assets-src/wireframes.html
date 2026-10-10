@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Wireframes NOMADE RUN</title>
+<style>
+  :root {
+    --bg: #0A0B10; --surface: #12141C; --surface2: #1A1D29; --border: #2A2F3F;
+    --text: #E8ECF4; --muted: #8A93A8; --cyan: #00F0FF; --orange: #FF6B1A;
+    --purple: #B026FF; --lime: #C6FF00; --danger: #FF2E63; --success: #00FF9C;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 36px 40px 30px; background: #1b1e27; font-family: "Inter", "DejaVu Sans", Arial, sans-serif; color: var(--text); }
+  .row { display: flex; gap: 44px; justify-content: center; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .caption { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: .5px; }
+  .phone { width: 340px; height: 700px; border-radius: 42px; background: var(--bg); border: 10px solid #000; box-shadow: 0 0 0 2px #333; position: relative; overflow: hidden; }
+  .status { position: relative; z-index: 2; background: var(--bg); height: 30px; display: flex; justify-content: space-between; padding: 8px 22px 0; font-size: 12px; color: var(--muted); }
+  .mono { font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace; }
+  .display { font-family: "Orbitron", "DejaVu Sans", sans-serif; letter-spacing: 1.5px; font-weight: 800; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--surface); border: 1px solid rgba(0,240,255,.6); box-shadow: 0 0 14px rgba(0,240,255,.35); font-size: 12px; font-weight: 600; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+  .tabbar { position: absolute; bottom: 0; left: 0; right: 0; height: 64px; background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; font-size: 10px; color: var(--muted); }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tab i { width: 18px; height: 18px; border: 2px solid var(--muted); border-radius: 5px; display: block; }
+  .tab.on { color: var(--cyan); } .tab.on i { border-color: var(--cyan); }
+  .run-btn { width: 62px; height: 62px; border-radius: 50%; margin-top: -30px; background: var(--cyan); color: #00262b; display: flex; align-items: center; justify-content: center; font-size: 8.5px; letter-spacing: .5px; font-weight: 900; box-shadow: 0 0 22px rgba(0,240,255,.8); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 64px; background: var(--surface); border-top-left-radius: 22px; border-top-right-radius: 22px; border-top: 1px solid var(--border); padding: 10px 18px 14px; }
+  .grab { width: 40px; height: 4px; border-radius: 4px; background: var(--border); margin: 0 auto 10px; }
+  .bar { height: 8px; border-radius: 6px; background: var(--surface2); overflow: hidden; display: flex; }
+  .small { font-size: 11px; color: var(--muted); }
+  .btn { margin-top: 10px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+  .btn.ghost { border: 1px solid var(--purple); color: var(--purple); box-shadow: 0 0 12px rgba(176,38,255,.35); }
+  .big { font-size: 64px; font-weight: 700; line-height: 1; }
+  .metric { text-align: center; }
+  .metric .v { font-size: 30px; font-weight: 700; }
+  .metric .l { font-size: 10px; color: var(--muted); letter-spacing: 1.5px; margin-top: 4px; }
+  .vignette { position: absolute; inset: 0; box-shadow: inset 0 0 34px 4px rgba(255,46,99,.45); pointer-events: none; border-radius: 32px; }
+  .alert { margin: 10px 16px 0; padding: 9px 12px; border-radius: 12px; background: rgba(255,46,99,.14); border: 1px solid var(--danger); color: #ffd1dc; font-size: 12px; font-weight: 600; }
+  .slide { position: absolute; bottom: 26px; left: 22px; right: 22px; height: 54px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; padding: 5px; }
+  .knob { width: 44px; height: 44px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 16px rgba(255,46,99,.7); display: flex; align-items: center; justify-content: center; font-weight: 900; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; }
+  .zone { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .zone:last-child { border-bottom: none; }
+  .tag { font-size: 10px; font-weight: 800; padding: 3px 7px; border-radius: 6px; letter-spacing: .8px; }
+  .toast { position: absolute; top: 46px; left: 16px; right: 16px; padding: 12px 14px; border-radius: 14px; background: rgba(0,240,255,.12); border: 1px solid var(--cyan); box-shadow: 0 0 22px rgba(0,240,255,.45); text-align: center; }
+  .legend { margin-top: 18px; text-align: center; font-size: 12.5px; color: #c9cfdc; }
+</style>
+</head>
+<body>
+<div class="row">
+  <!-- Tela 1: Mapa -->
+  <div class="col">
+    <div class="caption">1 · MAPA DE TERRITÓRIO</div>
+    <div class="phone">
+      <div class="status"><span>07:42</span><span>5G ▮▮▮ 84%</span></div>
+      <svg id="map1" width="320" height="610" style="position:absolute;top:30px;left:0"></svg>
+      <div style="position:absolute;top:36px;left:14px;right:14px;display:flex;justify-content:space-between">
+        <span class="chip"><span class="dot"></span>NEON STRIDERS</span>
+        <span class="chip mono" style="border-color:rgba(198,255,0,.6);box-shadow:0 0 14px rgba(198,255,0,.3)">+284 RP hoje</span>
+      </div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-weight:700;font-size:15px">Parque Flamboyant</div><div class="small">Setor Jardim Goiás · Escudo nível 2</div></div>
+          <span class="tag" style="background:rgba(255,46,99,.18);color:var(--danger);border:1px solid var(--danger)">SOB ATAQUE</span>
+        </div>
+        <div style="margin-top:10px" class="bar"><div style="width:52%;background:var(--cyan)"></div><div style="width:34%;background:var(--orange)"></div><div style="width:14%;background:var(--purple)"></div></div>
+        <div class="small mono" style="display:flex;justify-content:space-between;margin-top:5px"><span style="color:var(--cyan)">Striders 1.240</span><span style="color:var(--orange)">Coyotes 812</span><span>⏱ 17:32:10</span></div>
+        <div class="btn ghost">👻 DESAFIAR FANTASMA</div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><i></i>Mapa</div><div class="tab"><i></i>Feed</div>
+        <div class="run-btn display">CORRER</div>
+        <div class="tab"><i></i>Ranking</div><div class="tab"><i></i>Perfil</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tela 2: Corrida ao vivo -->
+  <div class="col">
+    <div class="caption">2 · CORRIDA AO VIVO</div>
+    <div class="phone">
+      <div class="status"><span>07:58</span><span>GPS ● ±4 m</span></div>
+      <div class="alert">⚠ Você entrou em território dos URBAN COYOTES</div>
+      <div class="metric" style="margin-top:22px">
+        <div class="big mono">28:14</div>
+        <div class="l">TEMPO</div>
+      </div>
+      <div style="display:flex;justify-content:space-around;margin-top:22px">
+        <div class="metric"><div class="v mono">5,62</div><div class="l">KM</div></div>
+        <div class="metric"><div class="v mono" style="color:var(--cyan)">5'01"</div><div class="l">PACE /KM</div></div>
+        <div class="metric"><div class="v mono">172</div><div class="l">PASSOS/MIN</div></div>
+      </div>
+      <svg id="map2" width="300" height="230" style="display:block;margin:20px auto 0;border-radius:18px;background:#0d0f16;border:1px solid var(--border)"></svg>
+      <div style="margin:14px 18px 0" class="card">
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span>Zona atual: <b>Lago das Rosas</b></span><span class="mono" style="color:var(--lime)">+38 RP</span></div>
+        <div class="bar" style="margin-top:8px"><div style="width:47%;background:var(--cyan)"></div><div style="width:53%;background:var(--orange)"></div></div>
+        <div class="small" style="margin-top:5px">Faltam 64 RP para conquistar</div>
+      </div>
+      <div class="slide"><div class="knob">■</div><span class="small" style="margin-left:46px;letter-spacing:1px">DESLIZE PARA FINALIZAR</span></div>
+      <div class="vignette"></div>
+    </div>
+  </div>
+
+  <!-- Tela 3: Resumo -->
+  <div class="col">
+    <div class="caption">3 · RESUMO DA CORRIDA</div>
+    <div class="phone">
+      <div class="status"><span>08:31</span><span>5G ▮▮▮ 79%</span></div>
+      <div class="toast"><div class="display" style="color:var(--cyan);font-size:15px;text-shadow:0 0 10px var(--cyan)">ZONA CONQUISTADA</div><div class="small mono" style="color:#cdf9ff;margin-top:3px">Lago das Rosas · +142 RP</div></div>
+      <svg id="map3" width="300" height="190" style="display:block;margin:110px auto 0;border-radius:18px;background:#0d0f16;border:1px solid var(--border)"></svg>
+      <div style="display:flex;justify-content:space-around;margin-top:14px">
+        <div class="metric"><div class="v mono" style="font-size:24px">10,02</div><div class="l">KM</div></div>
+        <div class="metric"><div class="v mono" style="font-size:24px">51:37</div><div class="l">TEMPO</div></div>
+        <div class="metric"><div class="v mono" style="font-size:24px">5'09"</div><div class="l">PACE</div></div>
+      </div>
+      <div style="margin:14px 16px 0" class="card">
+        <div class="small" style="letter-spacing:1.5px;margin-bottom:2px">ZONAS AFETADAS · 7</div>
+        <div class="zone"><span>Lago das Rosas</span><span><span class="mono" style="color:var(--lime);margin-right:8px">+142</span><span class="tag" style="background:rgba(0,240,255,.15);color:var(--cyan)">CONQUISTADA</span></span></div>
+        <div class="zone"><span>Parque Flamboyant</span><span><span class="mono" style="color:var(--lime);margin-right:8px">+260</span><span class="tag" style="background:rgba(0,255,156,.15);color:var(--success)">DEFENDIDA</span></span></div>
+        <div class="zone"><span>Praça Tamandaré</span><span><span class="mono" style="color:var(--lime);margin-right:8px">+88</span><span class="tag" style="background:var(--surface2);color:var(--muted)">+INFLUÊNCIA</span></span></div>
+        <div class="zone"><span style="color:var(--muted)">Av. 85 (trecho 0,4 km)</span><span class="tag" style="background:rgba(255,214,0,.12);color:#FFD600">INVALIDADO</span></div>
+      </div>
+      <div class="btn" style="margin:12px 16px 0;background:var(--cyan);color:#00262b;box-shadow:0 0 18px rgba(0,240,255,.6)">COMPARTILHAR RECAP</div>
+    </div>
+  </div>
+</div>
+<div class="legend">Wireframes de alta fidelidade · Tema dark/neon · Cores: Neon Striders (ciano), Urban Coyotes (laranja), Night Owls (roxo), Volt Runners (verde-limão), ataque (vermelho)</div>
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const COLORS = { c: "#00F0FF", o: "#FF6B1A", p: "#B026FF", l: "#C6FF00", n: "#2A2F3F" };
+function hexMap(svgId, w, h, size, pick, opts = {}) {
+  const svg = document.getElementById(svgId);
+  const add = (tag, a) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; };
+  // streets
+  for (let i = 0; i < 7; i++) add("line", { x1: -20, y1: i * 95 + 20, x2: w + 20, y2: i * 95 - 40, stroke: "#171a24", "stroke-width": 6 });
+  for (let i = 0; i < 5; i++) add("line", { x1: i * 80, y1: 0, x2: i * 80 + 60, y2: h, stroke: "#171a24", "stroke-width": 5 });
+  const hw = Math.sqrt(3) * size, vh = 1.5 * size;
+  let r = 0;
+  for (let y = 0; y < h + size; y += vh, r++) {
+    for (let x = (r % 2) * hw / 2; x < w + hw; x += hw) {
+      const k = pick(x / w, y / h, r);
+      if (!k) continue;
+      const pts = [];
+      for (let i = 0; i < 6; i++) { const a = Math.PI / 180 * (60 * i - 30); pts.push((x + (size - 1.5) * Math.cos(a)).toFixed(1) + "," + (y + (size - 1.5) * Math.sin(a)).toFixed(1)); }
+      const col = COLORS[k.f];
+      const attack = k.a;
+      add("polygon", { points: pts.join(" "), fill: col, "fill-opacity": k.f === "n" ? 0.35 : (0.18 + 0.4 * (k.i || 0.5)), stroke: attack ? "#FF2E63" : col, "stroke-width": attack ? 2.4 : 1.1, "stroke-opacity": 0.9, style: attack ? "filter:drop-shadow(0 0 6px #FF2E63)" : (k.f !== "n" ? `filter:drop-shadow(0 0 3px ${col})` : "") });
+    }
+  }
+  if (opts.route) {
+    add("polyline", { points: opts.route, fill: "none", stroke: "#00F0FF", "stroke-width": 4, "stroke-linecap": "round", "stroke-linejoin": "round", style: "filter:drop-shadow(0 0 6px #00F0FF)" });
+  }
+  if (opts.me) {
+    add("circle", { cx: opts.me[0], cy: opts.me[1], r: 18, fill: "#00F0FF", "fill-opacity": 0.18 });
+    add("circle", { cx: opts.me[0], cy: opts.me[1], r: 7, fill: "#fff", stroke: "#00F0FF", "stroke-width": 3 });
+  }
+  if (opts.ghost) {
+    add("circle", { cx: opts.ghost[0], cy: opts.ghost[1], r: 8, fill: "#B026FF", "fill-opacity": 0.55, stroke: "#B026FF", "stroke-width": 2, "stroke-dasharray": "3 2" });
+  }
+}
+// deterministic pseudo-random
+function rnd(a, b, c) { const s = Math.sin(a * 12.9898 + b * 78.233 + c * 37.719) * 43758.5453; return s - Math.floor(s); }
+function faction(x, y, r) {
+  const v = rnd(x, y, r);
+  if (y < 0.06) return null;
+  if (x < 0.45 && y < 0.5) return { f: v < 0.8 ? "c" : "n", i: v };
+  if (x >= 0.45 && y < 0.42) return { f: v < 0.75 ? "o" : "n", i: v };
+  if (y >= 0.5 && x < 0.55) return { f: v < 0.7 ? "p" : "n", i: v };
+  if (y >= 0.42) return { f: v < 0.7 ? "l" : "n", i: v };
+  return { f: "n" };
+}
+hexMap("map1", 320, 640, 22, (x, y, r) => {
+  const k = faction(x, y, r);
+  if (k && Math.abs(x - 0.42) < 0.08 && Math.abs(y - 0.4) < 0.04) return { f: "c", i: 0.9, a: true };
+  return k;
+}, { me: [150, 300], route: "40,420 80,380 110,350 150,300" });
+hexMap("map2", 300, 230, 18, (x, y, r) => (x > 0.5 ? { f: rnd(x, y, r) < 0.8 ? "o" : "n", i: rnd(y, x, r) } : { f: rnd(x, y, r) < 0.85 ? "c" : "n", i: rnd(y, x, r) }),
+  { route: "20,200 60,170 100,160 130,120 170,110 200,90", me: [200, 90], ghost: [222, 74] });
+hexMap("map3", 300, 190, 16, (x, y, r) => {
+  const onRoute = Math.abs(y - (0.85 - x * 0.7)) < 0.18;
+  return onRoute ? { f: "c", i: 0.7 + 0.3 * rnd(x, y, r) } : { f: "n" };
+}, { route: "15,170 70,140 120,110 170,95 230,60 285,30" });
+</script>
+</body>
+</html>
