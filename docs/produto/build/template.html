@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>NOMADE RUN — Product Book v1.0</title>
+<style>
+@page { size: A4; margin: 22mm 18mm 20mm 18mm; }
+:root { --ink:#141821; --muted:#5b6475; --accent:#252A31; --line:#d9dee7; --head:#0f1420; }
+* { box-sizing: border-box; }
+body { font-family: "Inter", "DejaVu Sans", Arial, sans-serif; color: var(--ink); font-size: 10.2pt; line-height: 1.5; margin: 0; }
+h1 { page-break-before: avoid !important; font-size: 26pt; color: var(--head); border-bottom: 3px solid var(--accent); padding-bottom: 5px; margin: 0 0 12px; page-break-before: always; letter-spacing: .3px; }
+h2 { font-size: 15pt; color: var(--head); border-bottom: 3px solid #FFD23F; padding-bottom: 4px; margin: 0 0 10px; page-break-before: always; }
+h3 { color: #0072B2; }
+h3 { font-size: 11pt; margin: 18px 0 6px; page-break-after: avoid; }
+p, li { text-align: justify; }
+table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 8.8pt; page-break-inside: auto; }
+tr { page-break-inside: avoid; }
+th { background: var(--head); color: #fff; text-align: left; padding: 6px 7px; font-weight: 600; }
+td { border-bottom: 1px solid var(--line); padding: 5px 7px; vertical-align: top; text-align: left; }
+tbody tr:nth-child(even) td { background: #f5f7fa; }
+td:first-child { font-weight: 600; }
+code { font-family: "DejaVu Sans Mono", monospace; font-size: 8.5pt; background: #eef1f5; padding: 1px 4px; border-radius: 3px; }
+img { width: 100%; max-width: 100%; display: block; margin: 10px auto; }
+figure { margin: 10px 0; page-break-inside: avoid; }
+figcaption { text-align: center; font-size: 8.5pt; color: var(--muted); }
+a { color: var(--accent); text-decoration: none; }
+.capa { height: 250mm; display: flex; flex-direction: column; justify-content: center; text-align: center; border: 2px solid var(--head); padding: 20mm; position: relative; }
+.capa h1 { page-break-before: avoid; border: none; font-size: 15pt; color: var(--muted); letter-spacing: 2px; margin-bottom: 26mm; }
+.capa h2 { font-size: 24pt; color: var(--head); line-height: 1.25; margin-bottom: 22mm; }
+.capa p, .capa li { text-align: center; font-size: 12pt; }
+.capa ul { list-style: none; padding: 0; margin: 4px 0 0; }
+.capa li { font-weight: 600; font-size: 13pt; margin: 4px 0; }
+#TOC { page-break-before: always; }
+#TOC::before { content: "SUMÁRIO"; display: block; font-size: 17pt; font-weight: 700; color: var(--head); border-bottom: 3px solid var(--accent); padding-bottom: 5px; margin-bottom: 12px; }
+#TOC ul { list-style: none; padding-left: 0; }
+#TOC ul ul { padding-left: 18px; }
+#TOC li { margin: 4px 0; text-align: left; }
+#TOC > ul > li > a { font-weight: 700; color: var(--head); }
+</style>
+</head>
+<body>
+$body$
+<nav id="TOC">$toc$</nav>
+</body>
+</html>

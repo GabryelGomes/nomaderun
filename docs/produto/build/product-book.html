@@ -1,0 +1,1969 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>NOMADE RUN — Product Book v1.0</title>
+<style>
+@page { size: A4; margin: 22mm 18mm 20mm 18mm; }
+:root { --ink:#141821; --muted:#5b6475; --accent:#252A31; --line:#d9dee7; --head:#0f1420; }
+* { box-sizing: border-box; }
+body { font-family: "Inter", "DejaVu Sans", Arial, sans-serif; color: var(--ink); font-size: 10.2pt; line-height: 1.5; margin: 0; }
+h1 { page-break-before: avoid !important; font-size: 26pt; color: var(--head); border-bottom: 3px solid var(--accent); padding-bottom: 5px; margin: 0 0 12px; page-break-before: always; letter-spacing: .3px; }
+h2 { font-size: 15pt; color: var(--head); border-bottom: 3px solid #FFD23F; padding-bottom: 4px; margin: 0 0 10px; page-break-before: always; }
+h3 { color: #0072B2; }
+h3 { font-size: 11pt; margin: 18px 0 6px; page-break-after: avoid; }
+p, li { text-align: justify; }
+table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 8.8pt; page-break-inside: auto; }
+tr { page-break-inside: avoid; }
+th { background: var(--head); color: #fff; text-align: left; padding: 6px 7px; font-weight: 600; }
+td { border-bottom: 1px solid var(--line); padding: 5px 7px; vertical-align: top; text-align: left; }
+tbody tr:nth-child(even) td { background: #f5f7fa; }
+td:first-child { font-weight: 600; }
+code { font-family: "DejaVu Sans Mono", monospace; font-size: 8.5pt; background: #eef1f5; padding: 1px 4px; border-radius: 3px; }
+img { width: 100%; max-width: 100%; display: block; margin: 10px auto; }
+figure { margin: 10px 0; page-break-inside: avoid; }
+figcaption { text-align: center; font-size: 8.5pt; color: var(--muted); }
+a { color: var(--accent); text-decoration: none; }
+.capa { height: 250mm; display: flex; flex-direction: column; justify-content: center; text-align: center; border: 2px solid var(--head); padding: 20mm; position: relative; }
+.capa h1 { page-break-before: avoid; border: none; font-size: 15pt; color: var(--muted); letter-spacing: 2px; margin-bottom: 26mm; }
+.capa h2 { font-size: 24pt; color: var(--head); line-height: 1.25; margin-bottom: 22mm; }
+.capa p, .capa li { text-align: center; font-size: 12pt; }
+.capa ul { list-style: none; padding: 0; margin: 4px 0 0; }
+.capa li { font-weight: 600; font-size: 13pt; margin: 4px 0; }
+#TOC { page-break-before: always; }
+#TOC::before { content: "SUMÁRIO"; display: block; font-size: 17pt; font-weight: 700; color: var(--head); border-bottom: 3px solid var(--accent); padding-bottom: 5px; margin-bottom: 12px; }
+#TOC ul { list-style: none; padding-left: 0; }
+#TOC ul ul { padding-left: 18px; }
+#TOC li { margin: 4px 0; text-align: left; }
+#TOC > ul > li > a { font-weight: 700; color: var(--head); }
+</style>
+</head>
+<body>
+<h1 id="nomade-run-product-book-v1.0">NOMADE RUN — Product Book
+v1.0</h1>
+<p><strong>Corra a sua cidade. Cada rua conta.</strong></p>
+<p>Documento de produto do NOMADE RUN: estratégia, jogo, experiência,
+design, arquitetura e plano. Resultado da execução do prompt mestre
+(<code>docs/05-PROMPT-MESTRE.md</code>) sobre a pesquisa em
+<code>docs/pesquisa/</code>.</p>
+<p>Autores: Gabryel Gomes Bahmad Camapum e Mateus Augusto De Faria Brito
+· Versão 1.0 · 10/10/2026</p>
+<hr />
+<nav id="TOC"><ul>
+<li><a href="#nomade-run-product-book-v1.0"
+id="toc-nomade-run-product-book-v1.0">NOMADE RUN — Product Book v1.0</a>
+<ul>
+<li><a href="#sumário-executivo" id="toc-sumário-executivo">Sumário
+executivo</a></li>
+<li><a href="#ideação-fase-2" id="toc-ideação-fase-2">1. Ideação (Fase
+2)</a></li>
+<li><a href="#estratégia-de-produto-fase-3"
+id="toc-estratégia-de-produto-fase-3">2. Estratégia de produto (Fase
+3)</a></li>
+<li><a href="#arena-game-design-detalhado-fase-4"
+id="toc-arena-game-design-detalhado-fase-4">3. Arena: game design
+detalhado (Fase 4)</a></li>
+<li><a href="#experiência-fase-5" id="toc-experiência-fase-5">4.
+Experiência (Fase 5)</a></li>
+<li><a href="#design-system-asfalto-giz-fase-6"
+id="toc-design-system-asfalto-giz-fase-6">5. Design system “Asfalto
+&amp; Giz” (Fase 6)</a></li>
+<li><a href="#arquitetura-técnica-fase-7"
+id="toc-arquitetura-técnica-fase-7">6. Arquitetura técnica (Fase
+7)</a></li>
+<li><a href="#plano-de-execução-fase-8"
+id="toc-plano-de-execução-fase-8">7. Plano de execução (Fase 8)</a></li>
+<li><a href="#riscos-e-mitigação" id="toc-riscos-e-mitigação">8. Riscos
+e mitigação</a></li>
+<li><a href="#protótipo-implementado-fases-9-e-10"
+id="toc-protótipo-implementado-fases-9-e-10">9. Protótipo implementado
+(Fases 9 e 10)</a></li>
+<li><a href="#apêndice-a-skills-aplicadas-por-fase"
+id="toc-apêndice-a-skills-aplicadas-por-fase">Apêndice A — Skills
+aplicadas por fase</a></li>
+<li><a href="#apêndice-b-fontes" id="toc-apêndice-b-fontes">Apêndice B —
+Fontes</a></li>
+</ul></li>
+</ul></nav>
+<h2 id="sumário-executivo">Sumário executivo</h2>
+<p>O Brasil tem <strong>15 milhões de corredores de rua</strong> e é o
+segundo maior mercado do Strava, mas o Strava cobra cada vez mais por
+recursos básicos e quase não tem jogo: só segmentos e medalhas. Os apps
+de território que surgiram desde 2024 provaram que existe fome por isso.
+O INTVL, por exemplo, teve 2,5 milhões de downloads. Só que eles premiam
+volume: quem corre loops gigantes domina o mapa e o iniciante
+desiste.</p>
+<p>O <strong>NOMADE RUN</strong> junta três coisas que ninguém entrega
+juntas:</p>
+<ol type="1">
+<li><strong>Um app de corrida completo e generoso.</strong> A gravação,
+as estatísticas, a retrospectiva anual e a Corrida Segura são grátis
+para sempre.</li>
+<li><strong>Uma Arena de minigames sobre o mapa real.</strong> O
+território (Domínio) é um dos sete modos, e <strong>toda corrida conta,
+mesmo sem escolher modo nenhum</strong>.</li>
+<li><strong>Competição justa.</strong> A pontuação usa <strong>esforço
+relativo</strong>, há ligas por nível e a disputa de território vai do
+bairro até <strong>cidade contra cidade</strong>.</li>
+</ol>
+<p><strong>North Star:</strong> corredores que correm 2 ou mais vezes
+por semana. <strong>MVP do TCC:</strong> núcleo de corrida, Domínio,
+Neblina, Fuga e Caça, ranking e Corrida Segura, com as regras de negócio
+100% cobertas por testes unitários.</p>
+<hr />
+<h2 id="ideação-fase-2">1. Ideação (Fase 2)</h2>
+<p><em>Chapéus: Game Designer e CPO · Skills:
+<code>brainstorming</code>, <code>gamification-loops</code>.</em></p>
+<p>Partimos de uma pergunta da skill <code>brainstorming</code>: “por
+que alguém corre?”. As respostas na pesquisa foram saúde, cabeça livre,
+pertencer a um grupo, se superar e conhecer a cidade. Toda ideia abaixo
+precisa servir a pelo menos uma delas, e não só ao placar.</p>
+<p><strong>Matriz de avaliação</strong> (1 a 5; o total soma diversão,
+retenção e as notas invertidas de esforço e risco, para que o mais fácil
+e seguro some mais):</p>
+<table>
+
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Ideia</th>
+<th>Diversão</th>
+<th>Retenção</th>
+<th>Esforço</th>
+<th>Risco</th>
+<th>Total</th>
+<th>Decisão</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Domínio: território H3 por facção</td>
+<td>5</td>
+<td>5</td>
+<td>3</td>
+<td>2</td>
+<td>15</td>
+<td><strong>Arena (MVP)</strong></td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Neblina: revelar o mapa correndo (fog of war pessoal)</td>
+<td>4</td>
+<td>5</td>
+<td>2</td>
+<td>1</td>
+<td>16</td>
+<td><strong>Arena (MVP)</strong></td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Fuga: escapar de um fantasma (seu recorde, um amigo ou o dono da
+zona)</td>
+<td>5</td>
+<td>4</td>
+<td>2</td>
+<td>1</td>
+<td>16</td>
+<td><strong>Arena (MVP)</strong></td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Caça: baús e tesouros no mapa</td>
+<td>4</td>
+<td>4</td>
+<td>2</td>
+<td>2</td>
+<td>14</td>
+<td><strong>Arena (MVP)</strong></td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Raid: chefão coletivo da cidade em 48 h</td>
+<td>4</td>
+<td>4</td>
+<td>2</td>
+<td>1</td>
+<td>15</td>
+<td><strong>Arena (v1.0)</strong></td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Rabisco: arte GPS com forma da semana</td>
+<td>4</td>
+<td>3</td>
+<td>3</td>
+<td>2</td>
+<td>12</td>
+<td><strong>Arena (v1.0)</strong></td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>Bandeira: capture the flag ao vivo entre equipes</td>
+<td>5</td>
+<td>3</td>
+<td>4</td>
+<td>3</td>
+<td>11</td>
+<td><strong>Arena (v2, eventos)</strong></td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>Liga do Bairro semanal com promoção e rebaixamento</td>
+<td>3</td>
+<td>5</td>
+<td>2</td>
+<td>1</td>
+<td>15</td>
+<td><strong>Estrutura competitiva</strong></td>
+</tr>
+<tr class="odd">
+<td>9</td>
+<td>Guerra de Cidades (placar normalizado)</td>
+<td>4</td>
+<td>4</td>
+<td>2</td>
+<td>2</td>
+<td>14</td>
+<td><strong>Estrutura competitiva</strong></td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td>Rei do Trecho: coroa de 7 dias por segmento</td>
+<td>4</td>
+<td>4</td>
+<td>3</td>
+<td>2</td>
+<td>13</td>
+<td><strong>v1.0</strong></td>
+</tr>
+<tr class="odd">
+<td>11</td>
+<td>Corrida Segura: Escolta ao vivo, SOS, alerta de parada</td>
+<td>2</td>
+<td>5</td>
+<td>3</td>
+<td>2</td>
+<td>12</td>
+<td><strong>Diferencial (MVP)</strong></td>
+</tr>
+<tr class="even">
+<td>12</td>
+<td>Guia: coach por voz que narra treino e jogo</td>
+<td>4</td>
+<td>4</td>
+<td>3</td>
+<td>2</td>
+<td>13</td>
+<td><strong>Diferencial (v1.0)</strong></td>
+</tr>
+<tr class="odd">
+<td>13</td>
+<td>Encontros de clube com check-in e multiplicador</td>
+<td>4</td>
+<td>5</td>
+<td>2</td>
+<td>2</td>
+<td>15</td>
+<td><strong>Diferencial (v1.0)</strong></td>
+</tr>
+<tr class="even">
+<td>14</td>
+<td>Prova Conectada: percurso de prova vira evento</td>
+<td>4</td>
+<td>3</td>
+<td>3</td>
+<td>3</td>
+<td>11</td>
+<td>v2</td>
+</tr>
+<tr class="odd">
+<td>15</td>
+<td>Drop Relâmpago (janela de 15 min para todos)</td>
+<td>4</td>
+<td>3</td>
+<td>1</td>
+<td>3</td>
+<td>13</td>
+<td>Evento da Caça</td>
+</tr>
+<tr class="even">
+<td>16</td>
+<td>Revezamento assíncrono em equipe</td>
+<td>3</td>
+<td>4</td>
+<td>2</td>
+<td>2</td>
+<td>13</td>
+<td>v2</td>
+</tr>
+<tr class="odd">
+<td>17</td>
+<td>Missões em áudio com história da cidade</td>
+<td>5</td>
+<td>4</td>
+<td>4</td>
+<td>2</td>
+<td>13</td>
+<td>v2 (conteúdo)</td>
+</tr>
+<tr class="even">
+<td>18</td>
+<td>Ritmo no Beat (cadência na batida)</td>
+<td>3</td>
+<td>2</td>
+<td>4</td>
+<td>3</td>
+<td>8</td>
+<td>Descartada por ora</td>
+</tr>
+<tr class="odd">
+<td>19</td>
+<td>Parceiros locais: zona patrocinada com cupom</td>
+<td>3</td>
+<td>3</td>
+<td>3</td>
+<td>3</td>
+<td>10</td>
+<td>Monetização v1.0</td>
+</tr>
+<tr class="even">
+<td>20</td>
+<td>Mapa social “quem está correndo agora” (com atraso)</td>
+<td>3</td>
+<td>3</td>
+<td>3</td>
+<td>4</td>
+<td>9</td>
+<td>Só para amigos (v2)</td>
+</tr>
+<tr class="odd">
+<td>21</td>
+<td>Esforço relativo na pontuação</td>
+<td>3</td>
+<td>5</td>
+<td>1</td>
+<td>1</td>
+<td>16</td>
+<td><strong>Regra do Domínio</strong></td>
+</tr>
+<tr class="even">
+<td>22</td>
+<td>Sequência semanal com congelamento</td>
+<td>3</td>
+<td>5</td>
+<td>1</td>
+<td>1</td>
+<td>16</td>
+<td><strong>Progressão</strong></td>
+</tr>
+<tr class="odd">
+<td>23</td>
+<td>Avatar nômade com mochila de cosméticos</td>
+<td>4</td>
+<td>3</td>
+<td>3</td>
+<td>1</td>
+<td>13</td>
+<td>v1.0</td>
+</tr>
+<tr class="even">
+<td>24</td>
+<td>Passe de temporada cosmético</td>
+<td>3</td>
+<td>4</td>
+<td>2</td>
+<td>2</td>
+<td>13</td>
+<td>Monetização v1.0</td>
+</tr>
+<tr class="odd">
+<td>25</td>
+<td>Retrospectiva anual grátis</td>
+<td>3</td>
+<td>3</td>
+<td>2</td>
+<td>1</td>
+<td>13</td>
+<td><strong>Núcleo</strong></td>
+</tr>
+<tr class="even">
+<td>26</td>
+<td>Recap animado para Stories</td>
+<td>4</td>
+<td>3</td>
+<td>2</td>
+<td>1</td>
+<td>14</td>
+<td><strong>MVP (imagem)</strong></td>
+</tr>
+<tr class="odd">
+<td>27</td>
+<td>Planos de treino (5 km, 10 km, 21 km)</td>
+<td>2</td>
+<td>4</td>
+<td>3</td>
+<td>2</td>
+<td>11</td>
+<td>Nômade+ v1.0</td>
+</tr>
+<tr class="even">
+<td>28</td>
+<td>Rotas iluminadas e movimentadas à noite</td>
+<td>2</td>
+<td>4</td>
+<td>4</td>
+<td>3</td>
+<td>9</td>
+<td>v2 (dados abertos)</td>
+</tr>
+<tr class="odd">
+<td>29</td>
+<td>Ligas corporativas (B2B)</td>
+<td>2</td>
+<td>3</td>
+<td>2</td>
+<td>2</td>
+<td>11</td>
+<td>Monetização v2</td>
+</tr>
+<tr class="even">
+<td>30</td>
+<td>Duelo 1×1 de território entre amigos</td>
+<td>4</td>
+<td>3</td>
+<td>2</td>
+<td>2</td>
+<td>13</td>
+<td>v1.0 (lobby privado)</td>
+</tr>
+<tr class="odd">
+<td>31</td>
+<td>Modo Caminhada com liga própria</td>
+<td>2</td>
+<td>4</td>
+<td>1</td>
+<td>1</td>
+<td>14</td>
+<td>v1.0 (inclusão)</td>
+</tr>
+<tr class="even">
+<td>32</td>
+<td>Desafios de prova em AR</td>
+<td>3</td>
+<td>2</td>
+<td>5</td>
+<td>3</td>
+<td>7</td>
+<td>Descartada</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Escolhas:</strong> - <strong>Arena:</strong> Domínio,
+Neblina, Fuga, Caça, Raid, Rabisco e Bandeira. - <strong>Diferenciais
+fora do jogo:</strong> Corrida Segura, Guia (coach por voz) e Encontros
+de clube. - <strong>Estruturas competitivas:</strong> Liga do Bairro e
+Guerra de Cidades.</p>
+<p><strong>Decisões e porquês.</strong> O Game Designer queria a
+Bandeira no MVP, por ser o modo mais divertido. O Tech Lead foi contra:
+ela exige tempo real com GPS de cerca de 10 m e vários jogadores no
+mesmo lugar e na mesma hora, algo difícil de testar com dois
+desenvolvedores. <strong>Decisão:</strong> a Bandeira fica para v2, como
+evento de clube.</p>
+<hr />
+<h2 id="estratégia-de-produto-fase-3">2. Estratégia de produto (Fase
+3)</h2>
+<p><em>Chapéus: CEO, CPO e Growth · Skills: <code>prd-writing</code>,
+<code>aso</code>.</em></p>
+<h3 id="visão-manifesto-e-posicionamento">2.1 Visão, manifesto e
+posicionamento</h3>
+<ul>
+<li><strong>Visão:</strong> transformar cada corrida na cidade em uma
+partida que vale a pena jogar de novo amanhã, ou semana que vem.</li>
+<li><strong>Manifesto:</strong> a cidade é grande demais para ser só um
+trajeto. No NOMADE RUN, sua corrida da manhã pinta o bairro com a cor do
+seu time, revela ruas que você nunca viu, foge de um fantasma e ajuda a
+cidade inteira a derrubar um chefão. E se você só quiser correr em paz,
+tudo bem: o app registra sua corrida tão bem quanto qualquer outro e
+nunca te pune por descansar.</li>
+<li><strong>Posicionamento:</strong>
+<ul>
+<li><strong>Contra o Strava:</strong> “o Strava mede sua corrida; o
+NOMADE RUN dá um motivo para ela”.</li>
+<li><strong>Contra o INTVL:</strong> “território justo: quem corre 3 km
+com esforço compete com quem corre 30 km”.</li>
+</ul></li>
+</ul>
+<h3 id="personas">2.2 Personas</h3>
+<table>
+
+<thead>
+<tr class="header">
+<th>Persona</th>
+<th>Rotina</th>
+<th>Dor</th>
+<th>O que a faz ficar</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Júlia, 24, Goiânia</strong>, estudante de design</td>
+<td>Corre 3×/semana com um run club no Parque Flamboyant</td>
+<td>Tem medo de correr sozinha à noite e se entedia com o mesmo
+percurso</td>
+<td>Corrida Segura grátis, Neblina para descobrir ruas novas e a Crew do
+clube</td>
+</tr>
+<tr class="even">
+<td><strong>Rafael, 34, Brasília</strong>, analista de dados</td>
+<td>Corre 40 km/semana, assina o Strava, faz provas de 21 km</td>
+<td>Os números não motivam mais; o placar de segmentos é sempre dos
+mesmos</td>
+<td>Domínio, Rei do Trecho, Liga do Bairro e Guerra de Cidades</td>
+</tr>
+<tr class="odd">
+<td><strong>Marcos, 41, Anápolis</strong>, pai de dois filhos</td>
+<td>Corre 2×/semana às 5h30, por 30 minutos</td>
+<td>Pouco tempo; sente que nunca vai competir com ninguém</td>
+<td>Esforço relativo, Fuga contra o próprio recorde e sequência semanal
+que respeita o descanso</td>
+</tr>
+</tbody>
+</table>
+<h3 id="proposta-de-valor-métricas-e-não-objetivos">2.3 Proposta de
+valor, métricas e não-objetivos</h3>
+<ul>
+<li><strong>Proposta de valor:</strong> “Registre sua corrida como no
+melhor app de corrida e, de bônus, jogue a sua cidade.”</li>
+<li><strong>North Star Metric:</strong> corredores ativos semanais com
+<strong>2 ou mais corridas válidas</strong> na semana.</li>
+<li><strong>Métricas de apoio:</strong>
+<ul>
+<li>retenção D30;</li>
+<li>% de corridas com ao menos um evento de jogo (zona afetada, área
+revelada ou missão cumprida);</li>
+<li>convites aceitos e entradas em Crews.</li>
+</ul></li>
+<li><strong>Contra-métricas</strong> (se subirem, algo está errado):
+<ul>
+<li>% de usuários que desativam notificações;</li>
+<li>taxa de atividades reprovadas pelo antifraude;</li>
+<li>relatos de “me sinto obrigado a correr”.</li>
+</ul></li>
+<li><strong>Pilares:</strong> Esporte (núcleo de corrida), Arena (jogo),
+Clube (social), Escolta (segurança) e Guia (coach).</li>
+<li><strong>Não-objetivos:</strong>
+<ul>
+<li>não somos app de ciclismo nem de academia;</li>
+<li>não fazemos diagnóstico de saúde;</li>
+<li>não incentivamos correr todos os dias;</li>
+<li>não vendemos vantagem no jogo;</li>
+<li>não mostramos a posição ao vivo de desconhecidos.</li>
+</ul></li>
+</ul>
+<h3 id="monetização-não-é-pay-to-win">2.4 Monetização (não é
+pay-to-win)</h3>
+<table>
+
+<thead>
+<tr class="header">
+<th>Produto</th>
+<th>Preço</th>
+<th>O que inclui</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Grátis para sempre</strong></td>
+<td>R$ 0</td>
+<td>Gravação, estatísticas, segmentos, todos os modos da Arena, Corrida
+Segura com 5 contatos e retrospectiva anual</td>
+</tr>
+<tr class="even">
+<td><strong>Nômade+</strong></td>
+<td>R$ 12,90/mês ou R$ 99/ano, via Pix (50% de desconto para
+estudante)</td>
+<td>Análises avançadas, planos de treino, Guia ilimitado, lobbies
+privados de Domínio, mapa de calor pessoal e Rabisco livre</td>
+</tr>
+<tr class="odd">
+<td><strong>Passe de Temporada</strong></td>
+<td>R$ 14,90 por temporada</td>
+<td>Só cosméticos: cores de rastro, efeitos de conquista, molduras e
+skins do avatar</td>
+</tr>
+<tr class="even">
+<td><strong>Zonas patrocinadas (B2B)</strong></td>
+<td>Contrato</td>
+<td>Cafés e lojas patrocinam uma zona e o dono semanal ganha cupom; as
+marcas também podem patrocinar Raids</td>
+</tr>
+</tbody>
+</table>
+<h3 id="loja-de-aplicativos-skill-aso">2.5 Loja de aplicativos (skill
+<code>aso</code>)</h3>
+<ul>
+<li><strong>Nome (29 de 30 caracteres):</strong> NOMADE RUN: Corra e
+Conquiste</li>
+<li><strong>Subtítulo (30 de 30 caracteres):</strong> Corrida GPS com
+jogo na cidade</li>
+<li><strong>Screenshots, na ordem:</strong>
+<ol type="1">
+<li>O mapa vivo da cidade com territórios (“Sua corrida pinta o
+bairro”).</li>
+<li>A Arena com os 7 modos (“Escolha seu jogo antes de sair”).</li>
+<li>O resumo com a zona conquistada (“Cada rua conta”).</li>
+</ol></li>
+</ul>
+<hr />
+<h2 id="arena-game-design-detalhado-fase-4">3. Arena: game design
+detalhado (Fase 4)</h2>
+<p><em>Chapéus: Game Designer, Backend/Geo e QA · Skills:
+<code>gamification-loops</code>, <code>md-skill-tree-architect</code>,
+<code>sharp-edges</code>.</em></p>
+<h3 id="princípio-toda-corrida-conta">3.1 Princípio: toda corrida
+conta</h3>
+<p>A Arena tem <strong>camadas passivas</strong> e
+<strong>missões</strong>: - As <strong>camadas passivas</strong>
+(Domínio, Neblina e Raid) funcionam em qualquer corrida, até numa
+“corrida livre”. - As <strong>missões</strong> (Fuga, Caça e Rabisco)
+são escolhidas antes de sair, uma por corrida. - Os
+<strong>eventos</strong> (Bandeira e Drop Relâmpago) acontecem em datas
+marcadas.</p>
+<p>Quem só quer correr nunca é obrigado a jogar. Quem quer jogar sempre
+tem algo em jogo.</p>
+<h3 id="domínio-território">3.2 Domínio: território</h3>
+<ul>
+<li><strong>Fantasia:</strong> “pinte o bairro com a cor do seu
+time.”</li>
+<li><strong>Como funciona:</strong>
+<ul>
+<li>Grade H3 com zonas em <strong>resolução 9</strong> (~0,1 km², ~174 m
+de lado), as mesmas da ERS v1.0.</li>
+<li>Agregação em <strong>resolução 7</strong> (distrito) para o título
+de Prefeito e para o mapa em zoom afastado.</li>
+</ul></li>
+<li><strong>Pontuação (proposta RN-001 v2, com esforço
+relativo):</strong>
+<code>RP = metros válidos × 0,1 × M_esforço × M_sequência × M_fantasma × M_grupo × M_defesa</code>
+<ul>
+<li><code>M_esforço = clamp(ritmo_base ÷ ritmo_atual, 0,8; 1,3)</code>.
+<ul>
+<li><code>ritmo_base</code> é a mediana do ritmo do próprio usuário nas
+últimas 10 corridas válidas.</li>
+<li>Sem histórico, vale 6:00 min/km.</li>
+<li>Assim, correr no seu limite vale tanto para um iniciante quanto para
+um atleta.</li>
+</ul></li>
+<li>Os demais multiplicadores e o teto de 300 RP por usuário, zona e dia
+permanecem como na ERS v1.0.</li>
+</ul></li>
+<li><strong>Regras mantidas da ERS v1.0:</strong>
+<ul>
+<li>conquista com histerese: <strong>≥ 30 RP para conquistar uma zona
+neutra</strong> (RN-002 v2, seção 9.3) e ≥ 110% do dono para tomar;</li>
+<li>sob ataque a partir de 50% da influência do dono, com 24 h de defesa
+e pontos em dobro para quem defende;</li>
+<li>escudo de 3 níveis;</li>
+<li>decaimento diário de 10%;</li>
+<li>temporada mensal (influência × 0,30 no reset);</li>
+<li>Prefeito do distrito.</li>
+</ul></li>
+<li><strong>No mapa:</strong>
+<ul>
+<li>Cada zona é um hexágono com preenchimento de 25–30% de opacidade na
+cor da facção e <strong>um padrão de hachura exclusivo de cada
+facção</strong>, para que daltônicos também distingam os times.</li>
+<li>Zonas sob ataque ganham contorno em <strong>faixa de
+sinalização</strong> (amarelo e asfalto alternados, como fita de
+obra).</li>
+</ul></li>
+<li><strong>Notificação:</strong> no máximo 1 alerta por zona a cada 6 h
+e no máximo 5 por dia.</li>
+<li><strong>Antifraude:</strong> o completo (seção 3.10).</li>
+<li><strong>Para não desmotivar iniciantes:</strong>
+<ul>
+<li>esforço relativo;</li>
+<li>teto diário por zona;</li>
+<li>ligas por nível na Liga do Bairro;</li>
+<li>o decaimento impede que alguém domine para sempre.</li>
+</ul></li>
+</ul>
+<h3 id="neblina-exploração">3.3 Neblina: exploração</h3>
+<ul>
+<li><strong>Fantasia:</strong> “a cidade está coberta de névoa; correr
+revela.”</li>
+<li><strong>Como funciona:</strong>
+<ul>
+<li>É uma camada <strong>pessoal</strong>.</li>
+<li>Usa células H3 de <strong>resolução 10</strong> (~15.000 m²). Cada
+célula por onde o usuário passa a menos de 30 m é revelada para
+sempre.</li>
+<li>O perfil mostra “% do seu bairro revelado” e “% da cidade
+revelada”.</li>
+</ul></li>
+<li><strong>Recompensas:</strong>
+<ul>
+<li>10 XP por célula nova;</li>
+<li>medalhas de bairro completo (80% revelado);</li>
+<li>medalha “Nômade” por correr em 1, 5 e 10 cidades.</li>
+</ul></li>
+<li><strong>Por que retém:</strong> é completismo puro e incentiva a
+variar o percurso, o que também é bom para a saúde, porque evita a
+monotonia.</li>
+<li><strong>No mapa:</strong> névoa cinza translúcida sobre as áreas não
+reveladas. Ela só aparece no filtro “Minha Neblina”, nunca por padrão,
+para não poluir o mapa.</li>
+</ul>
+<h3 id="fuga-o-fantasma">3.4 Fuga: o fantasma</h3>
+<ul>
+<li><strong>Fantasia:</strong> “algo está te seguindo, e é você mesmo da
+semana passada.”</li>
+<li><strong>Como jogar:</strong> antes de sair, o usuário escolhe o
+perseguidor:
+<ul>
+<li>o <strong>próprio recorde</strong> em uma distância;</li>
+<li>um <strong>amigo</strong>;</li>
+<li>o <strong>dono da zona</strong> em que está;</li>
+<li>um <strong>ritmo-alvo</strong>.</li>
+</ul></li>
+<li><strong>Regras:</strong>
+<ul>
+<li>O fantasma corre no ritmo escolhido.</li>
+<li>O app mostra a distância até ele a cada segundo.</li>
+<li>Se o fantasma chegar a <strong>0 m</strong> de diferença, o usuário
+é “pego”, mas a corrida continua e ele pode recuperar.</li>
+<li>Terminar à frente dá <strong>multiplicador ×1,5 de RP</strong> nas
+zonas do trecho (o M_fantasma da RN-001) e 50 XP.</li>
+</ul></li>
+<li><strong>Áudio:</strong> o Guia avisa a cada 100 m de diferença (“O
+fantasma está a 40 metros”), sem alarme estridente.</li>
+<li><strong>Esforço técnico:</strong> baixo. Roda localmente, sem
+servidor.</li>
+</ul>
+<h3 id="caça-tesouros">3.5 Caça: tesouros</h3>
+<ul>
+<li><strong>Fantasia:</strong> “a cidade está cheia de baús
+escondidos.”</li>
+<li><strong>Como funciona:</strong>
+<ul>
+<li>Todos os dias, o servidor sorteia de 5 a 8 baús por usuário num raio
+de 3 km da última corrida.</li>
+<li>Os baús ficam <strong>sempre em ruas e parques</strong> e nunca em
+zonas bloqueadas.</li>
+<li>Passar a menos de <strong>25 m</strong> de um baú abre o baú.</li>
+</ul></li>
+<li><strong>Raridade:</strong> comum (70%, 20 XP), raro (25%, 60 XP e
+uma peça cosmética) e lendário (5%, 150 XP, uma peça exclusiva e
+geralmente a mais de 2 km).</li>
+<li><strong>Drop Relâmpago (evento):</strong>
+<ul>
+<li>Uma notificação diz “Baús lendários na cidade pelos próximos 15
+minutos”.</li>
+<li>Acontece no máximo <strong>1 vez por semana</strong>, sempre num
+horário anunciado no dia anterior, para não virar FOMO.</li>
+</ul></li>
+<li><strong>Antifraude:</strong> precisa de passagem física a 25 m com
+cadência compatível. O mesmo baú não pode ser aberto de novo.</li>
+</ul>
+<h3 id="raid-o-chefão-da-cidade">3.6 Raid: o chefão da cidade</h3>
+<ul>
+<li><strong>Fantasia:</strong> “um monstro tomou conta da cidade; só
+todo mundo junto derruba.”</li>
+<li><strong>Como funciona:</strong>
+<ul>
+<li>Durante 48 h, a cidade enfrenta um chefão com <strong>vida igual a 1
+km × 30% dos corredores ativos</strong> da cidade.</li>
+<li>Cada km válido de qualquer pessoa da cidade causa dano.</li>
+<li>Barra de vida coletiva, ranking de Crews por dano e todos os
+participantes ganham a recompensa.</li>
+</ul></li>
+<li><strong>Por que retém:</strong> é cooperação pura. O iniciante ajuda
+tanto quanto pode e nunca fica para trás.</li>
+<li><strong>Esforço técnico:</strong> baixo. É um contador agregado no
+servidor.</li>
+</ul>
+<h3 id="rabisco-arte-gps">3.7 Rabisco: arte GPS</h3>
+<ul>
+<li><strong>Fantasia:</strong> “desenhe na cidade com o seu
+percurso.”</li>
+<li><strong>Como funciona:</strong>
+<ul>
+<li>Toda semana sai uma forma (coração, raio, número, logo da
+facção).</li>
+<li>O usuário corre tentando desenhar a forma no mapa.</li>
+<li>O app compara o percurso com a forma (normaliza escala e rotação e
+calcula a distância média entre as curvas) e dá uma nota de 0 a
+100.</li>
+</ul></li>
+<li><strong>Recompensas:</strong> acima de 70 pontos, medalha da semana
+e 80 XP. As melhores artes aparecem num mural da cidade, com
+curtidas.</li>
+<li><strong>Segurança:</strong> a forma nunca exige atravessar zona
+bloqueada.</li>
+</ul>
+<h3 id="bandeira-v2-eventos-de-clube">3.8 Bandeira (v2, eventos de
+clube)</h3>
+<ul>
+<li><strong>Fantasia:</strong> capture the flag no bairro.</li>
+<li><strong>Como funciona:</strong>
+<ul>
+<li>Duas equipes, cada uma com uma bandeira virtual na sua base.</li>
+<li>Pegar a bandeira do rival exige chegar a 15 m dela e voltar à
+própria base sem ser “interceptado”: um adversário a menos de 20 m, com
+GPS ao vivo.</li>
+<li>Partidas de 30 a 45 minutos, criadas por clubes, com local e hora
+marcados.</li>
+</ul></li>
+</ul>
+<h3 id="estruturas-competitivas">3.9 Estruturas competitivas</h3>
+<ul>
+<li><strong>Liga do Bairro:</strong>
+<ul>
+<li>Grupos semanais de 30 corredores <strong>com volume
+parecido</strong>.</li>
+<li>Os 5 primeiros sobem de divisão e os 5 últimos descem.</li>
+<li>Divisões: Calçada, Rua, Avenida, Rodovia (só no nome!) e
+Maratona.</li>
+<li>Pontuação por RP e XP da semana.</li>
+</ul></li>
+<li><strong>Guerra de Cidades:</strong>
+<ul>
+<li>Placar da RN-013: soma de RP ÷ √corredores ativos, com mínimo de 20
+corredores.</li>
+<li>A cidade campeã da temporada ganha a medalha coletiva “Capital
+Nômade”.</li>
+</ul></li>
+<li><strong>Rei do Trecho (v1.0):</strong> segmentos com coroa que dura
+7 dias e placares por faixa (iniciante, intermediário, avançado e por
+idade).</li>
+</ul>
+<h3 id="antifraude-consolidado">3.10 Antifraude consolidado</h3>
+<table>
+
+<thead>
+<tr class="header">
+<th>Camada</th>
+<th>Regra</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Velocidade</td>
+<td>Ponto acima de 40 km/h invalida o trecho; média acima de 25 km/h por
+mais de 30 s invalida o trecho</td>
+</tr>
+<tr class="even">
+<td>Salto de posição</td>
+<td>Deslocamento maior que 50 m em até 1 s</td>
+</tr>
+<tr class="odd">
+<td>Localização simulada</td>
+<td><code>isFromMockProvider</code> (Android) e App Attest/DeviceCheck
+(iOS) rejeitam a atividade</td>
+</tr>
+<tr class="even">
+<td>Sensores</td>
+<td>Entre 8 e 20 km/h, a cadência precisa ficar entre 120 e 220 ppm;
+abaixo de 60 ppm por mais de 60 s invalida o trecho</td>
+</tr>
+<tr class="odd">
+<td>Integridade</td>
+<td>Lotes assinados com HMAC-SHA256, sequência contínua e reenvio
+idempotente</td>
+</tr>
+<tr class="even">
+<td>Reputação</td>
+<td>Índice de Confiança (RN-009); abaixo de 40, a atividade vai para
+revisão humana</td>
+</tr>
+<tr class="odd">
+<td>Pós-processamento</td>
+<td>Modelo no servidor só para o topo dos placares;
+<strong>shadow-ban</strong> em vez de banimento visível</td>
+</tr>
+<tr class="even">
+<td>Desenho do jogo</td>
+<td>Teto diário, decaimento e esforço relativo, que reduzem o incentivo
+a trapacear</td>
+</tr>
+</tbody>
+</table>
+<h3 id="economia-e-progressão">3.11 Economia e progressão</h3>
+<ul>
+<li><strong>XP:</strong> vem de corridas válidas (1 XP por 100 m),
+células reveladas, missões e eventos.</li>
+<li><strong>Níveis:</strong> 1 a 50, com curva suave (nível n exige 100
+× n¹·⁵ XP). <strong>Cada nível desbloqueia algo real</strong>: cor de
+rastro, moldura, emote do avatar ou slot de Crew.</li>
+<li><strong>Moeda:</strong> não existe moeda comprável. “Selos” são
+ganhos só jogando e trocados por cosméticos comuns.</li>
+<li><strong>Sequência semanal:</strong>
+<ul>
+<li>A semana conta se o usuário fizer <strong>2 corridas
+válidas</strong>.</li>
+<li>Há <strong>1 congelamento grátis por mês</strong>.</li>
+<li>Marcos de 4, 12, 26 e 52 semanas.</li>
+<li>Nunca há sequência diária.</li>
+</ul></li>
+<li><strong>Árvore de conquistas</strong> (validada com
+<code>md-skill-tree-architect</code>: sem pré-requisitos circulares e
+com critério objetivo em cada nó):
+<ul>
+<li><strong>Primeiros Passos:</strong> primeira corrida → primeira zona
+→ primeira defesa.</li>
+<li><strong>Explorador:</strong> 100 células → bairro completo → 5
+cidades.</li>
+<li><strong>Tático:</strong> vencer 5 fantasmas → Prefeito de
+distrito.</li>
+<li><strong>Comunidade:</strong> entrar numa Crew → 3 Encontros → Raid
+vencido.</li>
+</ul></li>
+</ul>
+<h3 id="skills-aplicadas-arena">Skills aplicadas: Arena</h3>
+<ul>
+<li><strong><code>gamification-loops</code>:</strong>
+<ul>
+<li>“Can user disengage without penalty?” → sequência semanal com
+congelamento, nenhuma punição por descanso.</li>
+<li>“Competition demotivates majority” → ligas por volume e esforço
+relativo.</li>
+<li>“Easily gamed mechanics” → recompensa por resultado validado e teto
+diário.</li>
+<li>“Notification spam” → no máximo 1 alerta por evento e Drop Relâmpago
+1 vez por semana, anunciado com antecedência.</li>
+</ul></li>
+<li><strong><code>md-skill-tree-architect</code>:</strong> cada
+conquista desbloqueia algo, tem critério objetivo e não há ciclo de
+pré-requisitos.</li>
+<li><strong><code>sharp-edges</code>:</strong> no antifraude, o caminho
+fácil precisa ser o seguro. O servidor recalcula tudo e rejeita lotes
+sem assinatura (<em>fail-closed</em>).</li>
+</ul>
+<hr />
+<h2 id="experiência-fase-5">4. Experiência (Fase 5)</h2>
+<p><em>Chapéus: Head de Design e CPO · Skills: <code>expo-router</code>,
+<code>expo-native-ui</code>, <code>expo-ui</code>.</em></p>
+<h3 id="arquitetura-de-informação-5-abas-nativas">4.1 Arquitetura de
+informação (5 abas nativas)</h3>
+<table>
+
+<thead>
+<tr class="header">
+<th>Aba</th>
+<th>O que vive nela</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Mapa</strong></td>
+<td>Mapa vivo com territórios, botão Correr, filtros (Território,
+Neblina, Baús, Calor) e detalhe da zona em folha nativa</td>
+</tr>
+<tr class="even">
+<td><strong>Arena</strong></td>
+<td>Os 7 modos com regra resumida, eventos da semana, Raid da cidade e
+Liga do Bairro</td>
+</tr>
+<tr class="odd">
+<td><strong>Atividades</strong></td>
+<td>Histórico, feed de amigos e Crew, estatísticas e retrospectiva</td>
+</tr>
+<tr class="even">
+<td><strong>Clube</strong></td>
+<td>Crew, Encontros, ranking de Crews e Guerra de Cidades</td>
+</tr>
+<tr class="odd">
+<td><strong>Perfil</strong></td>
+<td>Avatar, nível, conquistas, Neblina revelada, Corrida Segura e
+ajustes</td>
+</tr>
+</tbody>
+</table>
+<p>A <strong>Corrida</strong> abre como tela cheia (modal nativo) a
+partir do botão Correr. O <strong>Resumo</strong> abre em seguida, na
+mesma pilha.</p>
+<h3 id="fluxos-principais">4.2 Fluxos principais</h3>
+<ol type="1">
+<li><strong>Onboarding (4 passos):</strong>
+<ol type="1">
+<li>Boas-vindas com o mapa da cidade aparecendo.</li>
+<li>Escolha da facção.</li>
+<li><strong>Priming de localização “durante o uso”</strong>, com o
+motivo: “para desenhar seu percurso e saber em que zona você está”.</li>
+<li>Notificações, opcional: “avisamos quando seu território estiver sob
+ataque — no máximo uma vez por zona a cada 6 h”.</li>
+</ol>
+<ul>
+<li>O pedido de “sempre” só aparece depois da primeira corrida, quando o
+usuário ativar a defesa automática.</li>
+</ul></li>
+<li><strong>Primeira corrida:</strong>
+<ol type="1">
+<li>Correr.</li>
+<li>Escolher a missão ou “Corrida livre”.</li>
+<li>Contagem 3-2-1.</li>
+<li>Tela de corrida.</li>
+<li>Toque longo para encerrar.</li>
+<li>Resumo com “Sua primeira zona!”.</li>
+</ol></li>
+<li><strong>Defesa:</strong>
+<ol type="1">
+<li>Chega o alerta.</li>
+<li>O usuário toca e o mapa abre na zona com a faixa de
+sinalização.</li>
+<li>Correr aqui.</li>
+<li>A defesa dobrada é aplicada.</li>
+<li>Aviso “Zona defendida”.</li>
+</ol></li>
+<li><strong>Corrida Segura:</strong>
+<ol type="1">
+<li>No Perfil, o usuário escolhe até 5 contatos.</li>
+<li>Em cada corrida, liga a Escolta com um toque.</li>
+<li>Os contatos recebem um link com a localização ao vivo.</li>
+<li>Se ele ficar parado mais de 10 min, o app pergunta “Está tudo bem?”
+e, sem resposta em 60 s, avisa os contatos.</li>
+<li>O SOS fica sempre visível na tela de corrida.</li>
+</ol></li>
+</ol>
+<h3 id="tela-de-corrida-regras">4.3 Tela de corrida (regras)</h3>
+<ul>
+<li><strong>Até 3 métricas grandes</strong> (tempo, distância e ritmo)
+em números de 64–96 pt, condensados e tabulares, legíveis ao sol.</li>
+<li>Linha secundária com a zona atual, a barra de conquista e o estado
+da missão (fantasma ou baú mais próximo).</li>
+<li><strong>Encerrar com toque longo de 600 ms</strong> e anel de
+progresso; pausa num botão grande. Alvos de toque de 64 pt.</li>
+<li>O mapa ocupa o topo, com o rastro e a posição. O painel de números
+fica embaixo, ao alcance do polegar.</li>
+<li>O Guia (voz) anuncia cada km e os eventos de jogo.</li>
+</ul>
+<h3 id="estados-de-cada-tela">4.4 Estados de cada tela</h3>
+<p>Todas as telas têm os estados carregando, vazio, erro e conteúdo: -
+<strong>Mapa vazio:</strong> “Sem zonas por aqui ainda — sua corrida
+pinta a primeira.” - <strong>Histórico vazio:</strong> “Sua primeira
+corrida aparece aqui.” - <strong>Erro de GPS:</strong> “Sinal de GPS
+fraco. Vá para um lugar aberto ou comece mesmo assim.”</p>
+<hr />
+<h2 id="design-system-asfalto-giz-fase-6">5. Design system “Asfalto
+&amp; Giz” (Fase 6)</h2>
+<p><em>Chapéu: Head de Design · Skills: <code>frontend-design</code>,
+<code>expo-design-system</code>, <code>expo-native-ui</code>,
+<code>mapbox-cartography</code>, <code>expo-animation</code>.</em></p>
+<h3 id="primeiro-plano-e-revisão-contra-o-briefing">5.1 Primeiro plano e
+revisão contra o briefing</h3>
+<p>A <code>frontend-design</code> manda escrever um plano, revisá-lo e
+só depois desenhar. Este foi o registro:</p>
+<table>
+
+<thead>
+<tr class="header">
+<th>Primeira ideia</th>
+<th>Problema encontrado na revisão</th>
+<th>Decisão</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Dark mode neon cyberpunk (a ideia original do brainstorm)</td>
+<td>É o padrão “preto com um acento ácido” que a skill lista como cara
+de IA. Além disso, mapa escuro ao sol é ilegível</td>
+<td><strong>Rejeitada</strong></td>
+</tr>
+<tr class="even">
+<td>“Atlas de papel”: fundo creme <code>#F4F1EA</code> com
+verde-limão</td>
+<td>A pesquisa de UI sugeriu, mas a skill cita exatamente esse creme
+como o padrão nº 1 de design gerado por IA</td>
+<td><strong>Rejeitada</strong></td>
+</tr>
+<tr class="odd">
+<td>Fontes Inter + Bricolage</td>
+<td>Inter é a escolha padrão de qualquer projeto</td>
+<td><strong>Trocada</strong></td>
+</tr>
+<tr class="even">
+<td><strong>“Asfalto &amp; Giz”</strong></td>
+<td>Vem do vocabulário real da corrida de rua brasileira: asfalto, setas
+de giz e tinta que as organizadoras pintam no chão, faixa amarela de
+sinalização e número de peito</td>
+<td><strong>Aprovada</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Conceito.</strong> A cidade é a pista. O mapa tem a cor fria
+do concreto, e os territórios parecem <strong>marcações de giz e tinta
+no asfalto</strong>, com hachuras diferentes por time. O elemento
+memorável (a ousadia concentrada num ponto só) é <strong>o mapa vivo
+pintado pelos corredores</strong>. O resto da interface é disciplinado,
+claro e silencioso.</p>
+<h3 id="cores">5.2 Cores</h3>
+<table>
+
+<thead>
+<tr class="header">
+<th>Nome</th>
+<th>Hex</th>
+<th>Uso</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Asfalto</strong></td>
+<td><code>#252A31</code></td>
+<td>Texto principal, tema escuro, botões secundários</td>
+</tr>
+<tr class="even">
+<td><strong>Concreto</strong></td>
+<td><code>#E8EBEE</code></td>
+<td>Fundo do app e chão do mapa claro</td>
+</tr>
+<tr class="odd">
+<td><strong>Giz</strong></td>
+<td><code>#FFFFFF</code></td>
+<td>Superfícies e cards</td>
+</tr>
+<tr class="even">
+<td><strong>Sinalização</strong></td>
+<td><code>#FFD23F</code></td>
+<td>Ação principal (botão Correr), destaques e faixa de “sob
+ataque”</td>
+</tr>
+<tr class="odd">
+<td><strong>Meio-fio</strong></td>
+<td><code>#6B7380</code></td>
+<td>Texto secundário e ícones</td>
+</tr>
+<tr class="even">
+<td><strong>Alerta</strong></td>
+<td><code>#C62828</code></td>
+<td>SOS e erros (sempre acompanhado de ícone)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Facções</strong> (paleta Okabe-Ito, segura para daltônicos,
+sempre com padrão redundante):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Facção</th>
+<th>Cor</th>
+<th>Padrão de hachura</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Neon Striders</td>
+<td>Azul <code>#0072B2</code></td>
+<td>listras diagonais</td>
+</tr>
+<tr class="even">
+<td>Urban Coyotes</td>
+<td>Vermelhão <code>#D55E00</code></td>
+<td>pontos</td>
+</tr>
+<tr class="odd">
+<td>Night Owls</td>
+<td>Púrpura <code>#CC79A7</code></td>
+<td>ondas</td>
+</tr>
+<tr class="even">
+<td>Volt Runners</td>
+<td>Verde-azulado <code>#009E73</code></td>
+<td>xadrez</td>
+</tr>
+</tbody>
+</table>
+<p>A cor de “sob ataque” <strong>não é</strong> uma cor de facção: é a
+faixa amarela e asfalto alternada, que se distingue por forma e por
+cor.</p>
+<h3 id="tipografia">5.3 Tipografia</h3>
+<ul>
+<li><strong>Big Shoulders Display</strong> (inspirada em placas de rua;
+condensada e atlética): números da corrida, títulos e o valor dos RP.
+Cabe “28:14” a 96 pt na largura de um celular.</li>
+<li><strong>Figtree</strong> (sem serifa, amigável e legível): todo o
+texto da interface. Os números ficam em <code>tabular-nums</code>.</li>
+<li><strong>Escala (pt):</strong> 12 · 14 · 16 · 20 · 24 · 32 · 48 · 72
+· 96.</li>
+</ul>
+<h3 id="espaço-forma-e-profundidade">5.4 Espaço, forma e
+profundidade</h3>
+<ul>
+<li>Grid de 4 pt; espaçamentos 4 · 8 · 12 · 16 · 24 · 32 · 48.</li>
+<li>Raios 8 · 14 · 22 · cápsula, sempre com
+<code>borderCurve: 'continuous'</code>.</li>
+<li>Sombra única de elevação,
+<code>boxShadow: 0 2px 12px rgba(37,42,49,.12)</code>, só nos elementos
+que flutuam sobre o mapa.</li>
+<li>Ícones: SF Symbols no iOS (<code>expo-symbols</code>) e Material
+Symbols no Android e na web.</li>
+</ul>
+<h3 id="mapa">5.5 Mapa</h3>
+<ul>
+<li><strong>Base dessaturada:</strong> no iOS
+<code>mutedStandard</code>; no Android e na web, estilo claro sem POIs
+coloridos. À noite, estilo escuro automático.</li>
+<li>Territórios são <strong>a única cor forte</strong> do mapa (skill
+<code>mapbox-cartography</code>): a posição e o rastro do usuário têm
+contraste máximo, e a base fica apagada.</li>
+</ul>
+<h3 id="motion-10-animações-assinatura">5.6 Motion: 10 animações
+assinatura</h3>
+<p>Os valores seguem as tabelas da skill <code>expo-animation</code>.
+Animações ligadas a ações frequentes (como a troca de aba) <strong>não
+animam</strong>.</p>
+<table>
+
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Momento</th>
+<th>Propósito</th>
+<th>Ferramenta</th>
+<th>Movimento</th>
+<th>Valores</th>
+<th>Haptic</th>
+<th>Movimento reduzido</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Pressionar botão</td>
+<td>Feedback</td>
+<td>Transição CSS do Reanimated</td>
+<td>scale 1 → 0,97</td>
+<td>120 ms, <code>cubicBezier(0.23,1,0.32,1)</code></td>
+<td>—</td>
+<td>Mantém (sutil)</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Contagem 3-2-1</td>
+<td>Indicar estado</td>
+<td>Animação CSS</td>
+<td>scale 0,95 → 1 + opacidade</td>
+<td>300 ms por número, ease-out</td>
+<td>Light a cada número</td>
+<td>Só opacidade</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Tela de corrida abrindo</td>
+<td>Consistência espacial</td>
+<td>Modal nativo</td>
+<td>Padrão da plataforma</td>
+<td>—</td>
+<td>—</td>
+<td>fade</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Encerrar com toque longo</td>
+<td>Feedback</td>
+<td>Shared value + gesto</td>
+<td>Anel de progresso</td>
+<td>600 ms linear</td>
+<td>Medium ao confirmar</td>
+<td>Igual</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Barra de conquista da zona</td>
+<td>Indicar estado</td>
+<td>Transição CSS</td>
+<td>translateX da barra (elemento absoluto)</td>
+<td>200 ms ease-out</td>
+<td>—</td>
+<td>Instantâneo</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td><strong>Zona conquistada (momento orquestrado)</strong></td>
+<td>Encanto</td>
+<td>Layout + animação CSS</td>
+<td>Hexágono “pintado” por 6 traços de giz em sequência + cartão
+sobe</td>
+<td>Traços com 60 ms de intervalo; cartão com spring
+<code>{duration: 400, dampingRatio: 0.8}</code></td>
+<td>Success no 1º traço</td>
+<td>Só o cartão aparece (fade 150 ms)</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>Folha da zona</td>
+<td>Consistência espacial</td>
+<td><code>formSheet</code> nativo</td>
+<td>Padrão do sistema</td>
+<td>—</td>
+<td>—</td>
+<td>Padrão</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>Entrar em território rival</td>
+<td>Indicar estado</td>
+<td>Transição CSS</td>
+<td>Faixa no topo desce (translateY)</td>
+<td>220 ms ease-out</td>
+<td>Warning</td>
+<td>Aparece sem deslocar</td>
+</tr>
+<tr class="odd">
+<td>9</td>
+<td>Resumo da corrida</td>
+<td>Explicação</td>
+<td><code>entering</code> em cascata</td>
+<td>FadeInDown, 40 ms de intervalo, só nos 6 primeiros itens</td>
+<td>250 ms</td>
+<td>—</td>
+<td>Sem deslocamento</td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td>Sequência semanal batida</td>
+<td>Encanto (raro)</td>
+<td>Animação CSS</td>
+<td>Selo gira 8° e assenta</td>
+<td>spring <code>{duration: 400, dampingRatio: 0.8}</code></td>
+<td>Success</td>
+<td>fade</td>
+</tr>
+</tbody>
+</table>
+<h3 id="componentes">5.7 Componentes</h3>
+<ul>
+<li><strong>Botões:</strong> <code>PrimaryButton</code> (Sinalização),
+<code>SecondaryButton</code> e <code>HoldButton</code> (toque longo com
+anel).</li>
+<li><strong>Mapa:</strong> <code>FactionChip</code>,
+<code>TerritoryMap</code> (nativo/web), <code>ZoneSheet</code> e
+<code>TerritoryBar</code> (influência por facção).</li>
+<li><strong>Corrida:</strong> <code>MetricBig</code> e
+<code>RunHud</code>.</li>
+<li><strong>Arena:</strong> <code>ModeCard</code>,
+<code>MissionPicker</code> e <code>RaidBar</code>.</li>
+<li><strong>Celebração e listas:</strong>
+<code>CaptureCelebration</code>, <code>LeagueRow</code> e
+<code>StatTile</code>.</li>
+<li><strong>Base:</strong> <code>EmptyState</code>, <code>Screen</code>
+e <code>Icon</code> (SF Symbols ou Material).</li>
+</ul>
+<h3 id="skills-aplicadas-design">Skills aplicadas: design</h3>
+<ul>
+<li><strong><code>frontend-design</code>:</strong>
+<ul>
+<li>plano de tokens com revisão registrada;</li>
+<li>ousadia concentrada no mapa;</li>
+<li>texto em voz ativa (“Encerrar corrida”, “Correr aqui”);</li>
+<li>nada de rótulos em CAIXA ALTA espaçada.</li>
+</ul></li>
+<li><strong><code>expo-design-system</code>:</strong> tokens em
+<code>src/theme/</code> e grid de 4 pt.</li>
+<li><strong><code>expo-native-ui</code>:</strong>
+<code>borderCurve: 'continuous'</code>, <code>boxShadow</code>,
+<code>tabular-nums</code>, <code>expo-symbols</code> e os 4 estados de
+cada tela.</li>
+<li><strong><code>mapbox-cartography</code>:</strong> base apagada e
+contraste máximo para usuário e rota.</li>
+<li><strong><code>expo-animation</code>:</strong> passagem pelo filtro
+de frequência, valores das tabelas e versão reduzida em cada
+animação.</li>
+</ul>
+<hr />
+<h2 id="arquitetura-técnica-fase-7">6. Arquitetura técnica (Fase 7)</h2>
+<p><em>Chapéus: Tech Lead, Backend/Geo e QA · Skills:
+<code>expo-overview</code>, <code>expo-project-structure</code>,
+<code>supabase</code>, <code>supabase-postgres-best-practices</code>,
+<code>mapbox-token-security</code>, <code>sharp-edges</code>.</em></p>
+<h3 id="decisão-de-stack">6.1 Decisão de stack</h3>
+<p><strong>Expo SDK 57 + React Native 0.86 + TypeScript</strong>, com
+Expo Router (NativeTabs), Reanimated 4, Skia, Hermes V1 e React
+Compiler. - <strong>Motivos:</strong> - uma base só, para um time de
+dois; - New Architecture com animações na UI thread; - os SDKs nativos
+de mapa e de GPS fazem o trabalho pesado; - atualizações OTA pelo EAS; -
+o ecossistema mais rico (Live Activities, Liquid Glass, widgets). -
+<strong>Alternativas:</strong> Flutter foi a segunda opção, descartada
+pela curva de Dart. Nativo puro foi descartado por exigir duas bases de
+código.</p>
+<table>
+
+<thead>
+<tr class="header">
+<th>Camada</th>
+<th>Protótipo (TCC, roda no Expo Go)</th>
+<th>Produção (development build)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Mapa</td>
+<td><code>react-native-maps</code> (Apple/Google) +
+<code>maplibre-gl</code> na web</td>
+<td><code>@rnmapbox/maps</code> (Mapbox Standard, feature-state, vector
+tiles)</td>
+</tr>
+<tr class="even">
+<td>GPS</td>
+<td><code>expo-location</code> em primeiro plano</td>
+<td><code>react-native-background-geolocation</code> (licenciado) ou
+módulo Expo próprio</td>
+</tr>
+<tr class="odd">
+<td>Dados</td>
+<td>Estado local (Zustand) com dados de demonstração</td>
+<td>Supabase: Postgres + PostGIS, Realtime Broadcast e Edge
+Functions</td>
+</tr>
+<tr class="even">
+<td>Grade</td>
+<td><code>h3-js</code></td>
+<td><code>h3-js</code> na Edge Function + índice <code>bigint</code> no
+Postgres (não há <code>h3-pg</code> no Supabase hospedado)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="visão-geral">6.2 Visão geral</h3>
+<pre><code>[App iOS/Android]──HTTPS (lotes assinados)──▶[Edge Function ingest]──▶[Postgres+PostGIS]
+      ▲  │                                         │ valida antifraude, calcula H3,
+      │  └─WebSocket (tópicos por célula-pai)◀──[Realtime Broadcast]◀─ trigger de mudança
+      │                                         [Edge Function push]──▶[Expo Push/FCM/APNs]
+[Mapbox tiles]                                  [Cron diário: decaimento, temporada]</code></pre>
+<h3 id="estrutura-do-app-appsmobile">6.3 Estrutura do app
+(<code>apps/mobile</code>)</h3>
+<pre><code>src/
+  app/                 # só rotas (Expo Router)
+    _layout.tsx        # raiz: fontes, tema, pilha
+    (tabs)/            # 5 abas nativas
+    corrida.tsx        # tela cheia
+    resumo.tsx
+    zona/[id].tsx      # formSheet
+    onboarding.tsx
+  domain/              # regras puras + testes (sem React)
+  components/          # UI reutilizável (kebab-case)
+  features/            # telas compostas por feature
+  store/               # estado (Zustand)
+  theme/               # tokens do design system
+  demo/                # dados de demonstração (identificados)</code></pre>
+<h3 id="modelo-de-dados-produção">6.4 Modelo de dados (produção)</h3>
+<ul>
+<li><strong>Tabelas:</strong>
+<ul>
+<li><code>profiles</code>, <code>factions</code> e
+<code>crews</code>;</li>
+<li><code>activities</code> e <code>activity_points</code> (particionada
+por mês);</li>
+<li><code>zones(h3 bigint pk, district bigint, city_id, owner_faction, shield, blocked)</code>;</li>
+<li><code>zone_influence(h3, faction, influence)</code>;</li>
+<li><code>zone_contributions(activity_id, user_id, h3, meters, rp, day)</code>;</li>
+<li><code>fog_cells(user_id, h3_r10)</code>;</li>
+<li><code>chests</code>, <code>raids</code>, <code>raid_damage</code>,
+<code>leagues</code> e <code>league_members</code>.</li>
+</ul></li>
+<li><strong>RLS</strong> em todas as tabelas, com
+<code>(select auth.uid()) = user_id</code>. UPDATE usa
+<code>USING</code> + <code>WITH CHECK</code>.</li>
+<li>Escrita de território <strong>só via Edge Function</strong> (service
+role apenas no servidor).</li>
+<li>Índices nas colunas das policies e paginação por cursor no feed e
+nos rankings.</li>
+</ul>
+<h3 id="fluxo-de-uma-corrida">6.5 Fluxo de uma corrida</h3>
+<ol type="1">
+<li><strong>Gravação:</strong> um ponto por segundo, salvo numa fila
+local (SQLite).</li>
+<li><strong>Envio:</strong> lotes de até 50 pontos a cada 30 s,
+assinados com HMAC e enviados quando houver conexão.</li>
+<li><strong>Validação:</strong> a Edge Function confere a assinatura e
+aplica o antifraude (RN-007, RN-008 e RN-009).</li>
+<li><strong>Cálculo:</strong> a função converte os trechos válidos em
+zonas H3 res 9 e células res 10, depois calcula RP, Neblina, dano de
+Raid e baús.</li>
+<li><strong>Gravação no banco:</strong> uma transação faz o upsert da
+influência e aplica conquista, ataque e escudo.</li>
+<li><strong>Tempo real:</strong> um trigger publica no tópico da
+célula-pai (res 6). Cada app assina só os tópicos visíveis na tela.</li>
+<li><strong>Push:</strong> a mudança vira notificação respeitando os
+limites (RN-003).</li>
+</ol>
+<h3 id="desempenho-e-segurança">6.6 Desempenho e segurança</h3>
+<ul>
+<li><strong>Desempenho:</strong>
+<ul>
+<li>orçamento de 16 ms por quadro (8 ms a 120 Hz);</li>
+<li>nenhum <code>setState</code> por quadro;</li>
+<li>hexágonos via feature-state ou vector tiles, nunca um componente por
+hexágono em produção;</li>
+<li>GPS desligado fora da corrida.</li>
+</ul></li>
+<li><strong>Segurança:</strong>
+<ul>
+<li>no app vai só o token público <code>pk.*</code> do Mapbox, com
+escopo mínimo; o <code>sk.*</code> fica no CI (skill
+<code>mapbox-token-security</code>);</li>
+<li>segredos nunca em <code>EXPO_PUBLIC_*</code>;</li>
+<li>rate limit na ingestão;</li>
+<li>revisão <code>sharp-edges</code> do fluxo de ingestão (falhar
+fechado).</li>
+</ul></li>
+</ul>
+<hr />
+<h2 id="plano-de-execução-fase-8">7. Plano de execução (Fase 8)</h2>
+<p><em>Chapéus: CPO e Tech Lead · Skill:
+<code>writing-plans</code>.</em></p>
+<h3 id="roadmap">7.1 Roadmap</h3>
+<table>
+
+<thead>
+<tr class="header">
+<th>Marco</th>
+<th>Conteúdo</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>MVP do TCC</strong></td>
+<td>Núcleo de corrida, Domínio, Neblina, Fuga, Caça, Liga simplificada,
+Corrida Segura (contatos + SOS), testes de todas as regras, protótipo no
+Expo Go</td>
+</tr>
+<tr class="even">
+<td><strong>v1.0 (lançamento)</strong></td>
+<td>Supabase + Realtime, Mapbox, GPS em segundo plano, Raid, Rabisco,
+Rei do Trecho, Crews e Encontros, Guia por voz, Nômade+, Passe de
+Temporada</td>
+</tr>
+<tr class="odd">
+<td><strong>v2</strong></td>
+<td>Bandeira, Prova Conectada, Revezamento, missões em áudio, rotas
+iluminadas, Apple Watch/Wear OS, ligas corporativas</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tarefas-do-mvp-cada-uma-com-teste">7.2 Tarefas do MVP (cada uma
+com teste)</h3>
+<ol type="1">
+<li><strong>Domínio puro:</strong> fórmula de RP com esforço relativo.
+Teste: limites 0,8/1,3, teto de 300 e exemplo de 115 RP.</li>
+<li><strong>Conquista e ataque:</strong> RN-002 e RN-003. Teste: 109,9%
+mantém o dono, 110% troca, 50% abre o ataque.</li>
+<li><strong>Escudo e decaimento:</strong> RN-004 e RN-005. Teste: 5,4 ×
+0,9 zera.</li>
+<li><strong>Antifraude:</strong> RN-007 e RN-008. Teste: 24,9 km/h
+válido, 25,1 km/h por 31 s inválido, salto de 51 m, localização
+simulada.</li>
+<li><strong>Placar entre cidades:</strong> RN-013. Teste: cidade com 19
+corredores fica fora.</li>
+<li><strong>Neblina:</strong> células reveladas a ≤ 30 m. Teste: revelar
+no mesmo lugar não dá XP duas vezes.</li>
+<li><strong>Fuga:</strong> diferença para o fantasma. Teste: à frente,
+empatado e pego.</li>
+<li><strong>Caça:</strong> abrir baú a ≤ 25 m. Teste: 25 m abre, 26 m
+não abre, baú não reabre.</li>
+<li><strong>Telas:</strong> onboarding, mapa, Arena, corrida (com
+simulação), resumo, liga e perfil. Teste: exportação web, typecheck e
+lint.</li>
+</ol>
+<h3 id="proposta-de-ers-v2.0">7.3 Proposta de ERS v2.0</h3>
+<table>
+
+<thead>
+<tr class="header">
+<th>ID</th>
+<th>Tipo</th>
+<th>Mudança</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>RN-001</td>
+<td>Alterada</td>
+<td><code>M_ritmo</code> absoluto passa a ser <code>M_esforço</code>
+relativo (clamp 0,8–1,3 sobre o ritmo-base do usuário)</td>
+</tr>
+<tr class="even">
+<td>RN-002</td>
+<td>Alterada</td>
+<td>Zona neutra conquistada com 30 RP (antes 100); dono abaixo de 30
+perde a zona (seção 9.3)</td>
+</tr>
+<tr class="odd">
+<td>RF-021</td>
+<td>Nova</td>
+<td>Arena de modos de jogo (camadas passivas, missões e eventos)</td>
+</tr>
+<tr class="even">
+<td>RF-022</td>
+<td>Nova</td>
+<td>Neblina: revelação de células H3 res 10 a ≤ 30 m do percurso</td>
+</tr>
+<tr class="odd">
+<td>RF-023</td>
+<td>Nova</td>
+<td>Fuga: perseguição por fantasma com ritmo, amigo, recorde ou dono da
+zona</td>
+</tr>
+<tr class="even">
+<td>RF-024</td>
+<td>Nova</td>
+<td>Caça: baús diários a ≤ 3 km, abertos a ≤ 25 m</td>
+</tr>
+<tr class="odd">
+<td>RF-025</td>
+<td>Nova</td>
+<td>Raid: chefão coletivo de 48 h por cidade</td>
+</tr>
+<tr class="even">
+<td>RF-026</td>
+<td>Nova</td>
+<td>Corrida Segura: Escolta para 5 contatos, SOS e alerta de parada de
+10 min</td>
+</tr>
+<tr class="odd">
+<td>RN-014</td>
+<td>Nova</td>
+<td>Sequência semanal: 2 corridas por semana e 1 congelamento grátis por
+mês</td>
+</tr>
+<tr class="even">
+<td>RN-015</td>
+<td>Nova</td>
+<td>Liga do Bairro: grupos de 30 por volume; 5 sobem e 5 descem</td>
+</tr>
+<tr class="odd">
+<td>RNF-015</td>
+<td>Nova</td>
+<td>Tela de corrida: no máximo 3 métricas de ≥ 64 pt e encerramento por
+toque longo de 600 ms</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="riscos-e-mitigação">8. Riscos e mitigação</h2>
+<table>
+
+<thead>
+<tr class="header">
+<th>Risco</th>
+<th>Probabilidade</th>
+<th>Impacto</th>
+<th>Mitigação</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GPS em segundo plano instável no Android</td>
+<td>Alta</td>
+<td>Alto</td>
+<td>Biblioteca licenciada na produção e foreground service tipo
+<code>location</code></td>
+</tr>
+<tr class="even">
+<td>Fraude em placares</td>
+<td>Alta</td>
+<td>Alto</td>
+<td>Antifraude em camadas, shadow-ban e esforço relativo</td>
+</tr>
+<tr class="odd">
+<td>Custo de mapa acima de 25 mil MAU</td>
+<td>Média</td>
+<td>Médio</td>
+<td>Estilo compatível com MapLibre como plano B</td>
+</tr>
+<tr class="even">
+<td>Mapa vazio numa cidade nova</td>
+<td>Alta</td>
+<td>Médio</td>
+<td>Neblina e Caça funcionam sozinhas; Raid da cidade desde o 1º
+usuário</td>
+</tr>
+<tr class="odd">
+<td>Segurança física (correr à noite, áreas de risco)</td>
+<td>Média</td>
+<td>Alto</td>
+<td>Zonas bloqueadas, Corrida Segura grátis, nenhum objetivo em área de
+risco</td>
+</tr>
+<tr class="even">
+<td>Engajamento que vira obsessão</td>
+<td>Média</td>
+<td>Alto</td>
+<td>Sequência semanal, congelamento e contra-métrica “me sinto
+obrigado”</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="protótipo-implementado-fases-9-e-10">9. Protótipo implementado
+(Fases 9 e 10)</h2>
+<p><em>Chapéus: Tech Lead Mobile, Head de Design e QA.</em></p>
+<p>O protótipo está em <code>apps/mobile</code>. Ele <strong>roda no
+Expo Go</strong>, sem build nativo, e também no navegador. Para rodar,
+veja <code>apps/mobile/README.md</code>.</p>
+<figure>
+<img src="../assets/grade-1.png"
+alt="Telas 1: boas-vindas, escolha do time, mapa de território e Arena" />
+<figcaption aria-hidden="true">Telas 1: boas-vindas, escolha do time,
+mapa de território e Arena</figcaption>
+</figure>
+<figure>
+<img src="../assets/grade-2.png"
+alt="Telas 2: nova corrida, corrida em andamento (defesa e Caça) e zona conquistada" />
+<figcaption aria-hidden="true">Telas 2: nova corrida, corrida em
+andamento (defesa e Caça) e zona conquistada</figcaption>
+</figure>
+<figure>
+<img src="../assets/grade-3.png"
+alt="Telas 3: resumo do território, atividades, clube e perfil" />
+<figcaption aria-hidden="true">Telas 3: resumo do território,
+atividades, clube e perfil</figcaption>
+</figure>
+<p>Os prints foram tirados da versão web do protótipo. No ambiente de
+desenvolvimento, o mapa base (as ruas) não carrega porque o servidor de
+mapas está bloqueado na rede. No celular, as ruas aparecem por baixo dos
+territórios.</p>
+<h3 id="o-que-funciona">9.1 O que funciona</h3>
+<ul>
+<li><strong>Onboarding:</strong> nome, escolha de time e explicação da
+localização antes do pedido do sistema.</li>
+<li><strong>Mapa:</strong>
+<ul>
+<li>territórios em hexágonos H3 com a hachura de cada time;</li>
+<li>zona sob ataque com a faixa de sinalização;</li>
+<li>alerta “Parque Flamboyant está sob ataque”;</li>
+<li>camada “Minha neblina”;</li>
+<li>folha nativa com os detalhes da zona.</li>
+</ul></li>
+<li><strong>Arena:</strong> os 7 modos com regras, o Raid da cidade e a
+Liga do Bairro, com promoção e queda.</li>
+<li><strong>Nova corrida:</strong> missão (Livre, Fuga ou Caça), ritmo
+do fantasma, sinal (GPS real ou simulação 10×) e Corrida Segura.</li>
+<li><strong>Corrida:</strong>
+<ul>
+<li>contagem 3-2-1;</li>
+<li>tempo, distância, ritmo atual e médio;</li>
+<li>zona atual com o progresso de conquista;</li>
+<li>aviso de território rival e de defesa (pontos em dobro);</li>
+<li>Fuga com distância até o fantasma e Caça com o baú mais próximo e
+abertura a 25 m;</li>
+<li>Guia por voz a cada km;</li>
+<li>pausa, pausa automática, SOS e encerrar segurando por 600 ms.</li>
+</ul></li>
+<li><strong>Resumo:</strong>
+<ul>
+<li>animação de <strong>zona conquistada</strong> (o momento orquestrado
+do design system);</li>
+<li>mapa do percurso;</li>
+<li>métricas, RP, XP e ruas reveladas;</li>
+<li>lista de zonas com o resultado de cada uma;</li>
+<li>trechos invalidados pelo antifraude, com explicação;</li>
+<li>compartilhamento.</li>
+</ul></li>
+<li><strong>Atividades, Clube e Perfil:</strong> sequência semanal com
+congelamento, histórico, Crew, encontro com confirmação, Guerra de
+Cidades, nível e XP, conquistas, Corrida Segura e Índice de
+Confiança.</li>
+</ul>
+<h3 id="qualidade-fase-10">9.2 Qualidade (Fase 10)</h3>
+<table>
+
+<thead>
+<tr class="header">
+<th>Verificação</th>
+<th>Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Testes unitários (<code>npm test</code>)</td>
+<td><strong>53 testes, 5 suítes, todos passando</strong></td>
+</tr>
+<tr class="even">
+<td>TypeScript (<code>tsc --noEmit</code>)</td>
+<td>Sem erros</td>
+</tr>
+<tr class="odd">
+<td>ESLint com as regras do React Compiler (<code>expo lint</code>)</td>
+<td>Sem erros e sem avisos</td>
+</tr>
+<tr class="even">
+<td>Exportação web (<code>expo export --platform web</code>)</td>
+<td>Concluída; MapLibre carregado sob demanda</td>
+</tr>
+<tr class="odd">
+<td>Percurso completo no navegador (onboarding → corrida simulada →
+resumo)</td>
+<td>Concluído, com prints de cada etapa</td>
+</tr>
+</tbody>
+</table>
+<h3 id="o-que-a-construção-ensinou-decisões-registradas">9.3 O que a
+construção ensinou (decisões registradas)</h3>
+<table>
+
+<thead>
+<tr class="header">
+<th>Descoberta</th>
+<th>Decisão</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Com o limite da ERS v1 (100 RP), uma corrida reta de 2 km não
+conquista nenhuma zona: o corredor passa ~300 m em cada hexágono, cerca
+de 35 RP</td>
+<td><strong>RN-002 v2:</strong> zona neutra é conquistada com <strong>30
+RP</strong> (~300 m dentro dela). Tomar uma zona com dono continua
+exigindo 110% do dono. O dono perde a zona se cair abaixo de 30
+(princípio de “vitória rápida” da <code>gamification-loops</code>)</td>
+</tr>
+<tr class="even">
+<td>A biblioteca <code>h3-js</code> cria um
+<code>TextDecoder('utf-16le')</code>, que o runtime da Expo não suporta:
+o app quebraria ao abrir</td>
+<td>Complemento (<em>polyfill</em>) em
+<code>src/domain/h3-runtime.ts</code>, carregado antes da h3-js</td>
+</tr>
+<tr class="odd">
+<td>O MapLibre 6 roda num <em>worker</em> separado que o bundler não
+empacota: o mapa web ficava vazio</td>
+<td>O worker é copiado para <code>public/</code> na instalação
+(<code>scripts/copy-maplibre-worker.js</code>)</td>
+</tr>
+<tr class="even">
+<td>A Apple rejeita telas de explicação de permissão com botão “Agora
+não” (diretriz 5.1.1(iv))</td>
+<td>O priming de localização tem um único botão, que sempre leva ao
+pedido do sistema</td>
+</tr>
+<tr class="odd">
+<td>A skill <code>frontend-design</code> lista o fundo creme e o preto
+com acento neon como padrões de IA</td>
+<td>A direção “Asfalto &amp; Giz” substituiu as duas propostas
+iniciais</td>
+</tr>
+<tr class="even">
+<td>As regras de pureza do React Compiler acusaram
+<code>Date.now()</code> no render e refs lidas no render</td>
+<td>Hook <code>useNow</code> e estado espelhado só dentro de callbacks;
+o lint passa sem desligar nenhuma regra</td>
+</tr>
+</tbody>
+</table>
+<h3 id="skills-aplicadas-construção">Skills aplicadas: construção</h3>
+<ul>
+<li><strong><code>expo-overview</code>:</strong>
+<ul>
+<li>versões lidas no <code>package.json</code>;</li>
+<li>pacotes instalados com <code>npx expo install</code> (em modo
+offline, porque a API da Expo está bloqueada na rede);</li>
+<li>APIs conferidas nos tipos instalados, não na memória.</li>
+</ul></li>
+<li><strong><code>expo-project-structure</code> /
+<code>expo-router</code>:</strong>
+<ul>
+<li><code>src/app</code> só com rotas;</li>
+<li>NativeTabs com uma Stack por aba;</li>
+<li><code>formSheet</code> nativo para a zona;</li>
+<li>modal de tela cheia para a corrida;</li>
+<li><code>Stack.Protected</code> para o onboarding.</li>
+</ul></li>
+<li><strong><code>expo-native-ui</code>:</strong>
+<ul>
+<li>Expo Go primeiro;</li>
+<li><code>expo-symbols</code> com nomes para iOS, Android e web;</li>
+<li><code>boxShadow</code>, <code>borderCurve: 'continuous'</code> e
+<code>tabular-nums</code>;</li>
+<li>nenhum controle sem ação.</li>
+</ul></li>
+<li><strong><code>expo-animation</code>:</strong>
+<ul>
+<li>pressionar em 120 ms com
+<code>cubicBezier(0.23, 1, 0.32, 1)</code>;</li>
+<li>encerrar segurando por 600 ms na UI thread com
+<code>scheduleOnRN</code>;</li>
+<li>abas sem animação;</li>
+<li>um haptic por ação, sempre junto com o visual;</li>
+<li>movimento reduzido em todas as animações.</li>
+</ul></li>
+<li><strong><code>react-native-reanimated</code>:</strong>
+<code>.get()</code>/<code>.set()</code>, <code>scheduleOnRN</code> e
+nenhum <code>runOnJS</code>.</li>
+<li><strong><code>mapbox-cartography</code>:</strong> base apagada,
+territórios como a única cor forte e rota com contraste máximo (asfalto
+com contorno branco).</li>
+<li><strong><code>gamification-loops</code>:</strong> vitória rápida na
+primeira corrida (RN-002 v2) e sequência semanal com congelamento.</li>
+<li><strong><code>frontend-design</code>:</strong> um único momento
+orquestrado (a pintura de giz da zona conquistada), autocrítica por
+prints e correções.</li>
+</ul>
+<hr />
+<h2 id="apêndice-a-skills-aplicadas-por-fase">Apêndice A — Skills
+aplicadas por fase</h2>
+<table>
+
+<thead>
+<tr class="header">
+<th>Fase</th>
+<th>Skills</th>
+<th>Regras aplicadas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Pesquisa</td>
+<td><code>find-skills</code></td>
+<td>Busca de skills por tema; skills.sh bloqueado, então leitura direta
+dos SKILL.md no GitHub</td>
+</tr>
+<tr class="even">
+<td>Ideação</td>
+<td><code>brainstorming</code>, <code>gamification-loops</code></td>
+<td>Entender o “porquê” antes de construir; ciclo saudável; ética</td>
+</tr>
+<tr class="odd">
+<td>Produto</td>
+<td><code>prd-writing</code>, <code>aso</code></td>
+<td>Métrica principal + contra-métricas + não-objetivos; nome e
+subtítulo ≤ 30 caracteres</td>
+</tr>
+<tr class="even">
+<td>Jogo</td>
+<td><code>md-skill-tree-architect</code>, <code>sharp-edges</code></td>
+<td>Árvore sem ciclos; antifraude que falha fechado</td>
+</tr>
+<tr class="odd">
+<td>Design</td>
+<td><code>frontend-design</code>, <code>expo-design-system</code>,
+<code>expo-native-ui</code>, <code>mapbox-cartography</code></td>
+<td>Plano revisado contra o briefing; tokens; base de mapa apagada</td>
+</tr>
+<tr class="even">
+<td>Motion</td>
+<td><code>expo-animation</code>, <code>expo-motion</code>,
+<code>react-native-reanimated</code></td>
+<td>Filtro de frequência; valores tabelados; movimento reduzido</td>
+</tr>
+<tr class="odd">
+<td>Arquitetura</td>
+<td><code>expo-overview</code>, <code>expo-project-structure</code>,
+<code>expo-router</code>, <code>supabase</code>,
+<code>supabase-postgres-best-practices</code>,
+<code>mapbox-token-security</code></td>
+<td><code>src/app</code> só com rotas; RLS; tokens</td>
+</tr>
+<tr class="even">
+<td>Plano</td>
+<td><code>writing-plans</code></td>
+<td>Tarefas pequenas, cada uma com teste</td>
+</tr>
+</tbody>
+</table>
+<h2 id="apêndice-b-fontes">Apêndice B — Fontes</h2>
+<p>As fontes completas estão em <code>docs/pesquisa/01</code> a
+<code>04</code>.</p>
+
+</body>
+</html>

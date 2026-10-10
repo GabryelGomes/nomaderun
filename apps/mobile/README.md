@@ -1,56 +1,57 @@
-# Welcome to your Expo app 👋
+# NOMADE RUN — protótipo do app
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App de corrida de rua com as funções essenciais de um app de corrida e uma Arena de minigames sobre o mapa real da cidade (Domínio de território, Neblina, Fuga, Caça, Raid). Feito com **Expo SDK 57 + React Native + TypeScript**.
 
-## Get started
+## Rodar no celular (Expo Go, sem instalar Android Studio nem Xcode)
 
-1. Install dependencies
-
+1. Instale o app **Expo Go** no celular (App Store ou Google Play).
+2. No computador, com Node.js 22+:
    ```bash
+   cd apps/mobile
    npm install
-   ```
-
-2. Start the app
-
-   ```bash
    npx expo start
    ```
+3. Leia o QR code com a câmera (iPhone) ou com o Expo Go (Android). Celular e computador precisam estar na mesma rede Wi-Fi.
 
-In the output, you'll find options to open the app in a
+No iPhone o mapa é o Apple Maps; no Android, o Google Maps. Para testar sem sair de casa, escolha **Simulação** na tela de nova corrida: o app percorre uma volta no Parque Flamboyant (Goiânia) em velocidade 10×.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Rodar no navegador
 
 ```bash
-npm run reset-project
+npx expo start --web
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+O mapa da web usa MapLibre com o mapa base gratuito do OpenFreeMap.
 
-### Other setup steps
+## Testes e qualidade
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npm test            # 53 testes das regras de negócio (src/domain)
+npm run typecheck   # TypeScript
+npm run lint        # ESLint com as regras do React Compiler
+```
 
-## Learn more
+Os testes cobrem as regras do ERS com valores-limite: pontuação com esforço relativo (RN-001), conquista com histerese (RN-002), ataque e defesa (RN-003), escudo (RN-004), decaimento e temporada (RN-005, RN-006), antifraude de GPS e passos (RN-007, RN-008), Índice de Confiança (RN-009), Guerra de Cidades (RN-013), Neblina, Fuga, Caça, Liga do Bairro, sequência semanal e progressão.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Estrutura
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```
+src/
+  app/          rotas (Expo Router): abas nativas, corrida, resumo, zona, onboarding
+  domain/       regras do jogo, puras e testadas (sem React)
+  features/     telas e a sessão de corrida (GPS ou simulação)
+  components/   UI reutilizável: mapa nativo/web, botões, hexágono com hachura
+  theme/        design system "Asfalto & Giz"
+  store/        estado do jogo (Zustand)
+  demo/         dados de DEMONSTRAÇÃO (não são usuários reais)
+```
 
-## Join the community
+## O que é protótipo e o que muda na produção
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+| Parte | Protótipo | Produção |
+|---|---|---|
+| Mapa | `react-native-maps` (roda no Expo Go) | Mapbox (`@rnmapbox/maps`) com vector tiles e feature-state |
+| GPS | `expo-location` com o app aberto | Serviço de localização em segundo plano |
+| Dados | Estado local + dados de demonstração | Supabase (Postgres + PostGIS, Realtime, Edge Functions) |
+| Passos | Só na simulação | Pedômetro do aparelho (RN-008) |
+| SOS e Escolta | Simulados na tela | Envio real para os contatos |

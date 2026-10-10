@@ -154,7 +154,7 @@ Quem só quer correr nunca é obrigado a jogar. Quem quer jogar sempre tem algo 
     - Assim, correr no seu limite vale tanto para um iniciante quanto para um atleta.
   - Os demais multiplicadores e o teto de 300 RP por usuário, zona e dia permanecem como na ERS v1.0.
 - **Regras mantidas da ERS v1.0:**
-  - conquista com histerese (≥ 100 para conquistar uma zona neutra; ≥ 110% do dono para tomar);
+  - conquista com histerese: **≥ 30 RP para conquistar uma zona neutra** (RN-002 v2, seção 9.3) e ≥ 110% do dono para tomar;
   - sob ataque a partir de 50% da influência do dono, com 24 h de defesa e pontos em dobro para quem defende;
   - escudo de 3 níveis;
   - decaimento diário de 10%;
@@ -541,6 +541,7 @@ src/
 | ID | Tipo | Mudança |
 |---|---|---|
 | RN-001 | Alterada | `M_ritmo` absoluto passa a ser `M_esforço` relativo (clamp 0,8–1,3 sobre o ritmo-base do usuário) |
+| RN-002 | Alterada | Zona neutra conquistada com 30 RP (antes 100); dono abaixo de 30 perde a zona (seção 9.3) |
 | RF-021 | Nova | Arena de modos de jogo (camadas passivas, missões e eventos) |
 | RF-022 | Nova | Neblina: revelação de células H3 res 10 a ≤ 30 m do percurso |
 | RF-023 | Nova | Fuga: perseguição por fantasma com ritmo, amigo, recorde ou dono da zona |
@@ -562,6 +563,95 @@ src/
 | Mapa vazio numa cidade nova | Alta | Médio | Neblina e Caça funcionam sozinhas; Raid da cidade desde o 1º usuário |
 | Segurança física (correr à noite, áreas de risco) | Média | Alto | Zonas bloqueadas, Corrida Segura grátis, nenhum objetivo em área de risco |
 | Engajamento que vira obsessão | Média | Alto | Sequência semanal, congelamento e contra-métrica "me sinto obrigado" |
+
+---
+
+## 9. Protótipo implementado (Fases 9 e 10)
+
+*Chapéus: Tech Lead Mobile, Head de Design e QA.*
+
+O protótipo está em `apps/mobile`. Ele **roda no Expo Go**, sem build nativo, e também no navegador. Para rodar, veja `apps/mobile/README.md`.
+
+![Telas 1: boas-vindas, escolha do time, mapa de território e Arena](assets/grade-1.png)
+
+![Telas 2: nova corrida, corrida em andamento (defesa e Caça) e zona conquistada](assets/grade-2.png)
+
+![Telas 3: resumo do território, atividades, clube e perfil](assets/grade-3.png)
+
+Os prints foram tirados da versão web do protótipo. No ambiente de desenvolvimento, o mapa base (as ruas) não carrega porque o servidor de mapas está bloqueado na rede. No celular, as ruas aparecem por baixo dos territórios.
+
+### 9.1 O que funciona
+- **Onboarding:** nome, escolha de time e explicação da localização antes do pedido do sistema.
+- **Mapa:**
+  - territórios em hexágonos H3 com a hachura de cada time;
+  - zona sob ataque com a faixa de sinalização;
+  - alerta "Parque Flamboyant está sob ataque";
+  - camada "Minha neblina";
+  - folha nativa com os detalhes da zona.
+- **Arena:** os 7 modos com regras, o Raid da cidade e a Liga do Bairro, com promoção e queda.
+- **Nova corrida:** missão (Livre, Fuga ou Caça), ritmo do fantasma, sinal (GPS real ou simulação 10×) e Corrida Segura.
+- **Corrida:**
+  - contagem 3-2-1;
+  - tempo, distância, ritmo atual e médio;
+  - zona atual com o progresso de conquista;
+  - aviso de território rival e de defesa (pontos em dobro);
+  - Fuga com distância até o fantasma e Caça com o baú mais próximo e abertura a 25 m;
+  - Guia por voz a cada km;
+  - pausa, pausa automática, SOS e encerrar segurando por 600 ms.
+- **Resumo:**
+  - animação de **zona conquistada** (o momento orquestrado do design system);
+  - mapa do percurso;
+  - métricas, RP, XP e ruas reveladas;
+  - lista de zonas com o resultado de cada uma;
+  - trechos invalidados pelo antifraude, com explicação;
+  - compartilhamento.
+- **Atividades, Clube e Perfil:** sequência semanal com congelamento, histórico, Crew, encontro com confirmação, Guerra de Cidades, nível e XP, conquistas, Corrida Segura e Índice de Confiança.
+
+### 9.2 Qualidade (Fase 10)
+| Verificação | Resultado |
+|---|---|
+| Testes unitários (`npm test`) | **53 testes, 5 suítes, todos passando** |
+| TypeScript (`tsc --noEmit`) | Sem erros |
+| ESLint com as regras do React Compiler (`expo lint`) | Sem erros e sem avisos |
+| Exportação web (`expo export --platform web`) | Concluída; MapLibre carregado sob demanda |
+| Percurso completo no navegador (onboarding → corrida simulada → resumo) | Concluído, com prints de cada etapa |
+
+### 9.3 O que a construção ensinou (decisões registradas)
+| Descoberta | Decisão |
+|---|---|
+| Com o limite da ERS v1 (100 RP), uma corrida reta de 2 km não conquista nenhuma zona: o corredor passa ~300 m em cada hexágono, cerca de 35 RP | **RN-002 v2:** zona neutra é conquistada com **30 RP** (~300 m dentro dela). Tomar uma zona com dono continua exigindo 110% do dono. O dono perde a zona se cair abaixo de 30 (princípio de "vitória rápida" da `gamification-loops`) |
+| A biblioteca `h3-js` cria um `TextDecoder('utf-16le')`, que o runtime da Expo não suporta: o app quebraria ao abrir | Complemento (*polyfill*) em `src/domain/h3-runtime.ts`, carregado antes da h3-js |
+| O MapLibre 6 roda num *worker* separado que o bundler não empacota: o mapa web ficava vazio | O worker é copiado para `public/` na instalação (`scripts/copy-maplibre-worker.js`) |
+| A Apple rejeita telas de explicação de permissão com botão "Agora não" (diretriz 5.1.1(iv)) | O priming de localização tem um único botão, que sempre leva ao pedido do sistema |
+| A skill `frontend-design` lista o fundo creme e o preto com acento neon como padrões de IA | A direção "Asfalto & Giz" substituiu as duas propostas iniciais |
+| As regras de pureza do React Compiler acusaram `Date.now()` no render e refs lidas no render | Hook `useNow` e estado espelhado só dentro de callbacks; o lint passa sem desligar nenhuma regra |
+
+### Skills aplicadas: construção
+- **`expo-overview`:**
+  - versões lidas no `package.json`;
+  - pacotes instalados com `npx expo install` (em modo offline, porque a API da Expo está bloqueada na rede);
+  - APIs conferidas nos tipos instalados, não na memória.
+- **`expo-project-structure` / `expo-router`:**
+  - `src/app` só com rotas;
+  - NativeTabs com uma Stack por aba;
+  - `formSheet` nativo para a zona;
+  - modal de tela cheia para a corrida;
+  - `Stack.Protected` para o onboarding.
+- **`expo-native-ui`:**
+  - Expo Go primeiro;
+  - `expo-symbols` com nomes para iOS, Android e web;
+  - `boxShadow`, `borderCurve: 'continuous'` e `tabular-nums`;
+  - nenhum controle sem ação.
+- **`expo-animation`:**
+  - pressionar em 120 ms com `cubicBezier(0.23, 1, 0.32, 1)`;
+  - encerrar segurando por 600 ms na UI thread com `scheduleOnRN`;
+  - abas sem animação;
+  - um haptic por ação, sempre junto com o visual;
+  - movimento reduzido em todas as animações.
+- **`react-native-reanimated`:** `.get()`/`.set()`, `scheduleOnRN` e nenhum `runOnJS`.
+- **`mapbox-cartography`:** base apagada, territórios como a única cor forte e rota com contraste máximo (asfalto com contorno branco).
+- **`gamification-loops`:** vitória rápida na primeira corrida (RN-002 v2) e sequência semanal com congelamento.
+- **`frontend-design`:** um único momento orquestrado (a pintura de giz da zona conquistada), autocrítica por prints e correções.
 
 ---
 

@@ -220,7 +220,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
     const result = finishRun(s.run, {
       faction,
       basePace,
-      streakDays: Math.min(10, streakWeeks * 2),
+      streakDays: Math.min(10, streakWeeks), // RN-001: weeks of the weekly streak (RN-014)
       zones,
       revealedFog: new Set(fog),
       now: Date.now(),

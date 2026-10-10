@@ -2,26 +2,40 @@
 
 **Um Projeto de Gestão e Gamificação de Corridas Urbanas**
 
-App de corrida de verdade (na rua, com GPS) com as funções do Strava e um diferencial: um jogo de **conquista de território**. A cidade é dividida em hexágonos, e quem corre neles conquista aquela área para a sua facção. Funciona em qualquer cidade e dá para competir **Cidade × Cidade**.
+App de corrida de rua de verdade (GPS) com as funções essenciais de um app de corrida e uma **Arena de minigames sobre o mapa real da cidade**. Entre eles está o Domínio, em que quem corre numa área conquista território para o seu time. Funciona em qualquer cidade e tem competição **Cidade × Cidade**.
 
 **Integrantes:** Gabryel Gomes Bahmad Camapum · Mateus Augusto De Faria Brito
 
-## Documentos
+## Para entregar (TCC)
 
 | Arquivo | O que é |
 |---|---|
-| [`docs/ERS/NOMADE RUN - Um Projeto de Gestão e Gamificação de Corridas Urbanas.pdf`](docs/ERS/) | **ERS final em PDF**, pronto para entregar |
-| [`docs/ERS/NOMADE RUN - ERS (editável).docx`](docs/ERS/) | Mesmo ERS em Word, para ajustar |
-| [`docs/ERS/ERS-NOMADE-RUN.md`](docs/ERS/ERS-NOMADE-RUN.md) | Fonte do ERS (Markdown) |
-| [`docs/01-BRAINSTORM.md`](docs/01-BRAINSTORM.md) | Ideias de funcionalidades, jogo e visual |
-| [`docs/02-SKILLS-MAP.md`](docs/02-SKILLS-MAP.md) | Skills do skills.sh pesquisadas para cada tarefa (com comandos de instalação) |
-| [`docs/03-PROMPT-APP.md`](docs/03-PROMPT-APP.md) | Mega-prompt para uma IA construir o aplicativo |
-| [`docs/04-PROMPT-ERS.md`](docs/04-PROMPT-ERS.md) | Prompt corrigido do ERS |
+| `docs/ERS/NOMADE RUN - Um Projeto de Gestão e Gamificação de Corridas Urbanas.pdf` | **ERS em PDF**, no modelo da disciplina |
+| `docs/ERS/NOMADE RUN - ERS (editável).docx` | Mesmo ERS em Word |
 
-## Regerar o PDF do ERS
+## Produto e protótipo
 
-Requer `pandoc`, Node.js e Playwright (Chromium):
+| Caminho | O que é |
+|---|---|
+| `apps/mobile/` | **Protótipo funcional** (Expo + React Native + TypeScript). Como rodar: `apps/mobile/README.md` |
+| `docs/produto/NOMADE RUN - Product Book.pdf` | Product Book: estratégia, Arena, design system, arquitetura, roadmap e protótipo |
+| `docs/pesquisa/` | Pesquisas de mercado, UI, stack técnica e skills, com fontes |
+| `docs/05-PROMPT-MESTRE.md` | Prompt mestre que gerou a pesquisa, o Product Book e o protótipo |
+| `.agents/skills/` | Skills do skills.sh usadas no projeto (`SOURCES.md` tem a origem de cada uma) |
+| `docs/01-BRAINSTORM.md`, `02` a `04` | Rascunhos iniciais (uso interno) |
+
+## Rodar o app em 1 minuto
+
+```bash
+cd apps/mobile
+npm install
+npx expo start      # leia o QR code com o app Expo Go
+npm test            # 53 testes das regras de negócio
+```
+
+## Regerar os PDFs
 
 ```bash
 ./docs/ERS/build-src/build.sh
+./docs/produto/build/build.sh
 ```
