@@ -13,6 +13,15 @@ App de corrida de rua de verdade (GPS) com as funções essenciais de um app de 
 | `docs/ERS/NOMADE RUN - Um Projeto de Gestão e Gamificação de Corridas Urbanas.pdf` | **ERS em PDF**, no modelo da disciplina |
 | `docs/ERS/NOMADE RUN - ERS (editável).docx` | Mesmo ERS em Word |
 
+## Apresentação
+
+| Caminho | O que é |
+|---|---|
+| Deck de 10 slides (link no claude.ai, exporta em PowerPoint e PDF) | Apresentação do projeto, com notas do apresentador |
+| `docs/06-PROMPT-APRESENTACAO.md` | Prompt detalhado da apresentação: roteiro, visual, demo e perguntas da banca |
+| `docs/apresentacao/telas/` | Capturas reais do protótipo usadas nos slides |
+| `docs/apresentacao/slides/` | Fonte dos slides |
+
 ## Produto e protótipo
 
 | Caminho | O que é |

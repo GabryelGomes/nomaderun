@@ -1,0 +1,19 @@
+{
+  "v": 4,
+  "createdOnFiles": { "v": 1, "at": "2026-10-19T21:15:00Z" },
+  "lists": "css",
+  "title": "NOMADE RUN — Apresentação",
+  "cover": "capa",
+  "order": ["capa", "problema", "objetivo", "corrida", "territorio", "arena", "construcao", "demo", "entregas", "fim"],
+  "sections": {
+    "s1": { "description": "Abertura: o que é o NOMADE RUN e por que ele existe", "start": "capa" },
+    "s2": { "description": "O produto: app de corrida, território e Arena de minigames", "start": "corrida" },
+    "s3": { "description": "Como foi construído, demonstração e resultados", "start": "construcao" },
+    "s4": { "description": "Fechamento", "start": "fim" }
+  },
+  "faces": {
+    "inter-tight": { "family": "Inter Tight", "href": "https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600..800&display=swap" },
+    "inter": { "family": "Inter", "href": "https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" }
+  },
+  "designSystems": []
+}
