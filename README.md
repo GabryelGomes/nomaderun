@@ -6,6 +6,17 @@ App de corrida de rua de verdade (GPS) com as funções essenciais de um app de 
 
 **Integrantes:** Gabryel Gomes Bahmad Camapum · Mateus Augusto De Faria Brito
 
+## Para quem vai desenvolver
+
+Comece por **[`docs/GUIA-DO-DESENVOLVEDOR.md`](docs/GUIA-DO-DESENVOLVEDOR.md)**: como baixar e manter atualizado pelo GitHub, onde está cada coisa e como cada parte foi feita.
+
+```bash
+git clone https://github.com/GabryelGomes/nomaderun.git
+cd nomaderun
+git checkout claude/affectionate-gauss-e8gm77
+git pull origin claude/affectionate-gauss-e8gm77   # para atualizar depois
+```
+
 ## Para entregar (TCC)
 
 | Arquivo | O que é |
@@ -24,6 +35,8 @@ App de corrida de rua de verdade (GPS) com as funções essenciais de um app de 
 | `docs/06-PROMPT-APRESENTACAO.md` | Roteiro, demo e perguntas prováveis da banca |
 | `docs/apresentacao/telas/` | Capturas reais do protótipo usadas nos slides |
 | `docs/apresentacao/slides/` | Fonte dos slides |
+| `docs/apresentacao/DESIGN-SYSTEM.md` | Layout salvo: cores, fontes, efeitos e regras dos slides |
+| `docs/apresentacao/REFERENCIAS-E-SKILLS.md` | Referências, skills usadas e como foi feito |
 
 ## Produto e protótipo
 

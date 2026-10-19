@@ -1,0 +1,8 @@
+# Scripts Python da apresentação (mapa real, mockup, fonte em contorno, imagens)
+pyarrow>=17
+shapely>=2
+networkx>=3
+fonttools>=4.50
+skia-pathops>=0.8
+brotli>=1.1
+pillow>=10

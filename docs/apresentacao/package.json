@@ -1,0 +1,19 @@
+{
+  "name": "nomade-run-apresentacao",
+  "private": true,
+  "description": "Ferramentas para regerar o mockup, o PDF e a página web da apresentação NOMADE RUN.",
+  "scripts": {
+    "pdf": "python3 pdf/montar_pdf.py \"$PWD/slides\" \"$PWD/mockup/imagens\" \"$PWD/node_modules\" .print.html && node pdf/gerar_pdf.js \"$PWD/.print.html\" \"NOMADE RUN - Apresentação.pdf\" && rm .print.html",
+    "web": "cp mockup/imagens/capa-mapa.jpg mockup/imagens/tel-*.png web/img/ && cp pdf/UnboundedLine-800.woff2 web/fonts/ && python3 web/montar_web.py slides mockup/build \"web/NOMADE RUN Apresentação.html\"",
+    "mockup": "python3 mockup/build/gen.py mockup/build/mapa.json \"mockup/NOMADE RUN Mockup.html\" google",
+    "imagens": "python3 mockup/build/gen.py mockup/build/mapa.json .local.html local:$PWD/node_modules && node mockup/build/shots2.js \"$PWD/.local.html\" \"$PWD/.capturas\" && python3 mockup/build/exportar_imagens.py .capturas mockup/imagens && rm -rf .local.html .capturas",
+    "tudo": "npm run mockup && npm run imagens && npm run pdf && npm run web"
+  },
+  "devDependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource/unbounded": "^5.3.0",
+    "playwright": "1.56.1"
+  }
+}

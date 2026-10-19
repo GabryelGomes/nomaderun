@@ -1,0 +1,65 @@
+{
+  "name": "Pit Lane Neon",
+  "description": "Design system da apresentação e do mockup NOMADE RUN: preto + laranja neon.",
+  "color": {
+    "bg": "#070708",
+    "bgDeep": "#050506",
+    "surface": "#0F1013",
+    "surfaceHot": "#120D0A",
+    "line": "#24252B",
+    "ink": "#F3F1ED",
+    "ink2": "#A8A6A1",
+    "ink3": "#8A8883",
+    "orange": "#FF6A13",
+    "orangeText": "#FF7A2A",
+    "orangeButtonTop": "#FF8233",
+    "orangeButtonBottom": "#FF5A00",
+    "glowBg": "#2B1407",
+    "danger": "#FF3B30"
+  },
+  "team": {
+    "striders": { "name": "Neon Striders", "color": "#2FA8FF", "shape": "circulo" },
+    "volt": { "name": "Volt Runners", "color": "#19E6A8", "shape": "triangulo" },
+    "owls": { "name": "Night Owls", "color": "#FF4FD8", "shape": "losango" },
+    "coyotes": { "name": "Urban Coyotes", "color": "#FFD60A", "shape": "quadrado" }
+  },
+  "map": {
+    "land": "#0A0B0D",
+    "building": "#121317",
+    "roadResidential": "#1B1C22",
+    "roadTertiary": "#22242B",
+    "roadSecondary": "#2A2C34",
+    "roadPrimary": "#33353E",
+    "roadMotorway": "#3B3D47",
+    "park": "#0B1610",
+    "water": "#08141F",
+    "label": "#5E606B",
+    "territoryFillOpacity": 0.13
+  },
+  "font": {
+    "display": "Unbounded",
+    "displayOutline": "Unbounded Line",
+    "text": "Inter",
+    "mono": "JetBrains Mono",
+    "mockupDisplay": "Archivo (font-stretch 125%)"
+  },
+  "size": {
+    "slide": { "width": 1920, "height": 1080, "margin": 128, "footerPaddingBottom": 160 },
+    "title": 56,
+    "heroNumber": [112, 200],
+    "coverTitle": 176,
+    "body": [26, 34],
+    "label": 24
+  },
+  "glow": {
+    "text": "0 0 18px rgba(255,106,19,.75), 0 0 60px rgba(255,106,19,.45), 0 0 120px rgba(255,106,19,.3)",
+    "card": "0 0 50px rgba(255,106,19,.25), inset 0 0 30px rgba(255,106,19,.08)"
+  },
+  "motion": {
+    "easeOut": "cubic-bezier(.23,1,.32,1)",
+    "hoverMs": [100, 160],
+    "routeDrawMs": 2800,
+    "pulseMs": 2200,
+    "slideFadeMs": 500
+  }
+}
