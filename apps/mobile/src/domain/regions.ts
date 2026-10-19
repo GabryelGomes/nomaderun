@@ -32,6 +32,37 @@ export function chaikin(ring: LatLng[], iterations = 2): LatLng[] {
   return pts;
 }
 
+/**
+ * Laplacian relaxation on a closed ring: each point moves toward the middle of its neighbors.
+ * Cancels the zigzag of hexagon edges along an outline, which corner cutting alone keeps.
+ */
+export function relax(ring: LatLng[], iterations = 3): LatLng[] {
+  let pts = ring;
+  for (let it = 0; it < iterations; it++) {
+    pts = pts.map((p, i) => {
+      const a = pts[(i - 1 + pts.length) % pts.length];
+      const b = pts[(i + 1) % pts.length];
+      return { lat: 0.5 * p.lat + 0.25 * (a.lat + b.lat), lng: 0.5 * p.lng + 0.25 * (a.lng + b.lng) };
+    });
+  }
+  return pts;
+}
+
+/** Merges any set of cells into smoothed polygons (each one: outline ring, then holes). */
+export function smoothCells(cells: string[], smoothing = 2): LatLng[][][] {
+  if (cells.length === 0) return [];
+  return cellsToMultiPolygon(cells, false).map((polygon) =>
+    polygon.map((ring) => {
+      const last = ring[ring.length - 1];
+      const open = ring.length > 1 && ring[0][0] === last[0] && ring[0][1] === last[1] ? ring.slice(0, -1) : ring;
+      return chaikin(
+        relax(open.map(([lat, lng]) => ({ lat, lng }))),
+        smoothing,
+      );
+    }),
+  );
+}
+
 /** Merges zones per owner into smoothed regions. Neutral zones are not drawn. */
 export function territoryRegions(zones: { id: string; owner: FactionId | null }[], smoothing = 2): Region[] {
   const byOwner = new Map<FactionId, string[]>();
@@ -43,17 +74,7 @@ export function territoryRegions(zones: { id: string; owner: FactionId | null }[
   }
   const regions: Region[] = [];
   for (const [owner, cells] of byOwner) {
-    const multi = cellsToMultiPolygon(cells, false);
-    for (const polygon of multi) {
-      const rings = polygon.map((ring) => {
-        const open = ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1] ? ring.slice(0, -1) : ring;
-        return chaikin(
-          open.map(([lat, lng]) => ({ lat, lng })),
-          smoothing,
-        );
-      });
-      regions.push({ owner, rings, cells: cells.length });
-    }
+    for (const rings of smoothCells(cells, smoothing)) regions.push({ owner, rings, cells: cells.length });
   }
   return regions;
 }

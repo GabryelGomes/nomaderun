@@ -8,7 +8,7 @@ import { tabIcon } from './icon';
 export default function AppTabs() {
   const { colors } = useTheme();
   return (
-    <NativeTabs labelStyle={{ selected: { color: colors.text } }} tintColor={colors.text}>
+    <NativeTabs labelStyle={{ selected: { color: colors.action } }} tintColor={colors.action}>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Icon {...tabIcon('map')} />
         <NativeTabs.Trigger.Label>Mapa</NativeTabs.Trigger.Label>

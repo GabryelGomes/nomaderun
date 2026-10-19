@@ -1,6 +1,6 @@
 import { cellBoundary, cellCenter } from '@/domain/grid';
 import { distanceMeters } from '@/domain/geo';
-import { isUnderAttack, type Zone } from '@/domain/territory';
+import type { Zone } from '@/domain/territory';
 import type { LatLng } from '@/domain/types';
 import type { MapZone } from '@/components/territory-map.types';
 
@@ -15,9 +15,9 @@ export function boundaryOf(id: string): LatLng[] {
   return b;
 }
 
-/** Zones near a point, ready for the map. Keeps the polygon count bounded (prototype map). */
+/** Zones near a point, ready for the map. Keeps the shape count bounded (prototype map). */
 export function mapZonesNear(zones: Record<string, Zone>, near: LatLng, radiusM = 2200): MapZone[] {
   return Object.values(zones)
     .filter((z) => distanceMeters(cellCenter(z.id), near) <= radiusM)
-    .map((z) => ({ id: z.id, boundary: boundaryOf(z.id), owner: z.owner, attack: isUnderAttack(z), blocked: z.blocked }));
+    .map((z) => ({ id: z.id, boundary: boundaryOf(z.id), owner: z.owner, attacker: z.attackStartedAt !== null ? z.attacker : null, blocked: z.blocked }));
 }

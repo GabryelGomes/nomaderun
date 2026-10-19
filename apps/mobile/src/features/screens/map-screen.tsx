@@ -4,11 +4,10 @@ import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, IconButton } from '@/components/button';
-import { HexMark } from '@/components/hex-mark';
+import { TeamBadge } from '@/components/team-badge';
 import { Icon } from '@/components/icon';
 import { Text } from '@/components/text';
 import TerritoryMap from '@/components/territory-map';
-import { cellBoundary } from '@/domain/grid';
 import { isUnderAttack } from '@/domain/territory';
 import { DEMO_CENTER, zoneName } from '@/demo/demo-data';
 import { mapZonesNear } from '@/features/map-data';
@@ -16,7 +15,7 @@ import { useGame } from '@/store/game-store';
 import { factions, floating, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-type Layer = 'territorio' | 'neblina';
+type Layer = 'todos' | 'meu-time' | 'explorado';
 
 /** Home: the living map is the product (Zenly lesson); everything else floats over it. */
 export function MapScreen() {
@@ -25,13 +24,10 @@ export function MapScreen() {
   const zones = useGame((s) => s.zones);
   const faction = useGame((s) => s.faction) ?? 'striders';
   const fog = useGame((s) => s.fog);
-  const [layer, setLayer] = useState<Layer>('territorio');
+  const [layer, setLayer] = useState<Layer>('todos');
 
   const mapZones = useMemo(() => mapZonesNear(zones, DEMO_CENTER, 2300), [zones]);
-  const fogCells = useMemo(
-    () => (layer === 'neblina' ? fog.slice(-400).map((id) => ({ id, boundary: cellBoundary(id) })) : undefined),
-    [fog, layer],
-  );
+  const explored = useMemo(() => (layer === 'explorado' ? fog.slice(-600) : undefined), [fog, layer]);
 
   const mine = Object.values(zones).filter((z) => z.owner === faction);
   const attacked = mine.filter(isUnderAttack);
@@ -40,8 +36,10 @@ export function MapScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TerritoryMap
-        zones={layer === 'territorio' ? mapZones : []}
-        fogCells={fogCells}
+        zones={layer === 'explorado' ? [] : mapZones}
+        myFaction={faction}
+        onlyMine={layer === 'meu-time'}
+        explored={explored}
         center={{ lat: DEMO_CENTER.lat - 0.0035, lng: DEMO_CENTER.lng }}
         span={2600}
         user={DEMO_CENTER}
@@ -61,7 +59,7 @@ export function MapScreen() {
             paddingRight: space[4],
             boxShadow: floating,
           }}>
-          <HexMark faction={faction} size={34} />
+          <TeamBadge faction={faction} size={34} />
           <View style={{ flex: 1 }}>
             <Text variant="bodyBold">{factions[faction].name}</Text>
             <Text variant="caption" muted>
@@ -74,8 +72,9 @@ export function MapScreen() {
         <View style={{ flexDirection: 'row', gap: space[2] }}>
           {(
             [
-              ['territorio', 'Território'],
-              ['neblina', 'Minha neblina'],
+              ['todos', 'Todos os times'],
+              ['meu-time', 'Só meu time'],
+              ['explorado', 'Onde já corri'],
             ] as const
           ).map(([key, label]) => {
             const on = layer === key;
@@ -103,7 +102,11 @@ export function MapScreen() {
       </View>
 
       <View style={{ position: 'absolute', right: space[4], bottom: 190 + insets.bottom, gap: space[3] }}>
-        <IconButton icon="layers" label="Trocar camada do mapa" onPress={() => setLayer((l) => (l === 'territorio' ? 'neblina' : 'territorio'))} />
+        <IconButton
+          icon="layers"
+          label="Trocar camada do mapa"
+          onPress={() => setLayer((l) => (l === 'todos' ? 'meu-time' : l === 'meu-time' ? 'explorado' : 'todos'))}
+        />
       </View>
 
       <View style={{ position: 'absolute', left: space[4], right: space[4], bottom: space[4], gap: space[3] }}>
@@ -121,7 +124,7 @@ export function MapScreen() {
               padding: space[3],
               boxShadow: floating,
             }}>
-            <HexMark faction={alert.owner} attack size={40} />
+            <TeamBadge faction={alert.owner} attack size={40} />
             <View style={{ flex: 1 }}>
               <Text variant="bodyBold">{zoneName(alert.id)} está sob ataque</Text>
               <Text variant="small" muted>

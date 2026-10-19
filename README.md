@@ -30,7 +30,7 @@ App de corrida de rua de verdade (GPS) com as funções essenciais de um app de 
 cd apps/mobile
 npm install
 npx expo start      # leia o QR code com o app Expo Go
-npm test            # 53 testes das regras de negócio
+npm test            # 60 testes das regras de negócio e do mapa
 ```
 
 ## Regerar os PDFs

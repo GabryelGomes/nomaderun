@@ -56,11 +56,37 @@ export function zoneName(id: string): string {
 function sectorOwner(p: LatLng): FactionId {
   const dy = p.lat - DEMO_CENTER.lat;
   const dx = p.lng - DEMO_CENTER.lng;
-  const angle = (Math.atan2(dy, dx) * 180) / Math.PI; // 0 = east, 90 = north
+  // Borders wander with distance, like real neighborhood limits, instead of straight pie slices.
+  const angle = (Math.atan2(dy, dx) * 180) / Math.PI + 22 * Math.sin(Math.hypot(dx, dy) * 900); // 0 = east, 90 = north
   if (angle > -40 && angle <= 50) return 'coyotes';
   if (angle > 50 && angle <= 140) return 'volt';
   if (angle > 140 || angle <= -130) return 'striders';
   return 'owls';
+}
+
+/** Smooth value in [-1, 1] that changes over a few hundred meters: coherent patches, not salt and pepper. */
+function patch(p: LatLng): number {
+  return (Math.sin(p.lat * 1100 + 0.7) + Math.sin(p.lng * 950 - 1.9) + Math.sin((p.lat + p.lng) * 700)) / 3;
+}
+
+/** Two passes of a majority filter: no lone cells, no pinholes. Real territory grows in blocks. */
+function tidy(zones: Record<string, Zone>) {
+  for (let pass = 0; pass < 2; pass++) {
+    const owners = new Map(Object.values(zones).map((z) => [z.id, z.owner]));
+    for (const z of Object.values(zones)) {
+      const counts = new Map<FactionId | null, number>();
+      for (const n of cellsAround(z.id, 1)) {
+        if (n === z.id || !owners.has(n)) continue;
+        const o = owners.get(n) ?? null;
+        counts.set(o, (counts.get(o) ?? 0) + 1);
+      }
+      const [top, n] = [...counts].sort((a, b) => b[1] - a[1])[0] ?? [null, 0];
+      if (top === z.owner || n < 4) continue;
+      const influence = emptyInfluence();
+      if (top) influence[top] = Math.round(160 + (z.influence[z.owner ?? top] || 300));
+      zones[z.id] = { ...z, owner: top, influence };
+    }
+  }
 }
 
 export function seedZones(): Record<string, Zone> {
@@ -71,8 +97,8 @@ export function seedZones(): Record<string, Zone> {
     const c = cellCenter(id);
     const d = distanceMeters(c, DEMO_CENTER);
     const r = rand();
-    // Neutral holes grow with distance, so the edge of the map invites exploration.
-    if (d > 400 && r < 0.18 + d / 6000) {
+    // Unclaimed areas come in patches and grow with distance, so the edge of the map invites exploration.
+    if (d > 400 && r >= 0 && patch(c) > 0.45 - d / 9000) {
       zones[id] = newZone(id);
       continue;
     }
@@ -83,14 +109,15 @@ export function seedZones(): Record<string, Zone> {
     if (rival !== owner) influence[rival] = Math.round(influence[owner] * rand() * 0.35);
     zones[id] = { ...newZone(id), owner, influence, shield: Math.floor(rand() * 3) };
   }
+  tidy(zones);
   // Along the east leg of the demo run: neutral and weakly held zones, so a demo run can conquer.
   const lakeLoop = 31;
   const eastLeg = [...new Set(demoRoute().slice(lakeLoop).map(zoneOf))].filter((id) => id !== centerZone);
+  const half = Math.ceil(eastLeg.length / 2);
   eastLeg.forEach((id, i) => {
     const weak = emptyInfluence();
-    if (i % 2 === 0) weak.coyotes = 12;
-    else weak.coyotes = 40;
-    zones[id] = { ...newZone(id), owner: i % 2 === 0 ? null : 'coyotes', influence: weak };
+    weak.coyotes = i < half ? 12 : 40;
+    zones[id] = { ...newZone(id), owner: i < half ? null : 'coyotes', influence: weak };
   });
   // The park itself is under attack by the Coyotes: the defense story of UC-02.
   const park = zones[centerZone];

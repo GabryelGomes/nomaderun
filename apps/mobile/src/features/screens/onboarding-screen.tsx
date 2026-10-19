@@ -6,12 +6,12 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
-import { HexMark } from '@/components/hex-mark';
+import { TeamBadge } from '@/components/team-badge';
 import { Icon } from '@/components/icon';
 import { Text } from '@/components/text';
 import { FACTION_IDS, type FactionId } from '@/domain/types';
 import { useGame } from '@/store/game-store';
-import { factions, fonts, radius, space } from '@/theme/tokens';
+import { factions, fonts, palette, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 type Step = 'boas-vindas' | 'faccao' | 'localizacao';
@@ -44,11 +44,11 @@ export function OnboardingScreen() {
           <View style={{ gap: space[4] }}>
             <View style={{ flexDirection: 'row', gap: 6 }}>
               {FACTION_IDS.map((f) => (
-                <HexMark key={f} faction={f} size={44} />
+                <TeamBadge key={f} faction={f} size={44} />
               ))}
             </View>
-            <Text variant="hero" accessibilityRole="header">
-              NOMADE RUN
+            <Text variant="hero" accessibilityRole="header" style={{ fontSize: 76, lineHeight: 76 }}>
+              {'NOMADE\nRUN'}
             </Text>
             <Text variant="lead">Corra a sua cidade. Cada rua conta.</Text>
             <Text muted>
@@ -109,16 +109,16 @@ export function OnboardingScreen() {
                     padding: space[4],
                     borderRadius: radius.lg,
                     borderCurve: 'continuous',
-                    backgroundColor: on ? factions[f].soft : colors.surface,
+                    backgroundColor: on ? factions[f].tint : colors.surface,
                     borderWidth: 2,
                     borderColor: on ? factions[f].color : 'transparent',
                   }}>
-                  <HexMark faction={f} size={52} />
+                  <TeamBadge faction={f} size={52} />
                   <View style={{ flex: 1 }}>
-                    <Text variant="title" color={on ? '#252A31' : undefined}>
+                    <Text variant="title" color={on ? palette.ink : undefined}>
                       {factions[f].name}
                     </Text>
-                    <Text variant="small" color={on ? '#454C56' : undefined} muted={!on}>
+                    <Text variant="small" color={on ? palette.ink2 : undefined} muted={!on}>
                       {factions[f].motto}
                     </Text>
                   </View>

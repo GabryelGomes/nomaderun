@@ -7,7 +7,8 @@ export type MapZone = {
   id: string;
   boundary: LatLng[];
   owner: FactionId | null;
-  attack: boolean;
+  /** Team attacking this zone right now, if any. */
+  attacker: FactionId | null;
   blocked?: boolean;
 };
 
@@ -16,11 +17,15 @@ export type TerritoryMapProps = {
   center: LatLng;
   /** Approximate visible span in meters (vertical). */
   span?: number;
+  /** The runner's team: its regions are drawn a little stronger. */
+  myFaction?: FactionId;
+  /** "Só meu time": hides every other team's regions. */
+  onlyMine?: boolean;
   user?: LatLng | null;
   path?: LatLng[];
   chests?: Chest[];
-  fogCells?: { id: string; boundary: LatLng[] }[];
-  selectedZone?: string | null;
+  /** Explored cells (personal map), drawn like a personal heatmap. */
+  explored?: string[];
   onZonePress?: (id: string) => void;
   /** Keeps the camera on the user while running. */
   followUser?: boolean;

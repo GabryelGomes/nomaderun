@@ -17,17 +17,11 @@ const TABS: { name: string; href: '/' | '/arena' | '/atividades' | '/clube' | '/
 
 function TabButton({ isFocused, label, icon, ...props }: TabTriggerSlotProps & { label: string; icon: IconName }) {
   const { colors } = useTheme();
-  const color = isFocused ? colors.text : colors.textSecondary;
+  const color = isFocused ? colors.action : colors.textSecondary;
   return (
     <Pressable {...props} accessibilityRole="tab" accessibilityState={{ selected: isFocused }} style={{ flex: 1, alignItems: 'center', gap: 2, paddingVertical: space[2] }}>
-      <View
-        style={{
-          paddingHorizontal: space[4],
-          paddingVertical: 4,
-          borderRadius: 999,
-          backgroundColor: isFocused ? colors.action : 'transparent',
-        }}>
-        <Icon name={icon} size={22} color={isFocused ? colors.onAction : color} />
+      <View style={{ paddingVertical: 4 }}>
+        <Icon name={icon} size={24} color={color} />
       </View>
       <Text variant="caption" color={color}>
         {label}

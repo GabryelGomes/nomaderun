@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { CaptureCelebration } from '@/components/capture-celebration';
-import { HexMark } from '@/components/hex-mark';
+import { TeamBadge } from '@/components/team-badge';
 import { EmptyState, Stat, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import TerritoryMap from '@/components/territory-map';
@@ -68,7 +68,7 @@ export function SummaryScreen() {
 
       <Animated.View entering={entering(0)}>
         <Surface padded={false} style={{ overflow: 'hidden', height: 220 }}>
-          <TerritoryMap zones={mapZones} center={center} span={1500} path={record.path} interactive={false} />
+          <TerritoryMap zones={mapZones} myFaction={faction} center={center} span={1500} path={record.path} interactive={false} />
         </Surface>
       </Animated.View>
 
@@ -101,7 +101,7 @@ export function SummaryScreen() {
           ) : (
             r.zones.slice(0, 8).map((z) => (
               <View key={z.zoneId} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
-                <HexMark faction={z.ownerAfter} size={30} />
+                <TeamBadge faction={z.ownerAfter} size={30} />
                 <View style={{ flex: 1 }}>
                   <Text variant="bodyBold" numberOfLines={1}>
                     {zoneName(z.zoneId)}

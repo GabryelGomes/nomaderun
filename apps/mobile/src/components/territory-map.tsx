@@ -1,9 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useColorScheme, View } from 'react-native';
 import MapView, { Marker, Polygon, Polyline } from 'react-native-maps';
 
-import { factions, palette } from '@/theme/tokens';
+import { zoneOf } from '@/domain/grid';
+import { palette } from '@/theme/tokens';
 
+import { mapLayers } from './territory-map.layers';
 import type { TerritoryMapProps } from './territory-map.types';
 
 /** Desaturated Google style for Android (the base map stays quiet, territories carry the color). */
@@ -16,11 +18,11 @@ const ANDROID_STYLE = [
 ];
 
 const ANDROID_NIGHT = [
-  { elementType: 'geometry', stylers: [{ color: '#1f242b' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#8f98a3' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#1b1f25' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2c323b' }] },
-  { featureType: 'water', stylers: [{ color: '#14222e' }] },
+  { elementType: 'geometry', stylers: [{ color: '#1c1c1f' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#a0a0a8' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#121214' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2c2c31' }] },
+  { featureType: 'water', stylers: [{ color: '#16222c' }] },
   { featureType: 'poi', stylers: [{ visibility: 'off' }] },
 ];
 
@@ -30,26 +32,17 @@ const alpha = (hex: string, a: number) =>
     .padStart(2, '0')}`;
 
 const toCoord = (p: { lat: number; lng: number }) => ({ latitude: p.lat, longitude: p.lng });
+const toCoords = (ring: { lat: number; lng: number }[]) => ring.map(toCoord);
 
 /**
  * Prototype map (runs in Expo Go): Apple Maps on iOS, Google Maps on Android.
  * Production swaps this file for Mapbox with feature-state and vector tiles (Product Book §6.1):
- * one React component per hexagon is fine for a few hundred zones, not for a whole city.
+ * one React component per region is fine around a neighborhood, not for a whole city.
+ * Regions are not tappable themselves: a tap is turned into the zone under the finger (same rule as the server).
  */
-export default function TerritoryMap({
-  zones,
-  center,
-  span = 1800,
-  user,
-  path,
-  chests,
-  fogCells,
-  selectedZone,
-  onZonePress,
-  followUser,
-  interactive = true,
-  style,
-}: TerritoryMapProps) {
+export default function TerritoryMap(props: TerritoryMapProps) {
+  const { zones, center, span = 1800, myFaction, onlyMine, explored, user, path, chests, onZonePress, followUser, interactive = true, style } = props;
+  const layers = useMemo(() => mapLayers({ zones, myFaction, onlyMine, explored }), [zones, myFaction, onlyMine, explored]);
   const map = useRef<MapView>(null);
   const night = useColorScheme() === 'dark';
   const delta = span / 111_000;
@@ -61,7 +54,7 @@ export default function TerritoryMap({
   }, [followUser, user]);
 
   return (
-    <View style={[{ flex: 1, backgroundColor: palette.concreto }, style]}>
+    <View style={[{ flex: 1, backgroundColor: palette.bg }, style]}>
       <MapView
         ref={map}
         style={{ flex: 1 }}
@@ -76,65 +69,63 @@ export default function TerritoryMap({
         pitchEnabled={false}
         rotateEnabled={interactive}
         scrollEnabled={interactive}
-        zoomEnabled={interactive}>
-        {fogCells?.map((c) => (
-          <Polygon key={`fog-${c.id}`} coordinates={c.boundary.map(toCoord)} fillColor="rgba(255,255,255,0.55)" strokeWidth={0} />
+        zoomEnabled={interactive}
+        onPress={(e) => {
+          if (!onZonePress) return;
+          const { latitude, longitude } = e.nativeEvent.coordinate;
+          const id = zoneOf({ lat: latitude, lng: longitude });
+          if (zones.some((z) => z.id === id)) onZonePress(id);
+        }}>
+        {layers.explored.map(([outline, ...holes], i) => (
+          <Polygon
+            key={`exp-${i}`}
+            coordinates={toCoords(outline)}
+            holes={holes.map(toCoords)}
+            fillColor={alpha(palette.orange, 0.22)}
+            strokeColor={alpha(palette.orange, 0.7)}
+            strokeWidth={1.5}
+          />
         ))}
-        {zones.map((z) => {
-          const f = z.owner ? factions[z.owner] : null;
-          if (!f && !z.blocked) return null;
+        {layers.blocked.map(([outline, ...holes], i) => (
+          <Polygon key={`blk-${i}`} coordinates={toCoords(outline)} holes={holes.map(toCoords)} fillColor="rgba(94,94,102,0.18)" strokeColor={palette.ink3} strokeWidth={1} lineDashPattern={[4, 4]} />
+        ))}
+        {layers.regions.map((r) => {
+          const [outline, ...holes] = r.rings;
           return (
-            <Polygon
-              key={z.id}
-              coordinates={z.boundary.map(toCoord)}
-              fillColor={z.blocked ? 'rgba(107,115,128,0.25)' : alpha(f!.color, z.id === selectedZone ? 0.42 : 0.26)}
-              strokeColor={z.blocked ? palette.meioFio : f!.color}
-              strokeWidth={z.id === selectedZone ? 3 : 1.4}
-              lineDashPattern={f?.dash}
-              tappable={!!onZonePress}
-              onPress={() => onZonePress?.(z.id)}
-            />
+            <Polygon key={`halo-${r.key}`} coordinates={toCoords(outline)} holes={holes.map(toCoords)} fillColor="transparent" strokeColor="rgba(255,255,255,0.9)" strokeWidth={4.5} />
           );
         })}
-        {zones
-          .filter((z) => z.attack)
-          .map((z) => (
-            <Polygon
-              key={`atk-${z.id}`}
-              coordinates={z.boundary.map(toCoord)}
-              fillColor="rgba(255,210,63,0.18)"
-              strokeColor={palette.sinalizacao}
-              strokeWidth={4}
-              lineDashPattern={[10, 8]}
-              tappable={!!onZonePress}
-              onPress={() => onZonePress?.(z.id)}
-            />
-          ))}
+        {layers.regions.map((r) => {
+          const [outline, ...holes] = r.rings;
+          return <Polygon key={r.key} coordinates={toCoords(outline)} holes={holes.map(toCoords)} fillColor={alpha(r.color, r.opacity)} strokeColor={r.color} strokeWidth={2} />;
+        })}
+        {layers.contested.map((c) => (
+          <Polygon key={`atk-${c.id}`} coordinates={toCoords(c.ring)} fillColor={alpha(c.color, 0.16)} strokeColor={c.color} strokeWidth={3} lineDashPattern={[8, 6]} />
+        ))}
         {path && path.length > 1 ? (
           <>
-            <Polyline coordinates={path.map(toCoord)} strokeColor="#FFFFFF" strokeWidth={9} lineCap="round" lineJoin="round" />
-            <Polyline coordinates={path.map(toCoord)} strokeColor={palette.asfalto} strokeWidth={5} lineCap="round" lineJoin="round" />
+            <Polyline coordinates={path.map(toCoord)} strokeColor={palette.white} strokeWidth={8} lineCap="round" lineJoin="round" />
+            <Polyline coordinates={path.map(toCoord)} strokeColor={palette.orange} strokeWidth={5} lineCap="round" lineJoin="round" />
           </>
         ) : null}
         {chests?.map((c) => (
           <Marker key={c.id} coordinate={toCoord(c.position)} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
             <View
               style={{
-                width: c.rarity === 'lendario' ? 22 : 16,
-                height: c.rarity === 'lendario' ? 22 : 16,
-                borderRadius: 5,
-                backgroundColor: c.rarity === 'comum' ? palette.giz : palette.sinalizacao,
+                width: c.rarity === 'lendario' ? 20 : 14,
+                height: c.rarity === 'lendario' ? 20 : 14,
+                borderRadius: 10,
+                backgroundColor: c.rarity === 'comum' ? palette.white : palette.warning,
                 borderWidth: 2.5,
-                borderColor: palette.asfalto,
-                transform: [{ rotate: '45deg' }],
+                borderColor: palette.ink,
               }}
             />
           </Marker>
         ))}
         {user ? (
           <Marker coordinate={toCoord(user)} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
-            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(37,42,49,0.16)', alignItems: 'center', justifyContent: 'center' }}>
-              <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: palette.sinalizacao, borderWidth: 3, borderColor: palette.asfalto }} />
+            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,90,31,0.18)', alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: palette.orange, borderWidth: 3, borderColor: palette.white }} />
             </View>
           </Marker>
         ) : null}

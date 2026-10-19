@@ -1,6 +1,6 @@
 import { ScrollView, Switch, View } from 'react-native';
 
-import { HexMark } from '@/components/hex-mark';
+import { TeamBadge } from '@/components/team-badge';
 import { Icon } from '@/components/icon';
 import { SectionHeader, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
@@ -29,7 +29,7 @@ export function ProfileScreen() {
     <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: space[4], gap: space[6], paddingBottom: space[12] }}>
       <Surface>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[4] }}>
-          <HexMark faction={faction} size={64} />
+          <TeamBadge faction={faction} size={64} />
           <View style={{ flex: 1 }}>
             <Text variant="headline">{s.name}</Text>
             <Text muted>

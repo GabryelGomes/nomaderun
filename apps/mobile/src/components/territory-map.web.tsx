@@ -1,21 +1,23 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import type { GeoJSONSource, Map as MLMap, MapLayerMouseEvent, StyleSpecification } from 'maplibre-gl';
+import type { GeoJSONSource, Map as MLMap, MapMouseEvent, StyleSpecification } from 'maplibre-gl';
 import { useEffect, useRef, useState } from 'react';
 import { useColorScheme, View } from 'react-native';
 
-import { FACTION_IDS } from '@/domain/types';
-import { factions, palette, type Pattern } from '@/theme/tokens';
+import { zoneOf } from '@/domain/grid';
+import type { LatLng } from '@/domain/types';
+import { palette } from '@/theme/tokens';
 
+import { mapLayers } from './territory-map.layers';
 import type { TerritoryMapProps } from './territory-map.types';
 
-/** Free vector basemap (OpenFreeMap, no key). If it can't load, the map still shows territory on concrete. */
+/** Free vector basemap (OpenFreeMap, no key). If it can't load, the map still shows territory on a plain background. */
 const STYLE_URL = { light: 'https://tiles.openfreemap.org/styles/positron', dark: 'https://tiles.openfreemap.org/styles/dark' };
 
 const fallbackStyle = (night: boolean): StyleSpecification => ({
   version: 8,
   sources: {},
-  layers: [{ id: 'bg', type: 'background', paint: { 'background-color': night ? palette.noite : palette.concreto } }],
+  layers: [{ id: 'bg', type: 'background', paint: { 'background-color': night ? palette.night : palette.bg } }],
 });
 
 async function loadStyle(night: boolean): Promise<StyleSpecification | string> {
@@ -32,57 +34,24 @@ async function loadStyle(night: boolean): Promise<StyleSpecification | string> {
   }
 }
 
-/** Draws a faction's chalk hatch into an RGBA tile for MapLibre `fill-pattern`. */
-function patternImage(kind: Pattern, color: string) {
-  const s = 16;
-  const canvas = document.createElement('canvas');
-  canvas.width = s;
-  canvas.height = s;
-  const ctx = canvas.getContext('2d')!;
-  ctx.strokeStyle = color;
-  ctx.fillStyle = color;
-  ctx.lineWidth = 2;
-  ctx.lineCap = 'round';
-  if (kind === 'listras') {
-    ctx.beginPath();
-    ctx.moveTo(0, s);
-    ctx.lineTo(s, 0);
-    ctx.stroke();
-  } else if (kind === 'pontos') {
-    ctx.beginPath();
-    ctx.arc(s / 2, s / 2, 2.2, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (kind === 'ondas') {
-    ctx.beginPath();
-    ctx.moveTo(0, s * 0.6);
-    ctx.quadraticCurveTo(s / 4, s * 0.25, s / 2, s * 0.6);
-    ctx.quadraticCurveTo((3 * s) / 4, s * 0.95, s, s * 0.6);
-    ctx.stroke();
-  } else {
-    ctx.globalAlpha = 0.5;
-    ctx.fillRect(0, 0, s / 2, s / 2);
-    ctx.fillRect(s / 2, s / 2, s / 2, s / 2);
-  }
-  return { width: s, height: s, data: new Uint8Array(ctx.getImageData(0, 0, s, s).data.buffer) };
-}
+const ring = (r: LatLng[]) => [...r.map((p) => [p.lng, p.lat]), [r[0].lng, r[0].lat]];
+const polygon = (rings: LatLng[][], properties: Record<string, unknown>): GeoJSON.Feature => ({
+  type: 'Feature',
+  properties,
+  geometry: { type: 'Polygon', coordinates: rings.map(ring) },
+});
+const collection = (features: GeoJSON.Feature[]): GeoJSON.FeatureCollection => ({ type: 'FeatureCollection', features });
 
-const ring = (b: { lat: number; lng: number }[]) => [...b.map((p) => [p.lng, p.lat]), [b[0].lng, b[0].lat]];
-
-function zonesGeoJSON(props: TerritoryMapProps): GeoJSON.FeatureCollection {
+/** The same layers as the native map, as GeoJSON sources. */
+function sources(props: TerritoryMapProps) {
+  const l = mapLayers(props);
   return {
-    type: 'FeatureCollection',
-    features: props.zones
-      .filter((z) => z.owner || z.blocked)
-      .map((z) => ({
-        type: 'Feature',
-        id: z.id,
-        properties: { id: z.id, owner: z.owner ?? 'none', attack: z.attack, selected: z.id === props.selectedZone, blocked: !!z.blocked },
-        geometry: { type: 'Polygon', coordinates: [ring(z.boundary)] },
-      })),
+    regions: collection(l.regions.map((r) => polygon(r.rings, { color: r.color, opacity: r.opacity }))),
+    contested: collection(l.contested.map((c) => polygon([c.ring], { color: c.color }))),
+    blocked: collection(l.blocked.map((rings) => polygon(rings, {}))),
+    explored: collection(l.explored.map((rings) => polygon(rings, {}))),
   };
 }
-
-const colorMatch = ['match', ['get', 'owner'], ...FACTION_IDS.flatMap((f) => [f, factions[f].color]), palette.meioFio] as unknown as string;
 
 /** Web map (MapLibre GL JS). Same props as the native map. Loaded lazily so static rendering never touches `window`. */
 export default function TerritoryMap(props: TerritoryMapProps) {
@@ -114,29 +83,26 @@ export default function TerritoryMap(props: TerritoryMapProps) {
       });
       mapRef.current = map;
       map.on('load', () => {
-        for (const f of FACTION_IDS) map.addImage(`hatch-${f}`, patternImage(factions[f].pattern, factions[f].color));
-        map.addSource('zones', { type: 'geojson', data: zonesGeoJSON(latest.current) });
-        map.addSource('path', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-        map.addSource('points', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-        map.addLayer({ id: 'zone-fill', type: 'fill', source: 'zones', paint: { 'fill-color': colorMatch, 'fill-opacity': ['case', ['get', 'selected'], 0.4, 0.2] } });
+        const data = sources(latest.current);
+        for (const [id, fc] of Object.entries(data)) map.addSource(id, { type: 'geojson', data: fc });
+        map.addSource('path', { type: 'geojson', data: collection([]) });
+        map.addSource('points', { type: 'geojson', data: collection([]) });
+        map.addLayer({ id: 'explored-fill', type: 'fill', source: 'explored', paint: { 'fill-color': palette.orange, 'fill-opacity': 0.22 } });
+        map.addLayer({ id: 'explored-edge', type: 'line', source: 'explored', paint: { 'line-color': palette.orange, 'line-opacity': 0.7, 'line-width': 1.5 } });
+        map.addLayer({ id: 'blocked-fill', type: 'fill', source: 'blocked', paint: { 'fill-color': palette.ink2, 'fill-opacity': 0.18 } });
+        map.addLayer({ id: 'blocked-edge', type: 'line', source: 'blocked', paint: { 'line-color': palette.ink3, 'line-width': 1, 'line-dasharray': [2, 2] } });
+        map.addLayer({ id: 'region-fill', type: 'fill', source: 'regions', paint: { 'fill-color': ['get', 'color'], 'fill-opacity': ['get', 'opacity'] } });
+        map.addLayer({ id: 'region-halo', type: 'line', source: 'regions', layout: { 'line-join': 'round' }, paint: { 'line-color': '#FFFFFF', 'line-opacity': 0.9, 'line-width': 4.5 } });
+        map.addLayer({ id: 'region-edge', type: 'line', source: 'regions', layout: { 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 2 } });
+        map.addLayer({ id: 'contested-fill', type: 'fill', source: 'contested', paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.16 } });
         map.addLayer({
-          id: 'zone-hatch',
-          type: 'fill',
-          source: 'zones',
-          filter: ['!=', ['get', 'owner'], 'none'],
-          paint: { 'fill-pattern': ['concat', 'hatch-', ['get', 'owner']], 'fill-opacity': 0.45 },
-        });
-        map.addLayer({ id: 'zone-edge', type: 'line', source: 'zones', paint: { 'line-color': colorMatch, 'line-width': ['case', ['get', 'selected'], 3, 1.2], 'line-opacity': 0.9 } });
-        map.addLayer({ id: 'attack-under', type: 'line', source: 'zones', filter: ['==', ['get', 'attack'], true], paint: { 'line-color': palette.asfalto, 'line-width': 4 } });
-        map.addLayer({
-          id: 'attack-stripes',
+          id: 'contested-edge',
           type: 'line',
-          source: 'zones',
-          filter: ['==', ['get', 'attack'], true],
-          paint: { 'line-color': palette.sinalizacao, 'line-width': 4, 'line-dasharray': [1.6, 1.6] },
+          source: 'contested',
+          paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-dasharray': [2.2, 1.6] },
         });
-        map.addLayer({ id: 'path-casing', type: 'line', source: 'path', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#FFFFFF', 'line-width': 8 } });
-        map.addLayer({ id: 'path-line', type: 'line', source: 'path', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': palette.asfalto, 'line-width': 4.5 } });
+        map.addLayer({ id: 'path-casing', type: 'line', source: 'path', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': palette.white, 'line-width': 8 } });
+        map.addLayer({ id: 'path-line', type: 'line', source: 'path', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': palette.orange, 'line-width': 5 } });
         map.addLayer({
           id: 'chests',
           type: 'circle',
@@ -144,25 +110,26 @@ export default function TerritoryMap(props: TerritoryMapProps) {
           filter: ['==', ['get', 'kind'], 'chest'],
           paint: {
             'circle-radius': ['case', ['==', ['get', 'rarity'], 'lendario'], 9, 6],
-            'circle-color': ['case', ['==', ['get', 'rarity'], 'comum'], palette.giz, palette.sinalizacao],
-            'circle-stroke-color': palette.asfalto,
+            'circle-color': ['case', ['==', ['get', 'rarity'], 'comum'], palette.white, palette.warning],
+            'circle-stroke-color': palette.ink,
             'circle-stroke-width': 2.5,
           },
         });
-        map.addLayer({ id: 'user-halo', type: 'circle', source: 'points', filter: ['==', ['get', 'kind'], 'user'], paint: { 'circle-radius': 17, 'circle-color': 'rgba(37,42,49,0.16)' } });
+        map.addLayer({ id: 'user-halo', type: 'circle', source: 'points', filter: ['==', ['get', 'kind'], 'user'], paint: { 'circle-radius': 17, 'circle-color': 'rgba(255,90,31,0.18)' } });
         map.addLayer({
           id: 'user-dot',
           type: 'circle',
           source: 'points',
           filter: ['==', ['get', 'kind'], 'user'],
-          paint: { 'circle-radius': 7.5, 'circle-color': palette.sinalizacao, 'circle-stroke-color': palette.asfalto, 'circle-stroke-width': 3 },
+          paint: { 'circle-radius': 7.5, 'circle-color': palette.orange, 'circle-stroke-color': palette.white, 'circle-stroke-width': 3 },
         });
-        map.on('click', 'zone-fill', (e: MapLayerMouseEvent) => {
-          const id = e.features?.[0]?.properties?.id as string | undefined;
-          if (id) latest.current.onZonePress?.(id);
+        // A click is turned into the zone under the pointer (same rule as the server), not into a drawn shape.
+        map.on('click', (e: MapMouseEvent) => {
+          const { onZonePress, zones } = latest.current;
+          const id = zoneOf({ lat: e.lngLat.lat, lng: e.lngLat.lng });
+          if (onZonePress && zones.some((z) => z.id === id)) onZonePress(id);
         });
-        map.on('mouseenter', 'zone-fill', () => (map.getCanvas().style.cursor = latest.current.onZonePress ? 'pointer' : ''));
-        map.on('mouseleave', 'zone-fill', () => (map.getCanvas().style.cursor = ''));
+        if (latest.current.onZonePress) map.getCanvas().style.cursor = 'pointer';
         setReady(true);
       });
     })();
@@ -178,7 +145,7 @@ export default function TerritoryMap(props: TerritoryMapProps) {
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map) return;
-    (map.getSource('zones') as GeoJSONSource | undefined)?.setData(zonesGeoJSON(props));
+    for (const [id, fc] of Object.entries(sources(props))) (map.getSource(id) as GeoJSONSource | undefined)?.setData(fc);
     (map.getSource('path') as GeoJSONSource | undefined)?.setData({
       type: 'FeatureCollection',
       features:
@@ -198,5 +165,5 @@ export default function TerritoryMap(props: TerritoryMapProps) {
     if (props.followUser && props.user) map.easeTo({ center: [props.user.lng, props.user.lat], duration: 400 });
   }, [ready, props]);
 
-  return <View ref={host} style={[{ flex: 1, backgroundColor: night ? palette.noite : palette.concreto }, style]} />;
+  return <View ref={host} style={[{ flex: 1, backgroundColor: night ? palette.night : palette.bg }, style]} />;
 }

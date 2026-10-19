@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, View } from 'react-native';
 
 import { Button } from '@/components/button';
-import { HexMark } from '@/components/hex-mark';
+import { TeamBadge } from '@/components/team-badge';
 import { Icon, type IconName } from '@/components/icon';
 import { SectionHeader, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
@@ -102,7 +102,7 @@ export function ArenaScreen() {
               <Text variant="bodyBold" tabular style={{ width: 28 }}>
                 {r.rank}
               </Text>
-              <HexMark faction={r.faction} size={22} />
+              <TeamBadge faction={r.faction} size={22} />
               <Text style={{ flex: 1 }} variant={r.you ? 'bodyBold' : 'body'}>
                 {r.you ? `${r.name} (você)` : r.name}
               </Text>

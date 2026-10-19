@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { cellsAround, zoneOf } from '../grid';
-import { chaikin, territoryRegions } from '../regions';
+import { chaikin, relax, territoryRegions } from '../regions';
 import { ORIGIN } from './helpers';
 
 describe('Regiões de território (exibição sem grade)', () => {
@@ -37,5 +37,19 @@ describe('Regiões de território (exibição sem grade)', () => {
     expect(once).toHaveLength(8);
     expect(once.every((p) => p.lat >= 0 && p.lat <= 1 && p.lng >= 0 && p.lng <= 1)).toBe(true);
     expect(chaikin(square, 2)).toHaveLength(16);
+  });
+
+  it('relaxa o serrilhado das bordas sem mudar o centro da forma', () => {
+    const zigzag = Array.from({ length: 12 }, (_, i) => {
+      const a = (i / 12) * 2 * Math.PI;
+      const r = i % 2 === 0 ? 1 : 0.8;
+      return { lat: r * Math.sin(a), lng: r * Math.cos(a) };
+    });
+    const radii = (ring: { lat: number; lng: number }[]) => ring.map((p) => Math.hypot(p.lat, p.lng));
+    const spread = (ring: { lat: number; lng: number }[]) => Math.max(...radii(ring)) - Math.min(...radii(ring));
+    const smooth = relax(zigzag);
+    expect(spread(smooth)).toBeLessThan(spread(zigzag) / 4);
+    const mean = smooth.reduce((acc, p) => ({ lat: acc.lat + p.lat / 12, lng: acc.lng + p.lng / 12 }), { lat: 0, lng: 0 });
+    expect(Math.abs(mean.lat) + Math.abs(mean.lng)).toBeLessThan(1e-9);
   });
 });

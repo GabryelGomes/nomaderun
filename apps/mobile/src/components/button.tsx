@@ -4,7 +4,7 @@ import { Pressable, type PressableProps, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { CSS_EASE_OUT } from '@/theme/easing';
-import { motion, radius, space } from '@/theme/tokens';
+import { floating, motion, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { Icon, type IconName } from './icon';
@@ -114,7 +114,7 @@ export function IconButton({
           backgroundColor: bg,
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: tone === 'surface' ? '0 2px 12px rgba(37, 42, 49, 0.12)' : undefined,
+          boxShadow: tone === 'surface' ? floating : undefined,
           transform: [{ scale: pressed ? motion.press.scale : 1 }],
           transitionProperty: 'transform',
           transitionDuration: motion.press.duration,

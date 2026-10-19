@@ -6,7 +6,7 @@ import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, IconButton } from '@/components/button';
-import { HexMark } from '@/components/hex-mark';
+import { TeamBadge } from '@/components/team-badge';
 import { HoldButton } from '@/components/hold-button';
 import { Icon, type IconName } from '@/components/icon';
 import { Text } from '@/components/text';
@@ -250,6 +250,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
       <View style={{ height: '44%' }}>
         <TerritoryMap
           zones={mapZones}
+          myFaction={faction}
           center={s.position ?? DEMO_CENTER}
           span={900}
           user={s.position}
@@ -270,7 +271,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             gap: space[3],
             padding: space[3],
             borderRadius: radius.lg,
-            backgroundColor: rival ? factions[owner!].color : defending ? palette.sinalizacao : colors.surface,
+            backgroundColor: rival ? factions[owner!].color : defending ? palette.success : colors.surface,
             boxShadow: floating,
             opacity: rival || defending ? 1 : 0,
             transform: [{ translateY: rival || defending || reduced ? 0 : -12 }],
@@ -278,12 +279,12 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             transitionDuration: 220,
             transitionTimingFunction: CSS_EASE_OUT,
           }}>
-          <Icon name={defending ? 'shield' : 'warning'} size={24} color={defending ? palette.asfalto : '#FFFFFF'} />
+          <Icon name={defending ? 'shield' : 'warning'} size={24} color={rival ? factions[owner!].onColor : palette.white} />
           <View style={{ flex: 1 }}>
-            <Text variant="bodyBold" color={defending ? palette.asfalto : '#FFFFFF'}>
+            <Text variant="bodyBold" color={rival ? factions[owner!].onColor : palette.white}>
               {defending ? 'Defendendo seu território' : rival ? `Território dos ${factions[owner!].name}` : ''}
             </Text>
-            <Text variant="caption" color={defending ? palette.asfalto : '#FFFFFF'}>
+            <Text variant="caption" color={rival ? factions[owner!].onColor : palette.white}>
               {defending ? 'Pontos em dobro nesta zona' : 'Corra aqui para conquistar'}
             </Text>
           </View>
@@ -331,7 +332,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
 
         <View style={{ gap: space[2], padding: space[3], borderRadius: radius.md, backgroundColor: colors.surfaceSunken }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
-            <HexMark faction={owner} size={26} attack={!!zone?.attackStartedAt} />
+            <TeamBadge faction={owner} size={26} attack={!!zone?.attackStartedAt} />
             <Text variant="bodyBold" style={{ flex: 1 }} numberOfLines={1}>
               {zoneId ? zoneName(zoneId) : 'Procurando sinal'}
             </Text>
@@ -425,7 +426,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 function Countdown({ count }: { count: number }) {
   const reduced = useReducedMotion();
   return (
-    <View style={{ position: 'absolute', inset: 0, backgroundColor: palette.asfalto, alignItems: 'center', justifyContent: 'center', gap: space[2] }}>
+    <View style={{ position: 'absolute', inset: 0, backgroundColor: palette.orange, alignItems: 'center', justifyContent: 'center', gap: space[2] }}>
       <Animated.View
         key={count}
         style={{
@@ -435,7 +436,7 @@ function Countdown({ count }: { count: number }) {
           animationDuration: 300,
           animationTimingFunction: CSS_EASE_OUT,
         }}>
-        <Text variant="hero" color={palette.sinalizacao} style={{ fontSize: 160, lineHeight: 160 }}>
+        <Text variant="hero" color={palette.white} style={{ fontSize: 160, lineHeight: 160 }}>
           {count > 0 ? count : 'Vai!'}
         </Text>
       </Animated.View>

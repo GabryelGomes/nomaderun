@@ -1,6 +1,8 @@
-import { Figtree_400Regular } from '@expo-google-fonts/figtree/400Regular';
-import { Figtree_500Medium } from '@expo-google-fonts/figtree/500Medium';
-import { Figtree_700Bold } from '@expo-google-fonts/figtree/700Bold';
+import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
+import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
+import { InterTight_600SemiBold } from '@expo-google-fonts/inter-tight/600SemiBold';
+import { InterTight_800ExtraBold } from '@expo-google-fonts/inter-tight/800ExtraBold';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -17,11 +19,11 @@ export default function RootLayout() {
   const { colors, scheme } = useTheme();
   const onboarded = useGame((s) => s.onboarded);
   const [loaded] = useFonts({
-    BigShouldersDisplay_600SemiBold: require('@expo-google-fonts/big-shoulders-display/BigShouldersDisplay_600SemiBold.ttf'),
-    BigShouldersDisplay_800ExtraBold: require('@expo-google-fonts/big-shoulders-display/BigShouldersDisplay_800ExtraBold.ttf'),
-    Figtree_400Regular,
-    Figtree_500Medium,
-    Figtree_700Bold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_700Bold,
+    InterTight_600SemiBold,
+    InterTight_800ExtraBold,
   });
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider
-        value={{ ...base, colors: { ...base.colors, background: colors.background, card: colors.surface, text: colors.text, primary: colors.text, border: colors.line } }}>
+        value={{ ...base, colors: { ...base.colors, background: colors.background, card: colors.surface, text: colors.text, primary: colors.action, border: colors.line } }}>
         <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Protected guard={onboarded}>

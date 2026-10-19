@@ -40,8 +40,8 @@ src/
   app/          rotas (Expo Router): abas nativas, corrida, resumo, zona, onboarding
   domain/       regras do jogo, puras e testadas (sem React)
   features/     telas e a sessão de corrida (GPS ou simulação)
-  components/   UI reutilizável: mapa nativo/web, botões, hexágono com hachura
-  theme/        design system "Asfalto & Giz"
+  components/   UI reutilizável: mapa nativo/web (regiões suavizadas, sem grade), botões, selo do time
+  theme/        design system "Pista" (laranja, neutros quentes, Inter)
   store/        estado do jogo (Zustand)
   demo/         dados de DEMONSTRAÇÃO (não são usuários reais)
 ```

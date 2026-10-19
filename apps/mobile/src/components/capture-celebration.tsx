@@ -5,50 +5,28 @@ import Animated, {
   useAnimatedProps,
   useReducedMotion,
   useSharedValue,
-  withDelay,
   withTiming,
 } from 'react-native-reanimated';
-import Svg, { ClipPath, Defs, Line, Polygon } from 'react-native-svg';
+import Svg, { Circle, G } from 'react-native-svg';
 
 import type { FactionId } from '@/domain/types';
 import { EASE_OUT } from '@/theme/easing';
 import { factions, motion, palette } from '@/theme/tokens';
 
-import { hexPoints } from './hex-mark';
+import { TeamShapeGlyph } from './team-badge';
 import { Text } from './text';
 
-const AnimatedLine = Animated.createAnimatedComponent(Line);
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const SIZE = 132;
-const STROKES = 6;
-
-function ChalkStroke({ i, color, reduced }: { i: number; color: string; reduced: boolean }) {
-  const length = SIZE * 1.6;
-  const drawn = useSharedValue(reduced ? 1 : 0);
-  useEffect(() => {
-    if (!reduced) drawn.set(withDelay(i * motion.stagger, withTiming(1, { duration: 220, easing: EASE_OUT })));
-  }, [drawn, i, reduced]);
-  const props = useAnimatedProps(() => ({ strokeDashoffset: length * (1 - drawn.get()) }));
-  const x = (SIZE / (STROKES - 1)) * i;
-  return (
-    <AnimatedLine
-      x1={x - SIZE * 0.45}
-      y1={SIZE + 6}
-      x2={x + SIZE * 0.45}
-      y2={-6}
-      stroke={color}
-      strokeWidth={13}
-      strokeLinecap="round"
-      strokeDasharray={`${length} ${length}`}
-      animatedProps={props}
-      opacity={0.9}
-    />
-  );
-}
+const STROKE = 10;
+const R = (SIZE - STROKE) / 2;
+const LENGTH = 2 * Math.PI * R;
+const DRAW_MS = 600;
 
 /**
  * The one orchestrated moment of the app (frontend-design: spend boldness in one place).
- * The conquered hexagon is painted by six chalk strokes, 60 ms apart; haptic on the first stroke,
- * same frame as the visual (expo-animation). Reduced motion: the hexagon appears already painted.
+ * A ring in the team color closes around the zone like a lap, then the team mark appears;
+ * haptic on the same frame the ring starts (expo-animation). Reduced motion: shown already closed.
  */
 export function CaptureCelebration({ faction, zone, rp }: { faction: FactionId; zone: string; rp: number }) {
   const reduced = useReducedMotion();
@@ -56,23 +34,46 @@ export function CaptureCelebration({ faction, zone, rp }: { faction: FactionId; 
   useEffect(() => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   }, []);
-  const pts = hexPoints(SIZE, 3);
+  const drawn = useSharedValue(reduced ? 1 : 0);
+  useEffect(() => {
+    if (!reduced) drawn.set(withTiming(1, { duration: DRAW_MS, easing: EASE_OUT }));
+  }, [drawn, reduced]);
+  const ring = useAnimatedProps(() => ({ strokeDashoffset: LENGTH * (1 - drawn.get()) }));
   return (
     <View accessible accessibilityLabel={`Zona conquistada: ${zone}, mais ${rp} pontos`} style={{ alignItems: 'center', gap: 10 }}>
-      <Svg width={SIZE} height={SIZE}>
-        <Defs>
-          <ClipPath id="hex-clip">
-            <Polygon points={pts} />
-          </ClipPath>
-        </Defs>
-        <Polygon points={pts} fill={f.soft} />
-        <Svg width={SIZE} height={SIZE} clipPath="url(#hex-clip)">
-          {Array.from({ length: STROKES }, (_, i) => (
-            <ChalkStroke key={i} i={i} color={f.color} reduced={reduced} />
-          ))}
+      <View style={{ width: SIZE, height: SIZE }}>
+        <Svg width={SIZE} height={SIZE}>
+          <Circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill={f.tint} stroke={palette.line} strokeWidth={STROKE} />
+          <G rotation={-90} origin={`${SIZE / 2}, ${SIZE / 2}`}>
+            <AnimatedCircle
+              cx={SIZE / 2}
+              cy={SIZE / 2}
+              r={R}
+              fill="none"
+              stroke={f.color}
+              strokeWidth={STROKE}
+              strokeLinecap="round"
+              strokeDasharray={`${LENGTH} ${LENGTH}`}
+              animatedProps={ring}
+            />
+          </G>
         </Svg>
-        <Polygon points={pts} fill="none" stroke={palette.asfalto} strokeWidth={3} />
-      </Svg>
+        <Animated.View
+          style={{
+            position: 'absolute',
+            inset: 0,
+            animationName: reduced
+              ? { from: { opacity: 0 }, to: { opacity: 1 } }
+              : { from: { opacity: 0, transform: [{ scale: 0.6 }] }, to: { opacity: 1, transform: [{ scale: 1 }] } },
+            animationDuration: reduced ? 150 : motion.spring.duration,
+            animationDelay: reduced ? 0 : DRAW_MS - 120,
+            animationFillMode: 'both',
+          }}>
+          <Svg width={SIZE} height={SIZE}>
+            <TeamShapeGlyph shape={f.shape} size={SIZE} color={f.color} />
+          </Svg>
+        </Animated.View>
+      </View>
       <Animated.View
         style={{
           alignItems: 'center',
@@ -80,7 +81,7 @@ export function CaptureCelebration({ faction, zone, rp }: { faction: FactionId; 
             ? { from: { opacity: 0 }, to: { opacity: 1 } }
             : { from: { opacity: 0, transform: [{ translateY: 10 }] }, to: { opacity: 1, transform: [{ translateY: 0 }] } },
           animationDuration: reduced ? 150 : 400,
-          animationDelay: reduced ? 0 : STROKES * motion.stagger,
+          animationDelay: reduced ? 0 : DRAW_MS,
           animationFillMode: 'both',
         }}>
         <Text variant="headline">Zona conquistada</Text>

@@ -1,73 +1,82 @@
 import type { FactionId } from '@/domain/types';
 
 /**
- * Design system "Asfalto & Giz" (Product Book §5).
- * The city is the track: cool concrete map, territories painted like chalk and road paint,
- * road-marking yellow for the main action. Faction colors are the Okabe-Ito palette
- * (color-blind safe) and every faction also has its own hatch pattern.
+ * Design system "Pista" (Product Book §5, pesquisa 06).
+ * The look of a serious running app: light, warm neutrals, one orange accent for action and route,
+ * big tabular numbers. The game lives in the team colors on the map, never in the chrome.
+ * Team colors are color-blind safe (Okabe-Ito based) and each team also has a shape.
  */
 export const palette = {
-  asfalto: '#252A31',
-  concreto: '#E8EBEE',
-  giz: '#FFFFFF',
-  sinalizacao: '#FFD23F',
-  meioFio: '#6B7380',
-  alerta: '#C62828',
-  /** Lines and dividers on light surfaces. */
-  linha: '#D5DAE0',
-  /** Dark theme surfaces. */
-  asfaltoElevado: '#30363F',
-  noite: '#1B1F25',
+  orange: '#FF5A1F',
+  orangePressed: '#E24A12',
+  /** Orange that passes 4.5:1 as text on white. */
+  orangeText: '#C93F00',
+  ink: '#242428',
+  ink2: '#5E5E66',
+  ink3: '#A5A5AE',
+  bg: '#F7F6F3',
+  white: '#FFFFFF',
+  surface2: '#F0EFEC',
+  line: '#E4E3DF',
+  success: '#1F9D55',
+  danger: '#D92D20',
+  warning: '#E8A317',
+  night: '#121214',
+  nightSurface: '#1C1C1F',
 } as const;
 
 export const light = {
-  background: palette.concreto,
-  surface: palette.giz,
-  surfaceSunken: '#F3F5F7',
-  text: palette.asfalto,
-  textSecondary: palette.meioFio,
-  line: palette.linha,
-  action: palette.sinalizacao,
-  onAction: palette.asfalto,
-  danger: palette.alerta,
+  background: palette.bg,
+  surface: palette.white,
+  surfaceSunken: palette.surface2,
+  text: palette.ink,
+  textSecondary: palette.ink2,
+  line: palette.line,
+  action: palette.orange,
+  onAction: palette.white,
+  accentText: palette.orangeText,
+  danger: palette.danger,
 } as const;
 
 export const dark = {
-  background: palette.noite,
-  surface: palette.asfaltoElevado,
-  surfaceSunken: '#262B33',
-  text: '#F1F3F5',
-  textSecondary: '#A9B0BA',
-  line: '#3D444E',
-  action: palette.sinalizacao,
-  onAction: palette.asfalto,
-  danger: '#FF6B6B',
+  background: palette.night,
+  surface: palette.nightSurface,
+  surfaceSunken: '#26262A',
+  text: '#F2F2F4',
+  textSecondary: '#A0A0A8',
+  line: '#34343A',
+  action: '#FF6B33',
+  onAction: palette.white,
+  accentText: '#FF8A5C',
+  danger: '#FF6B5E',
 } as const;
 
 export type ThemeColors = { [K in keyof typeof light]: string };
 
-export type Pattern = 'listras' | 'pontos' | 'ondas' | 'xadrez';
+/** Redundant cue for color-blind runners: every team badge carries its shape. */
+export type TeamShape = 'circulo' | 'triangulo' | 'losango' | 'quadrado';
 
-export const factions: Record<
-  FactionId,
-  { name: string; color: string; soft: string; pattern: Pattern; motto: string; dash: number[] | undefined }
-> = {
-  striders: { name: 'Neon Striders', color: '#0072B2', soft: '#D6E8F4', pattern: 'listras', motto: 'Ritmo e precisão', dash: undefined },
-  coyotes: { name: 'Urban Coyotes', color: '#D55E00', soft: '#F8E1D1', pattern: 'pontos', motto: 'Correm em matilha', dash: [8, 6] },
-  owls: { name: 'Night Owls', color: '#CC79A7', soft: '#F5E4EE', pattern: 'ondas', motto: 'Donos da madrugada', dash: [2, 5] },
-  volt: { name: 'Volt Runners', color: '#009E73', soft: '#D2EEE5', pattern: 'xadrez', motto: 'Resistência sem fim', dash: [14, 5] },
+export const factions: Record<FactionId, { name: string; color: string; tint: string; onColor: string; shape: TeamShape; motto: string }> = {
+  striders: { name: 'Neon Striders', color: '#0072B2', tint: '#E3EEF6', onColor: palette.white, shape: 'circulo', motto: 'Ritmo e precisão' },
+  volt: { name: 'Volt Runners', color: '#009E73', tint: '#E0F2EC', onColor: palette.white, shape: 'triangulo', motto: 'Resistência sem fim' },
+  owls: { name: 'Night Owls', color: '#C0559A', tint: '#F6E6F0', onColor: palette.white, shape: 'losango', motto: 'Donos da madrugada' },
+  coyotes: { name: 'Urban Coyotes', color: '#D9B200', tint: '#FBF3D2', onColor: palette.ink, shape: 'quadrado', motto: 'Correm em matilha' },
 };
+
+/** Map fill of a team region: a bit stronger for your own team. */
+export const territoryOpacity = { other: 0.2, mine: 0.3, selected: 0.42 } as const;
 
 export const space = { 1: 4, 2: 8, 3: 12, 4: 16, 6: 24, 8: 32, 12: 48 } as const;
 
 export const radius = { sm: 8, md: 14, lg: 22, pill: 999 } as const;
 
+/** Inter for the interface, Inter Tight for the big numbers. */
 export const fonts = {
-  display: 'BigShouldersDisplay_800ExtraBold',
-  displayMedium: 'BigShouldersDisplay_600SemiBold',
-  text: 'Figtree_400Regular',
-  textMedium: 'Figtree_500Medium',
-  textBold: 'Figtree_700Bold',
+  display: 'InterTight_800ExtraBold',
+  displayMedium: 'InterTight_600SemiBold',
+  text: 'Inter_400Regular',
+  textMedium: 'Inter_500Medium',
+  textBold: 'Inter_700Bold',
 } as const;
 
 /** Type scale in points (Product Book §5.3). */
@@ -78,13 +87,13 @@ export const type = {
   lead: 20,
   title: 24,
   headline: 32,
-  metric: 48,
+  metric: 40,
   hero: 72,
   giant: 96,
 } as const;
 
 /** The one elevation shadow, only for things floating over the map. */
-export const floating = '0 2px 12px rgba(37, 42, 49, 0.12)';
+export const floating = '0 2px 12px rgba(36, 36, 40, 0.12)';
 
 /** Motion values from the expo-animation skill tables — never approximated. */
 export const motion = {

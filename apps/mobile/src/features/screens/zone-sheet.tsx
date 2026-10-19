@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { ScrollView, View } from 'react-native';
 
 import { Button } from '@/components/button';
-import { HexMark } from '@/components/hex-mark';
+import { TeamBadge } from '@/components/team-badge';
 import { EmptyState } from '@/components/surface';
 import { Text } from '@/components/text';
 import { TerritoryBar } from '@/components/territory-bar';
@@ -37,7 +37,7 @@ export function ZoneSheet() {
       style={{ flex: 1, backgroundColor: process.env.EXPO_OS === 'ios' ? 'transparent' : colors.surface }}
       contentContainerStyle={{ padding: space[6], gap: space[4] }}>
       <View style={{ flexDirection: 'row', gap: space[4], alignItems: 'center' }}>
-        <HexMark faction={zone.owner} attack={!!zone.attackStartedAt} size={60} />
+        <TeamBadge faction={zone.owner} attack={!!zone.attackStartedAt} size={60} />
         <View style={{ flex: 1, gap: 2 }}>
           <Text variant="title" accessibilityRole="header">
             {zoneName(zone.id)}
@@ -64,7 +64,7 @@ export function ZoneSheet() {
         <TerritoryBar influence={zone.influence} height={12} />
         {ranked.map((f) => (
           <View key={f} style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
-            <HexMark faction={f} size={20} />
+            <TeamBadge faction={f} size={20} />
             <Text style={{ flex: 1 }}>{factions[f].name}</Text>
             <Text variant="bodyBold" tabular>
               {Math.round(zone.influence[f]).toLocaleString('pt-BR')}
