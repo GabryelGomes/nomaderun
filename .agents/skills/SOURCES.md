@@ -256,3 +256,83 @@ Baixadas em 2026-10-10 via raw.githubusercontent.com (skills.sh/github.com bloqu
 - `trailofbits/skills` → `insecure-defaults`: na versão atual (v2.0.3) virou um plugin de comando/workflow (`/insecure-defaults:audit`), sem SKILL.md. Instalar via `/plugin marketplace add trailofbits/skills` + `/plugin install insecure-defaults`.
 - `expo/skills` → `building-native-ui`, `native-data-fetching`, `expo-tailwind-setup`, `expo-deployment`, `upgrading-expo`: nomes antigos; o repo foi reorganizado. Equivalentes baixados: `expo-native-ui`, `expo-data-fetching`, `eas-app-stores`, `expo-upgrade`. `expo-tailwind-setup` (citado pelo expo-overview) retornou 404.
 - `vercel-labs/agent-skills` → nomes `vercel-react-native-skills`/`vercel-composition-patterns` são aliases do skills.sh; os diretórios reais são `react-native-skills` e `composition-patterns`.
+
+---
+
+# Apresentações / pitch deck / storytelling (baixadas em 2026-10-19)
+
+Mesmo método: raw.githubusercontent.com, SKILL.md verificado (frontmatter `---` com `name:`).
+
+## pptx
+- **Repo:** `anthropics/skills`
+- **Raw URL:** https://raw.githubusercontent.com/anthropics/skills/main/skills/pptx/SKILL.md
+- **Descrição:** Criar/editar/ler .pptx (pptxgenjs, XML), com regras de design (paleta, motivo visual, tipografia) e QA visual. Licença proprietária (LICENSE.txt no repo); scripts/ não foram baixados.
+- **Instalar:** `npx skills add anthropics/skills --skill pptx`
+
+## frontend-slides
+- **Repo:** `zarazhangrui/frontend-slides`
+- **Raw URL:** https://raw.githubusercontent.com/zarazhangrui/frontend-slides/main/SKILL.md
+- **Descrição:** Apresentações HTML single-file, palco fixo 16:9, previews de estilo, modos de densidade (falada vs. leitura).
+- **Arquivos companheiros:** STYLE_PRESETS.md, html-template.md, animation-patterns.md, viewport-base.css
+- **Instalar:** `npx skills add zarazhangrui/frontend-slides --skill frontend-slides`
+
+## creating-presentations
+- **Repo:** `aaronvanston/agent-skills` (versão consolidada de `aaronvanston/skills-presentations`)
+- **Raw URL:** https://raw.githubusercontent.com/aaronvanston/agent-skills/main/skills/creating-presentations/SKILL.md
+- **Descrição:** Decks bold/minimalistas: arco narrativo, copy de slide, design (escala, cores por seção), speaker notes.
+- **Arquivos companheiros:** references/outline.md, content.md, design.md, notes.md (references/pitch-deck.md não baixado — limite de 4)
+- **Instalar:** `npx skills add aaronvanston/agent-skills --skill creating-presentations`
+
+## vc-pitch-deck
+- **Repo:** `pedronauck/skills`
+- **Raw URL:** https://raw.githubusercontent.com/pedronauck/skills/main/skills/mine/vc-pitch-deck/SKILL.md
+- **Descrição:** Criar/revisar decks de investidor (send-ahead, apresentado, demo day) com anatomia por slide e rubrica de teardown.
+- **Arquivos companheiros:** references/slide-anatomy.md, proof-slides.md, sequences-and-variants.md, teardown-rubric.md
+- **Instalar:** `npx skills add pedronauck/skills --skill vc-pitch-deck`
+
+## pitch-deck
+- **Repo:** `sorawit-w/agent-skills`
+- **Raw URL:** https://raw.githubusercontent.com/sorawit-w/agent-skills/main/skills/pitch-deck/SKILL.md
+- **Descrição:** Pitch deck HTML (Reveal.js) com arco de 10 slides, um claim por slide, slots obrigatórios, speaker notes e checklist.
+- **Arquivos companheiros:** references/slide-contracts.md, references/deck-variants.md
+- **Instalar:** `npx skills add sorawit-w/agent-skills --skill pitch-deck`
+
+## slides
+- **Repo:** `neethanwu/slides`
+- **Raw URL:** https://raw.githubusercontent.com/neethanwu/slides/main/skills/slides/SKILL.md
+- **Descrição:** Apresentações HTML single-file (scroll-snap) com 37 estilos, font trios, data viz e animações.
+- **Arquivos companheiros:** reference/template.md, font-guide.md, data-viz.md, media.md (reference/styles/ não baixado)
+- **Instalar:** `npx skills add neethanwu/slides --skill slides`
+
+## pitch-deck-builder
+- **Repo:** `leadmagic/gtm-skills`
+- **Raw URL:** https://raw.githubusercontent.com/leadmagic/gtm-skills/main/skills/design/pitch-deck-builder/SKILL.md
+- **Descrição:** Estrutura de 11 slides (problema → custo → why now → abordagem → produto → prova → CTA), personas e speaker notes.
+- **Arquivos companheiros:** references/framework-notes.md
+- **Instalar:** `npx skills add leadmagic/gtm-skills --skill pitch-deck-builder`
+
+## storytelling
+- **Repo:** `clawic/skills`
+- **Raw URL:** https://raw.githubusercontent.com/clawic/skills/main/skills/storytelling/SKILL.md
+- **Descrição:** Histórias com arco causal (situação → fricção → escolha → execução → resultado → transferência), prova no ponto de ceticismo.
+- **Arquivos companheiros:** story-arc-map.md, scene-design.md, rewrite-modes.md, setup.md
+- **Instalar:** `npx skills add clawic/skills --skill storytelling`
+
+## copywriting
+- **Repo:** `coreyhaines31/marketingskills`
+- **Raw URL:** https://raw.githubusercontent.com/coreyhaines31/marketingskills/main/skills/copywriting/SKILL.md
+- **Descrição:** Copy clara e específica (benefícios > features, linguagem do cliente, sem "AI tells"); foco em páginas, útil para headlines de slide.
+- **Arquivos companheiros:** references/copy-frameworks.md
+- **Instalar:** `npx skills add coreyhaines31/marketingskills --skill copywriting`
+
+## brand-storytelling
+- **Repo:** `pedronauck/skills`
+- **Raw URL:** https://raw.githubusercontent.com/pedronauck/skills/main/skills/marketing/brand-storytelling/SKILL.md
+- **Descrição:** Narrativa de marca/pitch com princípios de líderes de produto (cliente é o herói, momento de 5 segundos, começar na ação).
+- **Instalar:** `npx skills add pedronauck/skills --skill brand-storytelling`
+
+## Não encontrados / não baixados (apresentações)
+- `xdylanbaker/presentation-skills` → `frontend-slides`: listado no skills.sh, mas README/SKILL.md 404 no raw (repo privado/renomeado). Equivalente baixado: `zarazhangrui/frontend-slides`.
+- `nexu-io/open-design` → `html-ppt-pitch-deck`, `5dive-ai/character-packs` → `pitch-deck`: caminho não encontrado nos padrões testados.
+- `aaronvanston/skills-presentations` (presentation-outline/content/design/notes/pitch-deck): existem, mas o repo está deprecado em favor de `creating-presentations` (baixado).
+- `ailabs-393/ai-labs-claude-skills` → `pitch-deck`: NÃO baixado — auditoria de segurança no skills.sh (Runlayer) sinalizou risco médio/alto.
