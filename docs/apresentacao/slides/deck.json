@@ -1,20 +1,59 @@
 {
   "v": 4,
-  "createdOnFiles": { "v": 1, "at": "2026-10-19T21:15:00Z" },
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-19T21:15:00Z"
+  },
   "lists": "css",
   "title": "NOMADE RUN — Apresentação",
   "cover": "capa",
-  "order": ["capa", "problema", "objetivo", "corrida", "territorio", "arena", "construcao", "demo", "entregas", "fim"],
+  "order": [
+    "capa",
+    "problema",
+    "objetivo",
+    "corrida",
+    "territorio",
+    "arena",
+    "construcao",
+    "demo",
+    "entregas",
+    "fim"
+  ],
   "sections": {
-    "s1": { "description": "Abertura: o que é o NOMADE RUN e por que ele existe", "start": "capa" },
-    "s2": { "description": "O produto: app de corrida, território e Arena de minigames", "start": "corrida" },
-    "s3": { "description": "Como foi construído, demonstração e resultados", "start": "construcao" },
-    "s4": { "description": "Fechamento", "start": "fim" }
+    "s1": {
+      "description": "Abertura: o que é o NOMADE RUN e por que ele existe",
+      "start": "capa"
+    },
+    "s2": {
+      "description": "O produto: app de corrida, território e Arena de minigames",
+      "start": "corrida"
+    },
+    "s3": {
+      "description": "Como foi construído, demonstração e resultados",
+      "start": "construcao"
+    },
+    "s4": {
+      "description": "Fechamento",
+      "start": "fim"
+    }
   },
   "faces": {
-    "unbounded": { "family": "Unbounded", "href": "https://fonts.googleapis.com/css2?family=Unbounded:wght@400..900&display=swap" },
-    "inter": { "family": "Inter", "href": "https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" },
-    "jetbrains-mono": { "family": "JetBrains Mono", "href": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400..700&display=swap" }
+    "unbounded": {
+      "family": "Unbounded",
+      "href": "https://fonts.googleapis.com/css2?family=Unbounded:wght@400..900&display=swap"
+    },
+    "inter": {
+      "family": "Inter",
+      "href": "https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap"
+    },
+    "jetbrains-mono": {
+      "family": "JetBrains Mono",
+      "href": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400..700&display=swap"
+    },
+    "unbounded-line": {
+      "family": "Unbounded Line",
+      "src": "/_blob/ea113b1586866d7f3523fa7065db2b09"
+    }
   },
   "designSystems": []
 }
