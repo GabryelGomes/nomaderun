@@ -1,0 +1,82 @@
+// Captura as telas do protótipo web para a apresentação.
+// Uso: node capturas.js <url> <pasta-saida> <ruas.svg>
+// O mapa base (OpenFreeMap) não carrega neste ambiente; para a foto, o estilo é trocado por um fundo
+// transparente e um mosaico ILUSTRATIVO de ruas aparece por baixo. No celular o app usa Apple/Google Maps.
+const { chromium } = require('playwright');
+const fs = require('fs');
+const [URL, OUT, RUAS] = process.argv.slice(2);
+const ruas = 'data:image/svg+xml;base64,' + fs.readFileSync(RUAS).toString('base64');
+const STYLE = { version: 8, sources: {}, layers: [{ id: 'bg', type: 'background', paint: { 'background-color': 'rgba(0,0,0,0)' } }] };
+const CSS = `.maplibregl-map{background:#ECEAE6 url(${ruas}) center/330px repeat !important}`;
+
+(async () => {
+  fs.mkdirSync(OUT, { recursive: true });
+  const b = await chromium.launch();
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 });
+  await ctx.route('**/tiles.openfreemap.org/**', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(STYLE) }));
+  const p = await ctx.newPage();
+  const errors = [];
+  p.on('pageerror', (e) => errors.push(e.message));
+  const css = () => p.addStyleTag({ content: CSS }).catch(() => {});
+  const shot = async (n, wait = 700) => { await css(); await p.waitForTimeout(wait); await p.screenshot({ path: `${OUT}/${n}.png` }); };
+  const tab = (t) => p.getByText(t, { exact: true }).last().click();
+
+  await p.goto(URL, { waitUntil: 'networkidle' });
+  await p.waitForTimeout(1500);
+  await shot('01-boas-vindas');
+  await p.getByPlaceholder('Seu nome').fill('Gabryel');
+  await p.getByText('Escolher meu time').click();
+  await p.getByText('Neon Striders').first().click();
+  await shot('02-escolha-time');
+  await p.getByText('Continuar').click();
+  await shot('03-permissao');
+  await p.getByText('Continuar').click();
+  await p.waitForTimeout(5000);
+  await shot('04-mapa', 1500);
+  await p.getByText('Só meu time').click();
+  await shot('05-mapa-meu-time', 1200);
+  await p.getByText('Todos os times').click();
+  await tab('Arena');
+  await shot('07-arena');
+  await p.mouse.wheel(0, 900);
+  await shot('08-arena-liga');
+  await tab('Clube');
+  await shot('09-clube');
+  await tab('Perfil');
+  await shot('10-perfil');
+  await tab('Mapa');
+  await p.waitForTimeout(1000);
+  await p.getByText('Correr', { exact: true }).first().click();
+  await shot('11-nova-corrida');
+  await p.getByRole('radio', { name: /Caça/ }).click();
+  await p.getByText('Começar').click();
+  await p.waitForTimeout(400);
+  await shot('12-contagem', 300);
+  await p.waitForTimeout(30000);
+  await shot('13-corrida');
+  await p.waitForTimeout(25000);
+  await shot('14-corrida-rival');
+  const hold = p.getByLabel('Segure para encerrar');
+  const box = await hold.boundingBox();
+  await p.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await p.mouse.down();
+  await p.waitForTimeout(900);
+  await p.mouse.up();
+  await p.waitForTimeout(1500);
+  await shot('15-resumo', 1200);
+  await p.mouse.wheel(0, 700);
+  await shot('16-resumo-territorio');
+  await p.getByText('Concluir').click().catch(() => {});
+  await p.waitForTimeout(1200);
+  await tab('Atividades');
+  await shot('17-atividades');
+  await tab('Mapa');
+  await p.waitForTimeout(800);
+  await p.getByText('Onde já corri').click();
+  await shot('18-onde-ja-corri', 1500);
+  await p.getByText('Todos os times').click();
+  await p.getByText(/está sob ataque/).click();
+  await shot('06-zona', 1200);
+  console.log(errors.length ? 'Erros: ' + errors.join(' | ') : 'ok');
+  await b.close();
+})().catch((e) => { console.error('FALHOU', e.message); process.exit(1); });
