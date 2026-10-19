@@ -217,7 +217,7 @@ html = f'''{head}
   {hero_map}
   <div class="hero-shade"></div>
   <div class="hero-copy">
-    <p class="mono kicker">TCC · GESTÃO E GAMIFICAÇÃO DE CORRIDAS URBANAS</p>
+    <p class="mono kicker">GESTÃO E GAMIFICAÇÃO DE CORRIDAS URBANAS</p>
     <h1 class="mega"><span class="outline">NOMADE</span><span class="fill">RUN</span></h1>
     <p class="lede">Corra a sua cidade. <em>Cada rua conta.</em></p>
   </div>

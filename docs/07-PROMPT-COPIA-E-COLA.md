@@ -5,7 +5,7 @@
 ---
 
 ```text
-Crie uma apresentação de 10 slides (16:9, 1920×1080) para a defesa de TCC do app NOMADE RUN. Vibe: tecnológica e cinematográfica, como telemetria de Fórmula 1 à noite. Fundo preto, um único acento laranja neon que BRILHA, mapa real da cidade, números enormes. Referência de estética: site do piloto Lando Norris (dark, neon, cursor reativo, tipografia gigante, WebGL), mas em laranja e preto.
+Crie uma apresentação de 10 slides (16:9, 1920×1080) para apresentar o app NOMADE RUN na faculdade. Vibe: tecnológica e cinematográfica, como telemetria de Fórmula 1 à noite. Fundo preto, um único acento laranja neon que BRILHA, mapa real da cidade, números enormes. Referência de estética: site do piloto Lando Norris (dark, neon, cursor reativo, tipografia gigante, WebGL), mas em laranja e preto.
 
 CONTEXTO DO PRODUTO
 - Título do trabalho: "NOMADE RUN: Um Projeto de Gestão e Gamificação de Corridas Urbanas".

@@ -17,7 +17,8 @@ App de corrida de rua de verdade (GPS) com as funções essenciais de um app de 
 
 | Caminho | O que é |
 |---|---|
-| Deck de 10 slides (link no claude.ai, exporta em PowerPoint e PDF) | Apresentação do projeto, com notas do apresentador |
+| `docs/apresentacao/web/NOMADE RUN Apresentação.html` | **Apresentação completa numa página** (10 slides + mockup interativo no final), abre no navegador |
+| `docs/apresentacao/NOMADE RUN - Apresentação.pdf` | Os 10 slides em PDF |
 | `docs/07-PROMPT-COPIA-E-COLA.md` | Prompt pronto para copiar e colar: apresentação preto + laranja neon com efeitos |
 | `docs/apresentacao/mockup/` | Mockup interativo (mapa real de Goiânia, efeitos de hover e glow) e as imagens dos celulares |
 | `docs/06-PROMPT-APRESENTACAO.md` | Roteiro, demo e perguntas prováveis da banca |
