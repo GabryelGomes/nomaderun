@@ -1,0 +1,20 @@
+const { chromium } = require('playwright');
+const [IN, OUT] = process.argv.slice(2);
+(async () => {
+  const b = await chromium.launch();
+  const ctx = await b.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2 });
+  const p = await ctx.newPage();
+  await p.goto('file://' + IN + '?static&bare', { waitUntil: 'load' });
+  await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(600);
+  await p.screenshot({ path: OUT + '/capa-mapa.png' });
+  await p.goto('file://' + IN + '?static', { waitUntil: 'load' });
+  await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(600);
+  await p.screenshot({ path: OUT + '/hero.png' });
+  const p2 = await ctx.newPage();
+  await p2.goto('file://' + IN + '?static&cut', { waitUntil: 'load' });
+  await p2.evaluate(() => document.fonts.ready); await p2.waitForTimeout(600);
+  const shots = await p2.$$('.shot');
+  const names = ['tel-mapa', 'tel-corrida', 'tel-conquista'];
+  for (let i = 0; i < shots.length; i++) await shots[i].screenshot({ path: `${OUT}/${names[i]}.png`, omitBackground: true });
+  await b.close();
+})();

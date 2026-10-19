@@ -336,3 +336,65 @@ Mesmo método: raw.githubusercontent.com, SKILL.md verificado (frontmatter `---`
 - `nexu-io/open-design` → `html-ppt-pitch-deck`, `5dive-ai/character-packs` → `pitch-deck`: caminho não encontrado nos padrões testados.
 - `aaronvanston/skills-presentations` (presentation-outline/content/design/notes/pitch-deck): existem, mas o repo está deprecado em favor de `creating-presentations` (baixado).
 - `ailabs-393/ai-labs-claude-skills` → `pitch-deck`: NÃO baixado — auditoria de segurança no skills.sh (Runlayer) sinalizou risco médio/alto.
+
+---
+
+# Skills de design neon, efeitos e mockup (out/2026)
+
+Metodologia `find-skills`: o leaderboard/busca do skills.sh foi consultado via WebSearch (skills.sh bloqueado no proxy; `npx skills find` roda mas responde "No skills found" para qualquer termo, até "react"). Arquivos baixados por `git clone --depth 1 --filter=blob:none` do repo oficial e revisados manualmente (sem comandos remotos, exfiltração ou prompt injection). Installs = contagem all-time do skills.sh via agregadores (Skillselion/VibeIndex), aproximada.
+
+## synthwave (neon / glow)
+- **Repo:** `sickn33/agentic-awesome-skills` (~44K stars; sub-estilo do roteador `design-it`) — MIT (código) / CC BY 4.0 (texto)
+- **Raw URL:** https://raw.githubusercontent.com/sickn33/agentic-awesome-skills/main/skills/design-it/synthwave/SKILL.md
+- **Descrição:** Neon sobre fundo escuro: glow por `text-shadow`/`box-shadow` empilhados na cor do elemento, grid em perspectiva com `mask-image`; versões Web/RN/Flutter/SwiftUI.
+- **Arquivos companheiros:** references/cyberpunk-ui.md (neon on black, `clip-path` chanfrado, hover glitch) e references/dark-mode.md (elevação por luminosidade, tokens de texto) — ambos sub-estilos do mesmo repo.
+- **Instalar:** `npx skills add sickn33/agentic-awesome-skills --skill synthwave`
+- **Installs:** não encontrado
+
+## emil-design-eng (animação / micro-interações)
+- **Repo:** `emilkowalski/skills` (~10K stars; autor do Sonner/Vaul) — MIT
+- **Raw URL:** https://raw.githubusercontent.com/emilkowalski/skills/main/skills/emil-design-eng/SKILL.md
+- **Descrição:** Framework de decisão de animação (anima? propósito? easing? duração?), curvas custom, hover só em pointer fino, stagger, `@starting-style`, só transform/opacity, reduced-motion.
+- **Instalar:** `npx skills add emilkowalski/skills --skill emil-design-eng`
+- **Installs:** não confirmado (cópias de terceiros auditadas como SAFE pela Gen Agent Trust Hub e Snyk)
+
+## motion-design (motion design / loops ambientes)
+- **Repo:** `lottiefiles/motion-design-skill` — MIT
+- **Raw URL:** https://raw.githubusercontent.com/lottiefiles/motion-design-skill/main/skills/motion-design/SKILL.md
+- **Descrição:** Tabelas de duração/easing, personalidade de motion, coreografia, 3 camadas (primária/secundária/ambiente), padrões de pulse/breathing/float.
+- **Arquivos companheiros:** patterns/ambient-continuous.md, patterns/multi-element.md, reference/timing-easing-tables.md (demais `director/` e `reference/` não baixados; o SKILL.md os cita)
+- **Instalar:** `npx skills add lottiefiles/motion-design-skill --skill motion-design`
+- **Installs:** ~6.7K
+
+## svg-animation (desenho de rota / motion path)
+- **Repo:** `iart-ai/web-animation-skills` — MIT
+- **Raw URL:** https://raw.githubusercontent.com/iart-ai/web-animation-skills/main/skills/svg-animation/SKILL.md
+- **Descrição:** Draw-on por `stroke-dashoffset` (com `pathLength="1"`), motion-along-path (CSS `offset-path`, SMIL, GSAP), morph, gradientes/filtros animados, harness `?t=N` para screenshot.
+- **Arquivos companheiros:** references/svg-techniques.md (scripts/ não baixados)
+- **Instalar:** `npx skills add iart-ai/web-animation-skills --skill svg-animation`
+- **Installs:** não encontrado (baixo/desconhecido — incluído por ser o único focado em draw-on de path)
+
+## app-store-screenshots (mockup de celular / screenshots de produto)
+- **Repo:** `parthjadhav/app-store-screenshots` — MIT
+- **Raw URL:** https://raw.githubusercontent.com/parthjadhav/app-store-screenshots/main/skills/app-store-screenshots/SKILL.md
+- **Descrição:** Editor Next.js de screenshots-anúncio com frames de device; seção "Visual Design Principles" (fundo nunca branco, headline 30–40%, 1 palavra de ênfase, variar enquadramento do phone, teste de thumbnail).
+- **Observação:** só o SKILL.md foi salvo; o template do editor, style-prompts e scripts vêm pelo `npx skills add`. Auditoria skills.sh: risco LOW.
+- **Instalar:** `npx skills add parthjadhav/app-store-screenshots --skill app-store-screenshots`
+- **Installs:** ~10.9K
+
+## enhance-prompt (engenharia de prompt copia-e-cola)
+- **Repo:** `google-labs-code/stitch-skills` (Google Labs) — Apache-2.0
+- **Raw URL:** https://raw.githubusercontent.com/google-labs-code/stitch-skills/main/plugins/stitch-utilities/skills/enhance-prompt/SKILL.md
+- **Descrição:** Transforma ideia vaga de UI em prompt estruturado: avalia lacunas (plataforma, tipo, estrutura, vibe, cores), bloco "DESIGN SYSTEM (REQUIRED)", cores como "Nome (#hex) para papel", seções numeradas. Feito para o Stitch, mas o formato serve para qualquer gerador.
+- **Arquivos companheiros:** references/KEYWORDS.md
+- **Instalar:** `npx skills add google-labs-code/stitch-skills --skill enhance-prompt`
+- **Installs:** ~39K
+
+## Não encontrados / não baixados (neon, efeitos, mockup)
+- `bergside/awesome-design-skills` → `neon` / `cosmic` (MIT, ~104/446 installs): templates genéricos do typeui.sh (neon com `surface=#FFFFFF`, sem técnica de glow) — fraco.
+- `anthropics/skills` → `theme-factory` (~67K, Apache-2.0): 10 temas fixos, nenhum neon; depende de PDF/pasta de temas. Não agrega ao preto+laranja.
+- `nexu-io/open-design` → `mockup-device-3d`: auditoria skills.sh/Snyk HIGH risk — NÃO baixado. `mobile-app` (mesmo repo) não baixado pelo mesmo motivo de procedência.
+- `wshobson/agents` → `prompt-engineering-patterns` (~18K, MIT): voltado a apps LLM em produção (LangChain, few-shot, JSON); `enhance-prompt` é mais direto para prompt copia-e-cola de UI.
+- `dylantarre/animation-principles` → `presentations` (MIT): bom resumo de timing de builds (0.3–0.5s), mas não é claramente melhor que `frontend-slides`/`slides` + `motion-design`.
+- Mapas escuros/neon: nenhum skill melhor que `mapbox-cartography` + `mapbox-style-patterns` (já presentes). `mapbox-style-quality` e `mapbox-web-performance-patterns` existem no mesmo repo, mas tratam de validação/performance, não de estilo dark.
+- Sem resultado relevante: glow/neon com installs >1K, "dark map", "hover effects" dedicado, device mockup só-CSS seguro.

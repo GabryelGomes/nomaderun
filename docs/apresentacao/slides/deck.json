@@ -12,8 +12,9 @@
     "s4": { "description": "Fechamento", "start": "fim" }
   },
   "faces": {
-    "inter-tight": { "family": "Inter Tight", "href": "https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600..800&display=swap" },
-    "inter": { "family": "Inter", "href": "https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" }
+    "unbounded": { "family": "Unbounded", "href": "https://fonts.googleapis.com/css2?family=Unbounded:wght@400..900&display=swap" },
+    "inter": { "family": "Inter", "href": "https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" },
+    "jetbrains-mono": { "family": "JetBrains Mono", "href": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400..700&display=swap" }
   },
   "designSystems": []
 }
