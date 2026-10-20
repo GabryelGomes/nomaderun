@@ -119,6 +119,16 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon key do supabase status>
 
 **No celular, troque `127.0.0.1` pelo IP do computador na rede** (o celular não enxerga o `127.0.0.1` do computador). Para descobrir o IP: `ipconfig getifaddr en0` (macOS), `hostname -I` (Linux) ou `ipconfig` (Windows, campo "Endereço IPv4"). Para usar só no navegador do próprio computador, `127.0.0.1` funciona.
 
+**Atalho (recomendado para o celular):** na raiz, `npm run celular` faz tudo de uma vez: confere o Docker, sobe o Supabase e as Edge Functions, descobre o IP que o celular alcança (no WSL, pergunta ao Windows), grava o `apps/mobile/.env`, testa o backend por esse IP e abre o Expo com o QR code certo. Se o IP detectado estiver errado: `IP=192.168.0.10 npm run celular`.
+
+**No WSL (Windows):** o `hostname -I` dentro do WSL devolve um IP interno (172.x) que o celular não alcança, e o Expo Go fica carregando sem parar. Use o IP do **Windows** na rede Wi-Fi (`ipconfig` no PowerShell, "Endereço IPv4") no `.env` e no Expo:
+
+```bash
+REACT_NATIVE_PACKAGER_HOSTNAME=<IP do Windows> npx expo start --clear
+```
+
+Para o celular alcançar o Metro (porta 8081) e o Supabase (54321) dentro do WSL, ative o modo de rede espelhado (`networkingMode=mirrored` no `%UserProfile%\.wslconfig`, depois `wsl --shutdown`) e libere as portas no Firewall do Windows. Alternativa: `npx expo start --tunnel` para o Metro e Supabase Cloud para o backend.
+
 Nunca coloque a chave `service_role`/`secret` no `.env` do app.
 
 ### 5. Abrir o app
