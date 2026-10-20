@@ -36,3 +36,13 @@ export function mapLayers({ zones, myFaction, onlyMine, explored }: Pick<Territo
     explored: explored?.length ? smoothCells(explored, 1) : [],
   };
 }
+
+/** Ring that approximates a circle of `radius` meters (web map and tests; the native map has `Circle`). */
+export function circleRing(center: LatLng, radius: number, steps = 48): LatLng[] {
+  const dLat = radius / 111_320;
+  const dLng = radius / (111_320 * Math.max(Math.cos((center.lat * Math.PI) / 180), 1e-6));
+  return Array.from({ length: steps }, (_, i) => {
+    const a = (2 * Math.PI * i) / steps;
+    return { lat: center.lat + dLat * Math.sin(a), lng: center.lng + dLng * Math.cos(a) };
+  });
+}

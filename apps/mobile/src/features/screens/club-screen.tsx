@@ -12,28 +12,30 @@ import { CITY_MIN_ACTIVE_RUNNERS } from '@/domain/games';
 import type { FactionId } from '@/domain/types';
 import { DEMO_CREW, demoCityWar } from '@/demo/demo-data';
 import { CREW_MAX_MEMBERS, getMyCrew } from '@/services/api/crews-repo';
-import { getCityRanking, getCrewRanking, getFactionRanking, getIndividualRanking } from '@/services/api/leaderboard-repo';
+import { districtOf } from '@/domain/grid';
+import type { Result } from '@/services/api/errors';
+import { getCityRanking, getDistrictLabel, getMyRecentZoneId, rankCrews, rankFactions, rankRunners } from '@/services/api/leaderboard-repo';
 import { useSession } from '@/store/session-store';
 import { factions, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
+import { emptyRankingText, rankingQuery, scopesFor, type Board, type Me, type Period, type Scope } from './club-ranking';
 import { useResource } from './use-resource';
-
-type Board = 'individual' | 'crews' | 'faccoes';
-type Scope = 'geral' | 'cidade' | 'time';
 
 export type RankingLine = { key: string; position: number; title: string; subtitle?: string; value: string; faction?: FactionId | null; you?: boolean };
 
 /** Linhas do ranking escolhido, já no formato da lista (RF-015). */
-async function loadBoard(board: Board, scope: Scope, me: { id: string | null; city: string | null; faction: FactionId | null }) {
+async function loadBoard(board: Board, scope: Scope, period: Period, me: Me): Promise<Result<RankingLine[]>> {
+  const q = rankingQuery(board, scope, period, me);
+  if (!q) return { ok: true, data: [] };
   if (board === 'crews') {
-    const res = await getCrewRanking(20);
+    const res = await rankCrews(q);
     return res.ok
       ? { ok: true as const, data: res.data.map((r): RankingLine => ({ key: r.crewId, position: r.position, title: `${r.name} [${r.tag}]`, subtitle: `${r.members} corredores`, value: `${r.rp.toLocaleString('pt-BR')} RP`, faction: r.faction })) }
       : res;
   }
   if (board === 'faccoes') {
-    const res = await getFactionRanking();
+    const res = await rankFactions(q);
     return res.ok
       ? {
           ok: true as const,
@@ -49,7 +51,7 @@ async function loadBoard(board: Board, scope: Scope, me: { id: string | null; ci
         }
       : res;
   }
-  const res = await getIndividualRanking({ city: scope === 'cidade' ? me.city : null, faction: scope === 'time' ? me.faction : null, limit: 20 });
+  const res = await rankRunners(q);
   return res.ok
     ? {
         ok: true as const,
@@ -64,6 +66,17 @@ async function loadBoard(board: Board, scope: Scope, me: { id: string | null; ci
         })),
       }
     : res;
+}
+
+/** Distrito da corrida mais recente (H3 res. 7) e o nome dele, para o escopo "distrito". */
+async function loadMyDistrict(userId: string | null): Promise<Result<{ id: string; label: string } | null>> {
+  if (!userId) return { ok: true, data: null };
+  const zone = await getMyRecentZoneId(userId);
+  if (!zone.ok) return zone;
+  if (!zone.data) return { ok: true, data: null };
+  const id = districtOf(zone.data);
+  const label = await getDistrictLabel(id);
+  return { ok: true, data: { id, label: label.ok ? label.data : 'Meu distrito' } };
 }
 
 function Chips<T extends string>({ options, value, onChange, testID }: { options: readonly (readonly [T, string])[]; value: T; onChange: (v: T) => void; testID: string }) {
@@ -99,9 +112,20 @@ export function ClubScreen() {
   const faction = useSession((s) => s.profile?.faction ?? null);
   const [board, setBoard] = useState<Board>('individual');
   const [scope, setScope] = useState<Scope>('geral');
+  const [period, setPeriod] = useState<Period>('season');
 
   const crew = useResource(() => getMyCrew(userId ?? ''), [userId]);
-  const ranking = useResource(() => loadBoard(board, scope, { id: userId, city, faction }), [board, scope, userId, city, faction]);
+  const district = useResource(() => loadMyDistrict(userId), [userId]);
+  const districtId = district.data?.id ?? null;
+  const me: Me = { id: userId, city, faction, district: districtId };
+  const boardScope = scopesFor(board).includes(scope) ? scope : 'geral';
+  const ranking = useResource(() => loadBoard(board, boardScope, period, me), [board, boardScope, period, userId, city, faction, districtId]);
+  const scopeLabels: Record<Scope, string> = {
+    geral: 'Todos',
+    cidade: city ? `Em ${city}` : 'Minha cidade',
+    time: 'Meu time',
+    distrito: district.data ? `Em ${district.data.label}` : 'Meu distrito',
+  };
   const cities = useResource(() => getCityRanking(20), []);
   const reloadCrew = crew.reload;
   useFocusEffect(
@@ -170,7 +194,7 @@ export function ClubScreen() {
 
       <View style={{ gap: space[3] }}>
         <SectionHeader title="Rankings" />
-        <Text muted>Pontos da temporada atual. A temporada fecha no fim do mês.</Text>
+        <Text muted>{period === 'week' ? 'Pontos desta semana, desde segunda-feira.' : 'Pontos da temporada atual. A temporada fecha no fim do mês.'}</Text>
         <Chips
           testID="ranking-quadro"
           value={board}
@@ -181,18 +205,16 @@ export function ClubScreen() {
             ['faccoes', 'Times'],
           ] as const}
         />
-        {board === 'individual' ? (
-          <Chips
-            testID="ranking-escopo"
-            value={scope}
-            onChange={setScope}
-            options={[
-              ['geral', 'Todos'],
-              ['cidade', city ? `Em ${city}` : 'Minha cidade'],
-              ['time', 'Meu time'],
-            ] as const}
-          />
-        ) : null}
+        <Chips
+          testID="ranking-periodo"
+          value={period}
+          onChange={setPeriod}
+          options={[
+            ['season', 'Temporada'],
+            ['week', 'Semana'],
+          ] as const}
+        />
+        <Chips testID="ranking-escopo" value={boardScope} onChange={setScope} options={scopesFor(board).map((k) => [k, scopeLabels[k]] as const)} />
         <Surface>
           {ranking.error && !ranking.data ? (
             <Text muted testID="ranking-erro">
@@ -202,7 +224,7 @@ export function ClubScreen() {
             <ActivityIndicator color={colors.action} />
           ) : ranking.data.length === 0 ? (
             <Text muted testID="ranking-vazio">
-              {board === 'individual' && scope === 'cidade' && !city ? 'Defina sua cidade natal no perfil para ver este ranking.' : 'Ninguém pontuou nesta temporada ainda. A primeira corrida válida abre o ranking.'}
+              {emptyRankingText(board, boardScope, period, me)}
             </Text>
           ) : (
             ranking.data.map((r) => (

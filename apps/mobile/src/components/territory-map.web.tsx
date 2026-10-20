@@ -8,7 +8,7 @@ import { zoneOf } from '@/domain/grid';
 import type { LatLng } from '@/domain/types';
 import { palette } from '@/theme/tokens';
 
-import { mapLayers } from './territory-map.layers';
+import { circleRing, mapLayers } from './territory-map.layers';
 import type { TerritoryMapProps } from './territory-map.types';
 
 /** Free vector basemap (OpenFreeMap, no key). If it can't load, the map still shows territory on a plain background. */
@@ -50,6 +50,12 @@ function sources(props: TerritoryMapProps) {
     contested: collection(l.contested.map((c) => polygon([c.ring], { color: c.color }))),
     blocked: collection(l.blocked.map((rings) => polygon(rings, {}))),
     explored: collection(l.explored.map((rings) => polygon(rings, {}))),
+    circles: collection((props.circles ?? []).map((c) => polygon([circleRing(c.center, c.radius)], {}))),
+    invalid: collection(
+      (props.invalidPaths ?? [])
+        .filter((p) => p.length > 1)
+        .map((p): GeoJSON.Feature => ({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: p.map((q) => [q.lng, q.lat]) } })),
+    ),
   };
 }
 
@@ -101,8 +107,11 @@ export default function TerritoryMap(props: TerritoryMapProps) {
           source: 'contested',
           paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-dasharray': [2.2, 1.6] },
         });
+        map.addLayer({ id: 'circles-fill', type: 'fill', source: 'circles', paint: { 'fill-color': palette.ink2, 'fill-opacity': 0.18 } });
+        map.addLayer({ id: 'circles-edge', type: 'line', source: 'circles', paint: { 'line-color': palette.ink2, 'line-width': 1.5 } });
         map.addLayer({ id: 'path-casing', type: 'line', source: 'path', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': palette.white, 'line-width': 8 } });
         map.addLayer({ id: 'path-line', type: 'line', source: 'path', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': palette.orange, 'line-width': 5 } });
+        map.addLayer({ id: 'invalid-line', type: 'line', source: 'invalid', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': palette.ink3, 'line-width': 5 } });
         map.addLayer({
           id: 'chests',
           type: 'circle',
@@ -125,11 +134,12 @@ export default function TerritoryMap(props: TerritoryMapProps) {
         });
         // A click is turned into the zone under the pointer (same rule as the server), not into a drawn shape.
         map.on('click', (e: MapMouseEvent) => {
-          const { onZonePress, zones } = latest.current;
+          const { onZonePress, onMapPress, zones } = latest.current;
+          onMapPress?.({ lat: e.lngLat.lat, lng: e.lngLat.lng });
           const id = zoneOf({ lat: e.lngLat.lat, lng: e.lngLat.lng });
           if (onZonePress && zones.some((z) => z.id === id)) onZonePress(id);
         });
-        if (latest.current.onZonePress) map.getCanvas().style.cursor = 'pointer';
+        if (latest.current.onZonePress || latest.current.onMapPress) map.getCanvas().style.cursor = 'pointer';
         const report = () => {
           const b = map.getBounds();
           latest.current.onRegionChange?.({ minLng: b.getWest(), minLat: b.getSouth(), maxLng: b.getEast(), maxLat: b.getNorth() });

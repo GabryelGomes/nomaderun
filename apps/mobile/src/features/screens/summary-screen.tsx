@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, Share, View } from 'react-native';
 import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +16,7 @@ import { DEMO_CENTER } from '@/demo/demo-data';
 import { mapZonesNear } from '@/features/map-data';
 import { invalidReasons } from '@/features/run/summary-model';
 import { useRunRecord } from '@/features/run/use-run-record';
+import { getInvalidStretches } from '@/services/api/track-repo';
 import { useGame } from '@/store/game-store';
 import { useZones } from '@/store/zones-store';
 import { radius, space } from '@/theme/tokens';
@@ -39,6 +40,19 @@ export function SummaryScreen() {
   const official = record.state === 'official';
   const conquered = official && r ? r.zones.filter((z) => z.outcome === 'conquered') : [];
   const highlight = conquered[0];
+
+  // UC-01 E1 (P-20): trechos inválidos do resultado oficial em cinza no mapa.
+  const invalidKey = official && r ? JSON.stringify(r.invalidSegments.map((g) => [g.fromSeq, g.toSeq])) : '[]';
+  const [invalidPaths, setInvalidPaths] = useState<{ key: string; paths: { lat: number; lng: number }[][] }>({ key: '[]', paths: [] });
+  useEffect(() => {
+    if (!id || invalidKey === '[]') return;
+    let alive = true;
+    const ranges = (JSON.parse(invalidKey) as [number, number][]).map(([fromSeq, toSeq]) => ({ fromSeq, toSeq }));
+    void getInvalidStretches(id, ranges).then((res) => alive && res.ok && setInvalidPaths({ key: invalidKey, paths: res.data }));
+    return () => {
+      alive = false;
+    };
+  }, [id, invalidKey]);
 
   // Vibra quando a conquista é confirmada pelo servidor (retorno visual obrigatório, §6.2).
   const celebrated = useRef(false);
@@ -129,7 +143,7 @@ export function SummaryScreen() {
 
       <Animated.View entering={entering(0)}>
         <Surface padded={false} style={{ overflow: 'hidden', height: 220 }}>
-          <TerritoryMap zones={mapZones} myFaction={faction} center={center} span={1500} path={record.path} interactive={false} />
+          <TerritoryMap zones={mapZones} myFaction={faction} center={center} span={1500} path={record.path} invalidPaths={invalidPaths.key === invalidKey ? invalidPaths.paths : undefined} interactive={false} />
         </Surface>
       </Animated.View>
 

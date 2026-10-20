@@ -12,6 +12,8 @@ export type MapZone = {
   blocked?: boolean;
 };
 
+export type MapCircle = { id: string; center: LatLng; radius: number };
+
 /** Visible area of the map (degrees), reported after the camera stops moving. */
 export type MapBounds = { minLng: number; minLat: number; maxLng: number; maxLat: number };
 
@@ -26,10 +28,16 @@ export type TerritoryMapProps = {
   onlyMine?: boolean;
   user?: LatLng | null;
   path?: LatLng[];
+  /** Stretches of the path that did not count (UC-01 E1), drawn in gray over the route. */
+  invalidPaths?: LatLng[][];
+  /** Circles in meters (privacy zones, RN-010), drawn as quiet gray discs. */
+  circles?: MapCircle[];
   chests?: Chest[];
   /** Explored cells (personal map), drawn like a personal heatmap. */
   explored?: string[];
   onZonePress?: (id: string) => void;
+  /** Tap anywhere on the map, with the coordinate (e.g. picking a privacy zone). */
+  onMapPress?: (point: LatLng) => void;
   /** Keeps the camera on the user while running. */
   followUser?: boolean;
   interactive?: boolean;

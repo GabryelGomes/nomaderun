@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useColorScheme, View } from 'react-native';
-import MapView, { Marker, Polygon, Polyline } from 'react-native-maps';
+import MapView, { Circle, Marker, Polygon, Polyline } from 'react-native-maps';
 
 import { zoneOf } from '@/domain/grid';
 import { palette } from '@/theme/tokens';
@@ -41,7 +41,7 @@ const toCoords = (ring: { lat: number; lng: number }[]) => ring.map(toCoord);
  * Regions are not tappable themselves: a tap is turned into the zone under the finger (same rule as the server).
  */
 export default function TerritoryMap(props: TerritoryMapProps) {
-  const { zones, center, span = 1800, myFaction, onlyMine, explored, user, path, chests, onZonePress, followUser, interactive = true, onRegionChange, focus, style } = props;
+  const { zones, center, span = 1800, myFaction, onlyMine, explored, user, path, invalidPaths, circles, chests, onZonePress, onMapPress, followUser, interactive = true, onRegionChange, focus, style } = props;
   const layers = useMemo(() => mapLayers({ zones, myFaction, onlyMine, explored }), [zones, myFaction, onlyMine, explored]);
   const map = useRef<MapView>(null);
   const night = useColorScheme() === 'dark';
@@ -86,8 +86,9 @@ export default function TerritoryMap(props: TerritoryMapProps) {
             : undefined
         }
         onPress={(e) => {
-          if (!onZonePress) return;
           const { latitude, longitude } = e.nativeEvent.coordinate;
+          onMapPress?.({ lat: latitude, lng: longitude });
+          if (!onZonePress) return;
           const id = zoneOf({ lat: latitude, lng: longitude });
           if (zones.some((z) => z.id === id)) onZonePress(id);
         }}>
@@ -117,12 +118,18 @@ export default function TerritoryMap(props: TerritoryMapProps) {
         {layers.contested.map((c) => (
           <Polygon key={`atk-${c.id}`} coordinates={toCoords(c.ring)} fillColor={alpha(c.color, 0.16)} strokeColor={c.color} strokeWidth={3} lineDashPattern={[8, 6]} />
         ))}
+        {circles?.map((c) => (
+          <Circle key={`circle-${c.id}`} center={toCoord(c.center)} radius={c.radius} fillColor="rgba(94,94,102,0.18)" strokeColor={palette.ink2} strokeWidth={1.5} />
+        ))}
         {path && path.length > 1 ? (
           <>
             <Polyline coordinates={path.map(toCoord)} strokeColor={palette.white} strokeWidth={8} lineCap="round" lineJoin="round" />
             <Polyline coordinates={path.map(toCoord)} strokeColor={palette.orange} strokeWidth={5} lineCap="round" lineJoin="round" />
           </>
         ) : null}
+        {invalidPaths
+          ?.filter((p) => p.length > 1)
+          .map((p, i) => <Polyline key={`invalid-${i}`} coordinates={p.map(toCoord)} strokeColor={palette.ink3} strokeWidth={5} lineCap="round" lineJoin="round" />)}
         {chests?.map((c) => (
           <Marker key={c.id} coordinate={toCoord(c.position)} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
             <View

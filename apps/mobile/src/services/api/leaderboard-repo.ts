@@ -84,3 +84,69 @@ export async function getCityRanking(limit = 30): Promise<Result<CityRow[]>> {
     return ((data ?? []) as Row[]).map(toCityRow);
   });
 }
+
+/**
+ * Rankings com período e escopo (RF-015, P-25, D-41): RPCs `ranking_runners`, `ranking_crews`,
+ * `ranking_factions`. Semana = desde segunda 00:00 de Brasília; temporada = desde o dia 1.
+ * `value` é a facção, a cidade natal ou o distrito (`districtOf(zoneId)`, H3 res. 7), conforme o escopo.
+ */
+export type RankingPeriod = 'week' | 'season';
+export type RankingScope = 'general' | 'faction' | 'city' | 'district';
+export type RankingQuery = { period: RankingPeriod; scope: RankingScope; value?: string | null; limit?: number };
+
+const rankingArgs = (q: RankingQuery) => ({
+  p_period: q.period,
+  p_scope: q.scope,
+  p_value: q.scope === 'general' ? null : (q.value ?? null),
+  p_limit: q.limit ?? 50,
+});
+
+async function callRanking(fn: 'ranking_runners' | 'ranking_crews' | 'ranking_factions', args: Record<string, unknown>): Promise<Row[]> {
+  const { data, error } = await requireSupabase().rpc(fn, args);
+  if (error) throw error;
+  return (Array.isArray(data) ? data : []) as Row[];
+}
+
+export async function rankRunners(q: RankingQuery): Promise<Result<IndividualRow[]>> {
+  return attempt(async () => (await callRanking('ranking_runners', rankingArgs(q))).map(toIndividual));
+}
+
+export async function rankCrews(q: RankingQuery): Promise<Result<CrewRow[]>> {
+  return attempt(async () => (await callRanking('ranking_crews', rankingArgs(q))).map(toCrewRow));
+}
+
+/** Facções não têm escopo `faction` no servidor. */
+export async function rankFactions(q: RankingQuery): Promise<Result<FactionRow[]>> {
+  const scope = q.scope === 'faction' ? 'general' : q.scope;
+  const { p_limit: _ignored, ...args } = rankingArgs({ ...q, scope });
+  return attempt(async () =>
+    (await callRanking('ranking_factions', args))
+      .filter((r) => isFaction(r.faction))
+      .map((r) => ({ position: n(r.position), faction: r.faction as FactionId, rp: n(r.rp), runners: n(r.runners), zones: n(r.zones) })),
+  );
+}
+
+/** Nome legível do distrito (`"Jardim Goiás"` ou `"Distrito XXXX"`). */
+export async function getDistrictLabel(district: string): Promise<Result<string>> {
+  return attempt(async () => {
+    const { data, error } = await requireSupabase().rpc('district_label', { p_district: district });
+    if (error) throw error;
+    return typeof data === 'string' && data ? data : `Distrito ${district.slice(-4).toUpperCase()}`;
+  });
+}
+
+/** Zona da corrida mais recente do usuário (base do "Meu distrito"), ou null se ainda não correu. */
+export async function getMyRecentZoneId(userId: string): Promise<Result<string | null>> {
+  return attempt(async () => {
+    const { data, error } = await requireSupabase()
+      .from('activity_zones')
+      .select('zone_id,meters,created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .order('meters', { ascending: false })
+      .limit(1);
+    if (error) throw error;
+    const row = (data ?? [])[0] as Row | undefined;
+    return typeof row?.zone_id === 'string' ? row.zone_id : null;
+  });
+}

@@ -7,10 +7,11 @@ import { useSession } from '@/store/session-store';
 import { useZones } from '@/store/zones-store';
 
 import { prefAllows, showLocalAlert } from './local-alert';
+import { createFallbackPolling } from './realtime-fallback';
 
 /** Tipos que viram notificação local quando chegam com o app aberto. */
 const ALERT_TYPES = new Set<repo.NotificationType>(['invasion', 'territory_lost', 'conquest', 'moderation']);
-/** Consulta periódica: garante a chegada mesmo sem Realtime na tabela `notifications`. */
+/** Consulta periódica de fallback: só roda enquanto o canal Realtime não está `SUBSCRIBED` (P-24). */
 export const POLL_MS = 20_000;
 
 function alertIfWanted(n: repo.AppNotification) {
@@ -43,8 +44,9 @@ export async function markRead(ids: string[] | null) {
 }
 
 /**
- * Montado no layout raiz: enquanto há usuário logado, mantém a central atualizada (Realtime + consulta
- * periódica em primeiro plano) e limpa as stores do usuário anterior ao trocar de conta ou sair.
+ * Montado no layout raiz: enquanto há usuário logado, mantém a central atualizada pelo Realtime
+ * (consulta periódica só como fallback quando o canal cai, e uma consulta ao voltar ao primeiro plano)
+ * e limpa as stores do usuário anterior ao trocar de conta ou sair.
  */
 export function useUserDataBootstrap() {
   const userId = useSession((s) => (s.status === 'signedIn' ? (s.session?.userId ?? null) : null));
@@ -55,26 +57,17 @@ export function useUserDataBootstrap() {
       return;
     }
     void refreshNotifications();
-    const sub = repo.subscribeNotifications(userId, (n) => {
-      if (useNotifications.getState().add(n)) alertIfWanted(n);
-    });
-    let timer: ReturnType<typeof setInterval> | null = null;
-    const start = () => {
-      if (!timer) timer = setInterval(() => void refreshNotifications(true), POLL_MS);
-    };
-    const stop = () => {
-      if (timer) clearInterval(timer);
-      timer = null;
-    };
-    start();
-    const app = AppState.addEventListener('change', (state) => {
-      if (state === 'active') {
-        void refreshNotifications(true);
-        start();
-      } else stop();
-    });
+    const polling = createFallbackPolling({ refresh: () => void refreshNotifications(true), intervalMs: POLL_MS });
+    const sub = repo.subscribeNotifications(
+      userId,
+      (n) => {
+        if (useNotifications.getState().add(n)) alertIfWanted(n);
+      },
+      (status) => polling.onChannelStatus(status),
+    );
+    const app = AppState.addEventListener('change', (state) => polling.onAppState(state));
     return () => {
-      stop();
+      polling.stop();
       app.remove();
       if (sub.ok) sub.data.unsubscribe();
     };

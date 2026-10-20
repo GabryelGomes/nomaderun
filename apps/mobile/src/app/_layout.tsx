@@ -90,6 +90,7 @@ export default function RootLayout() {
             <Stack.Screen name="notificacoes" options={{ ...pushHeader, title: 'Notificações' }} />
             {/* Arquivo da rota criado pelo A4 (Corrida Segura, T2.5). */}
             <Stack.Screen name="contatos-seguranca" options={{ ...pushHeader, title: 'Contatos de segurança' }} />
+            <Stack.Screen name="zonas-privacidade" options={{ ...pushHeader, title: 'Zonas de privacidade' }} />
             <Stack.Protected guard={staff}>
               <Stack.Screen name="moderacao" />
             </Stack.Protected>

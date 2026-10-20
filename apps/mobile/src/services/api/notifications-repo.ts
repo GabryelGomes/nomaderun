@@ -71,10 +71,15 @@ export async function markNotificationsRead(ids: string[] | null): Promise<Resul
 export type NotificationsSubscription = { unsubscribe: () => void };
 
 /**
- * Realtime das notificações novas do usuário. Só recebe eventos se a tabela estiver na publicação
- * `supabase_realtime` (pedido ao A2 no PROGRESSO); o store também consulta periodicamente.
+ * Realtime das notificações novas do usuário (`notifications` está na publicação `supabase_realtime`
+ * com RLS, P-13). `onStatus` recebe o status do canal (`SUBSCRIBED`, `CHANNEL_ERROR`, `TIMED_OUT`,
+ * `CLOSED`): o controller liga a consulta periódica só quando o canal não está `SUBSCRIBED` (P-24).
  */
-export function subscribeNotifications(userId: string, onNew: (n: AppNotification) => void): Result<NotificationsSubscription> {
+export function subscribeNotifications(
+  userId: string,
+  onNew: (n: AppNotification) => void,
+  onStatus?: (status: string) => void,
+): Result<NotificationsSubscription> {
   try {
     const supabase = requireSupabase();
     const channel = supabase
@@ -82,7 +87,7 @@ export function subscribeNotifications(userId: string, onNew: (n: AppNotificatio
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, (payload: { new?: Row }) => {
         if (payload.new && typeof payload.new.id === 'string') onNew(toNotification(payload.new));
       })
-      .subscribe();
+      .subscribe((status: string) => onStatus?.(status));
     return ok({ unsubscribe: () => void supabase.removeChannel(channel) });
   } catch (e) {
     return fail(toAppError(e));

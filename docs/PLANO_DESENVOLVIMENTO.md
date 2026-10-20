@@ -63,13 +63,14 @@ Legenda de status: ⬜ a fazer · 🟨 em andamento · ✅ feito · ⛔ bloquead
 ### Fase 3 — Funcionalidades P1 (A3 ‖ A4 ‖ A2 conforme pastas)
 | ID | Tarefa | Dono | Depende | Status |
 |---|---|---|---|---|
-| T3.1 | Central de notificações (RF-019) + alerta de invasão no app (RF-009) | A3 + A2 | T2.4 | ✅ (A2 ligou o Realtime da tabela, P-13; app pode trocar a consulta de 20 s por fallback: P-24) |
-| T3.2 | Rankings reais (RF-015) e placar entre cidades (RF-020) | A3 + A2 | T2.4 | ✅ (A2: semana/temporada e geral/facção/cidade/distrito nas RPCs `ranking_*`, P-16; filtros na tela: P-25) |
+| T3.1 | Central de notificações (RF-019) + alerta de invasão no app (RF-009) | A3 + A2 | T2.4 | ✅ (A2 ligou o Realtime da tabela, P-13; A3: Realtime com consulta só de fallback, P-24 ✅) |
+| T3.2 | Rankings reais (RF-015) e placar entre cidades (RF-020) | A3 + A2 | T2.4 | ✅ (A2: semana/temporada e geral/facção/cidade/distrito nas RPCs `ranking_*`, P-16; A3: filtros na tela, P-25 ✅) |
 | T3.3 | Painel de moderação web (RF-018) | A3 | T1.2 | ✅ |
 | T3.4 | Crews básicas (RF-011) | A3 + A2 | T1.6 | ✅ |
 | T3.5 | Neblina e baús persistidos (RF-022, RF-023) | A4 + A2 | T2.4 | ✅ (A2: sorteio diário `daily_chests` e abertura validada no `finish-activity`; Caça no app usa os baús do servidor com fallback local, P-12/P-19) |
 | T3.6 | Jobs diários (RN-005 decaimento, RN-004 escudo) com pg_cron | A2 | T1.1 | ✅ |
 | T3.7 | Pendências do backend: M_grupo (RN-001), zona de privacidade (RN-010), nomes de zonas novas, limites RN-003 conferidos, deploy (P-08: `supabase/DEPLOY.md`, bundle verificado, plano B pronto) | A2 | T3.6 | ✅ (deploy real no Cloud depende de conta: P-08) |
+| T3.8 | Pendências do app da Fase 3: notificações pelo Realtime (P-24), filtros semana/distrito no Clube (P-25), tela de zonas de privacidade (P-27), trechos inválidos em cinza no resumo (P-20, exceção autorizada) | A3 | T3.7 | ✅ |
 
 ### Fase 4 — Qualidade e segurança (A5)
 | ID | Tarefa | Dono | Depende | Status |

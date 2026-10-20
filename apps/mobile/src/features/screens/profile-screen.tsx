@@ -128,6 +128,12 @@ export function ProfileScreen() {
             onPress={() => router.push('/notificacoes')}
           />
           <LinkRow testID="perfil-contatos-seguranca" title="Contatos de segurança" body="Até 5 pessoas avisadas pela Corrida Segura." onPress={() => router.push('/contatos-seguranca' as Href)} />
+          <LinkRow
+            testID="perfil-zonas-privacidade"
+            title="Zonas de privacidade"
+            body="Até 3 endereços que não aparecem no seu percurso para outras pessoas."
+            onPress={() => router.push('/zonas-privacidade' as Href)}
+          />
           {staff ? <LinkRow testID="perfil-moderacao" title="Painel de moderação" body="Corridas em revisão e contas." onPress={() => router.push('/moderacao')} /> : null}
           <LinkRow testID="perfil-conta" title="Conta e privacidade" body="Exportar seus dados, excluir a conta, termos." onPress={() => router.push('/perfil/conta')} />
           <LinkRow testID="perfil-sair" title="Sair" body="Desconectar deste aparelho." onPress={() => signOut()} />
