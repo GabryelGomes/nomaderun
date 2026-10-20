@@ -25,7 +25,7 @@ import {
   zoneOf,
   type FactionId,
 } from './domain.ts';
-import { applyPack, type CrewTrack, detectPack } from './group.ts';
+import { type CrewTrack, detectPack } from './group.ts';
 import { HttpError } from './http.ts';
 
 export type StoredPoint = {
@@ -211,6 +211,8 @@ export function computeOfficialResult(input: ScoringInput): OfficialResult {
   const zones: Record<string, Zone> = {};
   for (const z of input.zones) zones[z.id] = toDomainZone(z);
 
+  // RN-001: M_grupo — detectado antes da pontuação e repassado ao domain (ver group.ts)
+  const pack = input.crewTracks?.length ? detectPack(geo, input.crewTracks) : null;
   const ctx = {
     faction: input.faction,
     basePace: basePace(input.recentPaces),
@@ -220,11 +222,9 @@ export function computeOfficialResult(input: ScoringInput): OfficialResult {
     now: input.now,
     ghostPace: input.ghostPace ?? undefined,
     earnedTodayByZone: input.earnedToday,
+    packZones: pack && pack.zones.length ? new Set(pack.zones) : undefined,
   };
-  const plain = finishRun(run, ctx);
-  // RN-001: M_grupo — etapa antes de fechar a pontuação (ver group.ts)
-  const pack = input.crewTracks?.length ? detectPack(geo, input.crewTracks) : null;
-  const result = pack && pack.zones.length ? applyPack(plain, ctx, pack.zones) : plain;
+  const result = finishRun(run, ctx);
   const v = result.validation;
   // RN-017: baús a até 25 m de um ponto de trecho válido (cada um abre uma vez)
   const opened = openChests(geo, v, input.chests ?? []);

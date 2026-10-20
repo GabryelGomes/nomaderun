@@ -8,7 +8,7 @@
 - **Fase:** 2 (corrida de ponta a ponta) concluída no app; Fase 3 do A3 concluída; pendências do backend da Fase 3 (A2) concluídas
 - **Em andamento:** —
 - **Feito na fase:** T1.1–T1.3 e T3.6 (A2 Backend): banco com RLS, Edge Functions usando o domain do app, seed de Goiânia, jobs diários; T1.4–T1.6 (A3 Frontend): cliente Supabase, auth, guardas de rota, onboarding no servidor, perfil e LGPD. **Fase 1 concluída.** **Fase 2/3 (A3):** T2.6 (mapa e folha da zona com o servidor), T3.1 (central de notificações e alerta de invasão), T3.2 (rankings e cidades), T3.3 (painel de moderação), T3.4 (crews) e P-03 (foto de perfil). **Fase 2 (A4):** T2.1–T2.5 (GPS, permissões, sinal fraco, segundo plano por flag, pedômetro, fila SQLite, sync assinada com HMAC, resumo oficial/provisório, histórico com período, Corrida Segura) e T3.5 no app (neblina do servidor). **Fase 3 (A2):** Realtime das notificações (P-13), Caça no servidor com o app ligado (P-12/P-19, T3.5 ✅), M_grupo, rankings por semana/distrito (P-16), zona de privacidade (RN-010), nomes de zonas novas, RN-003 conferida e guia de deploy com bundle verificado (P-08).
-- **Próximos passos:** A5: Fase 4 (testes, segurança, Maestro; validar em aparelho P-17), com `npm run db:reset` antes (P-14); A3: P-20, P-24 (notificações só pelo Realtime), P-25 (filtros semana/distrito no Clube), P-27 (tela de zonas de privacidade); A1: P-26 (`packZones` no `finishRun`); Coordenação: deploy real no Cloud seguindo `supabase/DEPLOY.md` (P-08).
+- **Próximos passos:** A5: Fase 4 (testes, segurança, Maestro; validar em aparelho P-17), com `npm run db:reset` antes (P-14); A3: P-20, P-24 (notificações só pelo Realtime), P-25 (filtros semana/distrito no Clube), P-27 (tela de zonas de privacidade); Coordenação: deploy real no Cloud seguindo `supabase/DEPLOY.md` (P-08).
 - **Backend local no ar:** API `http://127.0.0.1:54321` · chave anon/publishable na entrada de T1.1–T1.3 abaixo · e-mails em `http://127.0.0.1:54324`.
 - **Bloqueios:** nenhum
 
@@ -37,7 +37,6 @@
 | ~~P-16~~ | **Resolvida no servidor (A2):** RPCs `ranking_runners`/`ranking_crews`/`ranking_factions` com semana/temporada e geral/facção/cidade/distrito (D-41). Tela: P-25. Estado/país fora (sem campos no perfil); Liga do Bairro, Raid e Próximo encontro continuam demonstração rotulada | A2 | T3.2 |
 | P-24 | Central de notificações: com `notifications` no Realtime (P-13), trocar a consulta a cada 20 s por fallback (ex.: só quando o canal não estiver `SUBSCRIBED`, e ao voltar ao primeiro plano) em `features/notifications/controller.ts` (D-29) | A3 | Fase 3 (A2) |
 | P-25 | Clube: filtros de período (semana/temporada) e escopo distrito nos rankings com `rpc('ranking_*')` (distrito = `districtOf(zoneId)`, nome por `rpc('district_label')`); contrato em `API_CONTRATO.md` | A3 | Fase 3 (A2) |
-| P-26 | Pedido ao A1 (domain): `RunContext.packZones?: ReadonlySet<string>` no `finishRun`, repassado como `inPack` ao `scoreZone`, e as constantes do M_grupo (50 m, 60%, 3 membros) em `scoring.ts`. Depois disso o A2 troca `applyPack` (`supabase/functions/_shared/group.ts`) por `packZones` no contexto — o teste `group.test.ts` avisa | A1 → A2 | Fase 3 (A2) |
 | P-27 | Tela "Zonas de privacidade" (RN-010): até 3 endereços com raio (padrão 200 m) via `from('privacy_zones')`; erro `PRIVACY_ZONES_LIMIT`. Contrato no `API_CONTRATO.md` | A3 | Fase 3 (A2) |
 | P-28 | Validar no aparelho a Caça com GPS real (baús do servidor aparecem perto da última corrida, abrem no resumo oficial com XP; sem internet, baús locais). Comentário de `listMyChestOpens` em `activities-repo.ts` ("servidor ainda não grava") ficou desatualizado (arquivo do A4) | A5 / A4 | Fase 3 (A2) |
 | P-22 | Logo após `npx supabase db reset`, a primeira assinatura Realtime pode não receber eventos por alguns segundos (teste RNF-003 falhou 1× e passou nas 2 seguintes, 0,7–1,0 s). Na apresentação: resetar o banco com antecedência e abrir o app depois | A5/A6 | Fechamento da Fase 2 |
@@ -55,6 +54,13 @@
 ```
 
 ## Log
+
+### 2026-10-21 — P-26 — M_grupo repassado pelo domain (A1 Arquiteto)
+- **Feito:** `RunContext.packZones` no `finishRun` (`apps/mobile/src/domain/run-engine.ts`), repassado como `inPack` ao `scoreZone`. No servidor, `detectPack` roda antes e as zonas vão no contexto; a ponte `applyPack` saiu de `supabase/functions/_shared/group.ts` e o teste-lembrete virou teste de comportamento.
+- **Arquivos:** `apps/mobile/src/domain/run-engine.ts`, `apps/mobile/src/domain/__tests__/run-engine.test.ts`, `supabase/functions/_shared/{group,scoring}.ts`, `supabase/functions/tests/group.test.ts`.
+- **Testes:** app `npm test` → 278 passaram (18 ignorados); `eslint src` ok; Deno 41 ok (1 ignorado); `deno check` das functions ok; `npm run e2e` → 54/54.
+- **Pendências:** nenhuma nova. P-26 fechada.
+- **Para o próximo agente:** o domain agora aceita `packZones`; não reintroduza a ponte.
 
 ### 2026-10-20 — P-08, P-12, P-13, P-16, P-19, RN-003, RN-010, T3.5 (servidor) — Pendências do backend da Fase 3 (A2 Backend)
 - **Feito:**

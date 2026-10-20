@@ -93,12 +93,14 @@ Deno.test('sem pontuação (revisão) o grupo não aparece', () => {
   assert.equal(r.response.group, null);
 });
 
-Deno.test('lembrete: o finishRun do domain ainda não repassa M_grupo (quando repassar, troque applyPack pelo contexto)', () => {
+Deno.test('o finishRun do domain aplica M_grupo nas zonas de packZones (P-26)', () => {
   const pts = toGeoPoints(loop());
   const ctx = { faction: 'striders' as const, basePace: 360, streakDays: 0, zones: {}, revealedFog: new Set<string>(), now: T0 + 3_600_000 };
-  const base = finishRun({ ...startRun(T0), points: pts }, ctx).rpTotal;
-  // deno-lint-ignore no-explicit-any
-  const withPack = finishRun({ ...startRun(T0), points: pts }, { ...ctx, packZones: new Set([ZONE]), inPack: true } as any).rpTotal;
-  assert.equal(withPack, base, 'o domain passou a aplicar M_grupo: remova applyPack de _shared/scoring.ts para não aplicar duas vezes');
+  const base = finishRun({ ...startRun(T0), points: pts }, ctx);
+  const withPack = finishRun({ ...startRun(T0), points: pts }, { ...ctx, packZones: new Set([ZONE]) });
+  const rpBase = base.zones.find((z) => z.zoneId === ZONE)!.rp;
+  const rpPack = withPack.zones.find((z) => z.zoneId === ZONE)!.rp;
+  assert.ok(rpPack > rpBase, 'zona em grupo deve render mais RP');
+  assert.ok(Math.abs(rpPack - Math.round(rpBase * PACK_BONUS)) <= 1);
 });
 

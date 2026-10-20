@@ -7,26 +7,10 @@
  * mais 2 membros estão a até 50 m entre si (os 3 dois a dois). Uma zona ganha o multiplicador quando os trechos
  * em grupo somam ≥ 60% dos metros válidos dela.
  *
- * `applyPack`: aplica o M_grupo às zonas detectadas usando as funções do domain (`scoreZone` com `inPack`,
- * `applyRunPoints`). É uma ponte temporária: o `scoreZone` do domain já aceita `inPack`, mas o `finishRun` ainda
- * não repassa esse dado (pedido ao A1 no PROGRESSO: `RunContext.packZones`). Quando o domain repassar, troque
- * `applyPack` por `packZones` no contexto do `finishRun` — o teste `group.test.ts` avisa.
+ * As zonas detectadas vão para `RunContext.packZones` do `finishRun`, que aplica o M_grupo pelo `scoreZone`
+ * do domain (P-26 resolvida; a antiga ponte `applyPack` foi removida).
  */
-import {
-  applyRunPoints,
-  defenseWindowOpen,
-  distanceMeters,
-  type FactionId,
-  finishRun,
-  type GeoPoint,
-  type LatLng,
-  newZone,
-  scoreZone,
-  validateActivity,
-  type Zone,
-  type ZoneEvent,
-  zoneOf,
-} from './domain.ts';
+import { distanceMeters, type GeoPoint, type LatLng, validateActivity, zoneOf } from './domain.ts';
 
 /** Distância máxima entre os membros (RN-001). */
 export const PACK_DISTANCE_M = 50;
@@ -120,70 +104,4 @@ export function detectPack(points: GeoPoint[], tracks: CrewTrack[]): PackDetecti
   }
   const zones = Object.keys(pack).filter((z) => total[z] > 0 && pack[z] / total[z] >= PACK_MIN_SHARE).sort();
   return { zones, members: zones.length ? [...members].sort() : [], packMetersByZone: pack };
-}
-
-export type PackContext = {
-  faction: FactionId;
-  basePace: number;
-  streakDays: number;
-  zones: Record<string, Zone>;
-  now: number;
-  earnedTodayByZone?: Record<string, number>;
-};
-
-type RunResult = ReturnType<typeof finishRun>;
-
-/** Recalcula, com M_grupo, as zonas de `packZones` no resultado do `finishRun` (mesmas funções do domain). */
-export function applyPack(result: RunResult, ctx: PackContext, packZones: readonly string[]): RunResult {
-  const targets = new Set(packZones.filter((z) => result.zones.some((o) => o.zoneId === z)));
-  if (targets.size === 0 || result.validation.status === 'rejected') return result;
-
-  const updatedZones = { ...result.updatedZones };
-  const newEvents = new Map<string, ZoneEvent[]>();
-  let rpTotal = result.rpTotal;
-  const zones = result.zones.map((o) => {
-    if (!targets.has(o.zoneId)) return o;
-    const before = ctx.zones[o.zoneId] ?? newZone(o.zoneId);
-    if (before.blocked) return o;
-    const defending = before.owner === ctx.faction && defenseWindowOpen(before, ctx.now);
-    const { rp } = scoreZone({
-      meters: o.meters,
-      paceSecPerKm: result.avgPace,
-      basePaceSecPerKm: ctx.basePace,
-      streakDays: ctx.streakDays,
-      beatGhost: result.beatGhost === true,
-      inPack: true,
-      defending,
-      earnedTodayInZone: ctx.earnedTodayByZone?.[o.zoneId] ?? 0,
-    });
-    const { zone: after, events } = applyRunPoints(before, ctx.faction, rp, ctx.now);
-    updatedZones[o.zoneId] = after;
-    newEvents.set(o.zoneId, events);
-    rpTotal += rp - o.rp;
-    const conquered = events.some((e) => e.type === 'captured' && e.faction === ctx.faction);
-    const defended = events.some((e) => e.type === 'defended');
-    return {
-      ...o,
-      rp,
-      outcome: (conquered ? 'conquered' : defended ? 'defended' : rp > 0 ? 'influence' : 'none') as typeof o.outcome,
-      ownerAfter: after.owner,
-    };
-  });
-  zones.sort((a, b) => b.rp - a.rp);
-
-  // eventos: troca os das zonas recalculadas, mantendo a posição em que apareciam
-  const events: ZoneEvent[] = [];
-  const done = new Set<string>();
-  for (const e of result.events) {
-    if (!newEvents.has(e.zoneId)) events.push(e);
-    else if (!done.has(e.zoneId)) {
-      events.push(...newEvents.get(e.zoneId)!);
-      done.add(e.zoneId);
-    }
-  }
-  newEvents.forEach((evs, zoneId) => {
-    if (!done.has(zoneId)) events.push(...evs);
-  });
-
-  return { ...result, zones, events, updatedZones, rpTotal };
 }

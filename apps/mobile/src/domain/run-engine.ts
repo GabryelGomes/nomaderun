@@ -93,6 +93,8 @@ export type RunContext = {
   /** Ghost pace for the Fuga mission, if one was chosen. */
   ghostPace?: number;
   earnedTodayByZone?: Record<string, number>;
+  /** Zones where 3+ crew members ran together (RN-001 M_grupo); detected by the server. */
+  packZones?: ReadonlySet<string>;
 };
 
 export type RunResult = {
@@ -144,6 +146,7 @@ export function finishRun(run: LiveRun, ctx: RunContext): RunResult {
         streakDays: ctx.streakDays,
         beatGhost: beatGhost === true,
         defending,
+        inPack: ctx.packZones?.has(zoneId) ?? false,
         earnedTodayInZone: ctx.earnedTodayByZone?.[zoneId] ?? 0,
       });
       const { zone: after, events: zoneEvents } = applyRunPoints(before, ctx.faction, rp, ctx.now);
