@@ -95,7 +95,7 @@ Auditoria inicial (A1, 2026-10-23, navegador em 375×667 e 390×844): `docs/ui-a
 
 | ID | Tarefa | Dono | Depende | Status |
 |---|---|---|---|---|
-| T6.1 | Fundação: tokens de motion (`src/theme/motion.ts`), primitivas (revelar texto por palavras, entrada em cascata, contador, pressionar, transição de tela, cabeçalho com parallax), helper de layout mobile (área segura + barra fixa inferior que reserva espaço), guia `docs/DESIGN_MOBILE_MOTION.md` com o checklist da skill | A7 Design/Motion | — | ⬜ |
+| T6.1 | Fundação: tokens de motion (`src/theme/motion.ts`), primitivas (revelar texto por palavras, entrada em cascata, contador, pressionar, transição de tela, cabeçalho com parallax), helper de layout mobile (área segura + barra fixa inferior que reserva espaço), guia `docs/DESIGN_MOBILE_MOTION.md` com o checklist da skill | A7 Design/Motion | — | ✅ |
 | T6.2 | Telas de conta e perfil: entrar, cadastro, recuperar/nova senha, onboarding, perfil, editar, conta, notificações, contatos, zonas de privacidade, termos | A3 | T6.1 | ⬜ |
 | T6.3 | Telas de jogo: mapa, folha da zona, arena, clube, crew, moderação | A8 Frontend 2 | T6.1 | ⬜ |
 | T6.4 | Fluxo da corrida: nova corrida, contagem 3-2-1, corrida, resumo/celebração, atividades | A4 | T6.1 | ⬜ |

@@ -95,7 +95,11 @@ export const type = {
 /** The one elevation shadow, only for things floating over the map. */
 export const floating = '0 2px 12px rgba(36, 36, 40, 0.12)';
 
-/** Motion values from the expo-animation skill tables — never approximated. */
+/**
+ * Valores de motion da fase anterior (expo-animation), mantidos por compatibilidade.
+ * Fase 6 (D-54): a fonte dos tokens novos é `@/theme/motion` (curvas, durações, staggers, distâncias).
+ * `press` é o mesmo nos dois arquivos (0,97 em 120 ms).
+ */
 export const motion = {
   press: { duration: 120, scale: 0.97 },
   small: 200,
