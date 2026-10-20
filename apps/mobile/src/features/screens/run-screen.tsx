@@ -19,12 +19,14 @@ import { DEMO_CENTER, zoneName } from '@/demo/demo-data';
 import { mapZonesNear } from '@/features/map-data';
 import { loadSafetyContacts } from '@/features/run/run-controller';
 import { useGpsPreflight } from '@/features/run/use-gps-preflight';
+import { bootstrapOfflineSync } from '@/features/run/use-offline-sync';
 import { useRunSession, type RunMode } from '@/features/run/use-run-session';
 import { useRunSafety } from '@/features/safety/use-run-safety';
 import { useNow } from '@/features/use-now';
 import { accessMessage, openAppSettings } from '@/services/location/permissions';
 import { WEAK_ACCURACY_M } from '@/services/location/signal';
 import { useGame, type MissionId } from '@/store/game-store';
+import { useSession } from '@/store/session-store';
 import { useZones } from '@/store/zones-store';
 import { CSS_EASE_OUT } from '@/theme/easing';
 import { factions, floating, palette, radius, space } from '@/theme/tokens';
@@ -53,6 +55,9 @@ export function RunScreen() {
 
   useEffect(() => {
     void loadSafetyContacts();
+    // Garante a fila/sync ligados mesmo antes do layout raiz montar `useOfflineSync`.
+    const userId = useSession.getState().session?.userId;
+    if (userId) void bootstrapOfflineSync(userId);
   }, []);
 
   if (mode) return <ActiveRun mode={mode} />;
@@ -313,11 +318,11 @@ function ActiveRun({ mode }: { mode: RunMode }) {
           accessibilityLabel={safety.escortOn ? 'Escolta ligada. Toque para desligar' : 'Escolta desligada. Toque para ligar e compartilhar sua localização'}
           onPress={safety.toggleEscort}
           hitSlop={12}
-          style={{ position: 'absolute', bottom: space[3], left: space[4], flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.surface, paddingHorizontal: space[3], height: 32, borderRadius: radius.pill, boxShadow: floating, opacity: safety.escortOn ? 1 : 0.85 }}>
+          style={{ position: 'absolute', bottom: space[6] + space[3], left: space[4], flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.surface, paddingHorizontal: space[3], height: 32, borderRadius: radius.pill, boxShadow: floating, opacity: safety.escortOn ? 1 : 0.85 }}>
           <Icon name="shield" size={14} color={colors.text} />
           <Text variant="caption">{safety.escortOn ? 'Escolta ligada' : 'Escolta desligada'}</Text>
         </Pressable>
-        <View style={{ position: 'absolute', bottom: space[3], right: space[4] }}>
+        <View style={{ position: 'absolute', bottom: space[6] + space[3], right: space[4] }}>
           <IconButton testID="corrida-sos" icon="sos" label="SOS: avisar meus contatos" tone="danger" size={56} onPress={() => void safety.sos()} />
         </View>
       </View>
@@ -456,10 +461,13 @@ function ActiveRun({ mode }: { mode: RunMode }) {
   );
 }
 
+const METRIC_PT = 48;
+
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <View style={{ flex: 1, alignItems: 'center' }}>
-      <Text variant="metric" tabular>
+      {/* RNF-015: métricas com pelo menos 48 pt (o token `metric` tem 40). */}
+      <Text variant="metric" tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ fontSize: METRIC_PT, lineHeight: METRIC_PT * 1.05 }}>
         {value}
       </Text>
       <Text variant="caption" muted>

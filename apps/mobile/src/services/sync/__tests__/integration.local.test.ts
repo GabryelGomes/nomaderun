@@ -115,13 +115,20 @@ suite('sync real com o Supabase local (T2.2/T2.4)', () => {
     const park = { lat: -16.7108, lng: -49.2394 };
     const zonesRes = await zonesRepo.fetchZonesInBbox(zonesRepo.bboxAround(park, 3000));
     expect(zonesRes.ok).toBe(true);
-    const zones = Object.fromEntries((zonesRes.ok ? zonesRes.data : []).map((z) => [z.zone.id, z.zone]));
-    const names = Object.fromEntries((zonesRes.ok ? zonesRes.data : []).map((z) => [z.zone.id, z.meta.name]));
-    // Desvio até a zona neutra mais próxima (o seed tem 23; cada execução deste teste conquista uma).
+    let zones = Object.fromEntries((zonesRes.ok ? zonesRes.data : []).map((z) => [z.zone.id, z.zone]));
+    let names: Record<string, string | null> = Object.fromEntries((zonesRes.ok ? zonesRes.data : []).map((z) => [z.zone.id, z.meta.name]));
+    // Desvio até a zona neutra mais próxima (o seed tem 23 perto do parque; cada execução conquista uma).
     const detour = nearestNeutral(zones);
-    expect(detour).not.toBeNull();
-    const full = simulationRoute(detour);
-    const outbound = full.slice(0, Math.ceil(full.length / 2));
+    let route = simulationRoute(detour);
+    if (!detour) {
+      // Sem zona neutra por perto (banco já usado): a mesma volta numa região sem zonas, que nascem neutras (RF-020).
+      const dLat = 0.4 + Math.random() * 0.3;
+      const dLng = -0.3 - Math.random() * 0.3;
+      route = route.map((p) => ({ lat: p.lat + dLat, lng: p.lng + dLng }));
+      zones = {};
+      names = {};
+    }
+    const outbound = route.slice(0, Math.ceil(route.length / 2));
     const points = simulatedPoints(Date.now() - 60 * 60_000, outbound);
     const N = points.length;
     const third = Math.floor(N / 3);

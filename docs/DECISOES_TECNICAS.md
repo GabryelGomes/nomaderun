@@ -192,3 +192,38 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
 2026-10-20 · A3 Frontend
 - **Decisão:** `expo-image-picker` (`EXPO_OFFLINE=1 npx expo install`, plugin com texto de permissão de fotos em pt-BR, câmera e microfone desligados). Galeria, recorte quadrado, qualidade 0,7, `base64` → bytes (decodificador próprio, igual em iOS/Android/web) → `storage.from('avatars').upload('<uid>/avatar-<ts>.<ext>')` com `contentType`; grava a URL pública em `profiles.avatar_url` e apaga as fotos antigas da pasta. Validação no app: JPEG/PNG/WebP até 2 MB (o bucket também recusa). A foto aparece no lugar das iniciais (mesmo círculo de 64 pt do editar perfil).
 - **Consequências:** precisa de um novo build nativo para o texto de permissão de fotos (no Expo Go vale o texto padrão).
+
+### D-33 — HMAC-SHA256 em JavaScript puro no app (conferido com o vetor do contrato)
+2026-10-20 · A4 GPS e integrações
+- **Contexto:** D-04 pede HMAC-SHA256 por aparelho. O `expo-crypto` do SDK 57 só tem digest (sem HMAC) e é assíncrono; o Hermes não tem `crypto.subtle`.
+- **Decisão:** `src/services/signing/hmac.ts` implementa SHA-256 (FIPS 180-4) e HMAC (RFC 2104) em TypeScript puro, com UTF-8 e base64 próprios; `canonical.ts` monta o JSON canônico na ordem do contrato. O `expo-crypto` fica só para os 32 bytes aleatórios e os UUIDs.
+- **Justificativa:** assinatura síncrona e idêntica em iOS, Android, web e Jest; testada com o vetor do `API_CONTRATO.md`, RFC 4231 e comparação direta com o canonical do servidor.
+- **Consequências:** ~1 ms por lote de 200 pontos; se um dia houver HMAC nativo, basta trocar `hmacSha256Hex` mantendo os testes.
+
+### D-34 — Fila offline: SQLite próprio por corrida, pontos guardados até o resultado oficial
+2026-10-20 · A4 GPS e integrações
+- **Decisão:** `nomade-queue.db` (separado do kv-store do perfil) com `runs` (estado `recording|pending|syncing|synced|failed`, `last_seq`, `acked_seq`, provisório, oficial, percurso simplificado, erro, tentativas) e `points` (PK `run_id, seq`). Toda escrita passa por um mutex em JS + transação (GPS em primeiro plano e tarefa de segundo plano não repetem `seq`). Pontos só são apagados depois do resultado oficial; o resumo guarda um percurso de até 600 pontos. No web, fila em memória com cópia no localStorage. Corridas e chaves do aparelho são por `userId`; o logout **não** apaga a fila (a corrida pendente sincroniza quando a mesma conta voltar). Corrida com menos de 2 pontos é descartada; corrida "gravando" de um processo anterior vira pendente ao abrir o app.
+- **Justificativa:** RF-005/RNF-005 (nenhum ponto perdido, inclusive com o app fechado) e provisório calculado sobre exatamente os pontos que vão ao servidor.
+
+### D-35 — Sync: transporte próprio, lotes de 200 a cada 5 s, erros do contrato e espera exponencial
+2026-10-20 · A4 GPS e integrações
+- **Decisão:** `sync-engine.ts` (puro, injetável) + `transport.ts` (supabase-js `functions.invoke`, preservando `error.details.lastSeq`, que o `callFunction` genérico descarta). Cada ciclo envia até o `lastSeq` do início (não persegue pontos novos), em lotes de até 200 (o servidor aceita 500). Gatilhos: a cada 5 s na corrida, ao terminar (força), ao abrir o app, ao voltar a conexão e ao voltar ao primeiro plano. Tratamento: `OUT_OF_ORDER`/`MISSING_POINTS` → recomeça de `lastSeq + 1`; `UNKNOWN_DEVICE`/`INVALID_SIGNATURE` → renova a chave (1×); `DEVICE_TAKEN` → novo UUID; 401 → `refreshSession` (1×); rede/5xx/429/`BUSY` → espera 2 s, 4 s, ... até 5 min; `ACTIVITY_CLOSED` → lê `activities.result`; demais 4xx → `failed` com mensagem pt-BR. Ao terminar, a tela espera o oficial por até 12 s; depois disso mostra o provisório e o evento do sync atualiza o resumo/histórico quando o oficial chegar.
+- **Justificativa:** RF-005, RNF-006, UC-01 A1; testável com um servidor falso que segue o contrato e com a integração real.
+
+### D-36 — Corrida Segura no MVP: SMS pelo app de mensagens, Escolta por link, alerta de parada local
+2026-10-20 · A4 GPS e integrações
+- **Decisão:** SOS e alerta de parada abrem `sms:` com os números dos contatos e a mensagem com o link do Google Maps (iOS `sms:/open?addresses=...&body=`, Android `sms:a,b?body=`); sem SMS ou sem contatos, `Share`. A Escolta, ao ligar (antes ou durante a corrida), compartilha a localização atual uma vez. Alerta de parada: sem sair de um raio de 25 m por 10 min → "Está tudo bem?" com 60 s → mesmo envio do SOS; constantes em `stop-alert.ts`.
+- **Justificativa:** funciona no Expo Go sem serviço de SMS pago nem backend novo.
+- **Consequências / limite:** o sistema exige que o usuário toque em "enviar" no app de mensagens (não há envio silencioso sem um provedor de SMS); "ao vivo" de verdade fica como pendência (P-18).
+
+### D-37 — Simulação com desvio até a zona neutra mais próxima
+2026-10-20 · A4 GPS e integrações
+- **Decisão:** a rota da simulação (`features/run/simulation.ts`) é a volta no lago do Flamboyant (`demoRoute`) mais um desvio, por linha interpolada (passos ≤ 3,2 m), até o centro da zona neutra mais próxima no `useZones` (até 2,5 km; sem dados, o Estádio Serra Dourada do seed), com ~420 m de voltas dentro dela, ida e volta.
+- **Justificativa:** a demonstração precisa mostrar "Zona conquistada" (RN-002, ~300 m numa zona neutra) e o seed tem quase todas as zonas do parque com dono. Um teste garante que a rota é válida para o antifraude.
+- **Consequências:** cada demonstração conquista uma zona neutra; `npm run db:reset` devolve o seed.
+
+### D-38 — GPS com a tela bloqueada: a tarefa grava na fila e a tela lê da fila
+2026-10-20 · A4 GPS e integrações
+- **Decisão:** com `extra.backgroundLocation` (D-20) e permissão "sempre", a corrida usa só `startLocationUpdatesAsync` (sem `watchPositionAsync` em paralelo, para não duplicar pontos); a tarefa (`background-task.ts`) grava cada lote de fixes direto no SQLite (só com a corrida `recording` e sem pausa, passos repartidos pelo tempo) e a tela lê os pontos novos da fila a cada 1 s. Sem a flag ou sem a permissão, cai no `watchPositionAsync` com a tela acesa (`expo-keep-awake`).
+- **Justificativa:** RF-004 ("inclusive com a tela bloqueada") e RNF-005 sem depender de o JS da tela estar vivo.
+- **Consequências:** só em development build (Expo Go não tem segundo plano no iOS); passos com a tela bloqueada no iOS a validar (P-21).
