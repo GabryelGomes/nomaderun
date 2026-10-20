@@ -1,0 +1,161 @@
+import { router, Stack } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, ScrollView, View } from 'react-native';
+
+import { Button } from '@/components/button';
+import { Icon } from '@/components/icon';
+import { SectionHeader, Surface } from '@/components/surface';
+import { Text } from '@/components/text';
+import { ErrorNotice, InfoNotice, TextField } from '@/features/auth/form-ui';
+import { signOut, signOutAfterDeletion } from '@/features/auth/session-controller';
+import { saveAndShareJson } from '@/lib/share-json';
+import { DELETE_CONFIRMATION, deleteMyAccount, exportMyData } from '@/services/api/account-repo';
+import { useSession } from '@/store/session-store';
+import { space } from '@/theme/tokens';
+import { useTheme } from '@/theme/use-theme';
+
+/** Conta e privacidade (RF-002, RNF-013/LGPD): exportar dados, excluir conta, sair, textos legais. */
+export function AccountScreen() {
+  const { colors } = useTheme();
+  const email = useSession((s) => s.session?.email);
+  const [exporting, setExporting] = useState(false);
+  const [exportMsg, setExportMsg] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const doExport = async () => {
+    setExporting(true);
+    setError(null);
+    setExportMsg(null);
+    const res = await exportMyData();
+    if (!res.ok) {
+      setExporting(false);
+      setError(res.error.message);
+      return;
+    }
+    try {
+      const stamp = new Date().toISOString().slice(0, 10);
+      await saveAndShareJson(`nomade-run-meus-dados-${stamp}.json`, res.data);
+      setExportMsg('Arquivo gerado. Se a folha de compartilhamento não abriu, ele está salvo no app.');
+    } catch {
+      setError('Não foi possível salvar o arquivo neste aparelho. Tente de novo.');
+    }
+    setExporting(false);
+  };
+
+  const doDelete = async () => {
+    if (confirmText.trim().toUpperCase() !== DELETE_CONFIRMATION) {
+      setDeleteError(`Digite ${DELETE_CONFIRMATION} para confirmar.`);
+      return;
+    }
+    setDeleting(true);
+    setDeleteError(null);
+    const res = await deleteMyAccount();
+    if (!res.ok) {
+      setDeleting(false);
+      setDeleteError(res.error.message);
+      return;
+    }
+    await signOutAfterDeletion();
+  };
+
+  return (
+    <ScrollView
+      testID="tela-conta"
+      contentInsetAdjustmentBehavior="automatic"
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={{ padding: space[4], gap: space[6], paddingBottom: space[12] }}>
+      <Stack.Screen options={{ title: 'Conta e privacidade', headerLargeTitleEnabled: false }} />
+
+      <Surface>
+        <Text variant="caption" muted>
+          E-mail da conta
+        </Text>
+        <Text variant="bodyBold" selectable>
+          {email ?? '—'}
+        </Text>
+      </Surface>
+
+      <View style={{ gap: space[3] }}>
+        <SectionHeader title="Seus dados" />
+        <Surface>
+          <Text variant="bodyBold">Exportar meus dados</Text>
+          <Text variant="small" muted>
+            Gera um arquivo JSON com seu perfil, corridas, pontos de GPS, contatos da Corrida Segura e notificações.
+          </Text>
+          <Button testID="conta-exportar" label={exporting ? 'Gerando arquivo…' : 'Exportar meus dados'} kind="secondary" icon="share" wide disabled={exporting} onPress={doExport} />
+          <ErrorNotice message={error} testID="conta-exportar-erro" />
+          {exportMsg ? <InfoNotice testID="conta-exportar-ok" title="Pronto" body={exportMsg} /> : null}
+        </Surface>
+        <Surface>
+          <LinkRow testID="conta-termos" label="Termos de Uso" onPress={() => router.push('/termos')} />
+          <LinkRow testID="conta-privacidade" label="Política de Privacidade" onPress={() => router.push('/privacidade')} />
+        </Surface>
+      </View>
+
+      <View style={{ gap: space[3] }}>
+        <SectionHeader title="Sessão" />
+        <Button testID="conta-sair" label="Sair" kind="secondary" size="lg" wide onPress={() => signOut()} />
+      </View>
+
+      <View style={{ gap: space[3] }}>
+        <SectionHeader title="Excluir conta" />
+        <Surface>
+          <Text variant="small" muted>
+            Apaga seu perfil, corridas, pontos de GPS, contatos e notificações. As zonas continuam no mapa, sem seu nome.
+            Não dá para desfazer.
+          </Text>
+          {deleteOpen ? (
+            <View style={{ gap: space[3] }}>
+              <TextField
+                testID="conta-excluir-confirmacao"
+                label={`Para confirmar, digite ${DELETE_CONFIRMATION}`}
+                value={confirmText}
+                onChangeText={setConfirmText}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                error={deleteError}
+              />
+              <Button
+                testID="conta-excluir-confirmar"
+                label={deleting ? 'Excluindo…' : 'Excluir minha conta'}
+                kind="danger"
+                wide
+                disabled={deleting || confirmText.trim().toUpperCase() !== DELETE_CONFIRMATION}
+                onPress={doDelete}
+              />
+              <Button
+                testID="conta-excluir-cancelar"
+                label="Cancelar"
+                kind="ghost"
+                wide
+                onPress={() => {
+                  setDeleteOpen(false);
+                  setConfirmText('');
+                  setDeleteError(null);
+                }}
+              />
+            </View>
+          ) : (
+            <Button testID="conta-excluir" label="Excluir conta" kind="secondary" wide onPress={() => setDeleteOpen(true)} trailing={<Icon name="warning" size={16} color={colors.danger} />} />
+          )}
+        </Surface>
+      </View>
+    </ScrollView>
+  );
+}
+
+function LinkRow({ label, onPress, testID }: { label: string; onPress: () => void; testID: string }) {
+  const { colors } = useTheme();
+  return (
+    <Pressable testID={testID} accessibilityRole="link" accessibilityLabel={label} onPress={onPress} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
+      <Text variant="bodyBold" style={{ flex: 1 }}>
+        {label}
+      </Text>
+      <Icon name="chevron" size={18} color={colors.textSecondary} />
+    </Pressable>
+  );
+}

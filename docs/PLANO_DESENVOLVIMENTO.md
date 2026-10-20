@@ -46,9 +46,9 @@ Legenda de status: ⬜ a fazer · 🟨 em andamento · ✅ feito · ⛔ bloquead
 | T1.1 | `supabase/` init, config (JWT 1 h, rate limit, e-mail), migrations: esquema completo, RLS, índices GiST, triggers (idade, ≤5 contatos, RN-011), views de ranking | A2 | T0.3 | ⬜ |
 | T1.2 | Edge Functions do contrato usando `src/domain` (D-02), HMAC (D-04), idempotência (D-03) | A2 | T1.1 | ⬜ |
 | T1.3 | Seed de demonstração (Goiânia), usuário moderador de demo; testes pgTAP (RLS) e Deno | A2 | T1.2 | ⬜ |
-| T1.4 | Cliente supabase + storage seguro (D-06), `.env.example`, camada de repositórios e erros tipados | A3 | T0.3 | ⬜ |
-| T1.5 | Telas de auth (login, cadastro com 16+ e termos, recuperar senha), consentimentos, guarda de rotas, persistência da sessão | A3 | T1.4 | ⬜ |
-| T1.6 | Onboarding ligado ao servidor (facção via RPC), perfil editável, exportar/excluir conta | A3 | T1.5 | ⬜ |
+| T1.4 | Cliente supabase + storage seguro (D-06), `.env.example`, camada de repositórios e erros tipados | A3 | T0.3 | ✅ |
+| T1.5 | Telas de auth (login, cadastro com 16+ e termos, recuperar senha), consentimentos, guarda de rotas, persistência da sessão | A3 | T1.4 | ✅ |
+| T1.6 | Onboarding ligado ao servidor (facção via RPC), perfil editável, exportar/excluir conta | A3 | T1.5 | ✅ |
 
 ### Fase 2 — Corrida de ponta a ponta (A4, depois integração A3)
 | ID | Tarefa | Dono | Depende | Status |

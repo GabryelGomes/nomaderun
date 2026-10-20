@@ -23,6 +23,9 @@ export type RunRecord = {
   simulated: boolean;
 };
 
+/** Recorte do perfil do servidor que o jogo usa (evita depender do formato completo do perfil). */
+export type ProfileSnapshot = { username: string; faction: FactionId | null; xp?: number; trust?: number };
+
 type GameState = {
   name: string;
   faction: FactionId | null;
@@ -42,6 +45,10 @@ type GameState = {
   stopAlertOn: boolean;
   contacts: string[];
   completeOnboarding: (name: string, faction: FactionId) => void;
+  /** Dados que vêm do perfil do servidor (nome, facção, XP, confiança). */
+  applyProfile: (p: ProfileSnapshot) => void;
+  /** Logout / exclusão de conta: volta ao estado inicial. */
+  resetForSignOut: () => void;
   setMission: (m: MissionId) => void;
   setGhostPace: (secPerKm: number) => void;
   toggleEscort: () => void;
@@ -50,7 +57,18 @@ type GameState = {
   commitRun: (record: Omit<RunRecord, 'id'>) => RunRecord;
 };
 
-export const useGame = create<GameState>((set, get) => ({
+type GameActions =
+  | 'completeOnboarding'
+  | 'applyProfile'
+  | 'resetForSignOut'
+  | 'setMission'
+  | 'setGhostPace'
+  | 'toggleEscort'
+  | 'toggleStopAlert'
+  | 'openChest'
+  | 'commitRun';
+
+const initialGame = (): Omit<GameState, GameActions> => ({
   name: 'Corredor',
   faction: null,
   onboarded: false,
@@ -68,7 +86,20 @@ export const useGame = create<GameState>((set, get) => ({
   escortOn: false,
   stopAlertOn: true,
   contacts: ['Mãe', 'Mateus'],
+});
+
+export const useGame = create<GameState>((set, get) => ({
+  ...initialGame(),
   completeOnboarding: (name, faction) => set({ name: name.trim() || 'Corredor', faction, onboarded: true }),
+  applyProfile: (p) =>
+    set((s) => ({
+      name: p.username.trim() || s.name,
+      faction: p.faction,
+      onboarded: p.faction !== null,
+      xp: p.xp ?? s.xp,
+      trust: p.trust ?? s.trust,
+    })),
+  resetForSignOut: () => set(initialGame()),
   setMission: (mission) => set({ mission }),
   setGhostPace: (ghostPace) => set({ ghostPace }),
   toggleEscort: () => set((s) => ({ escortOn: !s.escortOn })),

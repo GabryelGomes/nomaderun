@@ -10,28 +10,73 @@ import { TeamBadge } from '@/components/team-badge';
 import { Icon } from '@/components/icon';
 import { Text } from '@/components/text';
 import { FACTION_IDS, type FactionId } from '@/domain/types';
-import { useGame } from '@/store/game-store';
+import { ErrorNotice } from '@/features/auth/form-ui';
+import { chooseFaction, saveProfile } from '@/features/auth/session-controller';
+import { validateUsername } from '@/features/auth/validation';
+import { useSession } from '@/store/session-store';
 import { factions, fonts, palette, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-type Step = 'boas-vindas' | 'faccao' | 'localizacao';
+type Step = 'boas-vindas' | 'faccao' | 'localizacao' | 'notificacoes';
 
-/** Onboarding (Product Book §4.2): value first, then team, then a primed location request. */
+/** Pede a permissão de notificações; carregado sob demanda (push não existe no Expo Go Android). */
+async function requestNotificationPermission() {
+  try {
+    const Notifications = await import('expo-notifications');
+    await Notifications.requestPermissionsAsync();
+  } catch {
+    // Sem permissão o app continua: a central de notificações dentro do app funciona igual (D-13).
+  }
+}
+
+/**
+ * Onboarding (Product Book §4.2): value first, then team, then primed permission requests.
+ * O nome vem do cadastro (nome de usuário) e a facção é gravada no servidor pelo RPC
+ * `choose_faction`. Localização e notificações têm explicações e pedidos separados (RNF-013).
+ */
 export function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const complete = useGame((s) => s.completeOnboarding);
+  const username = useSession((s) => s.profile?.username ?? '');
   const [step, setStep] = useState<Step>('boas-vindas');
-  const [name, setName] = useState('');
+  const [name, setName] = useState(username);
+  const [nameError, setNameError] = useState<string | null>(null);
   const [faction, setFaction] = useState<FactionId | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const finish = async () => {
+  const toFaction = () => {
+    const err = name.trim() === username ? null : validateUsername(name);
+    setNameError(err);
+    if (!err) setStep('faccao');
+  };
+
+  const askLocation = async () => {
     try {
       await Location.requestForegroundPermissionsAsync();
     } catch {
       // The run screen asks again and offers the simulation if permission is missing.
     }
-    complete(name, faction ?? 'striders');
+    setStep('notificacoes');
+  };
+
+  const finish = async () => {
+    setBusy(true);
+    setError(null);
+    await requestNotificationPermission();
+    if (name.trim() && name.trim() !== username) {
+      const saved = await saveProfile({ username: name.trim() });
+      if (!saved.ok) {
+        setBusy(false);
+        setNameError(saved.error.message);
+        setStep('boas-vindas');
+        return;
+      }
+    }
+    const res = await chooseFaction(faction ?? 'striders');
+    setBusy(false);
+    // Em sucesso o perfil passa a ter facção e o guarda de rotas abre as abas.
+    if (!res.ok) setError(res.error.message);
   };
 
   return (
@@ -61,13 +106,17 @@ export function OnboardingScreen() {
               Como você quer ser chamado?
             </Text>
             <TextInput
+              testID="onboarding-nome"
+              accessibilityLabel="Como você quer ser chamado?"
               value={name}
               onChangeText={setName}
               placeholder="Seu nome"
               placeholderTextColor={colors.textSecondary}
-              autoComplete="given-name"
+              autoComplete="username"
+              autoCapitalize="none"
+              maxLength={20}
               returnKeyType="next"
-              onSubmitEditing={() => setStep('faccao')}
+              onSubmitEditing={toFaction}
               style={{
                 height: 52,
                 borderRadius: radius.md,
@@ -78,7 +127,12 @@ export function OnboardingScreen() {
                 fontSize: 17,
               }}
             />
-            <Button label="Escolher meu time" size="lg" wide onPress={() => setStep('faccao')} />
+            {nameError ? (
+              <Text variant="small" color={colors.danger} accessibilityLiveRegion="polite">
+                {nameError}
+              </Text>
+            ) : null}
+            <Button testID="onboarding-escolher-time" label="Escolher meu time" size="lg" wide onPress={toFaction} />
           </View>
         </Animated.View>
       )}
@@ -95,6 +149,7 @@ export function OnboardingScreen() {
               return (
                 <Pressable
                   key={f}
+                  testID={`onboarding-faccao-${f}`}
                   accessibilityRole="radio"
                   accessibilityState={{ checked: on }}
                   accessibilityLabel={`${factions[f].name}, ${factions[f].motto}`}
@@ -127,7 +182,7 @@ export function OnboardingScreen() {
               );
             })}
           </View>
-          <Button label="Continuar" size="lg" wide disabled={!faction} onPress={() => setStep('localizacao')} />
+          <Button testID="onboarding-faccao-continuar" label="Continuar" size="lg" wide disabled={!faction} onPress={() => setStep('localizacao')} />
         </Animated.View>
       )}
 
@@ -149,7 +204,38 @@ export function OnboardingScreen() {
           </View>
           <View style={{ gap: space[3] }}>
             {/* Apple guideline 5.1.1(iv): the primer always leads to the system prompt, never to "Not now". */}
-            <Button label="Continuar" size="lg" wide icon="location" onPress={finish} />
+            <Button testID="onboarding-localizacao-continuar" label="Continuar" size="lg" wide icon="location" onPress={askLocation} />
+          </View>
+        </Animated.View>
+      )}
+
+      {step === 'notificacoes' && (
+        <Animated.View entering={FadeIn.duration(250)} style={{ flex: 1, gap: space[4], justifyContent: 'space-between' }}>
+          <View style={{ gap: space[4] }}>
+            <Icon name="bell" size={40} color={colors.text} />
+            <Text variant="headline" accessibilityRole="header">
+              Avisos do seu território
+            </Text>
+            <Text>
+              Avisamos quando um rival invadir uma zona do seu time, quando você conquistar uma área nova, quando uma
+              missão começar e quando a moderação revisar uma corrida sua.
+            </Text>
+            <Text muted>
+              Nada de propaganda. Você escolhe quais avisos receber no perfil e pode desligar quando quiser. Sem
+              permissão, os avisos continuam aparecendo dentro do app.
+            </Text>
+          </View>
+          <View style={{ gap: space[3] }}>
+            <ErrorNotice message={error} testID="onboarding-erro" />
+            <Button
+              testID="onboarding-notificacoes-continuar"
+              label={busy ? 'Salvando…' : 'Continuar'}
+              size="lg"
+              wide
+              icon="bell"
+              disabled={busy}
+              onPress={finish}
+            />
           </View>
         </Animated.View>
       )}

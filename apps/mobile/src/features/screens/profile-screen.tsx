@@ -1,4 +1,5 @@
-import { ScrollView, Switch, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, ScrollView, Switch, View } from 'react-native';
 
 import { TeamBadge } from '@/components/team-badge';
 import { Icon } from '@/components/icon';
@@ -7,6 +8,7 @@ import { Text } from '@/components/text';
 import { ProgressBar } from '@/components/territory-bar';
 import { levelFromXp } from '@/domain/games';
 import { trustLevel } from '@/domain/trust';
+import { signOut } from '@/features/auth/session-controller';
 import { useGame } from '@/store/game-store';
 import { factions, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
@@ -107,7 +109,31 @@ export function ProfileScreen() {
               : 'Sua participação na competição está suspensa por 30 dias.'}
         </Text>
       </Surface>
+
+      <View style={{ gap: space[3] }}>
+        <SectionHeader title="Conta" />
+        <Surface>
+          <LinkRow testID="perfil-editar" title="Editar perfil" body="Nome de usuário, cidade, unidade e notificações." onPress={() => router.push('/perfil/editar')} />
+          <LinkRow testID="perfil-conta" title="Conta e privacidade" body="Exportar seus dados, excluir a conta, termos." onPress={() => router.push('/perfil/conta')} />
+          <LinkRow testID="perfil-sair" title="Sair" body="Desconectar deste aparelho." onPress={() => signOut()} />
+        </Surface>
+      </View>
     </ScrollView>
+  );
+}
+
+function LinkRow({ title, body, onPress, testID }: { title: string; body: string; onPress: () => void; testID: string }) {
+  const { colors } = useTheme();
+  return (
+    <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={title} onPress={onPress} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
+      <View style={{ flex: 1 }}>
+        <Text variant="bodyBold">{title}</Text>
+        <Text variant="small" muted>
+          {body}
+        </Text>
+      </View>
+      <Icon name="chevron" size={18} color={colors.textSecondary} />
+    </Pressable>
   );
 }
 

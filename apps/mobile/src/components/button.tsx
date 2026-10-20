@@ -87,7 +87,9 @@ export function IconButton({
   onPress,
   size = 48,
   tone = 'surface',
+  testID,
 }: {
+  testID?: string;
   icon: IconName;
   label: string;
   onPress?: () => void;
@@ -100,6 +102,7 @@ export function IconButton({
   const fg = tone === 'danger' ? '#FFFFFF' : tone === 'action' ? colors.onAction : colors.text;
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={8}

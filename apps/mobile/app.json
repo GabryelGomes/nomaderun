@@ -10,7 +10,8 @@
     "ios": {
       "icon": "./assets/expo.icon",
       "infoPlist": {
-        "CADisableMinimumFrameDurationOnPhone": true
+        "CADisableMinimumFrameDurationOnPhone": true,
+        "NSMotionUsageDescription": "O NOMADE RUN usa o sensor de movimento para contar seus passos durante a corrida e conferir se o percurso foi feito a pé."
       }
     },
     "android": {
@@ -39,13 +40,44 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "O NOMADE RUN usa sua localização enquanto você corre para medir distância e ritmo e saber em que zona da cidade você está."
+          "locationWhenInUsePermission": "O NOMADE RUN usa sua localização enquanto você corre para medir distância e ritmo e saber em que zona da cidade você está.",
+          "locationAlwaysAndWhenInUsePermission": "Para não perder nenhum trecho quando a tela estiver bloqueada, o NOMADE RUN pode continuar registrando seu percurso em segundo plano, só durante uma corrida iniciada por você.",
+          "locationAlwaysPermission": "Para não perder nenhum trecho quando a tela estiver bloqueada, o NOMADE RUN pode continuar registrando seu percurso em segundo plano, só durante uma corrida iniciada por você.",
+          "motionUsagePermission": "O NOMADE RUN usa o sensor de movimento para contar seus passos durante a corrida e conferir se o percurso foi feito a pé.",
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false,
+          "isAndroidMotionActivityEnabled": true
         }
-      ]
+      ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "O NOMADE RUN usa o sensor de movimento para contar seus passos durante a corrida e conferir se o percurso foi feito a pé."
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "color": "#FF5A1F"
+        }
+      ],
+      "expo-task-manager",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "backgroundLocation": false
     }
   }
 }

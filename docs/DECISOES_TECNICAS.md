@@ -85,3 +85,34 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
 - **Contexto:** o ERS §6.2 descreve a paleta "Asfalto & Giz"; o app hoje usa o design system "Pista" (laranja, neutros quentes, Inter), aprovado pelos autores.
 - **Decisão:** manter `src/theme/tokens.ts` e os componentes atuais. Telas novas reutilizam `Text`, `Button`, `Surface`, `TeamBadge` e os tokens.
 - **Consequências:** a seção 6.2 do ERS deve ser atualizada numa próxima revisão para refletir o visual aprovado.
+
+### D-16 — Cliente Supabase no app: sem polyfill de URL, sessão em partes no SecureStore, web com localStorage
+2026-10-20 · A3 Frontend
+- **Contexto:** D-06 pede a sessão no SecureStore; o Keychain/Keystore aceita ~2 KB por chave e a sessão do Supabase passa disso. O supabase-js usa `URL`/`URLSearchParams`; o painel web e o `expo export -p web` (renderização estática em Node) também usam o cliente.
+- **Decisão:** `src/services/api/supabase.ts` cria um cliente único com `autoRefreshToken`, `persistSession`, `detectSessionInUrl: false`; storage = adapter que divide o valor em partes de até 1.800 bytes UTF-8 (`chave__0..n` + `chave__chunks`), com `keychainAccessible: AFTER_FIRST_UNLOCK`; no web, `localStorage`; durante a renderização estática (sem `window`), sem persistência nem refresh. Auto-refresh liga/desliga com o `AppState`. **Não** usar `react-native-url-polyfill`: o runtime do Expo SDK 57 já instala `URL` e `URLSearchParams` (`expo/src/winter`). Sem `EXPO_PUBLIC_SUPABASE_URL`/`EXPO_PUBLIC_SUPABASE_ANON_KEY`, `getSupabase()` devolve `null` e o app mostra "Backend não configurado".
+- **Justificativa:** RNF-007 sem dependência extra; o export web não trava; falha de configuração fica explícita.
+- **Consequências:** parte faltando no SecureStore = sessão descartada (pede login). Telas e stores nunca importam `supabase.ts`; só os repositórios.
+
+### D-17 — Sessão, perfil e guardas de rota: session-store + controlador + função pura
+2026-10-20 · A3 Frontend
+- **Contexto:** o `_layout.tsx` decidia as rotas pelo `onboarded` do `game-store`, em memória. Agora a decisão depende da sessão do Auth, do perfil no servidor (facção) e do fluxo de recuperação de senha.
+- **Decisão:** `src/store/session-store.ts` guarda status (`loading|unconfigured|signedOut|signedIn`), sessão, perfil e `recovering`; `src/features/auth/session-controller.ts` orquestra repositórios ↔ stores (stores não importam serviços); `resolveRouteGroup()` (pura, testada) escolhe o grupo liberado no `Stack.Protected`: `auth`, `recovery`, `onboarding`, `app`, `unavailable` ou splash. O `game-store` continua com a mesma API e passa a receber `name`/`faction` (e `xp`/`trust` no primeiro carregamento) do perfil por `applyProfile`; `resetForSignOut` no logout. O último perfil fica em cache (`expo-sqlite/kv-store`, `localStorage` no web) para o app abrir sem internet.
+- **Justificativa:** o servidor é a fonte da facção (RF-003); a lógica de navegação fica testável; a corrida (A4) não precisa mudar.
+- **Consequências:** depois que a navegação montou, um "splash" passageiro (perfil carregando após o login) mantém a tela anterior em vez de desmontar o Stack.
+
+### D-18 — Links de autenticação por `nomaderun://` (recuperação de senha e confirmação)
+2026-10-20 · A3 Frontend
+- **Decisão:** o app pede `redirectTo = Linking.createURL('/nova-senha')` (recuperação) e `/entrar` (confirmação/login social). O controlador lê o link inicial e os eventos `url`, aceita tokens no fragmento (fluxo implícito, padrão) e `?code=` (PKCE), cria a sessão (`setSession`/`exchangeCodeForSession`) e marca `recovering` quando `type=recovery`, liberando só a tela "Nova senha" até a senha ser trocada. Link expirado mostra a mensagem e o atalho "Pedir novo link". O backend (A2) já libera `nomaderun://**` em `additional_redirect_urls`.
+- **Justificativa:** RF-001 (recuperação por e-mail) funcionando no Expo Go e em development build.
+
+### D-19 — Cadastro: validação no app, nome conferido antes do signUp e metadados para o trigger
+2026-10-20 · A3 Frontend
+- **Contexto:** quando o trigger `handle_new_user` recusa o cadastro, o Auth devolve só "Database error saving new user", sem o motivo.
+- **Decisão:** o app valida tudo antes (e-mail, senha ≥ 8 com medidor de força, nome `^[A-Za-z0-9_.]{3,20}$`, nascimento DD/MM/AAAA com 16+, dois aceites separados), chama o RPC `username_available` e só então o `signUp`, enviando em `options.data`: `username`, `birthdate` (AAAA-MM-DD), `accepted_terms`, `accepted_privacy`, `terms_version`, `privacy_version` e os instantes dos aceites. O erro genérico do trigger vira mensagem amigável. Mensagens do backend no formato `CODIGO: texto` são separadas (código em `AppError.detail`, texto pt-BR para a tela). A permissão de notificações tem etapa própria no onboarding, separada da localização (RNF-013).
+- **Justificativa:** RF-001, RNF-013 e mensagens claras sem depender do texto interno do Auth.
+- **Consequências:** o backend continua validando (16+, aceites, nome único); o app é a primeira barreira, não a única.
+
+### D-20 — GPS em segundo plano atrás de flag de build (`app.config.js`)
+2026-10-20 · A3 Frontend
+- **Decisão:** o `app.json` mantém o segundo plano desligado; `app.config.js` liga `isIosBackgroundLocationEnabled`, `isAndroidBackgroundLocationEnabled` e `isAndroidForegroundServiceEnabled` só com `NOMADE_BACKGROUND_LOCATION=1` no build/prebuild e expõe `extra.backgroundLocation` para o código (A4) decidir em runtime. Os textos de permissão "sempre" já estão em pt-BR.
+- **Justificativa:** D-10; o Expo Go não precisa da permissão "sempre" e as lojas exigem justificativa para ela.
