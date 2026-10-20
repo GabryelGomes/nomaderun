@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { router, Stack } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
@@ -11,6 +12,8 @@ import { saveProfile } from '@/features/auth/session-controller';
 import { validateUsername } from '@/features/auth/validation';
 import { DEFAULT_NOTIFICATION_PREFS, type DistanceUnit, type NotificationPrefs } from '@/services/api/types';
 import { useSession } from '@/store/session-store';
+
+import { pickAndUploadAvatar } from './avatar-picker';
 import { factions, fonts, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
@@ -48,6 +51,21 @@ export function EditProfileScreen() {
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const faction = profile?.faction ?? 'striders';
+  const [uploading, setUploading] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+
+  const changePhoto = async () => {
+    setPhotoError(null);
+    setUploading(true);
+    try {
+      const res = await pickAndUploadAvatar();
+      if (res && !res.ok) setPhotoError(res.error.message);
+    } catch {
+      setPhotoError('Não foi possível abrir a galeria de fotos.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const save = async () => {
     const err = validateUsername(username);
@@ -79,21 +97,29 @@ export function EditProfileScreen() {
 
       <Surface>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[4] }}>
-          <View
-            accessible
-            accessibilityLabel={`Foto de perfil: iniciais ${initialsOf(username)}`}
-            style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: factions[faction].color }}>
-            <Text style={{ fontFamily: fonts.display, fontSize: 24, lineHeight: 28 }} color={factions[faction].onColor}>
-              {initialsOf(username)}
-            </Text>
-          </View>
+          <Pressable
+            testID="perfil-foto"
+            accessibilityRole="button"
+            accessibilityLabel={profile?.avatarUrl ? 'Foto de perfil. Toque para trocar.' : `Foto de perfil: iniciais ${initialsOf(username)}. Toque para enviar uma foto.`}
+            disabled={uploading}
+            onPress={changePhoto}
+            style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: factions[faction].color, overflow: 'hidden' }}>
+            {profile?.avatarUrl ? (
+              <Image testID="perfil-foto-imagem" source={{ uri: profile.avatarUrl }} style={{ width: 64, height: 64 }} contentFit="cover" />
+            ) : (
+              <Text style={{ fontFamily: fonts.display, fontSize: 24, lineHeight: 28 }} color={factions[faction].onColor}>
+                {initialsOf(username)}
+              </Text>
+            )}
+          </Pressable>
           <View style={{ flex: 1 }}>
             <Text variant="bodyBold">Foto de perfil</Text>
             <Text variant="small" muted>
-              Por enquanto mostramos suas iniciais na cor do seu time. O envio de foto chega numa próxima versão.
+              {uploading ? 'Enviando foto…' : profile?.avatarUrl ? 'Toque na foto para trocar. JPEG, PNG ou WebP até 2 MB.' : 'Toque nas iniciais para enviar uma foto. Sem foto, mostramos suas iniciais na cor do seu time.'}
             </Text>
           </View>
         </View>
+        <ErrorNotice message={photoError} testID="perfil-foto-erro" />
       </Surface>
 
       <View style={{ gap: space[4] }}>

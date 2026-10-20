@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
 
 import { TeamBadge } from '@/components/team-badge';
@@ -9,7 +9,10 @@ import { ProgressBar } from '@/components/territory-bar';
 import { levelFromXp } from '@/domain/games';
 import { trustLevel } from '@/domain/trust';
 import { signOut } from '@/features/auth/session-controller';
+import { canModerate } from '@/features/moderation/guard';
 import { useGame } from '@/store/game-store';
+import { selectUnreadCount, useNotifications } from '@/store/notifications-store';
+import { useSession } from '@/store/session-store';
 import { factions, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
@@ -24,8 +27,12 @@ export function ProfileScreen() {
   const s = useGame();
   const faction = s.faction ?? 'striders';
   const lvl = levelFromXp(s.xp);
-  const conquered = s.history.reduce((n, h) => n + h.result.zones.filter((z) => z.outcome === 'conquered').length, 0);
+  // Histórico oficial do servidor (A4 mantém `serverRuns` no game-store).
+  const runs = s.serverRuns.length;
+  const conquered = s.serverRuns.reduce((n, r) => n + (r.result?.zones ?? []).filter((z) => z.outcome === 'conquered').length, 0);
   const trust = trustLevel(s.trust);
+  const unread = useNotifications(selectUnreadCount);
+  const staff = useSession((x) => canModerate(x.profile?.role));
 
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: space[4], gap: space[6], paddingBottom: space[12] }}>
@@ -70,7 +77,7 @@ export function ProfileScreen() {
         <SectionHeader title="Conquistas" />
         <Surface>
           {ACHIEVEMENTS.map((a) => {
-            const done = a.done(s.history.length, conquered, s.fog.length);
+            const done = a.done(runs, conquered, s.fog.length);
             return (
               <View key={a.title} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
                 <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: done ? colors.action : colors.surfaceSunken }}>
@@ -91,7 +98,7 @@ export function ProfileScreen() {
       <View style={{ gap: space[3] }}>
         <SectionHeader title="Corrida Segura" />
         <Surface>
-          <Row title="Escolta ao vivo" body={`${s.contacts.join(' e ')} veem sua localização durante a corrida.`} value={s.escortOn} onChange={s.toggleEscort} />
+          <Row title="Escolta ao vivo" body={s.contacts.length > 0 ? `${s.contacts.join(' e ')} veem sua localização durante a corrida.` : 'Cadastre contatos de segurança para eles verem sua localização durante a corrida.'} value={s.escortOn} onChange={s.toggleEscort} />
           <Row title="Alerta de parada" body="Se você ficar parado por 10 minutos, perguntamos se está tudo bem e avisamos seus contatos." value={s.stopAlertOn} onChange={s.toggleStopAlert} />
           <Text variant="small" muted>
             Seu início e fim de corrida perto de casa ficam escondidos dos outros corredores.
@@ -113,7 +120,15 @@ export function ProfileScreen() {
       <View style={{ gap: space[3] }}>
         <SectionHeader title="Conta" />
         <Surface>
-          <LinkRow testID="perfil-editar" title="Editar perfil" body="Nome de usuário, cidade, unidade e notificações." onPress={() => router.push('/perfil/editar')} />
+          <LinkRow testID="perfil-editar" title="Editar perfil" body="Nome de usuário, foto, cidade, unidade e notificações." onPress={() => router.push('/perfil/editar')} />
+          <LinkRow
+            testID="perfil-notificacoes"
+            title="Notificações"
+            body={unread > 0 ? `${unread === 1 ? '1 não lida' : `${unread} não lidas`}. Invasões, conquistas e moderação.` : 'Invasões, conquistas e resultados da moderação.'}
+            onPress={() => router.push('/notificacoes')}
+          />
+          <LinkRow testID="perfil-contatos-seguranca" title="Contatos de segurança" body="Até 5 pessoas avisadas pela Corrida Segura." onPress={() => router.push('/contatos-seguranca' as Href)} />
+          {staff ? <LinkRow testID="perfil-moderacao" title="Painel de moderação" body="Corridas em revisão e contas." onPress={() => router.push('/moderacao')} /> : null}
           <LinkRow testID="perfil-conta" title="Conta e privacidade" body="Exportar seus dados, excluir a conta, termos." onPress={() => router.push('/perfil/conta')} />
           <LinkRow testID="perfil-sair" title="Sair" body="Desconectar deste aparelho." onPress={() => signOut()} />
         </Surface>

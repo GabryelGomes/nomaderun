@@ -130,6 +130,12 @@ export default function TerritoryMap(props: TerritoryMapProps) {
           if (onZonePress && zones.some((z) => z.id === id)) onZonePress(id);
         });
         if (latest.current.onZonePress) map.getCanvas().style.cursor = 'pointer';
+        const report = () => {
+          const b = map.getBounds();
+          latest.current.onRegionChange?.({ minLng: b.getWest(), minLat: b.getSouth(), maxLng: b.getEast(), maxLat: b.getNorth() });
+        };
+        map.on('moveend', report);
+        report();
         setReady(true);
       });
     })();
@@ -164,6 +170,11 @@ export default function TerritoryMap(props: TerritoryMapProps) {
     (map.getSource('points') as GeoJSONSource | undefined)?.setData({ type: 'FeatureCollection', features: points });
     if (props.followUser && props.user) map.easeTo({ center: [props.user.lng, props.user.lat], duration: 400 });
   }, [ready, props]);
+
+  const focus = props.focus;
+  useEffect(() => {
+    if (ready && focus) mapRef.current?.easeTo({ center: [focus.lng, focus.lat], duration: 500 });
+  }, [ready, focus]);
 
   return <View ref={host} style={[{ flex: 1, backgroundColor: night ? palette.night : palette.bg }, style]} />;
 }

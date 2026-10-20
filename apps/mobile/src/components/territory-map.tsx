@@ -41,7 +41,7 @@ const toCoords = (ring: { lat: number; lng: number }[]) => ring.map(toCoord);
  * Regions are not tappable themselves: a tap is turned into the zone under the finger (same rule as the server).
  */
 export default function TerritoryMap(props: TerritoryMapProps) {
-  const { zones, center, span = 1800, myFaction, onlyMine, explored, user, path, chests, onZonePress, followUser, interactive = true, style } = props;
+  const { zones, center, span = 1800, myFaction, onlyMine, explored, user, path, chests, onZonePress, followUser, interactive = true, onRegionChange, focus, style } = props;
   const layers = useMemo(() => mapLayers({ zones, myFaction, onlyMine, explored }), [zones, myFaction, onlyMine, explored]);
   const map = useRef<MapView>(null);
   const night = useColorScheme() === 'dark';
@@ -52,6 +52,10 @@ export default function TerritoryMap(props: TerritoryMapProps) {
       map.current?.animateCamera({ center: toCoord(user) }, { duration: 400 });
     }
   }, [followUser, user]);
+
+  useEffect(() => {
+    if (focus) map.current?.animateCamera({ center: toCoord(focus) }, { duration: 500 });
+  }, [focus]);
 
   return (
     <View style={[{ flex: 1, backgroundColor: palette.bg }, style]}>
@@ -70,6 +74,17 @@ export default function TerritoryMap(props: TerritoryMapProps) {
         rotateEnabled={interactive}
         scrollEnabled={interactive}
         zoomEnabled={interactive}
+        onRegionChangeComplete={
+          onRegionChange
+            ? (r) =>
+                onRegionChange({
+                  minLng: r.longitude - r.longitudeDelta / 2,
+                  minLat: r.latitude - r.latitudeDelta / 2,
+                  maxLng: r.longitude + r.longitudeDelta / 2,
+                  maxLat: r.latitude + r.latitudeDelta / 2,
+                })
+            : undefined
+        }
         onPress={(e) => {
           if (!onZonePress) return;
           const { latitude, longitude } = e.nativeEvent.coordinate;

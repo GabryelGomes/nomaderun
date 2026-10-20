@@ -59,12 +59,12 @@ describe('game-store recebe nome e facção do servidor', () => {
     useGame.getState().applyProfile({ username: 'ana2', faction: null });
     expect(useGame.getState()).toMatchObject({ name: 'ana2', faction: null, onboarded: false, xp: 50 });
     useGame.getState().resetForSignOut();
-    expect(useGame.getState()).toMatchObject({ name: 'Corredor', faction: null, xp: 0, history: [] });
+    expect(useGame.getState()).toMatchObject({ name: 'Corredor', faction: null, xp: 0, localRuns: [], serverRuns: [] });
   });
 
-  it('API usada pela corrida continua igual', () => {
+  it('API usada pela corrida (A4: commitRun local virou a fila offline + resultado do servidor)', () => {
     const g = useGame.getState();
-    for (const fn of ['setMission', 'setGhostPace', 'openChest', 'commitRun', 'toggleEscort', 'toggleStopAlert', 'completeOnboarding'] as const) {
+    for (const fn of ['setMission', 'setGhostPace', 'openChest', 'upsertLocalRun', 'applyServerProgress', 'toggleEscort', 'toggleStopAlert', 'completeOnboarding'] as const) {
       expect(typeof g[fn]).toBe('function');
     }
     g.openChest('c1', 10);

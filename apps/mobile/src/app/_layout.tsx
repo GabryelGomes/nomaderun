@@ -12,7 +12,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { resolveRouteGroup, type RouteGroup } from '@/features/auth/route-guard';
 import { useSessionBootstrap } from '@/features/auth/session-controller';
+import { canModerate } from '@/features/moderation/guard';
+import { useUserDataBootstrap } from '@/features/notifications/controller';
+import { useOfflineSync } from '@/features/run/use-offline-sync';
 import { useSession } from '@/store/session-store';
+import { fonts } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 SplashScreen.preventAutoHideAsync();
@@ -20,6 +24,10 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const { colors, scheme } = useTheme();
   useSessionBootstrap();
+  useUserDataBootstrap();
+  // Pedido do A4 (T2.2): sincroniza a fila de corridas ao abrir, ao voltar a conexão e ao primeiro plano.
+  useOfflineSync();
+  const staff = useSession((s) => canModerate(s.profile?.role));
   const computed = useSession((s) =>
     resolveRouteGroup({
       status: s.status,
@@ -50,6 +58,16 @@ export default function RootLayout() {
   if (!ready) return null;
 
   const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
+  /** Telas empilhadas na raiz com o mesmo cabeçalho das telas de aba (ex.: `perfil/editar`). */
+  const pushHeader = {
+    headerShown: true,
+    headerShadowVisible: false,
+    headerBackButtonDisplayMode: 'minimal' as const,
+    headerStyle: { backgroundColor: colors.background },
+    headerTitleStyle: { fontFamily: fonts.textBold, color: colors.text },
+    headerTintColor: colors.text,
+    contentStyle: { backgroundColor: colors.background },
+  };
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider
@@ -69,6 +87,12 @@ export default function RootLayout() {
                 contentStyle: { backgroundColor: process.env.EXPO_OS === 'ios' ? 'transparent' : colors.surface },
               }}
             />
+            <Stack.Screen name="notificacoes" options={{ ...pushHeader, title: 'Notificações' }} />
+            {/* Arquivo da rota criado pelo A4 (Corrida Segura, T2.5). */}
+            <Stack.Screen name="contatos-seguranca" options={{ ...pushHeader, title: 'Contatos de segurança' }} />
+            <Stack.Protected guard={staff}>
+              <Stack.Screen name="moderacao" />
+            </Stack.Protected>
           </Stack.Protected>
           <Stack.Protected guard={group === 'onboarding'}>
             <Stack.Screen name="onboarding" />

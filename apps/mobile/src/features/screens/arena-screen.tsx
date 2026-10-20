@@ -54,6 +54,9 @@ export function ArenaScreen() {
         <Text variant="small" muted tabular>
           Goiânia já causou {DEMO_RAID.damageKm.toLocaleString('pt-BR')} de {DEMO_RAID.hpKm.toLocaleString('pt-BR')} km de dano. Sua próxima corrida conta.
         </Text>
+        <Text variant="caption" muted>
+          Raid de demonstração.
+        </Text>
       </Surface>
 
       <View style={{ gap: space[3] }}>

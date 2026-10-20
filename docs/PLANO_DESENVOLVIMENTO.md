@@ -58,15 +58,15 @@ Legenda de status: ⬜ a fazer · 🟨 em andamento · ✅ feito · ⛔ bloquead
 | T2.3 | Pedômetro (RN-008) e pontos com velocidade/altitude | A4 | T2.1 | ⬜ |
 | T2.4 | Finalizar corrida → `finish-activity` → resumo oficial; fallback provisório | A4 | T2.2 | ⬜ |
 | T2.5 | Corrida Segura: contatos (≤5), SOS (compartilhar localização), alerta de parada 10 min + 60 s | A4 | T1.4 | ⬜ |
-| T2.6 | Mapa com zonas do servidor (bbox) + Realtime; histórico do servidor com filtro por período | A3 | T1.2 | ⬜ |
+| T2.6 | Mapa com zonas do servidor (bbox) + Realtime; histórico do servidor com filtro por período | A3 | T1.2 | ✅ (mapa e folha da zona; o histórico ficou com o A4 nesta fase, `activities-screen`) |
 
 ### Fase 3 — Funcionalidades P1 (A3 ‖ A4 ‖ A2 conforme pastas)
 | ID | Tarefa | Dono | Depende | Status |
 |---|---|---|---|---|
-| T3.1 | Central de notificações (RF-019) + alerta de invasão no app (RF-009) | A3 + A2 | T2.4 | ⬜ |
-| T3.2 | Rankings reais (RF-015) e placar entre cidades (RF-020) | A3 + A2 | T2.4 | ⬜ |
-| T3.3 | Painel de moderação web (RF-018) | A3 | T1.2 | ⬜ |
-| T3.4 | Crews básicas (RF-011) | A3 + A2 | T1.6 | ⬜ |
+| T3.1 | Central de notificações (RF-019) + alerta de invasão no app (RF-009) | A3 + A2 | T2.4 | ✅ (Realtime da tabela pendente no A2: P-13) |
+| T3.2 | Rankings reais (RF-015) e placar entre cidades (RF-020) | A3 + A2 | T2.4 | ✅ |
+| T3.3 | Painel de moderação web (RF-018) | A3 | T1.2 | ✅ |
+| T3.4 | Crews básicas (RF-011) | A3 + A2 | T1.6 | ✅ |
 | T3.5 | Neblina e baús persistidos (RF-022, RF-023) | A4 + A2 | T2.4 | ⬜ |
 | T3.6 | Jobs diários (RN-005 decaimento, RN-004 escudo) com pg_cron | A2 | T1.1 | ✅ |
 

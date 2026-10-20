@@ -164,3 +164,31 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
 - **Contexto:** as imagens `supabase/mailpit` e `supabase/pg_prove` não baixam neste ambiente (limite dos registros Docker).
 - **Decisão:** `supabase/scripts/mail-sink.sh` sobe uma caixa SMTP mínima (`mail-sink.mjs`, Node de uma imagem já baixada) com o mesmo nome de container do mailpit; os e-mails aparecem em `http://127.0.0.1:54324`. `supabase/scripts/test-db.sh` roda os mesmos arquivos pgTAP via `psql` dentro do container do banco, falhando com `not ok`, erro de SQL ou plano diferente.
 - **Consequências:** onde as imagens existirem, `npx supabase start` (sem `-x mailpit`) e `npx supabase test db` funcionam com os mesmos arquivos.
+
+### D-28 — Zonas do mapa num store próprio (`zones-store`), carregadas por área visível com cache
+2026-10-20 · A3 Frontend
+- **Contexto:** o mapa, a folha da zona e a estimativa da corrida (A4) precisam da mesma visão das zonas do servidor; o `game-store` (agora do A4) tinha `seedZones()` local.
+- **Decisão:** `src/store/zones-store.ts` (`useZones`) é a fonte única: `zones: Record<string, Zone>` (tipo do domain) + `meta` (nome/cidade do servidor), `loadBbox(bbox)` (`GET /zones?bbox=`, mescla sem apagar o que está fora da caixa, descarta resposta de carga antiga), `subscribe()` (Realtime em `zones`, um canal só com contagem de referências), `upsertZones()` (A4 chama após corrida confirmada) e `hydrate()` (último mapa salvo em `expo-sqlite/kv-store`; `localStorage` no web). O mapa pede a área visível com espera de 600 ms depois que a câmera para (`onRegionChange` novo no `TerritoryMap`, nativo e web) e desenha só as zonas da área visível + 25% de margem, no máximo 1.500. Nome: o do servidor; sem ele, o nome local de demonstração. **Exceção consciente** à regra "store não importa serviço": o contrato combinado com o A4 pede `loadBbox`/assinatura no próprio store; o repositório é injetável (`setZonesApi`) para os testes.
+- **Justificativa:** RF-007, RNF-003 (Realtime medido em 0,2–0,7 s localmente), RNF-009 (poucos pedidos), estado sem internet com o último mapa.
+- **Consequências:** o `game-store.zones` (seed) fica obsoleto; quem ainda o ler (resumo/corrida, A4) deve passar a ler `useZones`.
+
+### D-29 — Central de notificações: Realtime + consulta periódica; notificação local com o app aberto
+2026-10-20 · A3 Frontend
+- **Contexto:** a tabela `notifications` não está na publicação `supabase_realtime` (só `zones` está); push remoto não existe no Expo Go (D-13).
+- **Decisão:** `features/notifications/controller.ts` (montado no layout raiz) carrega a lista ao entrar, assina o Realtime filtrado por `user_id` (passa a funcionar sozinho quando o A2 incluir a tabela na publicação) e consulta a cada 20 s com o app em primeiro plano (e ao voltar para ele). Notificação nova de invasão, território perdido, conquista ou moderação vira notificação local (`expo-notifications`, respeitando `notification_prefs` e a permissão do onboarding; no web não). Tocar num alerta de zona navega para `/?zona=<id>&lat&lng&t=<agora>`: o mapa centraliza (`focus` novo no `TerritoryMap`) e abre a folha com a situação atual (UC-02 passo 4 e E1). Ao sair da conta, as stores do usuário são zeradas.
+- **Consequências:** atraso de até 20 s sem Realtime na tabela; `setNotificationHandler` é definido aqui na primeira notificação local (se o A4 definir outro, vale o último; os dois mostram o banner).
+
+### D-30 — Painel de moderação dentro do app (`/moderacao`) com guarda dupla por papel
+2026-10-20 · A3 Frontend
+- **Decisão:** rotas `src/app/moderacao/{index,[id],contas}.tsx` (D-08: o painel é o app no navegador). Guarda dupla: `Stack.Protected guard={canModerate(role)}` no layout raiz e `Redirect` para `/` no `_layout` do grupo; a entrada "Painel de moderação" só aparece no Perfil para `moderator`/`admin`; "Contas" só para `admin` (e nunca a própria conta). Layout em duas colunas a partir de 900 px (mapa + gráficos | dados, alertas e decisão), uma coluna no celular. Percurso no `TerritoryMap` existente (sem zonas), gráficos de velocidade (com a linha de 25 km/h da RN-007) e de passos por minuto em SVG próprio (`react-native-svg`), alertas com os textos do domain (`FLAG_EXPLANATION`) e o motivo da revisão. Justificativa obrigatória de 10 a 1.000 caracteres validada no app e no servidor. Pontos lidos em páginas de 1.000 (limite do PostgREST).
+- **Justificativa:** RF-018, RF-002 (admin inativa), segurança em camadas (a RLS e a function continuam sendo a barreira real).
+
+### D-31 — Rankings e cidades com as views do servidor; o que não tem dado continua demonstração rotulada
+2026-10-20 · A3 Frontend
+- **Decisão:** o Clube ganhou a seção "Rankings" (Corredores, Crews, Times) usando `leaderboard_*`; no individual, escopo Todos / Minha cidade / Meu time (filtros que a view permite). Período: só "temporada atual" (é o que as views calculam). "Guerra de Cidades" usa `leaderboard_cities` (RN-013) quando há linhas; sem linhas, mostra o placar de demonstração com o rótulo. Continuam demonstração, com rótulo: Próximo encontro (Clube), Raid e Liga do Bairro (Arena). O cartão "Sua Crew" mostra a crew real (membros e km da temporada); a barra passou a ser membros/30, porque o servidor não tem meta semanal de km.
+- **Consequências:** filtros por semana/distrito do ERS ficam para quando o backend tiver as views.
+
+### D-32 — Foto de perfil com `expo-image-picker` e envio de bytes ao bucket `avatars`
+2026-10-20 · A3 Frontend
+- **Decisão:** `expo-image-picker` (`EXPO_OFFLINE=1 npx expo install`, plugin com texto de permissão de fotos em pt-BR, câmera e microfone desligados). Galeria, recorte quadrado, qualidade 0,7, `base64` → bytes (decodificador próprio, igual em iOS/Android/web) → `storage.from('avatars').upload('<uid>/avatar-<ts>.<ext>')` com `contentType`; grava a URL pública em `profiles.avatar_url` e apaga as fotos antigas da pasta. Validação no app: JPEG/PNG/WebP até 2 MB (o bucket também recusa). A foto aparece no lugar das iniciais (mesmo círculo de 64 pt do editar perfil).
+- **Consequências:** precisa de um novo build nativo para o texto de permissão de fotos (no Expo Go vale o texto padrão).

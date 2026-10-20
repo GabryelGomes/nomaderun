@@ -70,7 +70,15 @@
         }
       ],
       "expo-task-manager",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O NOMADE RUN acessa suas fotos só quando você escolhe uma imagem para o seu perfil.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
