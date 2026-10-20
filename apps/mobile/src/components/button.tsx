@@ -1,13 +1,13 @@
 import * as Haptics from 'expo-haptics';
 import { useState, type ReactNode } from 'react';
 import { Pressable, type PressableProps, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { useReducedMotion } from 'react-native-reanimated';
 
-import { CSS_EASE_OUT } from '@/theme/easing';
-import { floating, motion, radius, space } from '@/theme/tokens';
+import { floating, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { Icon, type IconName } from './icon';
+import { pressFeedback } from './press-feedback';
 import { Text } from './text';
 
 type Kind = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -21,13 +21,11 @@ export type ButtonProps = Omit<PressableProps, 'children' | 'style'> & {
   trailing?: ReactNode;
 };
 
-/**
- * Press feedback per expo-animation: scale 0.97 on press-in, 120 ms, strong ease-out,
- * as a Reanimated CSS transition (no shared value for a two-state toggle).
- */
+/** Press feedback per expo-animation: scale 0.97 on press-in, 120 ms (sem escala com "Reduzir movimento"). */
 export function Button({ label, kind = 'primary', icon, size = 'md', wide, trailing, onPress, disabled, ...rest }: ButtonProps) {
   const { colors } = useTheme();
   const [pressed, setPressed] = useState(false);
+  const reduced = useReducedMotion();
   const palette = {
     primary: { bg: colors.action, fg: colors.onAction, border: 'transparent' },
     secondary: { bg: colors.surface, fg: colors.text, border: colors.line },
@@ -64,11 +62,7 @@ export function Button({ label, kind = 'primary', icon, size = 'md', wide, trail
           alignItems: 'center',
           justifyContent: 'center',
           gap: space[2],
-          opacity: disabled ? 0.45 : 1,
-          transform: [{ scale: pressed ? motion.press.scale : 1 }],
-          transitionProperty: 'transform',
-          transitionDuration: motion.press.duration,
-          transitionTimingFunction: CSS_EASE_OUT,
+          ...pressFeedback(pressed, reduced, disabled ? 0.45 : 1),
         }}>
         {icon ? <Icon name={icon} size={size === 'lg' ? 22 : 18} color={palette.fg} /> : null}
         <Text variant={size === 'lg' ? 'title' : 'bodyBold'} color={palette.fg}>
@@ -98,6 +92,7 @@ export function IconButton({
 }) {
   const { colors } = useTheme();
   const [pressed, setPressed] = useState(false);
+  const reduced = useReducedMotion();
   const bg = { surface: colors.surface, action: colors.action, danger: colors.danger, sunken: colors.surfaceSunken }[tone];
   const fg = tone === 'danger' ? '#FFFFFF' : tone === 'action' ? colors.onAction : colors.text;
   return (
@@ -118,10 +113,7 @@ export function IconButton({
           alignItems: 'center',
           justifyContent: 'center',
           boxShadow: tone === 'surface' ? floating : undefined,
-          transform: [{ scale: pressed ? motion.press.scale : 1 }],
-          transitionProperty: 'transform',
-          transitionDuration: motion.press.duration,
-          transitionTimingFunction: CSS_EASE_OUT,
+          ...pressFeedback(pressed, reduced),
         }}>
         <Icon name={icon} size={size * 0.42} color={fg} />
       </Animated.View>

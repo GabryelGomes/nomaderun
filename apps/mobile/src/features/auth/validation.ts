@@ -83,11 +83,25 @@ export function validateBirthdate(text: string, today: Date = new Date()): strin
   return null;
 }
 
+export const CITY_MIN = 2;
+export const CITY_MAX = 80;
+
+/** Cidade natal: opcional (o placar entre cidades só conta quem informou); se vier, 2 a 80 letras como no banco. */
+export function validateCity(raw: string | undefined): string | null {
+  const c = (raw ?? '').trim();
+  if (!c) return null;
+  if (c.length < CITY_MIN) return 'A cidade precisa ter pelo menos 2 letras.';
+  if (c.length > CITY_MAX) return `A cidade pode ter até ${CITY_MAX} caracteres.`;
+  return null;
+}
+
 export type SignUpForm = {
   email: string;
   password: string;
   username: string;
   birthdate: string;
+  /** Cidade natal (opcional). */
+  city?: string;
   acceptedTerms: boolean;
   acceptedPrivacy: boolean;
 };
@@ -103,6 +117,7 @@ export function validateSignUp(f: SignUpForm, today: Date = new Date()): SignUpE
   set('password', validatePassword(f.password));
   set('username', validateUsername(f.username));
   set('birthdate', validateBirthdate(f.birthdate, today));
+  set('city', validateCity(f.city));
   if (!f.acceptedTerms) errors.acceptedTerms = 'Aceite os Termos de Uso para continuar.';
   if (!f.acceptedPrivacy) errors.acceptedPrivacy = 'Aceite a Política de Privacidade para continuar.';
   return errors;

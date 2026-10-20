@@ -69,6 +69,13 @@ describe('auth-repo', () => {
       privacy_version: authRepo.PRIVACY_VERSION,
     });
     expect(typeof arg.options.data.terms_accepted_at).toBe('string');
+    expect(arg.options.data).not.toHaveProperty('city');
+  });
+
+  it('signUp envia a cidade natal (sem espaços) em options.data.city; vazia não vai', () => {
+    const base = { email: 'a@b.com', password: 'segredo123', username: 'ana', birthdate: '2000-05-10', acceptedTerms: true, acceptedPrivacy: true };
+    expect(authRepo.buildSignUpMetadata({ ...base, city: '  Goiânia ' })).toMatchObject({ city: 'Goiânia' });
+    expect(authRepo.buildSignUpMetadata({ ...base, city: '   ' })).not.toHaveProperty('city');
   });
 
   it('signUp sem sessão = precisa confirmar e-mail; sem identidades = e-mail já usado', async () => {
@@ -85,13 +92,18 @@ describe('auth-repo', () => {
     expect(auth.signOut).toHaveBeenLastCalledWith({ scope: 'local' });
   });
 
-  it('sessionFromCallback usa setSession (tokens) ou exchangeCodeForSession (code)', async () => {
-    auth.setSession.mockResolvedValue({ data: { session }, error: null });
+  it('QA-03: sessionFromCallback só troca o code PKCE; tokens na URL nunca viram sessão', async () => {
     auth.exchangeCodeForSession.mockResolvedValue({ data: { session }, error: null });
-    await authRepo.sessionFromCallback({ kind: 'tokens', accessToken: 'a', refreshToken: 'r', type: 'recovery' });
-    expect(auth.setSession).toHaveBeenCalledWith({ access_token: 'a', refresh_token: 'r' });
-    await authRepo.sessionFromCallback({ kind: 'code', code: 'c1', type: null });
+    const t = await authRepo.sessionFromCallback({ kind: 'tokens', accessToken: 'a', refreshToken: 'r', type: 'recovery' });
+    expect(t).toMatchObject({ ok: false, error: { code: 'UNAUTHORIZED', message: MESSAGES.linkUnsafe, detail: 'IMPLICIT_TOKENS' } });
+    expect(auth.setSession).not.toHaveBeenCalled();
+    await expect(authRepo.sessionFromCallback({ kind: 'code', code: 'c1', type: null })).resolves.toEqual({ ok: true, data: { userId: 'u1', email: 'ana@ex.com' } });
     expect(auth.exchangeCodeForSession).toHaveBeenCalledWith('c1');
+    // link aberto em outro aparelho: falta o verificador local
+    auth.exchangeCodeForSession.mockResolvedValueOnce({ data: { session: null }, error: { name: 'AuthPKCECodeVerifierMissingError', __isAuthError: true, message: 'PKCE code verifier not found in storage.' } });
+    await expect(authRepo.sessionFromCallback({ kind: 'code', code: 'c2', type: null })).resolves.toMatchObject({ ok: false, error: { message: MESSAGES.linkOtherDevice } });
+    auth.exchangeCodeForSession.mockResolvedValueOnce({ data: { session: null }, error: { name: 'AuthApiError', __isAuthError: true, status: 404, code: 'flow_state_not_found', message: 'invalid flow state' } });
+    await expect(authRepo.sessionFromCallback({ kind: 'code', code: 'c3', type: null })).resolves.toMatchObject({ ok: false, error: { message: MESSAGES.linkExpired } });
     const r = await authRepo.sessionFromCallback({ kind: 'error', code: 'otp_expired', description: 'expired' });
     expect(r).toMatchObject({ ok: false, error: { message: MESSAGES.linkExpired } });
   });
@@ -135,8 +147,37 @@ describe('profile-repo e account-repo', () => {
     mockClient.functions.invoke.mockResolvedValue({ data: { profile: {} }, error: null });
     await expect(accountRepo.exportMyData()).resolves.toEqual({ ok: true, data: { profile: {} } });
     expect(mockClient.functions.invoke).toHaveBeenCalledWith('account-export', { method: 'GET', body: undefined });
-    await accountRepo.deleteMyAccount();
-    expect(mockClient.functions.invoke).toHaveBeenLastCalledWith('account-delete', { method: 'POST', body: { confirm: 'EXCLUIR' } });
+    await accountRepo.deleteMyAccount('Senha@123');
+    expect(mockClient.functions.invoke).toHaveBeenLastCalledWith('account-delete', { method: 'POST', body: { confirm: 'EXCLUIR', password: 'Senha@123' } });
+  });
+
+  it('QA-06: excluir sem senha nem chama o servidor; senha errada vira mensagem amigável', async () => {
+    await expect(accountRepo.deleteMyAccount('')).resolves.toMatchObject({ ok: false, error: { code: 'VALIDATION', message: MESSAGES.passwordRequired } });
+    expect(mockClient.functions.invoke).not.toHaveBeenCalled();
+    const httpError = (status: number, code: string) => ({
+      data: null,
+      error: { name: 'FunctionsHttpError', context: { status, json: async () => ({ error: { code, message: 'Invalid password' } }) } },
+    });
+    for (const [status, code] of [
+      [401, 'INVALID_PASSWORD'],
+      [403, 'WRONG_PASSWORD'],
+      [400, 'invalid_credentials'],
+    ] as const) {
+      mockClient.functions.invoke.mockResolvedValueOnce(httpError(status, code));
+      const r = await accountRepo.deleteMyAccount('errada');
+      expect(r).toMatchObject({ ok: false, error: { code: 'UNAUTHORIZED', message: MESSAGES.wrongPassword } });
+      if (!r.ok) expect(accountRepo.isWrongPasswordError(r.error)).toBe(true);
+    }
+    // conta sem senha (login social): a mensagem do servidor passa direto
+    mockClient.functions.invoke.mockResolvedValueOnce(httpError(409, 'REAUTH_UNAVAILABLE'));
+    const social = await accountRepo.deleteMyAccount('x');
+    expect(social).toMatchObject({ ok: false, error: { code: 'CONFLICT', detail: 'REAUTH_UNAVAILABLE' } });
+    if (!social.ok) expect(accountRepo.isWrongPasswordError(social.error)).toBe(false);
+    // sessão expirada não é confundida com senha errada
+    mockClient.functions.invoke.mockResolvedValueOnce(httpError(401, 'UNAUTHORIZED'));
+    const expired = await accountRepo.deleteMyAccount('certa');
+    expect(expired).toMatchObject({ ok: false, error: { code: 'UNAUTHORIZED' } });
+    if (!expired.ok) expect(accountRepo.isWrongPasswordError(expired.error)).toBe(false);
   });
 
   it('erro de rede nas functions vira NETWORK', async () => {

@@ -299,3 +299,21 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
   - **Auth (QA-06):** `secure_password_change = true`; `account-delete` exige `password` e confere com `grant_type=password` no Auth usando o e-mail do token (a sessão criada morre com a conta).
   - **Cadastro:** `handle_new_user` valida a `city` dos metadados (2–80, `CITY_INVALID`).
 - **Consequências:** o app precisa enviar `password` na exclusão e `city` no cadastro, ler perfis de outros (painel) em `staff_profiles` e crews alheias em `public_crews`, e tratar `401 ACCOUNT_INACTIVE`, `TOO_MANY_OPEN_RUNS` e `POINTS_LIMIT` (contrato atualizado). A conferência de senha conta no rate limit de login do Auth. Domínio próprio para o Storage exige acrescentar o host em `private.valid_avatar_url`.
+
+### D-51 — Links de autenticação só por PKCE, com confirmação para trocar de conta
+2026-10-22 · A3 Frontend
+- **Contexto:** QA-03. Com o fluxo implícito, qualquer app ou página podia abrir `nomaderun://…#access_token=…` e o app chamava `setSession`, trocando a conta conectada sem aviso.
+- **Decisão:** cliente com `flowType: 'pkce'`; `sessionFromCallback` só troca `code` por sessão (`exchangeCodeForSession`, que exige o verificador gravado neste aparelho no pedido) e recusa tokens na URL (`IMPLICIT_TOKENS`). Se já há sessão, o link de `code` fica em `session-store.pendingLink` e o diálogo "Trocar de conta?" (mostra o e-mail atual) decide; links de erro ou tokens são ignorados para quem está conectado. Trocar para outra conta zera o progresso local. Link aberto em outro aparelho (sem verificador) tem mensagem própria.
+- **Consequências:** o link de recuperação/confirmação só funciona no aparelho (ou navegador) em que foi pedido; a confirmação do cadastro em outro aparelho confirma o e-mail mas não abre sessão (a mensagem manda entrar com a senha). Em produção, App Links/Universal Links continuam recomendados.
+
+### D-52 — "Reduzir movimento" nos botões: só opacidade; faixa "Defendendo" amarela com texto escuro
+2026-10-22 · A3 Frontend (exceção autorizada em `run-screen`/`hold-button`, arquivos do A4)
+- **Contexto:** QA-12 (RNF-011, RNF-015, ERS da faixa de território) com o visual aprovado (D-15).
+- **Decisão:** `pressFeedback` (`components/press-feedback.ts`) devolve escala 0,97 normalmente e, com `useReducedMotion`, opacidade 0,7 sem escala (Button e IconButton). `HoldButton` com movimento reduzido mostra o anel inteiro ganhando opacidade nos mesmos 600 ms. Faixa "Defendendo" em `palette.warning` (token existente) com texto/ícone `palette.ink` (contraste ~8:1; branco sobre amarelo não passaria). Métricas da corrida fixas em 48 pt, sem `adjustsFontSizeToFit`. Chips de camada ganham `hitSlop` 4 (44 pt de toque) sem mudar o desenho de 36 pt.
+- **Consequências:** nenhuma outra mudança visual; comparação de imagem do Playwright continua 4/4. Os 6 traços de giz da conquista seguem fora (D-15).
+
+### D-53 — Contrato da D-50 no app: conta inativada encerra a sessão; limites da fila são definitivos
+2026-10-22 · A3 Frontend (exceção autorizada em `services/sync`, do A4)
+- **Contexto:** P-39. O backend passou a responder 401 `ACCOUNT_INACTIVE`, `POINTS_LIMIT`/`TOO_MANY_OPEN_RUNS` (409) e a recusar `endedAt` depois de agora + 5 min.
+- **Decisão:** `errors.ts` reconhece `ACCOUNT_INACTIVE` (PostgREST `PT401` e functions) e avisa ouvintes (`onAccountInactive`; o transporte do sync usa `reportAccountInactive`); o `session-controller` encerra a sessão e deixa "Conta inativada…" em `signedOutNotice`, mostrado na tela Entrar. Na fila, `POINTS_LIMIT` e `TOO_MANY_OPEN_RUNS` marcam a corrida como falha com mensagem clara e sem novas tentativas; os pontos locais só são apagados depois do resultado oficial. `endedAt` vai limitado ao relógio atual (a simulação 10× produz horários futuros). Painel lê `staff_profiles`; o app não lê crews alheias (a própria crew continua em `crews`, permitido a membros). `account-delete` com senha; `INVALID_PASSWORD` vira mensagem no campo.
+- **Consequências:** conta reativada precisa entrar de novo; corridas que falharam por limite ficam no histórico com a explicação e os pontos no aparelho.

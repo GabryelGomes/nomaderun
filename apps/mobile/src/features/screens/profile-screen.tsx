@@ -98,8 +98,8 @@ export function ProfileScreen() {
       <View style={{ gap: space[3] }}>
         <SectionHeader title="Corrida Segura" />
         <Surface>
-          <Row title="Escolta ao vivo" body={s.contacts.length > 0 ? `${s.contacts.join(' e ')} veem sua localização durante a corrida.` : 'Cadastre contatos de segurança para eles verem sua localização durante a corrida.'} value={s.escortOn} onChange={s.toggleEscort} />
-          <Row title="Alerta de parada" body="Se você ficar parado por 10 minutos, perguntamos se está tudo bem e avisamos seus contatos." value={s.stopAlertOn} onChange={s.toggleStopAlert} />
+          <Row testID="perfil-escolta" title="Escolta ao vivo" body={s.contacts.length > 0 ? `${s.contacts.join(' e ')} veem sua localização durante a corrida.` : 'Cadastre contatos de segurança para eles verem sua localização durante a corrida.'} value={s.escortOn} onChange={s.toggleEscort} />
+          <Row testID="perfil-alerta-parada" title="Alerta de parada" body="Se você ficar parado por 10 minutos, perguntamos se está tudo bem e avisamos seus contatos." value={s.stopAlertOn} onChange={s.toggleStopAlert} />
           <Text variant="small" muted>
             Seu início e fim de corrida perto de casa ficam escondidos dos outros corredores.
           </Text>
@@ -158,7 +158,7 @@ function LinkRow({ title, body, onPress, testID }: { title: string; body: string
   );
 }
 
-function Row({ title, body, value, onChange }: { title: string; body: string; value: boolean; onChange: () => void }) {
+function Row({ title, body, value, onChange, testID }: { title: string; body: string; value: boolean; onChange: () => void; testID: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
       <View style={{ flex: 1 }}>
@@ -167,7 +167,7 @@ function Row({ title, body, value, onChange }: { title: string; body: string; va
           {body}
         </Text>
       </View>
-      <Switch value={value} onValueChange={onChange} accessibilityLabel={title} />
+      <Switch testID={testID} value={value} onValueChange={onChange} accessibilityLabel={title} />
     </View>
   );
 }

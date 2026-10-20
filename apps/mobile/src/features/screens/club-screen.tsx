@@ -185,7 +185,7 @@ export function ClubScreen() {
           <Text variant="small" muted>
             {DEMO_CREW.nextMeetup.going + (going ? 1 : 0)} confirmados. Correr junto vale pontos ×1,25 para todos.
           </Text>
-          <Button label={going ? 'Presença confirmada' : 'Confirmar presença'} icon={going ? 'check' : undefined} kind={going ? 'secondary' : 'primary'} onPress={() => setGoing((g) => !g)} />
+          <Button testID="clube-encontro-presenca" label={going ? 'Presença confirmada' : 'Confirmar presença'} icon={going ? 'check' : undefined} kind={going ? 'secondary' : 'primary'} onPress={() => setGoing((g) => !g)} />
         </Surface>
         <Text variant="caption" muted>
           Encontro de demonstração.

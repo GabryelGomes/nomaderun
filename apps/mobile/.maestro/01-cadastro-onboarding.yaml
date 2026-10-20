@@ -24,6 +24,10 @@ tags: [auth, rf-001, rf-003]
 - tapOn:
     id: "cadastro-nascimento"
 - inputText: "15/05/2000"
+- tapOn:
+    id: "cadastro-cidade"
+# sem acento: o inputText do Maestro no Android não digita caracteres fora do ASCII
+- inputText: "Goiania"
 - hideKeyboard
 - tapOn:
     id: "cadastro-aceite-termos"

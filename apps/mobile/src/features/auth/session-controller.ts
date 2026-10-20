@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 
 import * as authRepo from '@/services/api/auth-repo';
 import { isBackendConfigured } from '@/services/api/env';
-import { AppError, type Result } from '@/services/api/errors';
+import { AppError, MESSAGES, onAccountInactive, type Result } from '@/services/api/errors';
 import { readCachedProfile, writeCachedProfile } from '@/services/api/profile-cache';
 import * as profileRepo from '@/services/api/profile-repo';
 import type { Profile, ProfilePatch } from '@/services/api/types';
@@ -82,26 +82,76 @@ export async function signOut(): Promise<void> {
   clearLocal();
 }
 
+let endingInactive = false;
+
+/**
+ * O servidor avisou que a conta foi inativada (401 `ACCOUNT_INACTIVE`, D-50): encerra a sessão
+ * neste aparelho e mostra o motivo na tela Entrar. Corridas na fila continuam guardadas.
+ */
+export async function endSessionForInactiveAccount(): Promise<void> {
+  if (endingInactive || !useSession.getState().session) return;
+  endingInactive = true;
+  try {
+    await authRepo.signOut();
+    clearLocal();
+    useSession.getState().setSignedOutNotice(MESSAGES.accountInactive);
+  } finally {
+    endingInactive = false;
+  }
+}
+
 /** Usado depois da exclusão da conta (o usuário já não existe no servidor). */
 export async function signOutAfterDeletion(): Promise<void> {
   await authRepo.signOut();
   clearLocal();
 }
 
-/** Trata um link `nomaderun://...` com tokens de autenticação. Devolve erro amigável ou null. */
-export async function handleAuthUrl(url: string | null): Promise<AppError | null> {
+/**
+ * Trata um link `nomaderun://...` de autenticação (QA-03). Devolve erro amigável ou null.
+ *  - só o `code` do fluxo PKCE vira sessão (tokens soltos na URL são recusados no repositório);
+ *  - com alguém já conectado, o link fica pendente até a pessoa confirmar a troca de conta
+ *    (`confirmPendingLink`), porque não dá para saber de qual conta ele é antes de usá-lo.
+ */
+export async function handleAuthUrl(url: string | null, opts: { confirmed?: boolean } = {}): Promise<AppError | null> {
   const cb = parseAuthCallback(url);
-  if (!cb) return null;
+  if (!cb || !url) return null;
+  const current = await authRepo.getCurrentSession();
+  const signedInAs = current.ok ? current.data : null;
+  if (signedInAs && !opts.confirmed) {
+    // Links de erro ou com tokens não trocam nada: ignorados para quem já está conectado.
+    if (cb.kind !== 'code') return null;
+    useSession.getState().setPendingLink({ url, currentEmail: signedInAs.email });
+    return null;
+  }
   const recovery = isRecoveryLink(url, cb);
   if (recovery) useSession.getState().setRecovering(true);
   useSession.getState().setLinkError(null);
   const res = await authRepo.sessionFromCallback(cb);
   if (!res.ok) {
-    useSession.getState().setLinkError(res.error);
+    if (signedInAs) useSession.getState().setRecovering(false);
+    else useSession.getState().setLinkError(res.error);
     return res.error;
+  }
+  if (signedInAs && signedInAs.userId !== res.data.userId) {
+    // Trocou de conta: o progresso local da conta anterior não pode vazar para a nova.
+    useGame.getState().resetForSignOut();
+    void writeCachedProfile(null);
   }
   useSession.getState().setSession(res.data);
   return null;
+}
+
+/** A pessoa confirmou a troca de conta pelo link pendente. */
+export async function confirmPendingLink(): Promise<AppError | null> {
+  const pending = useSession.getState().pendingLink;
+  useSession.getState().setPendingLink(null);
+  if (!pending) return null;
+  return handleAuthUrl(pending.url, { confirmed: true });
+}
+
+/** A pessoa preferiu continuar na conta atual: o link é descartado. */
+export function dismissPendingLink() {
+  useSession.getState().setPendingLink(null);
 }
 
 /** Montado uma vez no layout raiz: restaura a sessão, escuta mudanças e links de autenticação. */
@@ -112,6 +162,7 @@ export function useSessionBootstrap() {
       return;
     }
     let alive = true;
+    const offInactive = onAccountInactive(() => void endSessionForInactiveAccount());
     const sub = authRepo.onAuthChange((event, session) => {
       if (!alive) return;
       if (event === 'PASSWORD_RECOVERY') useSession.getState().setRecovering(true);
@@ -138,6 +189,7 @@ export function useSessionBootstrap() {
 
     return () => {
       alive = false;
+      offInactive();
       sub?.unsubscribe();
       linkSub.remove();
     };

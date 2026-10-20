@@ -11,7 +11,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const SRC = join(__dirname, '..');
-const BASELINE = ['components/button.tsx', 'components/hold-button.tsx'];
+const BASELINE: string[] = []; // QA-12 corrigido (A3): Button, IconButton e HoldButton consultam useReducedMotion
 
 const ANIMATES = [
   /transitionProperty:[^\n]*transform/,

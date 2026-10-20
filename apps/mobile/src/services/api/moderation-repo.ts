@@ -71,7 +71,7 @@ const ACTIVITY_COLS = 'id,user_id,status,started_at,meters,moving_seconds,avg_pa
 
 async function profilesById(ids: string[]): Promise<Map<string, Row>> {
   if (ids.length === 0) return new Map();
-  const { data, error } = await requireSupabase().from('profiles').select('id,username,trust').in('id', ids);
+  const { data, error } = await requireSupabase().from('staff_profiles').select('id,username,trust').in('id', ids);
   if (error) throw error;
   return new Map(((data ?? []) as Row[]).map((p) => [String(p.id), p]));
 }
@@ -145,10 +145,10 @@ export async function moderateActivity(activityId: string, decision: ModerationD
   return callFunction<ModerationResult>('moderate-activity', { method: 'POST', body: { activityId, decision, justification: justification.trim() } });
 }
 
-/** Admin: lista contas (staff lê todos os perfis pela RLS). */
+/** Admin: lista contas pela view `staff_profiles` (só staff vê linhas; sem data de nascimento, QA-16/D-50). */
 export async function listUsers(search: string, limit = 50): Promise<Result<ManagedUser[]>> {
   return attempt(async () => {
-    let q = requireSupabase().from('profiles').select('id,username,role,status,trust,faction,city');
+    let q = requireSupabase().from('staff_profiles').select('id,username,role,status,trust,faction,city');
     const term = search.trim().replace(/[%*,()]/g, ''); // '_' fica: casa com qualquer caractere (busca mais ampla, sem risco)
     if (term) q = q.ilike('username', `%${term}%`);
     const { data, error } = await q.order('username').limit(limit);

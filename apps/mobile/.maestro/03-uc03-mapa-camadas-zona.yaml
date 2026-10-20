@@ -8,9 +8,12 @@ tags: [uc-03, rf-007]
     visible:
       text: ".*zonas em .*"
     timeout: 30000
-- tapOn: "Só meu time"
-- tapOn: "Onde já corri"
-- tapOn: "Todos os times"
+- tapOn:
+    id: "mapa-camada-meu-time"
+- tapOn:
+    id: "mapa-camada-explorado"
+- tapOn:
+    id: "mapa-camada-todos"
 - tapOn:
     id: "mapa-camada"
 - tapOn:

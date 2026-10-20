@@ -6,7 +6,9 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 import * as accountRepo from '../account-repo';
 import * as authRepo from '../auth-repo';
+import { MESSAGES } from '../errors';
 import * as profileRepo from '../profile-repo';
+import { isRecoveryLink, parseAuthCallback } from '../../auth/deep-link';
 
 /**
  * Integração real contra o Supabase local (cadastro → perfil → facção → exportar → excluir).
@@ -36,8 +38,23 @@ if (RUN) {
       autoRefreshToken: false,
       persistSession: true,
       detectSessionInUrl: false,
+      flowType: 'pkce', // igual ao app (QA-03)
     },
   });
+}
+const MAIL = process.env.NOMADE_IT_MAIL ?? 'http://127.0.0.1:54324';
+
+/** Último link do e-mail de recuperação enviado para `to` na caixa local (`npm run mail`). */
+async function recoveryLinkFor(to: string, after: number): Promise<string | null> {
+  for (let i = 0; i < 20; i++) {
+    const res = await nodeFetch!(`${MAIL}/api/messages`).catch(() => null);
+    const body = res ? ((await res.json()) as { messages: { to: string; date: string; links: string[] }[] }) : { messages: [] };
+    const msg = body.messages.find((m) => m.to.includes(to) && Date.parse(m.date) >= after - 2000);
+    const link = msg?.links.find((l) => l.includes('/auth/v1/verify'));
+    if (link) return link;
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  return null;
 }
 
 jest.mock('../supabase', () => ({
@@ -52,11 +69,17 @@ suite('integração com o Supabase local', () => {
   const email = `it_${stamp}@nomaderun.test`;
   const username = `it_${stamp}`.slice(0, 20);
   const password = 'Corrida2026!';
+  const newPassword = 'Trilha2026#nova';
   let userId = '';
   let deleted = false;
 
   afterAll(async () => {
-    if (!deleted && userId) await accountRepo.deleteMyAccount();
+    if (!deleted && userId) {
+      // a senha pode ter mudado no teste de recuperação
+      if (!(await authRepo.signIn(email, newPassword)).ok) await authRepo.signIn(email, password);
+      const r = await accountRepo.deleteMyAccount(newPassword);
+      if (!r.ok) await accountRepo.deleteMyAccount(password);
+    }
   });
 
   it('nome livre antes do cadastro', async () => {
@@ -64,13 +87,14 @@ suite('integração com o Supabase local', () => {
   });
 
   it('cadastro com 16+ e aceites cria sessão e perfil sem facção', async () => {
-    const r = await authRepo.signUp({ email, password, username, birthdate: '2000-05-10', acceptedTerms: true, acceptedPrivacy: true });
+    const r = await authRepo.signUp({ email, password, username, birthdate: '2000-05-10', city: ' Goiânia ', acceptedTerms: true, acceptedPrivacy: true });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.data.needsConfirmation).toBe(false);
     userId = r.data.session?.userId ?? '';
     const p = await profileRepo.getMyProfile(userId);
-    expect(p).toMatchObject({ ok: true, data: { username, faction: null, unit: 'km', role: 'runner' } });
+    // cidade natal do cadastro (options.data.city) gravada pelo trigger
+    expect(p).toMatchObject({ ok: true, data: { username, faction: null, unit: 'km', role: 'runner', city: 'Goiânia' } });
     await expect(profileRepo.isUsernameAvailable(username.toUpperCase())).resolves.toEqual({ ok: true, data: false });
   });
 
@@ -110,12 +134,53 @@ suite('integração com o Supabase local', () => {
     if (r.ok) expect(JSON.stringify(r.data)).toContain(username);
   });
 
+  it('QA-03: recuperação de senha pelo fluxo PKCE (e-mail local → code → sessão → senha nova)', async () => {
+    await authRepo.signOut();
+    const t0 = Date.now();
+    await expect(authRepo.sendPasswordReset(email, 'nomaderun://nova-senha')).resolves.toEqual({ ok: true, data: undefined });
+    const verify = await recoveryLinkFor(email, t0);
+    expect(verify).not.toBeNull();
+    // o link do e-mail passa pelo Auth, que redireciona para o app só com `?code=` (nada de tokens)
+    const hop = await nodeFetch!(verify!, { redirect: 'manual' });
+    const appUrl = hop.headers.get('location') ?? '';
+    expect(appUrl).toMatch(/^nomaderun:\/\/nova-senha\?code=/);
+    expect(appUrl).not.toContain('access_token');
+    const cb = parseAuthCallback(appUrl);
+    expect(cb?.kind).toBe('code');
+    expect(isRecoveryLink(appUrl, cb)).toBe(true);
+    // o mesmo code em outro aparelho (sem o verificador) não serve
+    const otherDevice = createClient(URL, ANON, { global: { fetch: nodeFetch }, auth: { persistSession: false, autoRefreshToken: false, flowType: 'pkce' } });
+    const stolen = await otherDevice.auth.exchangeCodeForSession((cb as { code: string }).code);
+    expect(stolen.data.session).toBeNull();
+    const s = await authRepo.sessionFromCallback(cb!);
+    expect(s).toMatchObject({ ok: true, data: { userId } });
+    await expect(authRepo.updatePassword(newPassword)).resolves.toEqual({ ok: true, data: undefined });
+    await authRepo.signOut();
+    await expect(authRepo.signIn(email, newPassword)).resolves.toMatchObject({ ok: true, data: { userId } });
+  });
+
+  it('QA-03: link com tokens na URL (fluxo implícito) é recusado e não troca a sessão', async () => {
+    const before = await authRepo.getCurrentSession();
+    const forged = parseAuthCallback('nomaderun://nova-senha#access_token=forjado&refresh_token=forjado&type=recovery');
+    await expect(authRepo.sessionFromCallback(forged!)).resolves.toMatchObject({ ok: false, error: { detail: 'IMPLICIT_TOKENS' } });
+    await expect(authRepo.getCurrentSession()).resolves.toEqual(before);
+  });
+
+  it('QA-06: excluir com a senha errada é recusado com mensagem amigável', async () => {
+    const r = await accountRepo.deleteMyAccount('senha-errada-123');
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(accountRepo.isWrongPasswordError(r.error)).toBe(true);
+      expect(r.error.message).toBe(MESSAGES.wrongPassword);
+    }
+  });
+
   it('exclui a conta e não consegue mais entrar', async () => {
-    const r = await accountRepo.deleteMyAccount();
+    const r = await accountRepo.deleteMyAccount(newPassword);
     expect(r.ok).toBe(true);
     deleted = r.ok;
     await authRepo.signOut();
-    const again = await authRepo.signIn(email, password);
+    const again = await authRepo.signIn(email, newPassword);
     expect(again.ok).toBe(false);
   });
 });

@@ -189,6 +189,63 @@ describe('sync da fila (RF-005, RNF-005, RNF-006)', () => {
     expect(server.storedSeqs(id)).toHaveLength(20);
   });
 
+  it.each(['POINTS_LIMIT', 'TOO_MANY_OPEN_RUNS'])('409 %s (D-50): falha com mensagem clara, sem novas tentativas e sem apagar os pontos', async (code) => {
+    const store = createMemoryStore();
+    const server = createFakeServer();
+    let ingestCalls = 0;
+    const transport = {
+      ...server.transport,
+      ingest: async () => {
+        ingestCalls += 1;
+        return { ok: false as const, error: { code, status: 409, message: 'limite' } };
+      },
+    };
+    const engine = createSyncEngine({ store, transport, keys: memoryKeyRing(), platform: 'android', now: () => T0 });
+    const id = await newRun(store);
+    await store.appendPoints(id, pts(0, 30));
+    await end(store, id);
+    const out = await engine.syncRun(id);
+    expect(out.status).toBe('failed');
+    expect(out.run).toMatchObject({ state: 'failed', errorCode: code });
+    expect(out.run?.error).toMatch(/guardados no aparelho/);
+    expect(await store.readPoints(id, 0, 100)).toHaveLength(30);
+    // nada de laço: outra rodada não chama o servidor de novo
+    await engine.syncAll('me', { force: true });
+    await engine.syncRun(id, { force: true });
+    expect(ingestCalls).toBe(1);
+  });
+
+  it('POINTS_LIMIT no finish também é definitivo', async () => {
+    const store = createMemoryStore();
+    const server = createFakeServer();
+    const transport = { ...server.transport, finish: async () => ({ ok: false as const, error: { code: 'POINTS_LIMIT', status: 409, message: 'limite' } }) };
+    const engine = createSyncEngine({ store, transport, keys: memoryKeyRing(), platform: 'android', now: () => T0 });
+    const id = await newRun(store);
+    await store.appendPoints(id, pts(0, 5));
+    await end(store, id);
+    expect(await engine.syncRun(id)).toMatchObject({ status: 'failed', run: { errorCode: 'POINTS_LIMIT' } });
+    expect(await store.readPoints(id, 0, 10)).toHaveLength(5);
+  });
+
+  it('QA-09: endedAt no futuro (simulação 10×) vai limitado ao relógio atual', async () => {
+    const store = createMemoryStore();
+    const server = createFakeServer();
+    const sent: (number | undefined)[] = [];
+    const transport = {
+      ...server.transport,
+      finish: (body: Parameters<typeof server.transport.finish>[0]) => {
+        sent.push(body.endedAt);
+        return server.transport.finish(body);
+      },
+    };
+    const engine = createSyncEngine({ store, transport, keys: memoryKeyRing(), platform: 'android', now: () => T0 + 60_000 });
+    const id = await newRun(store);
+    await store.appendPoints(id, pts(0, 5));
+    await store.updateRun(id, { state: 'pending', endedAt: T0 + 3_600_000 });
+    expect((await engine.syncRun(id)).status).toBe('synced');
+    expect(sent).toEqual([T0 + 60_000]);
+  });
+
   it('corrida sem pontos não vai para o servidor', async () => {
     const { engine, store, server } = setup();
     const id = await newRun(store);

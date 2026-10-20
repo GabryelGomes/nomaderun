@@ -13,16 +13,16 @@ import { useGame, type MissionId } from '@/store/game-store';
 import { factions, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-type Mode = { title: string; body: string; icon: IconName; kind: 'sempre' | MissionId | 'evento'; status?: string };
+type Mode = { id: string; title: string; body: string; icon: IconName; kind: 'sempre' | MissionId | 'evento'; status?: string };
 
 const MODES: Mode[] = [
-  { title: 'Domínio', body: 'Cada metro pinta a zona com a cor do seu time. Zonas são atacadas, defendidas e fortificadas.', icon: 'territory', kind: 'sempre' },
-  { title: 'Neblina', body: 'A cidade começa coberta. Cada rua por onde você passa fica revelada para sempre.', icon: 'fog', kind: 'sempre' },
-  { title: 'Raid', body: 'Um chefão contra a cidade inteira por 48 horas. Todo quilômetro causa dano.', icon: 'raid', kind: 'sempre' },
-  { title: 'Fuga', body: 'Um fantasma corre no seu encalço. Termine à frente e ganhe pontos ×1,5.', icon: 'ghost', kind: 'fuga' },
-  { title: 'Caça', body: 'Baús escondidos em ruas e parques. Os lendários ficam longe.', icon: 'chest', kind: 'caca' },
-  { title: 'Rabisco', body: 'Desenhe a forma da semana com o seu percurso e receba uma nota de 0 a 100.', icon: 'brush', kind: 'evento', status: 'Chega na v1.0' },
-  { title: 'Bandeira', body: 'Capture a bandeira do time rival no bairro, ao vivo, em eventos de clube.', icon: 'flag', kind: 'evento', status: 'Eventos de clube na v2' },
+  { id: 'dominio', title: 'Domínio', body: 'Cada metro pinta a zona com a cor do seu time. Zonas são atacadas, defendidas e fortificadas.', icon: 'territory', kind: 'sempre' },
+  { id: 'neblina', title: 'Neblina', body: 'A cidade começa coberta. Cada rua por onde você passa fica revelada para sempre.', icon: 'fog', kind: 'sempre' },
+  { id: 'raid', title: 'Raid', body: 'Um chefão contra a cidade inteira por 48 horas. Todo quilômetro causa dano.', icon: 'raid', kind: 'sempre' },
+  { id: 'fuga', title: 'Fuga', body: 'Um fantasma corre no seu encalço. Termine à frente e ganhe pontos ×1,5.', icon: 'ghost', kind: 'fuga' },
+  { id: 'caca', title: 'Caça', body: 'Baús escondidos em ruas e parques. Os lendários ficam longe.', icon: 'chest', kind: 'caca' },
+  { id: 'rabisco', title: 'Rabisco', body: 'Desenhe a forma da semana com o seu percurso e receba uma nota de 0 a 100.', icon: 'brush', kind: 'evento', status: 'Chega na v1.0' },
+  { id: 'bandeira', title: 'Bandeira', body: 'Capture a bandeira do time rival no bairro, ao vivo, em eventos de clube.', icon: 'flag', kind: 'evento', status: 'Eventos de clube na v2' },
 ];
 
 /** The Arena (Product Book §3): passive layers, missions and events. Every run counts. */
@@ -67,6 +67,7 @@ export function ArenaScreen() {
           return (
             <Pressable
               key={m.title}
+              testID={`arena-modo-${m.id}`}
               disabled={!playable}
               accessibilityRole={playable ? 'button' : 'summary'}
               accessibilityLabel={`${m.title}. ${m.body}${playable ? ' Toque para correr com este modo.' : ''}`}
@@ -123,7 +124,7 @@ export function ArenaScreen() {
         </Text>
       </View>
 
-      <Button label="Correr agora" icon="play" size="lg" wide onPress={() => router.push('/corrida')} />
+      <Button testID="arena-correr" label="Correr agora" icon="play" size="lg" wide onPress={() => router.push('/corrida')} />
     </ScrollView>
   );
 }

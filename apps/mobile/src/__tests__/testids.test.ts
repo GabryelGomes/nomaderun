@@ -25,18 +25,9 @@ const LABEL_IS_A11Y = new Set(['Button', 'IconButton', 'HoldButton']);
  * Elementos interativos sem testID no momento da revisão (arquivo:Tag, uma entrada por ocorrência).
  * Corrigir = apagar daqui. Não acrescente entradas: dê um testID ao elemento novo.
  */
-const BASELINE_MISSING_TESTID: string[] = [
-  'components/hold-button.tsx:Pressable', // "Segure para encerrar": o Maestro usa o texto
-  'features/screens/arena-screen.tsx:Pressable',
-  'features/screens/arena-screen.tsx:Button', // "Correr agora"
-  'features/screens/club-screen.tsx:Button',
-  'features/screens/map-screen.tsx:Pressable', // filtros de camada (Todos os times / Só meu time / Onde já corri)
-  'features/screens/map-screen.tsx:Button', // "Correr" do mapa (RNF-010)
-  'features/screens/profile-screen.tsx:Switch',
-  'features/screens/run-screen.tsx:HoldButton',
-];
+const BASELINE_MISSING_TESTID: string[] = []; // QA-13 corrigido (A3): lista vazia
 /** Sem accessibilityLabel explícito (o leitor de tela lê o texto filho, mas sem descrição fixa). */
-const BASELINE_MISSING_A11Y: string[] = ['features/screens/map-screen.tsx:Pressable'];
+const BASELINE_MISSING_A11Y: string[] = []; // filtros de camada ganharam accessibilityLabel (QA-13)
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {

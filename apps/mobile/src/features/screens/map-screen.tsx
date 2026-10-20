@@ -164,8 +164,13 @@ export function MapScreen() {
             return (
               <Pressable
                 key={key}
+                testID={`mapa-camada-${key}`}
                 accessibilityRole="button"
+                accessibilityLabel={label}
+                accessibilityHint="Filtra as zonas mostradas no mapa"
                 accessibilityState={{ selected: on }}
+                // QA-12: o desenho continua com 36 pt; a área de toque chega a 44 pt.
+                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                 onPress={() => setLayer(key)}
                 style={{
                   paddingHorizontal: space[4],
@@ -246,7 +251,7 @@ export function MapScreen() {
             </View>
           </Pressable>
         ) : null}
-        <Button label="Correr" icon="play" size="lg" wide onPress={() => router.push('/corrida')} />
+        <Button testID="mapa-correr" label="Correr" icon="play" size="lg" wide onPress={() => router.push('/corrida')} />
       </View>
     </View>
   );

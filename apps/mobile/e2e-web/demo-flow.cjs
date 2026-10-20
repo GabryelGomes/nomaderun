@@ -97,6 +97,7 @@ async function api(method, url, token, body) {
     await id('cadastro-senha').fill(user.password);
     await id('cadastro-usuario').fill(user.username);
     await id('cadastro-nascimento').fill('15/05/2000');
+    await id('cadastro-cidade').fill('Goiânia');
     await id('cadastro-aceite-termos').click();
     await id('cadastro-aceite-privacidade').click();
     await id('cadastro-botao').click();
@@ -113,7 +114,7 @@ async function api(method, url, token, body) {
     ok(true, 'facção Neon Striders gravada e mapa com zonas do servidor');
     await shot('01-mapa');
 
-    await page.getByRole('button', { name: 'Correr', exact: true }).first().click();
+    await id('mapa-correr').click();
     await id('corrida-comecar').waitFor({ timeout: 15_000 });
     await id('corrida-sinal-simulacao').click();
     await id('corrida-comecar').click();
@@ -124,7 +125,7 @@ async function api(method, url, token, body) {
     ok(true, `simulação chegou à zona neutra (${Math.round((Date.now() - t0) / 1000)} s)`);
     await page.waitForTimeout(3000);
     await shot('02-corrida');
-    const hold = page.locator('[aria-label="Segure para encerrar"]').first();
+    const hold = id('corrida-encerrar');
     await hold.scrollIntoViewIfNeeded();
     const box = await hold.boundingBox();
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
@@ -141,6 +142,8 @@ async function api(method, url, token, body) {
 
     // servidor: qual zona virou dos Striders com este corredor no topo
     const login = await api('POST', '/auth/v1/token?grant_type=password', null, { email: user.email, password: user.password });
+    const me = await api('GET', `/rest/v1/profiles?select=city&id=eq.${login.data.user.id}`, login.data.access_token);
+    ok(me.data?.[0]?.city === 'Goiânia', 'cidade natal do cadastro gravada no perfil (options.data.city)', me.data);
     let conquered = null;
     for (const zid of zoneIds) {
       const z = await api('GET', `/functions/v1/zone?id=${zid}`, login.data.access_token);
@@ -183,6 +186,7 @@ async function api(method, url, token, body) {
     const firstRun = mpage.locator('[data-testid^="moderacao-corrida-"]').first();
     await firstRun.waitFor({ timeout: 20_000 });
     ok(true, `fila de moderação com ${await mpage.locator('[data-testid^="moderacao-corrida-"]').count()} corrida(s) em revisão`);
+    ok((await firstRun.innerText()).includes('suspeito_demo'), 'painel mostra o nome do corredor (staff_profiles, P-39)');
     await firstRun.click();
     await mid('tela-moderacao-detalhe').waitFor({ timeout: 20_000 });
     await mid('moderacao-justificativa').waitFor({ timeout: 30_000 });
@@ -194,7 +198,7 @@ async function api(method, url, token, body) {
     await mctx.close();
 
     // limpeza: apaga a conta de teste pela própria function (LGPD)
-    await api('POST', '/functions/v1/account-delete', login.data.access_token, { confirm: 'EXCLUIR' });
+    await api('POST', '/functions/v1/account-delete', login.data.access_token, { confirm: 'EXCLUIR', password: user.password });
     const relevant = errors.filter((e) => !/tile|maplibre|Failed to fetch.*(openstreetmap|carto|tiles)/i.test(e));
     ok(relevant.length === 0, 'sem erros de página (fora o mapa-base externo)', relevant);
     console.log(`\n${results.filter((r) => r.ok).length}/${results.length} verificações ok`);

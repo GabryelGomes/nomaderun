@@ -237,6 +237,8 @@ function ActiveRun({ mode }: { mode: RunMode }) {
   const owner = zone?.owner ?? null;
   const rival = owner !== null && owner !== faction;
   const defending = !!zone && owner === faction && defenseWindowOpen(zone, now);
+  // Faixa "Defendendo" amarela (ERS, QA-12): texto escuro sobre o amarelo para manter o contraste.
+  const bannerInk = rival ? factions[owner!].onColor : defending ? palette.ink : palette.white;
   const myInfluence = zone ? zone.influence[faction] : 0;
   const runRp = zoneId ? (s.run.zoneMeters[zoneId] ?? 0) * 0.1 : 0;
   const target = owner === null ? CAPTURE_THRESHOLD : rival ? zone!.influence[owner!] * TAKEOVER_RATIO : 0;
@@ -293,7 +295,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             gap: space[3],
             padding: space[3],
             borderRadius: radius.lg,
-            backgroundColor: rival ? factions[owner!].color : defending ? palette.success : colors.surface,
+            backgroundColor: rival ? factions[owner!].color : defending ? palette.warning : colors.surface,
             boxShadow: floating,
             opacity: rival || defending ? 1 : 0,
             transform: [{ translateY: rival || defending || reduced ? 0 : -12 }],
@@ -301,12 +303,12 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             transitionDuration: 220,
             transitionTimingFunction: CSS_EASE_OUT,
           }}>
-          <Icon name={defending ? 'shield' : 'warning'} size={24} color={rival ? factions[owner!].onColor : palette.white} />
+          <Icon name={defending ? 'shield' : 'warning'} size={24} color={bannerInk} />
           <View style={{ flex: 1 }}>
-            <Text variant="bodyBold" color={rival ? factions[owner!].onColor : palette.white}>
+            <Text variant="bodyBold" color={bannerInk}>
               {defending ? 'Defendendo seu território' : rival ? `Território dos ${factions[owner!].name}` : ''}
             </Text>
-            <Text variant="caption" color={rival ? factions[owner!].onColor : palette.white}>
+            <Text variant="caption" color={bannerInk}>
               {defending ? 'Pontos em dobro nesta zona' : 'Corra aqui para conquistar'}
             </Text>
           </View>
@@ -395,7 +397,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             size={56}
             onPress={s.toggleVoice}
           />
-          <HoldButton label="Segure para encerrar" onConfirm={finish} />
+          <HoldButton testID="corrida-encerrar" label="Segure para encerrar" onConfirm={finish} />
           <IconButton
             testID="corrida-pausar"
             icon={s.phase === 'paused' ? 'play' : 'pause'}
@@ -466,8 +468,8 @@ const METRIC_PT = 48;
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <View style={{ flex: 1, alignItems: 'center' }}>
-      {/* RNF-015: métricas com pelo menos 48 pt (o token `metric` tem 40). */}
-      <Text variant="metric" tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ fontSize: METRIC_PT, lineHeight: METRIC_PT * 1.05 }}>
+      {/* RNF-015: métricas com pelo menos 48 pt (o token `metric` tem 40), sem encolher para caber (QA-12). */}
+      <Text variant="metric" tabular numberOfLines={1} style={{ fontSize: METRIC_PT, lineHeight: METRIC_PT * 1.05 }}>
         {value}
       </Text>
       <Text variant="caption" muted>

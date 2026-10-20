@@ -1,8 +1,9 @@
 /**
  * Leitura dos links de autenticação que chegam por `nomaderun://` (recuperação de senha,
- * confirmação de e-mail, retorno do login social). O Supabase devolve os dados no fragmento
- * (`#access_token=...&refresh_token=...&type=recovery`, fluxo implícito) ou na query
- * (`?code=...`, fluxo PKCE) e, em caso de falha, `error_description`.
+ * confirmação de e-mail, retorno do login social). O app usa o fluxo PKCE (QA-03): o link
+ * traz `?code=...`, que só vale junto com o verificador guardado neste aparelho. Links com
+ * tokens no fragmento (`#access_token=...`, fluxo implícito) ainda são reconhecidos, mas só
+ * para serem recusados (`auth-repo.sessionFromCallback`). Em caso de falha vem `error_description`.
  */
 export type AuthCallback =
   | { kind: 'tokens'; accessToken: string; refreshToken: string; type: string | null }

@@ -89,7 +89,7 @@ suite('integração das pendências do A3 da Fase 3 (P-20, P-24, P-25, P-27)', (
   afterAll(async () => {
     if (tempId) {
       await authRepo.signIn(temp.email, temp.password).catch(() => undefined);
-      await accountRepo.deleteMyAccount();
+      await accountRepo.deleteMyAccount(temp.password);
     }
     await mockRealClient?.removeAllChannels();
     mockRealClient?.realtime.disconnect();

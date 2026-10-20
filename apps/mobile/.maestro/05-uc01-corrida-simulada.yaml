@@ -5,7 +5,8 @@ name: UC-01 Corrida simulada e conquista
 tags: [uc-01, rf-004, rf-006, rf-008]
 ---
 - runFlow: 01-cadastro-onboarding.yaml
-- tapOn: "Correr"
+- tapOn:
+    id: "mapa-correr"
 - extendedWaitUntil:
     visible:
       id: "corrida-comecar"
@@ -28,7 +29,8 @@ tags: [uc-01, rf-004, rf-006, rf-008]
     visible:
       text: "Conquista garantida ao terminar"
     timeout: 300000
-- longPressOn: "Segure para encerrar"
+- longPressOn:
+    id: "corrida-encerrar"
 - extendedWaitUntil:
     visible:
       id: "tela-resumo"

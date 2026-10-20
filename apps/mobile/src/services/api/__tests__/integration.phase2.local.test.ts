@@ -8,6 +8,7 @@ import { randomUUID } from 'node:crypto';
 
 import * as accountRepo from '../account-repo';
 import * as authRepo from '../auth-repo';
+import { MESSAGES, toAppError } from '../errors';
 import * as avatarRepo from '../avatar-repo';
 import * as crewsRepo from '../crews-repo';
 import * as leaderboardRepo from '../leaderboard-repo';
@@ -93,7 +94,7 @@ suite('integração Fase 2/3 (A3) com o Supabase local', () => {
     if (tempId) {
       await as(temp).catch(() => undefined);
       await crewsRepo.leaveCrew();
-      await accountRepo.deleteMyAccount();
+      await accountRepo.deleteMyAccount(temp.password);
     }
     await as(DEMO.runner).catch(() => undefined);
     await crewsRepo.leaveCrew();
@@ -184,8 +185,15 @@ suite('integração Fase 2/3 (A3) com o Supabase local', () => {
     await as(DEMO.admin);
     const users = await moderationRepo.listUsers(temp.username);
     expect(users.ok && users.data.map((u) => u.id)).toEqual([tempId]);
+    // P-39: a conta temporária, já com sessão em outro aparelho, perde o acesso ao ser inativada (401 ACCOUNT_INACTIVE)
+    const other = createClient(URL, ANON, { global: { fetch: nodeFetch }, auth: { persistSession: false, autoRefreshToken: false } });
+    await other.auth.signInWithPassword({ email: temp.email, password: temp.password });
     expect(await moderationRepo.setUserStatus(tempId, 'inactive')).toEqual({ ok: true, data: { userId: tempId, status: 'inactive' } });
+    const blocked = await other.from('profiles').select('id').eq('id', tempId);
+    expect(blocked.error).not.toBeNull();
+    expect(toAppError(blocked.error)).toMatchObject({ code: 'UNAUTHORIZED', detail: 'ACCOUNT_INACTIVE', message: MESSAGES.accountInactive });
     expect(await moderationRepo.setUserStatus(tempId, 'active')).toEqual({ ok: true, data: { userId: tempId, status: 'active' } });
+    expect((await other.from('profiles').select('id').eq('id', tempId)).error).toBeNull();
   });
 
   it('moderador vê a corrida em revisão com percurso e aprova com justificativa; o corredor é avisado', async () => {

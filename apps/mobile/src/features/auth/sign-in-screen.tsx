@@ -8,6 +8,7 @@ import { Text } from '@/components/text';
 import { FACTION_IDS } from '@/domain/types';
 import * as authRepo from '@/services/api/auth-repo';
 import { env } from '@/services/api/env';
+import { useSession } from '@/store/session-store';
 import { space } from '@/theme/tokens';
 
 import { ErrorNotice, FormScaffold, TextField, TextLink } from './form-ui';
@@ -21,6 +22,7 @@ export function SignInScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<{ email?: string; password?: string }>({});
+  const notice = useSession((s) => s.signedOutNotice);
 
   const submit = async () => {
     const emailErr = validateEmail(email);
@@ -29,6 +31,7 @@ export function SignInScreen() {
     if (emailErr || passErr) return;
     setBusy(true);
     setError(null);
+    useSession.getState().setSignedOutNotice(null);
     const res = await authRepo.signIn(email, password);
     setBusy(false);
     // Em sucesso o guarda de rotas do layout raiz leva ao onboarding ou às abas.
@@ -57,6 +60,7 @@ export function SignInScreen() {
 
       <View style={{ gap: space[4] }}>
         <ErrorNotice message={error} testID="entrar-erro" />
+        {error ? null : <ErrorNotice message={notice} testID="entrar-aviso-sessao" />}
         <TextField
           testID="entrar-email"
           label="E-mail"

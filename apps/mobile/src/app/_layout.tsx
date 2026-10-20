@@ -10,6 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { LinkConfirmDialog } from '@/features/auth/link-confirm-dialog';
 import { resolveRouteGroup, type RouteGroup } from '@/features/auth/route-guard';
 import { useSessionBootstrap } from '@/features/auth/session-controller';
 import { canModerate } from '@/features/moderation/guard';
@@ -110,6 +111,7 @@ export default function RootLayout() {
           <Stack.Screen name="termos" options={{ presentation: 'modal' }} />
           <Stack.Screen name="privacidade" options={{ presentation: 'modal' }} />
         </Stack>
+        <LinkConfirmDialog />
       </ThemeProvider>
     </GestureHandlerRootView>
   );

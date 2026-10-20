@@ -15,6 +15,8 @@ export type SignUpInput = {
   username: string;
   /** AAAA-MM-DD */
   birthdate: string;
+  /** Cidade natal (opcional): o trigger grava em `profiles.city` (vazio = sem cidade). */
+  city?: string;
   acceptedTerms: boolean;
   acceptedPrivacy: boolean;
   /** URL de retorno do link de confirmação de e-mail (deep link). */
@@ -34,6 +36,7 @@ export function buildSignUpMetadata(input: SignUpInput, now: Date = new Date()) 
   return {
     username: input.username.trim(),
     birthdate: input.birthdate,
+    ...(input.city?.trim() ? { city: input.city.trim() } : {}),
     accepted_terms: input.acceptedTerms,
     accepted_privacy: input.acceptedPrivacy,
     terms_version: TERMS_VERSION,
@@ -109,15 +112,18 @@ export async function updatePassword(password: string): Promise<Result<void>> {
   });
 }
 
-/** Cria a sessão a partir de um link de autenticação já interpretado. */
+/**
+ * Cria a sessão a partir de um link de autenticação já interpretado (QA-03).
+ * Só aceita o `code` do fluxo PKCE: ele só vira sessão junto com o verificador guardado
+ * neste aparelho quando o pedido foi feito (recuperação de senha, cadastro, login social).
+ * Tokens prontos na URL (fluxo implícito) são recusados: qualquer app ou página poderia
+ * montar um link desses e trocar a conta conectada.
+ */
 export async function sessionFromCallback(cb: AuthCallback): Promise<Result<SessionInfo>> {
   return attempt(async () => {
-    const auth = requireSupabase().auth;
     if (cb.kind === 'error') throw new AppError('UNAUTHORIZED', MESSAGES.linkExpired, { detail: cb.code ?? undefined });
-    const { data, error } =
-      cb.kind === 'tokens'
-        ? await auth.setSession({ access_token: cb.accessToken, refresh_token: cb.refreshToken })
-        : await auth.exchangeCodeForSession(cb.code);
+    if (cb.kind === 'tokens') throw new AppError('UNAUTHORIZED', MESSAGES.linkUnsafe, { detail: 'IMPLICIT_TOKENS' });
+    const { data, error } = await requireSupabase().auth.exchangeCodeForSession(cb.code);
     if (error) throw error;
     const info = toSessionInfo(data.session);
     if (!info) throw new AppError('UNAUTHORIZED', MESSAGES.linkExpired);

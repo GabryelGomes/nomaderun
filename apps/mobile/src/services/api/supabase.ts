@@ -50,6 +50,9 @@ export function getSupabase(): SupabaseClient | null {
       autoRefreshToken: !isServer,
       persistSession: !isServer,
       detectSessionInUrl: false,
+      // QA-03: links de e-mail trazem só um `code` de uso único, trocado pela sessão com o
+      // verificador guardado neste aparelho. Tokens soltos na URL (fluxo implícito) nunca viram sessão.
+      flowType: 'pkce',
     },
   });
   wireAppState(client);

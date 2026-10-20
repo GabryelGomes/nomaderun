@@ -8,6 +8,10 @@
  * - 401: renova a sessão e tenta uma vez. Rede/5xx: mantém na fila com espera exponencial.
  * - `ACTIVITY_CLOSED`: a corrida já foi fechada; busca o resultado guardado.
  * - `REPLAY_MISMATCH`, `DEVICE_MISMATCH`, `NOT_OWNER`, `ACCOUNT_INACTIVE`, `VALIDATION`: erro definitivo.
+ * - `POINTS_LIMIT` / `TOO_MANY_OPEN_RUNS` (409, D-50): erro definitivo com mensagem clara, sem novas tentativas;
+ *   os pontos continuam no aparelho (só a confirmação oficial apaga os pontos locais).
+ * - `endedAt` vai limitado a "agora": a simulação 10× gera horários à frente do relógio e o servidor
+ *   recusa fim depois de agora + 5 min (QA-09).
  */
 import { signBatch } from '@/services/signing/canonical';
 import type { DeviceKey } from '@/services/signing/device-key';
@@ -55,6 +59,9 @@ export const FAILURE_MESSAGE: Record<string, string> = {
   FACTION_REQUIRED: 'Escolha uma facção antes de enviar a corrida.',
   VALIDATION: 'O servidor recusou os dados desta corrida.',
   NO_POINTS: 'A corrida não tem pontos de GPS para enviar.',
+  POINTS_LIMIT: 'Esta corrida passou do limite de pontos de GPS aceito pelo servidor e não pode ser enviada. Os pontos continuam guardados no aparelho.',
+  TOO_MANY_OPEN_RUNS:
+    'Você já tem 3 corridas começadas nas últimas 24 horas sem terminar de enviar. Esta não foi enviada; os pontos continuam guardados no aparelho.',
 };
 
 const failureMessage = (e: ApiFailure) => FAILURE_MESSAGE[e.code] ?? e.message;
@@ -197,7 +204,7 @@ export function createSyncEngine(deps: SyncDeps) {
       const pushed = await push(run.id);
       if (pushed.status !== 'uploaded') return pushed;
       run = pushed.run ?? run;
-      const res = await transport.finish({ activityId: run.id, lastSeq: run.lastSeq, ...(run.endedAt ? { endedAt: run.endedAt } : {}) });
+      const res = await transport.finish({ activityId: run.id, lastSeq: run.lastSeq, ...(run.endedAt ? { endedAt: Math.min(run.endedAt, now()) } : {}) });
       if (res.ok) return confirm(run, res.data);
       const e = res.error;
       if (e.code === 'MISSING_POINTS') {

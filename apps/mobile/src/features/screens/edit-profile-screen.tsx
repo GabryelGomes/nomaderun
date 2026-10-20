@@ -9,7 +9,7 @@ import { SectionHeader, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { ErrorNotice, InfoNotice, TextField } from '@/features/auth/form-ui';
 import { saveProfile } from '@/features/auth/session-controller';
-import { validateUsername } from '@/features/auth/validation';
+import { validateCity, validateUsername } from '@/features/auth/validation';
 import { DEFAULT_NOTIFICATION_PREFS, type DistanceUnit, type NotificationPrefs } from '@/services/api/types';
 import { useSession } from '@/store/session-store';
 
@@ -69,7 +69,7 @@ export function EditProfileScreen() {
 
   const save = async () => {
     const err = validateUsername(username);
-    const cityErr = city.trim().length === 1 ? 'A cidade precisa ter pelo menos 2 letras.' : null;
+    const cityErr = validateCity(city);
     setUsernameError(err);
     setCityError(cityErr);
     setSaved(false);

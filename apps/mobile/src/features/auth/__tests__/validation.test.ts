@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import {
   ageOn,
+  validateCity,
   hasErrors,
   maskBirthdate,
   parseBirthdate,
@@ -81,5 +82,16 @@ describe('e-mail e formulário completo', () => {
     expect(validateSignUp({ ...base, acceptedTerms: false }, today)).toEqual({ acceptedTerms: expect.any(String) });
     expect(validateSignUp({ ...base, acceptedPrivacy: false }, today)).toEqual({ acceptedPrivacy: expect.any(String) });
     expect(Object.keys(validateSignUp({ email: '', password: '', username: '', birthdate: '', acceptedTerms: false, acceptedPrivacy: false }, today))).toHaveLength(6);
+  });
+});
+
+describe('cidade natal no cadastro', () => {
+  it('é opcional; se vier, 2 a 80 caracteres como no banco', () => {
+    expect(validateCity('')).toBeNull();
+    expect(validateCity('   ')).toBeNull();
+    expect(validateCity(undefined)).toBeNull();
+    expect(validateCity('G')).toMatch(/2 letras/);
+    expect(validateCity(' Goiânia ')).toBeNull();
+    expect(validateCity('x'.repeat(81))).toMatch(/80/);
   });
 });

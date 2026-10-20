@@ -24,6 +24,13 @@ type SessionState = {
   recovering: boolean;
   /** Falha ao abrir um link de autenticação (ex.: link de recuperação expirado). */
   linkError: AppError | null;
+  /**
+   * Link de autenticação que chegou com alguém já conectado (QA-03): só é usado depois que
+   * a pessoa confirma a troca de conta. `currentEmail` = conta conectada agora.
+   */
+  pendingLink: { url: string; currentEmail: string | null } | null;
+  /** Aviso mostrado na tela Entrar depois que a sessão foi encerrada pelo servidor (ex.: conta inativada). */
+  signedOutNotice: string | null;
   setUnconfigured: () => void;
   setSession: (session: SessionInfo | null) => void;
   setProfileLoading: () => void;
@@ -31,6 +38,8 @@ type SessionState = {
   setProfileError: (error: AppError) => void;
   setRecovering: (on: boolean) => void;
   setLinkError: (e: AppError | null) => void;
+  setPendingLink: (link: { url: string; currentEmail: string | null } | null) => void;
+  setSignedOutNotice: (notice: string | null) => void;
   reset: () => void;
 };
 
@@ -42,6 +51,8 @@ const initial = {
   profileError: null,
   recovering: false,
   linkError: null,
+  pendingLink: null,
+  signedOutNotice: null,
 };
 
 export const useSession = create<SessionState>((set, get) => ({
@@ -66,5 +77,7 @@ export const useSession = create<SessionState>((set, get) => ({
   setProfileError: (profileError) => set((s) => (s.profile ? { profileError } : { profileStatus: 'error', profileError })),
   setRecovering: (recovering) => set({ recovering }),
   setLinkError: (linkError) => set({ linkError }),
+  setPendingLink: (pendingLink) => set({ pendingLink }),
+  setSignedOutNotice: (signedOutNotice) => set({ signedOutNotice }),
   reset: () => set({ ...initial, status: 'signedOut' }),
 }));

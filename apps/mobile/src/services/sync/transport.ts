@@ -7,6 +7,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { getSupabase } from '@/services/api/supabase';
 import { getActivityResult } from '@/services/api/activities-repo';
+import { ACCOUNT_INACTIVE, reportAccountInactive } from '@/services/api/errors';
 
 import type { ApiFailure, ApiResult, SyncTransport } from './types';
 
@@ -41,7 +42,12 @@ export function createSupabaseTransport(get: () => SupabaseClient | null = getSu
     if (!client) return { ok: false, error: { code: 'NOT_CONFIGURED', status: 0, message: 'Backend não configurado.' } };
     try {
       const { data, error } = await client.functions.invoke(name, { method: 'POST', body });
-      if (error) return { ok: false, error: await parseFunctionsError(error) };
+      if (error) {
+        const failure = await parseFunctionsError(error);
+        // Conta inativada (D-50): o controlador de sessão encerra a sessão e avisa a pessoa.
+        if (failure.code === ACCOUNT_INACTIVE) reportAccountInactive();
+        return { ok: false, error: failure };
+      }
       return { ok: true, data: data as T };
     } catch (err) {
       return { ok: false, error: await parseFunctionsError(err) };

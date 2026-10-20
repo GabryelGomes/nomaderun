@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { AppError, attempt, fromHttp, MESSAGES, splitServerMessage, toAppError } from '../errors';
+import { AppError, attempt, fromHttp, MESSAGES, onAccountInactive, splitServerMessage, toAppError } from '../errors';
 
 const authErr = (props: Record<string, unknown>) => ({ __isAuthError: true, name: 'AuthApiError', message: '', ...props });
 
@@ -148,5 +148,26 @@ describe('attempt', () => {
     });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error.code).toBe('CONFLICT');
+  });
+});
+
+describe('conta inativada (D-50, P-39)', () => {
+  it('PostgREST (PT401) e functions (401 ACCOUNT_INACTIVE) viram a mesma mensagem e avisam os ouvintes', () => {
+    const calls: number[] = [];
+    const off = onAccountInactive(() => calls.push(1));
+    const pg = toAppError({ code: 'PT401', message: 'ACCOUNT_INACTIVE: conta inativa', details: null, hint: null });
+    expect(pg).toMatchObject({ code: 'UNAUTHORIZED', detail: 'ACCOUNT_INACTIVE', message: MESSAGES.accountInactive });
+    const fn = fromHttp(401, { error: { code: 'ACCOUNT_INACTIVE', message: 'Conta inativa.' } });
+    expect(fn).toMatchObject({ code: 'UNAUTHORIZED', detail: 'ACCOUNT_INACTIVE', message: MESSAGES.accountInactive });
+    expect(calls).toHaveLength(2);
+    off();
+    fromHttp(401, { error: { code: 'ACCOUNT_INACTIVE' } });
+    expect(calls).toHaveLength(2);
+    // 401 comum (token vencido) não é conta inativada
+    expect(fromHttp(401, { error: { code: 'UNAUTHORIZED' } }).detail).toBe('UNAUTHORIZED');
+  });
+
+  it('troca de senha que pede login recente (secure_password_change) tem mensagem própria', () => {
+    expect(toAppError({ __isAuthError: true, name: 'AuthApiError', status: 400, code: 'reauthentication_needed', message: 'x' })).toMatchObject({ message: MESSAGES.reauthNeeded });
   });
 });

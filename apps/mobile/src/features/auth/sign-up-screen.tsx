@@ -24,6 +24,7 @@ export function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [birthdate, setBirthdate] = useState('');
+  const [city, setCity] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [errors, setErrors] = useState<SignUpErrors>({});
@@ -34,7 +35,7 @@ export function SignUpScreen() {
   const strength = passwordStrength(password);
 
   const submit = async () => {
-    const form = { email, password, username, birthdate, acceptedTerms, acceptedPrivacy };
+    const form = { email, password, username, birthdate, city, acceptedTerms, acceptedPrivacy };
     const errs = validateSignUp(form);
     setErrors(errs);
     if (hasErrors(errs)) return;
@@ -52,6 +53,7 @@ export function SignUpScreen() {
       password,
       username,
       birthdate: parseBirthdate(birthdate) ?? '',
+      city,
       acceptedTerms,
       acceptedPrivacy,
       emailRedirectTo: Linking.createURL('/entrar'),
@@ -141,6 +143,17 @@ export function SignUpScreen() {
           maxLength={10}
           error={errors.birthdate}
           help={`O NOMADE RUN é para maiores de ${MIN_AGE} anos.`}
+        />
+        <TextField
+          testID="cadastro-cidade"
+          label="Cidade natal (opcional)"
+          value={city}
+          onChangeText={setCity}
+          placeholder="Ex.: Goiânia"
+          autoComplete="off"
+          maxLength={80}
+          error={errors.city}
+          help="Conta pontos para a sua cidade no placar entre cidades. Dá para mudar depois no perfil."
         />
       </View>
 

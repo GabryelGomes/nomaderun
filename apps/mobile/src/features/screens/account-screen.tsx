@@ -9,7 +9,7 @@ import { Text } from '@/components/text';
 import { ErrorNotice, InfoNotice, TextField } from '@/features/auth/form-ui';
 import { signOut, signOutAfterDeletion } from '@/features/auth/session-controller';
 import { saveAndShareJson } from '@/lib/share-json';
-import { DELETE_CONFIRMATION, deleteMyAccount, exportMyData } from '@/services/api/account-repo';
+import { DELETE_CONFIRMATION, deleteMyAccount, exportMyData, isWrongPasswordError } from '@/services/api/account-repo';
 import { useSession } from '@/store/session-store';
 import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
@@ -23,6 +23,8 @@ export function AccountScreen() {
   const [error, setError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [confirmText, setConfirmText] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -47,19 +49,28 @@ export function AccountScreen() {
   };
 
   const doDelete = async () => {
-    if (confirmText.trim().toUpperCase() !== DELETE_CONFIRMATION) {
-      setDeleteError(`Digite ${DELETE_CONFIRMATION} para confirmar.`);
-      return;
-    }
+    const typed = confirmText.trim().toUpperCase() === DELETE_CONFIRMATION;
+    setPasswordError(password ? null : 'Digite sua senha atual para confirmar.');
+    setDeleteError(typed ? null : `Digite ${DELETE_CONFIRMATION} para confirmar.`);
+    if (!typed || !password) return;
     setDeleting(true);
-    setDeleteError(null);
-    const res = await deleteMyAccount();
+    const res = await deleteMyAccount(password);
     if (!res.ok) {
       setDeleting(false);
-      setDeleteError(res.error.message);
+      // QA-06: senha errada aparece no próprio campo; o resto (rede, servidor) embaixo do EXCLUIR.
+      if (isWrongPasswordError(res.error)) setPasswordError(res.error.message);
+      else setDeleteError(res.error.message);
       return;
     }
     await signOutAfterDeletion();
+  };
+
+  const closeDelete = () => {
+    setDeleteOpen(false);
+    setConfirmText('');
+    setPassword('');
+    setPasswordError(null);
+    setDeleteError(null);
   };
 
   return (
@@ -111,6 +122,19 @@ export function AccountScreen() {
           {deleteOpen ? (
             <View style={{ gap: space[3] }}>
               <TextField
+                testID="conta-excluir-senha"
+                label="Sua senha atual"
+                value={password}
+                onChangeText={(t) => {
+                  setPassword(t);
+                  setPasswordError(null);
+                }}
+                secret
+                autoComplete="current-password"
+                textContentType="password"
+                error={passwordError}
+              />
+              <TextField
                 testID="conta-excluir-confirmacao"
                 label={`Para confirmar, digite ${DELETE_CONFIRMATION}`}
                 value={confirmText}
@@ -124,7 +148,7 @@ export function AccountScreen() {
                 label={deleting ? 'Excluindo…' : 'Excluir minha conta'}
                 kind="danger"
                 wide
-                disabled={deleting || confirmText.trim().toUpperCase() !== DELETE_CONFIRMATION}
+                disabled={deleting || !password || confirmText.trim().toUpperCase() !== DELETE_CONFIRMATION}
                 onPress={doDelete}
               />
               <Button
@@ -132,11 +156,7 @@ export function AccountScreen() {
                 label="Cancelar"
                 kind="ghost"
                 wide
-                onPress={() => {
-                  setDeleteOpen(false);
-                  setConfirmText('');
-                  setDeleteError(null);
-                }}
+                onPress={closeDelete}
               />
             </View>
           ) : (

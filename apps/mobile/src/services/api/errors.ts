@@ -45,6 +45,13 @@ export const MESSAGES = {
   weakPassword: 'Senha fraca. Use pelo menos 8 caracteres, misturando letras e números.',
   samePassword: 'A nova senha precisa ser diferente da atual.',
   linkExpired: 'O link expirou ou já foi usado. Peça um novo.',
+  linkOtherDevice:
+    'Abra o link no mesmo celular em que você fez o pedido. Se era a confirmação do cadastro, seu e-mail já foi confirmado: entre com sua senha.',
+  linkUnsafe: 'Por segurança, este link não é aceito. Peça um novo pelo app.',
+  wrongPassword: 'Senha incorreta. Confira e tente de novo.',
+  accountInactive: 'Conta inativada. Sua sessão foi encerrada. Fale com o suporte do NOMADE RUN.',
+  reauthNeeded: 'Por segurança, entre de novo antes de trocar a senha.',
+  passwordRequired: 'Digite sua senha atual para confirmar.',
   sessionExpired: 'Sua sessão expirou. Entre de novo.',
   invalidEmail: 'Confira o e-mail digitado.',
   banned: 'Esta conta está inativa. Fale com o suporte do NOMADE RUN.',
@@ -56,6 +63,36 @@ export const MESSAGES = {
   unavailable: 'Este recurso ainda não está disponível no servidor.',
   unknown: 'Algo deu errado. Tente de novo.',
 } as const;
+
+/**
+ * Conta inativada pelo admin (D-50, QA-07): PostgREST e functions respondem 401 `ACCOUNT_INACTIVE`.
+ * Quem montar a sessão (session-controller) escuta aqui para encerrar a sessão e avisar a pessoa.
+ */
+export const ACCOUNT_INACTIVE = 'ACCOUNT_INACTIVE';
+const inactiveListeners = new Set<() => void>();
+
+export function onAccountInactive(listener: () => void): () => void {
+  inactiveListeners.add(listener);
+  return () => {
+    inactiveListeners.delete(listener);
+  };
+}
+
+/** Avisa os ouvintes (usado também pelo transporte do sync, que não passa por `fromHttp`). */
+export function reportAccountInactive() {
+  for (const l of inactiveListeners) {
+    try {
+      l();
+    } catch {
+      /* um ouvinte com erro não impede os outros */
+    }
+  }
+}
+
+function accountInactive(status = 401): AppError {
+  reportAccountInactive();
+  return new AppError('UNAUTHORIZED', MESSAGES.accountInactive, { detail: ACCOUNT_INACTIVE, status });
+}
 
 type Loose = { name?: unknown; message?: unknown; code?: unknown; status?: unknown; details?: unknown; hint?: unknown; __isAuthError?: unknown };
 
@@ -74,6 +111,7 @@ export function fromHttp(status: number, body?: unknown): AppError {
   const serverCode = str(e?.code);
   const serverMsg = str(e?.message);
   const opts = { detail: serverCode, status };
+  if (serverCode === ACCOUNT_INACTIVE) return accountInactive(status);
   if (status === 0) return new AppError('NETWORK', MESSAGES.network, opts);
   if (status === 400 || status === 422) return new AppError('VALIDATION', serverMsg ?? MESSAGES.validation, opts);
   if (status === 401) return new AppError('UNAUTHORIZED', serverMsg ?? MESSAGES.sessionExpired, opts);
@@ -107,6 +145,9 @@ function fromAuth(e: Loose): AppError {
       return new AppError('CONFLICT', MESSAGES.emailTaken, opts);
     case 'weak_password':
       return new AppError('VALIDATION', MESSAGES.weakPassword, opts);
+    case 'reauthentication_needed':
+    case 'reauthentication_not_valid':
+      return new AppError('UNAUTHORIZED', MESSAGES.reauthNeeded, opts);
     case 'same_password':
       return new AppError('VALIDATION', MESSAGES.samePassword, opts);
     case 'otp_expired':
@@ -130,6 +171,7 @@ function fromAuth(e: Loose): AppError {
   if (/invalid login credentials/i.test(msg)) return new AppError('UNAUTHORIZED', MESSAGES.invalidCredentials, opts);
   if (/database error saving new user/i.test(msg)) return new AppError('CONFLICT', MESSAGES.signupDb, opts);
   if (/rate limit/i.test(msg) || status === 429) return new AppError('RATE_LIMITED', MESSAGES.rateLimited, opts);
+  if (name === 'AuthPKCECodeVerifierMissingError') return new AppError('UNAUTHORIZED', MESSAGES.linkOtherDevice, opts);
   if (name === 'AuthSessionMissingError') return new AppError('UNAUTHORIZED', MESSAGES.sessionExpired, opts);
   if (status) return fromHttp(status);
   return new AppError('UNKNOWN', MESSAGES.unknown, opts);
@@ -161,6 +203,7 @@ function fromPostgrest(e: Loose): AppError {
   const text = `${str(e.message) ?? ''} ${str(e.details) ?? ''}`.toLowerCase();
   const opts = { detail: code };
   const server = splitServerMessage(str(e.message));
+  if (server?.code === ACCOUNT_INACTIVE) return accountInactive();
   if (server) {
     const mapped = SERVER_CODE_TO_APP[server.code] ?? (code === '23505' ? 'CONFLICT' : code === '42501' ? 'UNAUTHORIZED' : 'VALIDATION');
     return new AppError(mapped, server.message, { detail: server.code });
