@@ -1,0 +1,22 @@
+{
+  "name": "nomaderun",
+  "private": true,
+  "description": "Raiz do monorepo NOMADE RUN: fixa o Supabase CLI e scripts do backend (o app fica em apps/mobile).",
+  "scripts": {
+    "db:start": "supabase start -x studio,imgproxy,vector,logflare,supavisor,postgres-meta,mailpit && bash supabase/scripts/mail-sink.sh",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
+    "db:test:psql": "bash supabase/scripts/test-db.sh",
+    "functions:serve": "supabase functions serve",
+    "functions:test": "deno test --allow-read --config supabase/functions/deno.json supabase/functions/tests",
+    "functions:check": "deno check --config supabase/functions/deno.json supabase/functions/*/index.ts",
+    "domain:vendor-h3": "bash supabase/scripts/vendor-h3.sh",
+    "seed:gen": "deno run --allow-read --allow-write --config supabase/scripts/deno.json supabase/scripts/gen-seed.ts",
+    "e2e": "bash supabase/scripts/e2e.sh",
+    "mail": "bash supabase/scripts/mail-sink.sh"
+  },
+  "devDependencies": {
+    "supabase": "2.121.0"
+  }
+}

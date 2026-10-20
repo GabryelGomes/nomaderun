@@ -18,6 +18,7 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
 - **Decisão:** as Edge Functions importam `apps/mobile/src/domain` (caminho relativo + import map de `h3-js`). Se o bundler do Supabase não aceitar, o backend usa uma cópia gerada por script em `supabase/functions/_shared/domain`, com um teste que falha quando as duas divergem.
 - **Justificativa:** evita duas implementações das mesmas regras; o resultado provisório no app é idêntico ao oficial.
 - **Consequências:** `src/domain` não pode importar nada de React/Expo (já é assim) e mudanças nele afetam app e servidor.
+- **Resultado (2026-10-20, A2):** testado com `supabase functions serve`: o import relativo funciona **sem o plano B**, com uma ponte (`supabase/functions/_shared/domain.ts`), remapeamento dos imports sem extensão no `deno.json` e o h3-js vendorizado. Detalhes e verificação automática na D-22.
 
 ### D-03 — Gravação offline com fila SQLite e ingestão idempotente
 2026-10-20 · Arquiteto
@@ -116,3 +117,50 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
 2026-10-20 · A3 Frontend
 - **Decisão:** o `app.json` mantém o segundo plano desligado; `app.config.js` liga `isIosBackgroundLocationEnabled`, `isAndroidBackgroundLocationEnabled` e `isAndroidForegroundServiceEnabled` só com `NOMADE_BACKGROUND_LOCATION=1` no build/prebuild e expõe `extra.backgroundLocation` para o código (A4) decidir em runtime. Os textos de permissão "sempre" já estão em pt-BR.
 - **Justificativa:** D-10; o Expo Go não precisa da permissão "sempre" e as lojas exigem justificativa para ela.
+
+### D-21 — Configuração do Auth para o MVP (rate limit, e-mail, senha, redirecionamentos)
+2026-10-20 · A2 Backend
+- **Contexto:** RNF-007 pede 10 tentativas de login a cada 15 min por IP; RF-001 pede recuperação por e-mail; a demonstração não pode depender de caixa de e-mail real.
+- **Decisão:** `supabase/config.toml`: `jwt_expiry = 3600`, rotação de refresh token, senha mínima 8, `site_url = nomaderun://` e redirecionamentos `nomaderun://**`, `exp://**`, `http://localhost:8081/**`; **confirmação de e-mail desligada** para a demo; e-mail de recuperação em pt-BR (`supabase/templates/recovery.html`); Google e Apple com a seção pronta e `enabled = false`. Rate limit `sign_in_sign_ups = 3` por 5 min (o Auth só aceita janela de 5 min: 3/5 min = 9/15 min, o mais próximo de 10/15 sem passar).
+- **Justificativa:** RF-001 e RNF-007 com a menor diferença possível; demo sem etapa de confirmação.
+- **Consequências:** localmente o Auth **não aplica** rate limit por IP (não há cabeçalho de IP do proxy; conferido: 5 logins seguidos passam). Vale no Supabase Cloud após `supabase config push`; numa sala com o mesmo IP de saída, 3 logins/5 min pode travar a apresentação — se acontecer, suba o valor no painel. Em produção: ligar a confirmação de e-mail e um SMTP real.
+
+### D-22 — Resultado da D-02 nas Edge Functions: import relativo do domain + import map; h3-js vendorizado; sem npm
+2026-10-20 · A2 Backend
+- **Contexto:** teste real com `supabase functions serve` (CLI 2.121.0, edge-runtime 1.77.4 = Deno 2.1.4). Arquivos fora de `supabase/` **funcionam** (o CLI monta no container cada arquivo que encontra no grafo), mas: (1) o domain usa imports sem extensão (`./grid`) e o runtime não aceita `sloppy-imports`; (2) o CLI só monta arquivos que encontra com caminho explícito; (3) o container não alcança o registro npm (proxy com certificado próprio), então `npm:h3-js` e `npm:@supabase/supabase-js` não carregam.
+- **Decisão:** sem plano B (sem cópia do domain). `supabase/functions/_shared/domain.ts` importa **cada** arquivo do domain com `.ts` (`../../../apps/mobile/src/domain/x.ts`) e `supabase/functions/deno.json` remapeia cada especificador sem extensão (`"../../apps/mobile/src/domain/grid": ".../grid.ts"`). `h3-js` aponta para uma cópia **idêntica** à do app (4.5.0) em `_shared/vendor/h3-js` (`npm run domain:vendor-h3`). As functions falam com o Auth, o PostgREST e o Storage por `fetch` (`_shared/supabase.ts`), sem supabase-js. O teste `functions/tests/domain_bridge.test.ts` falha se um arquivo novo do domain não estiver na ponte e nos import maps, se o domain importar algo de fora, ou se o h3-js vendorizado divergir do app.
+- **Justificativa:** fonte única das regras de verdade (o servidor roda o mesmo arquivo do app); functions sobem sem internet (bom para a apresentação); nenhuma dependência npm no servidor.
+- **Consequências:** arquivo novo em `src/domain` exige uma linha na ponte e uma em cada `deno.json` (`supabase/functions` e `supabase/scripts`) — o teste avisa. O `h3-runtime.ts` (polyfill de TextDecoder) é carregado antes do h3-js pela própria ponte; no Deno ele não altera nada. O deploy no Cloud (`supabase functions deploy`) não foi testado aqui (sem projeto Cloud); se o bundler recusar caminhos fora de `supabase/`, aplicar o plano B da D-02.
+
+### D-23 — finish-activity: cálculo no domain (JS) e gravação atômica por RPC com concorrência otimista
+2026-10-20 · A2 Backend
+- **Contexto:** a pontuação precisa do domain (TypeScript), mas a gravação nas zonas precisa de transação com `SELECT ... FOR UPDATE`; o acesso por HTTP não abre transação que atravesse o código JS.
+- **Decisão:** a function lê o contexto (`svc_finish_context`: perfil, ritmo-base = mediana das últimas 10 corridas pontuadas, sequência semanal, RP já ganho hoje por zona, estado e `version` das zonas tocadas, neblina já revelada), roda `finishRun` e envia tudo para `svc_apply_activity_result`, que numa **única transação** trava a corrida e as zonas (`FOR UPDATE`, em ordem de id), confere a `version` lida e grava zonas (novas com o polígono de `cellBoundary`, RF-020), `activity_zones`, `zone_events`, neblina, XP, trust, notificações e o resultado. Versão mudou → `ZONE_CONFLICT` → a function recalcula (até 3 vezes; depois `BUSY` 503). O resultado fica em `activities.result`: finalizar de novo devolve o mesmo JSON.
+- **Justificativa:** RNF-006 (servidor autoritativo) com consistência sob corridas simultâneas, sem duplicar as regras em SQL.
+- **Consequências:** `zones.version` é incrementada por toda escrita (inclusive pelos jobs).
+
+### D-24 — Functions conferem o JWT no Auth (`verify_jwt = false` no gateway)
+2026-10-20 · A2 Backend
+- **Decisão:** cada function chama `GET /auth/v1/user` com o token recebido (`requireUser`). No `config.toml`, `verify_jwt = false` para as 8 functions.
+- **Justificativa:** funciona com as chaves novas e antigas do Supabase, libera o preflight CORS do app web e recusa token de conta excluída ou banida (o gateway só olharia a assinatura).
+- **Consequências:** uma chamada a mais ao Auth por requisição (~5 ms local).
+
+### D-25 — Jobs diários em SQL (pg_cron) espelhando as constantes do domain
+2026-10-20 · A2 Backend
+- **Decisão:** `job_decay_zones` (RN-005), `job_fortify_zones` (RN-004), `job_close_week` (RN-014) e `job_season_rollover` (RN-006) são funções SQL agendadas pelo pg_cron (UTC; Brasília = UTC-3). Reproduzem `decayZone`, `fortifyZone`, `closeWeek` e `seasonReset` com as mesmas constantes (0,90 / 5 / 30 / 500 m / 3 / 0,30) e são testadas no pgTAP (`07_jobs_rankings.test.sql`).
+- **Justificativa:** rodam dentro do banco, sem segredo nem chamada HTTP agendada; testáveis.
+- **Consequências:** é a única duplicação de regra fora do domain. Se mudar uma dessas constantes no domain, mude a função SQL e o teste.
+
+### D-26 — Interpretações de regras no servidor
+2026-10-20 · A2 Backend
+- **RN-009:** a corrida vai para revisão se o índice estiver abaixo de 40 **antes ou depois** dela; abaixo de 10 depois dela o corredor fica suspenso (`status = suspended`, 30 dias) e a corrida vai para revisão. Aprovação da moderação pontua com o estado atual das zonas e não mexe no índice.
+- **RN-001:** `M_sequência` usa `profiles.streak_weeks` (o parâmetro `streakDays` do domain recebe semanas, limite 10). `M_grupo` não é aplicado (exige corrida simultânea de 3+ membros; fora do MVP). O "agora" do cálculo é a hora do servidor no `finish-activity`.
+- **RF-003:** trocar de facção grava `contribution_reset_at`; rankings da temporada ignoram a contribuição anterior. A influência já somada nas zonas fica.
+- **RF-020:** zona nova nasce sem nome e sem cidade (sem IBGE no MVP); as functions mostram `"Zona XXXX"`.
+- **Privacidade:** `zone_events` não expõe `user_id`/`activity_id` ao cliente; rankings e `public_profiles` são views `security_invoker` sobre funções `security definer` do schema `private` (só agregados e campos públicos).
+
+### D-27 — Ambiente local sem mailpit e sem pg_prove
+2026-10-20 · A2 Backend
+- **Contexto:** as imagens `supabase/mailpit` e `supabase/pg_prove` não baixam neste ambiente (limite dos registros Docker).
+- **Decisão:** `supabase/scripts/mail-sink.sh` sobe uma caixa SMTP mínima (`mail-sink.mjs`, Node de uma imagem já baixada) com o mesmo nome de container do mailpit; os e-mails aparecem em `http://127.0.0.1:54324`. `supabase/scripts/test-db.sh` roda os mesmos arquivos pgTAP via `psql` dentro do container do banco, falhando com `not ok`, erro de SQL ou plano diferente.
+- **Consequências:** onde as imagens existirem, `npx supabase start` (sem `-x mailpit`) e `npx supabase test db` funcionam com os mesmos arquivos.

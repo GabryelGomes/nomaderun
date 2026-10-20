@@ -1,0 +1,28 @@
+{
+  "lock": false,
+  "imports": {
+    "h3-js": "../functions/_shared/vendor/h3-js/h3-js.es.js",
+    "../../apps/mobile/src/domain/anti-cheat": "../../apps/mobile/src/domain/anti-cheat.ts",
+    "@/domain/anti-cheat": "../../apps/mobile/src/domain/anti-cheat.ts",
+    "../../apps/mobile/src/domain/games": "../../apps/mobile/src/domain/games.ts",
+    "@/domain/games": "../../apps/mobile/src/domain/games.ts",
+    "../../apps/mobile/src/domain/geo": "../../apps/mobile/src/domain/geo.ts",
+    "@/domain/geo": "../../apps/mobile/src/domain/geo.ts",
+    "../../apps/mobile/src/domain/grid": "../../apps/mobile/src/domain/grid.ts",
+    "@/domain/grid": "../../apps/mobile/src/domain/grid.ts",
+    "../../apps/mobile/src/domain/h3-runtime": "../../apps/mobile/src/domain/h3-runtime.ts",
+    "@/domain/h3-runtime": "../../apps/mobile/src/domain/h3-runtime.ts",
+    "../../apps/mobile/src/domain/regions": "../../apps/mobile/src/domain/regions.ts",
+    "@/domain/regions": "../../apps/mobile/src/domain/regions.ts",
+    "../../apps/mobile/src/domain/run-engine": "../../apps/mobile/src/domain/run-engine.ts",
+    "@/domain/run-engine": "../../apps/mobile/src/domain/run-engine.ts",
+    "../../apps/mobile/src/domain/scoring": "../../apps/mobile/src/domain/scoring.ts",
+    "@/domain/scoring": "../../apps/mobile/src/domain/scoring.ts",
+    "../../apps/mobile/src/domain/territory": "../../apps/mobile/src/domain/territory.ts",
+    "@/domain/territory": "../../apps/mobile/src/domain/territory.ts",
+    "../../apps/mobile/src/domain/trust": "../../apps/mobile/src/domain/trust.ts",
+    "@/domain/trust": "../../apps/mobile/src/domain/trust.ts",
+    "../../apps/mobile/src/domain/types": "../../apps/mobile/src/domain/types.ts",
+    "@/domain/types": "../../apps/mobile/src/domain/types.ts"
+  }
+}
