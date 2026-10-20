@@ -3,3 +3,13 @@ docs/apresentacao/node_modules/
 docs/apresentacao/.print.html
 docs/apresentacao/.local.html
 docs/apresentacao/.capturas/
+.codegraph/
+
+# Segredos e artefatos locais
+.env
+.env.local
+apps/mobile/.env
+supabase/.temp/
+supabase/.branches/
+node_modules/
+apps/mobile/coverage/

@@ -1,0 +1,12 @@
+# Abre o app do zero. No Expo Go: APP_ID=host.exp.exponent e APP_URL=exp://<ip>:8081.
+# Em development build: APP_ID=<bundle id> e APP_URL=nomaderun://
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- openLink: ${APP_URL}
+- extendedWaitUntil:
+    visible:
+      id: "tela-entrar|tela-cadastro|mapa-status"
+    timeout: 60000

@@ -1,0 +1,35 @@
+# RF-001: senha errada mostra mensagem amigável; senha certa abre o mapa.
+appId: ${APP_ID}
+name: Login
+tags: [auth, rf-001]
+---
+- runFlow: subflows/abrir-app.yaml
+- extendedWaitUntil:
+    visible:
+      id: "tela-entrar"
+    timeout: 30000
+- tapOn:
+    id: "entrar-email"
+- inputText: corredor.demo@nomaderun.app
+- tapOn:
+    id: "entrar-senha"
+- inputText: senha-errada-123
+- hideKeyboard
+- tapOn:
+    id: "entrar-botao"
+- extendedWaitUntil:
+    visible:
+      id: "entrar-erro"
+    timeout: 15000
+- assertVisible: "E-mail ou senha incorretos."
+- tapOn:
+    id: "entrar-senha"
+- eraseText: 30
+- inputText: ${DEMO_PASSWORD || 'Corrida@2026'}
+- hideKeyboard
+- tapOn:
+    id: "entrar-botao"
+- extendedWaitUntil:
+    visible:
+      id: "mapa-status"
+    timeout: 30000

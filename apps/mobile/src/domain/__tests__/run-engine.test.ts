@@ -54,6 +54,16 @@ describe('motor da corrida — resultado final', () => {
     expect(result.xp).toBeGreaterThan(20);
   });
 
+  it('aplica M_grupo (×1,25) só nas zonas detectadas em grupo (RN-001)', () => {
+    const run = feed(track({ kmh: 12, seconds: 600, spm: 172 }));
+    const plain = finishRun(run, ctx);
+    const target = plain.zones[0];
+    const pack = finishRun(run, { ...ctx, packZones: new Set([target.zoneId]) });
+    const rpOf = (r: typeof plain, id: string) => r.zones.find((z) => z.zoneId === id)!.rp;
+    expect(rpOf(pack, target.zoneId)).toBe(Math.round(target.rp * 1.25));
+    for (const z of plain.zones.slice(1)) expect(rpOf(pack, z.zoneId)).toBe(z.rp);
+  });
+
   it('localização simulada: zero pontos e zero XP', () => {
     const pts = track({ kmh: 12, seconds: 600, spm: 172 });
     pts[3] = { ...pts[3], mocked: true };

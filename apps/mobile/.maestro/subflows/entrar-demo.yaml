@@ -1,0 +1,21 @@
+# Entra com a conta de demonstração do corredor (seed; `npm run db:reset` antes).
+appId: ${APP_ID}
+---
+- runFlow: abrir-app.yaml
+- extendedWaitUntil:
+    visible:
+      id: "tela-entrar"
+    timeout: 30000
+- tapOn:
+    id: "entrar-email"
+- inputText: ${DEMO_EMAIL || 'corredor.demo@nomaderun.app'}
+- tapOn:
+    id: "entrar-senha"
+- inputText: ${DEMO_PASSWORD || 'Corrida@2026'}
+- hideKeyboard
+- tapOn:
+    id: "entrar-botao"
+- extendedWaitUntil:
+    visible:
+      id: "mapa-status"
+    timeout: 30000

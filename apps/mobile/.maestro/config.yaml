@@ -1,0 +1,12 @@
+# Maestro (RNF-012): `maestro test .maestro/` roda os fluxos desta pasta na ordem abaixo.
+# Pré-requisitos e variáveis: ver README.md desta pasta.
+flows:
+  - "*.yaml"
+executionOrder:
+  continueOnFailure: true
+  flowsOrder:
+    - 01-cadastro-onboarding
+    - 02-login
+    - 03-uc03-mapa-camadas-zona
+    - 04-uc02-alerta-invasao
+    - 05-uc01-corrida-simulada

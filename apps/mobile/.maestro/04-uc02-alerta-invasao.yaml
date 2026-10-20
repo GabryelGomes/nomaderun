@@ -1,0 +1,38 @@
+# UC-02 (RF-009, RF-019): alerta de invasão no mapa e na central de notificações abre a zona atacada.
+appId: ${APP_ID}
+name: UC-02 Alerta de invasão
+tags: [uc-02, rf-009, rf-019]
+---
+- runFlow: subflows/entrar-demo.yaml
+- extendedWaitUntil:
+    visible:
+      id: "mapa-alerta-ataque"
+    timeout: 30000
+- tapOn:
+    id: "mapa-alerta-ataque"
+- extendedWaitUntil:
+    visible:
+      id: "tela-zona"
+    timeout: 15000
+- assertVisible:
+    id: "zona-ataque"
+- back
+- extendedWaitUntil:
+    visible:
+      id: "mapa-notificacoes"
+    timeout: 10000
+- tapOn:
+    id: "mapa-notificacoes"
+- extendedWaitUntil:
+    visible:
+      id: "tela-notificacoes"
+    timeout: 15000
+- tapOn:
+    id: "notificacao-.*"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "tela-zona"
+    timeout: 15000
+- assertVisible:
+    id: "zona-nome"

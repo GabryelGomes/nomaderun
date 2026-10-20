@@ -1,0 +1,41 @@
+# UC-03 (RF-007): mapa com zonas do servidor, filtros de camada e folha da zona (dono, corredores, eventos).
+appId: ${APP_ID}
+name: UC-03 Mapa, camadas e zona
+tags: [uc-03, rf-007]
+---
+- runFlow: subflows/entrar-demo.yaml
+- extendedWaitUntil:
+    visible:
+      text: ".*zonas em .*"
+    timeout: 30000
+- tapOn:
+    id: "mapa-camada-meu-time"
+- tapOn:
+    id: "mapa-camada-explorado"
+- tapOn:
+    id: "mapa-camada-todos"
+- tapOn:
+    id: "mapa-camada"
+- tapOn:
+    id: "mapa-camada"
+- tapOn:
+    id: "mapa-camada"
+- assertVisible:
+    id: "mapa-status"
+# a zona sob ataque do seed (Parque Flamboyant) abre a folha da zona
+- tapOn:
+    id: "mapa-alerta-ataque"
+- extendedWaitUntil:
+    visible:
+      id: "tela-zona"
+    timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: "zona-corredores"
+    timeout: 15000
+- assertVisible:
+    id: "zona-nome"
+- assertVisible:
+    id: "zona-eventos"
+- assertVisible:
+    id: "zona-correr"

@@ -4,7 +4,7 @@ Para quem vai continuar o projeto. Este guia diz como baixar e manter o reposit�
 
 **Integrantes:** Gabryel Gomes Bahmad Camapum · Mateus Augusto De Faria Brito
 **Repositório:** https://github.com/GabryelGomes/nomaderun
-**Branch de trabalho:** `claude/affectionate-gauss-e8gm77`. Todo o trabalho recente está nela; a `main` ainda não recebeu essas mudanças.
+**Branch de trabalho:** `claude/dreamy-ptolemy-xnm4r7`. Todo o trabalho recente está nela; a `main` ainda não recebeu essas mudanças.
 
 ---
 
@@ -15,16 +15,16 @@ Para quem vai continuar o projeto. Este guia diz como baixar e manter o reposit�
 ```bash
 git clone https://github.com/GabryelGomes/nomaderun.git
 cd nomaderun
-git checkout claude/affectionate-gauss-e8gm77
+git checkout claude/dreamy-ptolemy-xnm4r7
 ```
 
-Sem git: no GitHub, troque a branch para `claude/affectionate-gauss-e8gm77` e use **Code › Download ZIP**.
+Sem git: no GitHub, troque a branch para `claude/dreamy-ptolemy-xnm4r7` e use **Code › Download ZIP**.
 
 ### Pegar as atualizações
 
 ```bash
-git checkout claude/affectionate-gauss-e8gm77
-git pull origin claude/affectionate-gauss-e8gm77
+git checkout claude/dreamy-ptolemy-xnm4r7
+git pull origin claude/dreamy-ptolemy-xnm4r7
 ```
 
 ### Enviar o seu trabalho
@@ -32,11 +32,11 @@ git pull origin claude/affectionate-gauss-e8gm77
 ```bash
 git config user.name "Seu Nome"          # uma vez
 git config user.email "seu@email.com"     # uma vez
-git pull origin claude/affectionate-gauss-e8gm77   # sempre antes de começar
+git pull origin claude/dreamy-ptolemy-xnm4r7   # sempre antes de começar
 # ... edite ...
 git add <arquivos>
 git commit -m "O que mudou, em uma frase"
-git push origin claude/affectionate-gauss-e8gm77
+git push origin claude/dreamy-ptolemy-xnm4r7
 ```
 
 Combinem quem mexe em qual pasta para evitar conflitos. Se der conflito no `git pull`, o git marca os trechos com `<<<<<<<` / `>>>>>>>`. Resolvam juntos, rodem `git add` e depois `git commit`.
@@ -59,36 +59,21 @@ Quando quiserem consolidar: abram um Pull Request da branch para a `main` no Git
 | `docs/apresentacao/DESIGN-SYSTEM.md` | **Layout salvo**: cores, fontes, escala, efeitos e regras dos slides |
 | `docs/apresentacao/design-tokens.json` | Os mesmos tokens em JSON, para código |
 | `docs/apresentacao/REFERENCIAS-E-SKILLS.md` | Referências visuais, de apresentação e as skills usadas |
-| `apps/mobile/` | **Protótipo do app** (Expo + React Native + TypeScript) |
+| `apps/mobile/` | **App** (Expo + React Native + TypeScript), celular e painel web |
+| `supabase/` | **Backend** (Postgres + PostGIS, Auth, Edge Functions, testes) |
+| `docs/COMO_APRESENTAR.md` | Checklist e roteiro da demonstração |
 | `.agents/skills/` | Skills baixadas do skills.sh (`SOURCES.md` tem a origem de cada uma) |
 
 ---
 
-## 3. O app (protótipo)
+## 3. O app e o backend
 
-```bash
-cd apps/mobile
-npm install
-npx expo start        # QR code no app Expo Go
-npm test              # 60 testes (regras do jogo e mapa)
-npx tsc --noEmit      # tipos
-npx eslint src        # lint
-npx expo export -p web   # versão web em dist/
-```
+Instalação, execução e testes: [`README.md`](../README.md) da raiz e [`apps/mobile/README.md`](../apps/mobile/README.md). Arquitetura: [`ARQUITETURA.md`](ARQUITETURA.md). Situação de cada requisito: [`REQUISITOS.md`](REQUISITOS.md).
 
-- `src/domain/`: regras puras e testadas (pontuação, território, antifraude, minigames, regiões do mapa). Não importa nada de interface.
-- `src/features/`: telas e lógica da corrida.
-- `src/components/`: mapa (nativo e web), botões, selo do time.
-- `src/theme/tokens.ts`: cores e fontes do app.
-- `src/demo/demo-data.ts`: dados de demonstração (Goiânia, Parque Flamboyant).
-
-**Atenção:** hoje o app usa o visual claro estilo Strava (`tokens.ts`). A apresentação e o mockup usam o visual **preto + laranja neon**. Para o app ficar igual ao mockup, é preciso:
-1. Trocar `src/theme/tokens.ts` pelos valores de `docs/apresentacao/design-tokens.json`.
-2. Usar um mapa base escuro (Mapbox/MapLibre).
-
-Esse é o próximo passo natural.
-
----
+- `apps/mobile/src/domain/`: regras puras e testadas (pontuação, território, antifraude, minigames, regiões do mapa), usadas pelo app e pelas Edge Functions.
+- `apps/mobile/src/features/` e `src/services/`: telas, corrida, fila offline, sincronização assinada, Corrida Segura.
+- `apps/mobile/src/theme/tokens.ts`: cores e fontes do visual aprovado "Pista" (D-15). Não troque pelos tokens da apresentação: o app mantém o visual claro.
+- `supabase/`: banco (migrations), Edge Functions, testes e `seed.sql` com dados de demonstração.
 
 ## 4. A apresentação
 

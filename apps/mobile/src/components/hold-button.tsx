@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { Pressable, View } from 'react-native';
-import Animated, { cancelAnimation, Easing, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { cancelAnimation, Easing, useAnimatedProps, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 
@@ -20,21 +20,27 @@ const CIRC = 2 * Math.PI * R;
 /**
  * Hold to finish the run (Product Book §4.3): a 600 ms ring fills while the finger is down,
  * so a stray tap in a pocket never ends a run. Purpose: feedback. Linear timing, UI thread.
+ * "Reduzir movimento" (RNF-011, QA-12): o anel não é desenhado aos poucos; ele aparece inteiro
+ * e vai da transparência à cor cheia nos mesmos 600 ms (só opacidade).
  */
-export function HoldButton({ label, onConfirm }: { label: string; onConfirm: () => void }) {
+export function HoldButton({ label, onConfirm, testID }: { label: string; onConfirm: () => void; testID?: string }) {
   const { colors } = useTheme();
   const progress = useSharedValue(0);
+  const reduced = useReducedMotion();
 
   const confirm = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     onConfirm();
   };
 
-  const ringProps = useAnimatedProps(() => ({ strokeDashoffset: CIRC * (1 - progress.get()) }));
+  const ringProps = useAnimatedProps(() =>
+    reduced ? { strokeDashoffset: 0, strokeOpacity: progress.get() } : { strokeDashoffset: CIRC * (1 - progress.get()), strokeOpacity: 1 },
+  );
 
   return (
     <View style={{ alignItems: 'center', gap: 6 }}>
       <Pressable
+        testID={testID}
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityHint="Mantenha pressionado para confirmar"
