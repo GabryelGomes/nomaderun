@@ -10,9 +10,9 @@ const env = (name: string) => {
   return v;
 };
 
-const baseUrl = () => env('SUPABASE_URL').replace(/\/$/, '');
+export const baseUrl = () => env('SUPABASE_URL').replace(/\/$/, '');
 const serviceKey = () => env('SUPABASE_SERVICE_ROLE_KEY');
-const anonKey = () => Deno.env.get('SUPABASE_ANON_KEY') ?? serviceKey();
+export const anonKey = () => Deno.env.get('SUPABASE_ANON_KEY') ?? serviceKey();
 
 export type AuthUser = { id: string; email?: string };
 

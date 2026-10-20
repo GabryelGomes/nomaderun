@@ -15,7 +15,8 @@ schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 # The maximum number of rows returns from a view, table, or stored procedure. Limits payload size
 # for accidental or malicious requests.
-max_rows = 1000
+# NOMADE RUN (QA-04): até 2.000 linhas por resposta (RNF-009); o /zones usa zones_in_bbox_json, que não depende disto.
+max_rows = 2000
 # Controls whether new tables, views, sequences and functions created in the `public` schema by
 # `postgres` are reachable through the Data API roles (`anon`, `authenticated`, `service_role`)
 # without explicit GRANTs, matching the cloud default. Set to `false` to require explicit GRANTs
@@ -231,7 +232,8 @@ double_confirm_changes = true
 # NOMADE RUN: desligado para a demonstração (D-21). Em produção, ligar.
 enable_confirmations = false
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
-secure_password_change = false
+# NOMADE RUN (QA-06): ligado — trocar a senha exige login recente ou reautenticação.
+secure_password_change = true
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
 max_frequency = "1s"
 # Number of characters used in the email OTP.

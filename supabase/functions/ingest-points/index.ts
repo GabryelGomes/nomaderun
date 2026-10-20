@@ -11,6 +11,8 @@ const ERRORS: Record<string, [number, string]> = {
   OUT_OF_ORDER: [409, 'Lote fora de ordem: reenvie a partir do ponto seguinte ao último recebido.'],
   REPLAY_MISMATCH: [409, 'Reenvio com conteúdo diferente do lote já recebido.'],
   ACCOUNT_INACTIVE: [403, 'Conta inativa.'],
+  TOO_MANY_OPEN_RUNS: [409, 'Há corridas demais em aberto. Finalize as corridas anteriores antes de começar outra.'],
+  POINTS_LIMIT: [409, 'A corrida chegou ao limite de 14.400 pontos (4 horas). Finalize a corrida.'],
 };
 
 Deno.serve(handler(['POST'], async (req) => {

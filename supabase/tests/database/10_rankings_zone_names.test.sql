@@ -102,6 +102,8 @@ select results_eq($$ select name, city from public.zones where id = '8b333333333
 select is((select result -> 'zones' -> 0 ->> 'name' from public.activities where id = 'aa111111-0000-4000-8000-000000000011'), 'Vila Teste 8',
   'resultado guardado (finalizar de novo) também traz o nome');
 -- longe de tudo: base = cidade natal do corredor; sem cidade = "Zona"
+-- (QA-11) zonas "Zona N" criadas por outras suítes (e2e, segurança) não podem mudar o número esperado
+update public.zones set name = null where name ~ '^Zona [0-9]+$';
 select is(pg_temp.create_zone('aa111111-0000-4000-8000-000000000012', 'a1111111-0000-4000-8000-000000000003', '8b3333333334fff', 120.0)
             -> 'result' -> 'zones' -> 0 ->> 'name', 'Zona 1', 'sem vizinha e sem cidade natal → "Zona 1"');
 

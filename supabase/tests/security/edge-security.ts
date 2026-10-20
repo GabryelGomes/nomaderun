@@ -204,6 +204,14 @@ const modOk = await call('POST', `${FN}/moderate-activity`, MOD.token, { activit
 check(modOk.status === 200 && ['valid', 'partial'].includes(modOk.data?.status), 'outro moderador aprova a corrida em revisão', modOk.data);
 const modTwice = await call('POST', `${FN}/moderate-activity`, MOD.token, { activityId: actM, decision: 'reject', justification: 'segunda decisão não pode valer' });
 check(modTwice.status === 409 && modTwice.data?.error?.code === 'NOT_IN_REVIEW', 'segunda decisão sobre a mesma corrida → NOT_IN_REVIEW', modTwice);
+const modBirth = await call('GET', `${API}/rest/v1/profiles?select=id,birthdate&id=eq.${A.id}`, MOD.token);
+check(modBirth.status === 200 && Array.isArray(modBirth.data) && modBirth.data.length === 0, 'moderador não lê a data de nascimento de outros (QA-16)', modBirth.data);
+const modStaff = await call('GET', `${API}/rest/v1/staff_profiles?select=username,trust&id=eq.${A.id}`, MOD.token);
+check(modStaff.status === 200 && modStaff.data?.[0]?.username === `sec_a_${rand}`, 'moderador lê username/trust de outros por staff_profiles (QA-16)', modStaff.data);
+const modStaffBirth = await call('GET', `${API}/rest/v1/staff_profiles?select=birthdate&limit=1`, MOD.token);
+check(modStaffBirth.status === 400, 'staff_profiles não tem birthdate (QA-16)', modStaffBirth.status);
+const runnerStaff = await call('GET', `${API}/rest/v1/staff_profiles?select=username&limit=5`, A.token);
+check(runnerStaff.status === 200 && runnerStaff.data?.length === 0, 'corredor comum não lê staff_profiles (QA-16)', runnerStaff.data);
 
 const exportA = await call('GET', `${FN}/account-export`, A.token);
 const exportText = JSON.stringify(exportA.data);
@@ -211,25 +219,33 @@ check(exportA.status === 200 && exportText.includes(A.email) && !exportText.incl
   'exportação traz só os dados de A (sem e-mail/ID de B e sem a chave do aparelho)');
 const delNoConfirm = await call('POST', `${FN}/account-delete`, A.token, { confirm: 'sim' });
 check(delNoConfirm.status === 400, 'exclusão sem { confirm: "EXCLUIR" } é recusada', delNoConfirm);
+const delWrongPass = await call('POST', `${FN}/account-delete`, A.token, { confirm: 'EXCLUIR', password: 'nao-e-a-senha' });
+check(delWrongPass.status === 403 && delWrongPass.data?.error?.code === 'INVALID_PASSWORD', 'exclusão com a senha errada é recusada (reautenticação, QA-06)', delWrongPass);
 
 // ---------- 5. Regras de jogo manipuláveis pelo cliente ----------
 const ptsG = track();
 const actG = crypto.randomUUID();
-await send(A.token, devA, actG, ptsG, { mission: 'livre', ghostPace: 3600 });
+const ghostAbsurd = await send(A.token, devA, crypto.randomUUID(), track(3), { mission: 'fuga', ghostPace: 3600 });
+check(ghostAbsurd.status === 400, 'ghostPace fora de 150–900 s/km é recusado (QA-02)', ghostAbsurd.status);
+await send(A.token, devA, actG, ptsG, { mission: 'livre', ghostPace: 900 });
+const endFuture = await call('POST', `${FN}/finish-activity`, A.token, { activityId: actG, lastSeq: ptsG.length - 1, endedAt: 32503680000000 });
+check(endFuture.status === 400, 'endedAt no ano 3000 é recusado (QA-09)', endFuture.status);
+const endBefore = await call('POST', `${FN}/finish-activity`, A.token, { activityId: actG, lastSeq: ptsG.length - 1, endedAt: ptsG[0].t - 60_000 });
+check(endBefore.status === 400, 'endedAt antes do início da corrida é recusado (QA-09)', endBefore.status);
 const finG = await call('POST', `${FN}/finish-activity`, A.token, { activityId: actG, lastSeq: ptsG.length - 1 });
 check(finG.status === 200 && finG.data?.status === 'valid', 'corrida curta válida de A', finG.data?.status);
-known('QA-02', finG.data?.beatGhost !== true, 'missão "livre" com ghostPace 3600 s/km não deveria ganhar M_fantasma 1,5 e +50 XP', { beatGhost: finG.data?.beatGhost, rp: finG.data?.rpTotal });
+known('QA-02', finG.data?.beatGhost !== true, 'missão "livre" com ghostPace (900 s/km, o mais lento aceito) não ganha M_fantasma 1,5 nem +50 XP', { beatGhost: finG.data?.beatGhost, rp: finG.data?.rpTotal });
 
 // ---------- 6. PostgREST com o token do usuário (RLS / grants) ----------
 const rest = (method: string, path: string, body?: unknown, token = A.token) => call(method, `${API}/rest/v1/${path}`, token, body, ANON, { Prefer: 'return=representation' });
 const crewB = await rest('POST', 'crews', { name: 'Coiotes Sec', tag: `S${rand.replace(/[^a-z]/gi, '').toUpperCase().padEnd(3, 'X').slice(0, 3)}` }, B.token);
 check(crewB.status === 201, 'B cria uma crew', crewB);
 const leak = await rest('GET', `crews?select=name,invite_code&id=eq.${crewB.data?.[0]?.id}`);
-known('QA-01', !(leak.status === 200 && leak.data?.[0]?.invite_code), 'código de convite de crew alheia não deveria ser legível por qualquer usuário', leak.data);
+known('QA-01', !(leak.status === 200 && leak.data?.[0]?.invite_code), 'código de convite de crew alheia não é legível por quem não é membro', leak.data);
 const otherFaction = await rest('POST', 'rpc/join_crew', { p_code: crewB.data?.[0]?.invite_code ?? 'X' });
 check(otherFaction.status >= 400 && /CREW_FACTION_MISMATCH/.test(JSON.stringify(otherFaction.data)), 'A (outra facção) não entra na crew de B mesmo com o código (RN-011)', otherFaction.data);
 const avatar = await rest('PATCH', `profiles?id=eq.${A.id}`, { avatar_url: 'javascript:alert(document.cookie)' });
-known('QA-05', !(avatar.status === 200 && avatar.data?.[0]?.avatar_url?.startsWith('javascript:')), 'avatar_url aceita qualquer esquema (deveria aceitar só a URL pública do bucket avatars)', avatar.data);
+known('QA-05', !(avatar.status === 200 && avatar.data?.[0]?.avatar_url?.startsWith('javascript:')), 'avatar_url só aceita a URL pública do bucket avatars (javascript: recusado)', avatar.data);
 for (const [col, val] of [['role', 'admin'], ['trust', 100], ['xp', 999999], ['status', 'active'], ['is_demo', true], ['birthdate', '2015-01-01']] as const) {
   const r = await rest('PATCH', `profiles?id=eq.${A.id}`, { [col]: val });
   check(r.status === 401 || r.status === 403, `A não altera profiles.${col}`, r.status);
@@ -291,7 +307,7 @@ check(bFn.status === 401, 'token já emitido de B deixa de valer nas functions (
 const bIngest = await send(B.token, devB, crypto.randomUUID(), track(3));
 check(bIngest.status === 401 || bIngest.status === 403, 'B inativo não envia pontos', bIngest.status);
 const bRest = await call('GET', `${API}/rest/v1/notifications?select=id`, B.token);
-known('QA-07', bRest.status === 401, 'token já emitido de B continua valendo no PostgREST até expirar (≤ 1 h)', bRest.status);
+known('QA-07', bRest.status === 401, 'token já emitido de B deixa de valer no PostgREST na hora (pre-request ACCOUNT_INACTIVE)', bRest.status);
 const bLogin = await call('POST', `${API}/auth/v1/token?grant_type=password`, null, { email: B.email, password });
 check(bLogin.status >= 400, 'B inativo não faz login', bLogin.status);
 await call('POST', `${API}/rest/v1/rpc/admin_set_user_status`, ADMIN.token, { p_user_id: B.id, p_status: 'active' });
@@ -310,15 +326,15 @@ check(leaky.length === 0, 'nenhuma resposta das functions vaza stack, SQL, nomes
 
 // ---------- 12. Limite de linhas do PostgREST no /zones (RNF-009: até 2.000 zonas) ----------
 const loadCenter = zoneOf({ lat: -15.6, lng: -47.7 });
-const loadCells = cellsAround(loadCenter, 20).slice(0, 1200);
+const loadCells = cellsAround(loadCenter, 27).slice(0, 2100);
 const loadRows = loadCells.map((c) => {
   const ring = cellBoundary(c);
   return { id: c, name: `Carga ${c.slice(-4)}`, city: 'Carga QA', is_demo: true, geom: `SRID=4326;POLYGON((${[...ring, ring[0]].map((p) => `${p.lng} ${p.lat}`).join(', ')}))` };
 });
 const ins = await call('POST', `${API}/rest/v1/zones`, SERVICE, loadRows, SERVICE, { Prefer: 'return=minimal,resolution=ignore-duplicates' });
-check(ins.status === 201, '1.200 zonas de carga inseridas (service role)', ins.status);
+check(ins.status === 201 && loadCells.length === 2100, '2.100 zonas de carga inseridas (service role)', ins.status);
 const many = await call('GET', `${FN}/zones?bbox=-47.85,-15.75,-47.55,-15.45`, A.token);
-known('QA-04', many.data?.zones?.length >= 1200, `/zones devolve todas as zonas da área (até 2.000); veio ${many.data?.zones?.length}`);
+known('QA-04', many.data?.zones?.length === 2000, `/zones devolve até 2.000 zonas da área (há 2.100); veio ${many.data?.zones?.length}`);
 await call('DELETE', `${API}/rest/v1/zones?city=eq.Carga%20QA`, SERVICE, undefined, SERVICE);
 
 // limpeza

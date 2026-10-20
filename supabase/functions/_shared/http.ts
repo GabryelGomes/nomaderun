@@ -47,6 +47,12 @@ export function handler(methods: string[], fn: (req: Request) => Promise<Respons
 }
 
 export async function readJson(req: Request, maxBytes = 512 * 1024): Promise<unknown> {
+  // QA-08: recusa pelo Content-Length antes de ler o corpo (o tamanho real é conferido de novo depois)
+  const declared = Number(req.headers.get('Content-Length') ?? '0');
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    await req.body?.cancel();
+    throw new HttpError(413, 'VALIDATION', 'Requisição grande demais.');
+  }
   const text = await req.text();
   if (text.length > maxBytes) throw new HttpError(413, 'VALIDATION', 'Requisição grande demais.');
   try {

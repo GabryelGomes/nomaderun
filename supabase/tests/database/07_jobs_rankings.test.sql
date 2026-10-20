@@ -4,7 +4,8 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select plan(20);
 
--- isola dos dados de demonstração
+-- isola dos dados de demonstração e do que outras suítes deixaram no banco (QA-11): tudo volta no rollback
+delete from public.activity_zones;
 delete from public.zones;
 
 create function pg_temp.poly(dx float8) returns extensions.geometry language sql as $$
@@ -30,9 +31,9 @@ select is((select version from public.zones where id = '891f1d48102ffff'), 0, 'z
 -- ---------------------------------------------------------------- RN-004
 insert into auth.users (instance_id, id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-000000000000', '77777777-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'j1@t.com',
-   '{"username": "jobs_1", "birthdate": "1995-01-01", "terms_accepted": true, "city": "Goiânia"}'),
+   '{"username": "jobs_1", "birthdate": "1995-01-01", "terms_accepted": true, "city": "Cidade Jobs QA"}'),
   ('00000000-0000-0000-0000-000000000000', '77777777-0000-4000-8000-000000000002', 'authenticated', 'authenticated', 'j2@t.com',
-   '{"username": "jobs_2", "birthdate": "1995-01-01", "terms_accepted": true, "city": "Goiânia"}'),
+   '{"username": "jobs_2", "birthdate": "1995-01-01", "terms_accepted": true, "city": "Cidade Jobs QA"}'),
   ('00000000-0000-0000-0000-000000000000', '77777777-0000-4000-8000-000000000003', 'authenticated', 'authenticated', 'j3@t.com',
    '{"username": "jobs_3", "birthdate": "1995-01-01", "terms_accepted": true}');
 update public.profiles set faction = 'striders' where id::text like '77777777-%';
@@ -69,7 +70,7 @@ select results_eq(
 select is((select rp from public.leaderboard_individual where username = 'jobs_1'), 150, 'ranking individual soma os RP da temporada');
 select is((select rp from public.leaderboard_factions where faction = 'striders'), 150, 'ranking de facções soma os RP da temporada');
 select is((select zones from public.leaderboard_factions where faction = 'striders'), 5, 'ranking de facções conta zonas dominadas');
-select results_eq($$ select active_runners, eligible, score from public.leaderboard_cities where city = 'Goiânia' $$,
+select results_eq($$ select active_runners, eligible, score from public.leaderboard_cities where city = 'Cidade Jobs QA' $$,
   $$ values (1, false, null::numeric) $$, 'cidade com menos de 20 corredores ativos não pontua (RN-013)');
 
 update public.profiles set contribution_reset_at = now() where id = '77777777-0000-4000-8000-000000000001';

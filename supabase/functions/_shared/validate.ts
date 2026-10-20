@@ -11,6 +11,14 @@ const H3_RE = /^[0-9a-f]{15}$/;
 const HEX64_RE = /^[0-9a-f]{64}$/i;
 /** 2020-01-01 em epoch ms: nenhum ponto válido é anterior a isso. */
 const MIN_EPOCH_MS = 1_577_836_800_000;
+/**
+ * QA-02 (D-50): ritmo do fantasma da Fuga em s/km. O app oferece 5:00–7:00; a faixa aceita vai de 2:30 (elite) a
+ * 15:00 (caminhada). Fora da missão `fuga` o valor é ignorado (nunca dá M_fantasma nem +50 XP).
+ */
+export const GHOST_PACE_MIN = 150;
+export const GHOST_PACE_MAX = 900;
+/** QA-09 (D-50): `endedAt` do finish pode passar de agora em no máximo 5 min (relógio do aparelho adiantado). */
+export const ENDED_AT_TOLERANCE_MS = 5 * 60_000;
 
 const fail = (message: string): never => {
   throw new HttpError(400, 'VALIDATION', message);
@@ -98,7 +106,8 @@ export function parseIngestBody(body: unknown, now = Date.now()): IngestBody {
     if (!MISSIONS.includes(b.mission as never)) fail('Missão inválida (livre, fuga ou caca).');
     mission = b.mission as IngestBody['mission'];
   }
-  const ghostPace = optionalNumber(b.ghostPace, 'ghostPace', 60, 3600);
+  const pace = optionalNumber(b.ghostPace, 'ghostPace (150 a 900 s/km)', GHOST_PACE_MIN, GHOST_PACE_MAX);
+  const ghostPace = mission === 'fuga' ? pace : null;
   const startedAt = b.startedAt === undefined || b.startedAt === null ? null : (b.startedAt as number);
   if (startedAt !== null && (!isInt(startedAt) || startedAt < MIN_EPOCH_MS || startedAt > maxT)) fail('Campo startedAt inválido.');
 
@@ -151,6 +160,14 @@ export function parseFinish(body: unknown): FinishBody {
     endedAt = b.endedAt as number;
   }
   return { activityId, endedAt, lastSeq: b.lastSeq as number };
+}
+
+/** QA-09: `endedAt` entre o início da corrida e agora + 5 min (null = usar o horário do último ponto). */
+export function checkEndedAt(endedAt: number | null, startedAt: number, now = Date.now()): number | null {
+  if (endedAt === null) return null;
+  if (endedAt < startedAt) fail('Campo endedAt anterior ao início da corrida.');
+  if (endedAt > now + ENDED_AT_TOLERANCE_MS) fail('Campo endedAt no futuro.');
+  return endedAt;
 }
 
 export type Bbox = { minLng: number; minLat: number; maxLng: number; maxLat: number };

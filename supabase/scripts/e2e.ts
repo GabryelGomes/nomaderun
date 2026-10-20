@@ -324,9 +324,13 @@ check(pub.status === 200, 'foto acessível pela URL pública');
 // 9) LGPD
 const exp = await call('GET', `${FN}/account-export`, token);
 check(exp.status === 200 && exp.data?.activities?.[0]?.points?.length === points.length, 'account-export traz corrida e pontos', { status: exp.status });
-const delBad = await call('POST', `${FN}/account-delete`, token, { confirm: 'sim' });
+const delBad = await call('POST', `${FN}/account-delete`, token, { confirm: 'sim', password });
 check(delBad.status === 400, 'account-delete exige confirm=EXCLUIR', delBad);
-const del = await call('POST', `${FN}/account-delete`, token, { confirm: 'EXCLUIR' });
+const delNoPass = await call('POST', `${FN}/account-delete`, token, { confirm: 'EXCLUIR' });
+check(delNoPass.status === 400 && delNoPass.data?.error?.code === 'VALIDATION', 'account-delete exige a senha (QA-06)', delNoPass);
+const delWrong = await call('POST', `${FN}/account-delete`, token, { confirm: 'EXCLUIR', password: 'senha-errada-123' });
+check(delWrong.status === 403 && delWrong.data?.error?.code === 'INVALID_PASSWORD', 'account-delete com senha errada é recusado (QA-06)', delWrong);
+const del = await call('POST', `${FN}/account-delete`, token, { confirm: 'EXCLUIR', password });
 check(del.status === 200 && del.data?.deleted === true, 'account-delete exclui a conta', del);
 const gone = await call('GET', `${FN}/zones?bbox=0,0,0.1,0.1`, token);
 check(gone.status === 401, 'token da conta excluída deixa de funcionar nas functions', gone);

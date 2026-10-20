@@ -48,7 +48,14 @@ Em **Authentication → Sign In / Providers / URL Configuration / Rate Limits / 
 - **E-mail e senha** ligados; senha mínima **8**; **Confirm email desligado** no MVP (D-21) — ligue se houver SMTP.
 - **JWT expiry 3600 s**, rotação de refresh token ligada.
 - **Site URL** `nomaderun://`; **Redirect URLs**: `nomaderun://**`, `exp://**` (Expo Go), `http://localhost:8081/**` e a URL do painel web se publicado.
-- **Rate limit de login/cadastro:** o `config.toml` usa `sign_in_sign_ups = 3` por 5 min **por IP** (≈ RNF-007). Na apresentação, várias pessoas na mesma rede saem pelo mesmo IP: suba para 30 antes e volte depois (P-09).
+- **Rate limit de login/cadastro (P-09, QA-06):** o `config.toml` usa `sign_in_sign_ups = 3` por 5 min **por IP** (≈ RNF-007). O limite soma cadastro, login **e a conferência de senha da exclusão de conta** (`account-delete` reautentica pelo Auth). Só vale no Cloud (o Auth local não vê o IP do cliente). **Para a apresentação** (banca e plateia na mesma rede saem pelo mesmo IP/NAT):
+  1. Antes (no dia anterior): **Authentication → Rate Limits → "Sign-ups and sign-ins"** = **30** por 5 min (ou `sign_in_sign_ups = 30` no `config.toml` e `npx supabase config push`). Confira com 4 logins seguidos do mesmo aparelho (nenhum `429`).
+  2. Não mude `token_refresh` (150) nem os demais.
+  3. Depois da apresentação: volte para **3** (valor do RNF-007, D-21) e confira com `npx supabase config diff` que não sobrou diferença.
+  Se travar no meio (`429` / "Muitas tentativas"), suba o limite no painel; vale na hora, sem redeploy.
+- **Troca de senha com reautenticação:** `secure_password_change = true` (QA-06) — vai no `config push`; no painel: **Authentication → Providers → Email → Secure password change**.
+- **Conta inativada sem acesso (QA-07):** a migration `20261022120000_qa_hardening.sql` faz `alter role authenticator set pgrst.db_pre_request = 'public.check_request'` e `notify pgrst, 'reload config'`. Depois do `db push`, confira no SQL Editor: `select setconfig from pg_db_role_setting s join pg_roles r on r.oid = s.setrole where r.rolname = 'authenticator';` deve listar `pgrst.db_pre_request=public.check_request`. Se o Cloud recusar o `alter role`, rode a linha no SQL Editor (as policies restritivas continuam barrando a conta inativa de qualquer forma).
+- **Linhas por resposta (QA-04):** `max_rows = 2000` em `[api]` (painel: **Project Settings → Data API → Max rows**). O `/zones` não depende disso (usa `zones_in_bbox_json`).
 - **SMTP (opcional):** o envio padrão do Supabase tem limite baixo (poucos e-mails por hora) e serve só para testes. Para recuperação de senha confiável, configure um SMTP (Resend, SendGrid, Brevo) em **Authentication → Emails → SMTP Settings**; o modelo em pt-BR é `supabase/templates/recovery.html` (enviado pelo `config push`).
 - Google/Apple só com credenciais reais (P-06).
 

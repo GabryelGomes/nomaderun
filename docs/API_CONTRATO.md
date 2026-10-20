@@ -1,7 +1,7 @@
 # Contrato da API (app ↔ Supabase)
 
 > Dono: **Backend (A2)**. O app (frontend e GPS) programa contra este contrato. Qualquer mudança aqui precisa de registro em `DECISOES_TECNICAS.md` e aviso no `PROGRESSO.md`.
-> Última revisão: 2026-10-20 (Fase 3 do A2: baús, M_grupo, rankings por período/distrito, zona de privacidade, Realtime das notificações, nomes de zonas novas — D-39 a D-44; implementado e testado: pgTAP, Deno e e2e).
+> Última revisão: 2026-10-22 (Fase 4 do A2, correções do QA — D-50: convite de crew só para membros e `public_crews`, `ghostPace` só na Fuga, `/zones` com até 2.000, `avatar_url` só do bucket, conta inativa barrada no PostgREST, limites de pontos/corridas abertas, `endedAt`, staff por `staff_profiles`, exclusão com senha, cidade no cadastro). Anterior: 2026-10-20 (Fase 3, D-39 a D-44).
 
 Base das functions: `${EXPO_PUBLIC_SUPABASE_URL}/functions/v1/<nome>`. Todas exigem `Authorization: Bearer <JWT do usuário>` (o servidor confere o token no Auth a cada chamada; conta excluída ou banida recebe 401).
 Erros: HTTP 4xx/5xx com corpo `{ "error": { "code": "<CODIGO>", "message": "<texto em pt-BR>", "details"?: { ... } } }`. O campo `details` é opcional (hoje só `lastSeq`, ver ingest/finish).
@@ -16,10 +16,10 @@ Local: `http://127.0.0.1:54321` (ver `PROGRESSO.md` para as chaves). Datas nas f
 ```json
 { "username": "ana_corre", "birthdate": "2000-05-31", "accepted_terms": true, "accepted_privacy": true, "city": "Goiânia" }
 ```
-- Aceita também `terms_accepted` / `privacy_accepted`. `city` é opcional; campos extras (versões e instantes dos aceites) são ignorados pelo banco.
-- O banco **recusa** (o Auth devolve só `500 "Database error saving new user"`): menos de 16 anos (`AGE_UNDER_16`), sem data (`BIRTHDATE_REQUIRED`/`BIRTHDATE_INVALID`), sem algum dos aceites (`TERMS_REQUIRED`), nome fora de `^[A-Za-z0-9_.]{3,20}$` (`USERNAME_INVALID`) ou já usado sem diferenciar maiúsculas (`USERNAME_TAKEN`). Por isso o app valida antes e chama `rpc('username_available', { p_username })` (liberado também para `anon`).
+- Aceita também `terms_accepted` / `privacy_accepted`. **`city` (cidade natal) é opcional e o app deve enviá-la** quando o corredor preencher: o banco tira os espaços das pontas e grava em `profiles.city` (a 1ª cidade não conta como troca da RN-013); de 2 a 80 caracteres, senão `CITY_INVALID`. Campos extras (versões e instantes dos aceites) são ignorados pelo banco.
+- O banco **recusa** (o Auth devolve só `500 "Database error saving new user"`): menos de 16 anos (`AGE_UNDER_16`), sem data (`BIRTHDATE_REQUIRED`/`BIRTHDATE_INVALID`), sem algum dos aceites (`TERMS_REQUIRED`), nome fora de `^[A-Za-z0-9_.]{3,20}$` (`USERNAME_INVALID`), já usado sem diferenciar maiúsculas (`USERNAME_TAKEN`) ou cidade com 1 ou mais de 80 caracteres (`CITY_INVALID`). Por isso o app valida antes e chama `rpc('username_available', { p_username })` (liberado também para `anon`).
 - Confirmação de e-mail desligada no MVP (D-21): `signUp` já devolve a sessão.
-- JWT de 1 h (`expires_in: 3600`) com rotação de refresh token. Recuperação: `resetPasswordForEmail(email, { redirectTo })` com `redirectTo` em `nomaderun://**`, `exp://**` ou `http://localhost:8081/**`; o e-mail sai em português.
+- JWT de 1 h (`expires_in: 3600`) com rotação de refresh token. **Troca de senha** (`updateUser({ password })`) exige login recente (`secure_password_change = true`, QA-06): se o Auth recusar por reautenticação, peça para entrar de novo (ou use o fluxo de recuperação). **Conta inativada pelo admin** perde o acesso na hora: toda chamada REST/RPC com o token antigo recebe **401** com `message = "ACCOUNT_INACTIVE: conta inativa"` (pre-request do PostgREST), Realtime/Storage não entregam mais nada e as functions respondem 401 (QA-07). Recuperação: `resetPasswordForEmail(email, { redirectTo })` com `redirectTo` em `nomaderun://**`, `exp://**` ou `http://localhost:8081/**`; o e-mail sai em português.
 
 ## Edge Functions
 
@@ -40,7 +40,7 @@ Recebe um lote de pontos de uma corrida (RF-004, RF-005, RNF-006, RNF-009). Cria
 {
   "activityId": "uuid", "deviceId": "uuid",
   "startedAt": 1729430000000,            // epoch ms, opcional, só usado na criação (padrão: t do 1º ponto do lote)
-  "mission": "livre|fuga|caca", "ghostPace": 330,  // opcionais, só na criação; ghostPace em s/km (60–3600)
+  "mission": "livre|fuga|caca", "ghostPace": 330,  // opcionais, só na criação; ghostPace em s/km (150–900), só vale com mission = "fuga"
   "fromSeq": 0, "toSeq": 49,
   "points": [ { "seq": 0, "lat": -16.7, "lng": -49.2, "t": 1729430000000,
                 "accuracy": 5, "speed": 3.1, "altitude": 750, "mocked": false, "steps": 3 } ],
@@ -49,7 +49,7 @@ Recebe um lote de pontos de uma corrida (RF-004, RF-005, RNF-006, RNF-009). Cria
 // 202
 { "accepted": 50, "duplicates": 0, "lastSeq": 49 }
 ```
-Regras de validação (`VALIDATION`, 400): 1 a **500** pontos por lote; `toSeq - fromSeq + 1 = points.length`; `points[i].seq = fromSeq + i`; `lat` ∈ [-90, 90], `lng` ∈ [-180, 180]; `t` inteiro em ms, a partir de 2020 e no máximo 24 h no futuro, sem voltar no tempo dentro do lote; `accuracy ≥ 0`; `steps` inteiro ≥ 0 (passos desde o ponto anterior; **ausente = aparelho sem pedômetro**); `mocked` booleano. `accuracy`, `speed`, `altitude`, `mocked`, `steps` podem ser omitidos ou `null`.
+Regras de validação (`VALIDATION`, 400): `ghostPace` de **150 a 900 s/km** (fora disso → `VALIDATION`); em missão diferente de `fuga` (ou sem missão) ele é **ignorado** (não grava, não dá M_fantasma nem +50 XP; QA-02); 1 a **500** pontos por lote; `toSeq - fromSeq + 1 = points.length`; `points[i].seq = fromSeq + i`; `lat` ∈ [-90, 90], `lng` ∈ [-180, 180]; `t` inteiro em ms, a partir de 2020 e no máximo 24 h no futuro, sem voltar no tempo dentro do lote; `accuracy ≥ 0`; `steps` inteiro ≥ 0 (passos desde o ponto anterior; **ausente = aparelho sem pedômetro**); `mocked` booleano. `accuracy`, `speed`, `altitude`, `mocked`, `steps` podem ser omitidos ou `null`.
 
 **Canonical** (o que é assinado) = `JSON.stringify` de um objeto com as chaves nesta ordem: `activityId, deviceId, fromSeq, toSeq, points` e, em cada ponto, `seq, lat, lng, t, accuracy, speed, altitude, mocked, steps` (ausentes como `null`). `startedAt`, `mission`, `ghostPace` e `signature` **não** entram. Os UUIDs são assinados exatamente como enviados. Assinatura em hexadecimal (maiúsculas ou minúsculas); o servidor compara em tempo constante.
 
@@ -78,12 +78,14 @@ Idempotência (D-03): `(activityId, seq)` é único. Reenviar um lote idêntico 
 | `DEVICE_MISMATCH` | 409 | corrida começou em outro aparelho | — |
 | `NOT_OWNER` | 403 | `activityId` é de outra conta | gerar outro UUID |
 | `ACCOUNT_INACTIVE` | 403 | conta inativada pelo admin | — |
+| `TOO_MANY_OPEN_RUNS` | 409 | já há **3 corridas abertas** (sem `finish`) criadas nas últimas 24 h; só a criação de uma nova é recusada (QA-08) | finalizar as pendentes (a fila manda o `finish` de cada uma) e tentar de novo |
+| `POINTS_LIMIT` | 409 | o lote passaria de **14.400 pontos** na corrida (`seq` ≥ 14400 = 4 h a 1 ponto/s; QA-08) | parar de enviar e chamar `finish-activity` com `lastSeq = details.lastSeq` |
 
 ### `POST /finish-activity`
 Fecha a corrida e calcula o resultado oficial com o **mesmo** `src/domain` do app (RF-006, RF-008, RF-010, RN-001..004, RN-007..009, RN-016). Idempotente: chamar de novo devolve o mesmo resultado.
 ```json
 // req
-{ "activityId": "uuid", "endedAt": 1729433600000, "lastSeq": 1799 }   // endedAt opcional (padrão: t do último ponto)
+{ "activityId": "uuid", "endedAt": 1729433600000, "lastSeq": 1799 }   // endedAt opcional (padrão: t do último ponto); entre o início da corrida e agora + 5 min, senão VALIDATION (QA-09)
 // 200
 {
   "activityId": "uuid",
@@ -112,13 +114,13 @@ Fecha a corrida e calcula o resultado oficial com o **mesmo** `src/domain` do ap
 Códigos: `MISSING_POINTS` (409: `lastSeq` maior que o recebido — reenviar a fila a partir de `details.lastSeq + 1`), `NOT_OWNER` (403), `FACTION_REQUIRED` (409: escolha a facção antes), `ACTIVITY_CLOSED` (409), `BUSY` (503: muitas corridas na mesma área ao mesmo tempo; tente de novo), `ACCOUNT_INACTIVE` (403).
 
 ### `GET /zones?bbox=minLng,minLat,maxLng,maxLat`
-Zonas visíveis (RF-007, RNF-009; índice GiST). Máx. 2.000. Caixa de no máximo 1 grau por lado (senão `VALIDATION`).
+Zonas visíveis (RF-007, RNF-009; índice GiST). **Até 2.000 zonas** numa resposta (QA-04: a function usa `zones_in_bbox_json`, um único JSON, e não sofre o limite de linhas da API). Caixa de no máximo 1 grau por lado (senão `VALIDATION`).
 ```json
 { "zones": [ { "id": "89a8...", "name": "Setor Bueno 3", "city": "Goiânia", "owner": "striders|null",
                "influence": { "striders": 120, "coyotes": 0, "owls": 40, "volt": 0 },
                "shield": 1, "attacker": "owls|null", "attackStartedAt": 1729430000000, "blocked": false } ] }
 ```
-A mesma consulta existe como RPC: `rpc('zones_in_bbox', { min_lng, min_lat, max_lng, max_lat })` (datas ISO, `name` pode ser nulo).
+A mesma consulta existe como RPC: `rpc('zones_in_bbox', { min_lng, min_lat, max_lng, max_lat })` (linhas; datas ISO, `name` pode ser nulo; `max_rows = 2000` no `config.toml`) e `rpc('zones_in_bbox_json', { ... })` (as mesmas linhas como um array JSON único).
 
 ### `GET /zone?id=<h3>`
 Detalhe para a folha da zona: o objeto acima + `updatedAt` + `topRunners: [{ username, faction, rp }]` (3 maiores da temporada) + `events: [{ type, faction, from, at }]` (10 últimos; `type` ∈ `captured | under_attack | defended | neutralized | shield_up | shield_down`). `NOT_FOUND` (404) se ninguém correu ali ainda.
@@ -136,7 +138,7 @@ Aprovar recalcula a pontuação com o estado atual das zonas (ignora o trust) e 
 Lista para o painel: `from('activities').select('*').eq('status','review')` (staff lê todas) e `from('activity_points')` para o percurso.
 
 ### `GET /account-export` · `POST /account-delete`
-LGPD (RF-002, RNF-013). Export devolve JSON (com `Content-Disposition` de anexo) com e-mail, perfil, aparelhos (sem segredo), corridas com pontos e zonas, contatos, notificações, neblina, baús (`chests` sorteados e `chestOpens`), zonas de privacidade (`privacyZones`), crew e decisões de moderação. Delete exige `{ "confirm": "EXCLUIR" }`, apaga a foto do Storage e o usuário do Auth; o resto cai em cascata (a influência já somada nas zonas fica, por ser agregada). Resposta: `{ "deleted": true }`.
+LGPD (RF-002, RNF-013). Export devolve JSON (com `Content-Disposition` de anexo) com e-mail, perfil, aparelhos (sem segredo), corridas com pontos e zonas, contatos, notificações, neblina, baús (`chests` sorteados e `chestOpens`), zonas de privacidade (`privacyZones`), crew e decisões de moderação. Delete exige **`{ "confirm": "EXCLUIR", "password": "<senha atual>" }`** (reautenticação, QA-06): o servidor confere a senha no Auth com o e-mail da conta antes de excluir. Erros: `VALIDATION` (400: sem `confirm` ou sem senha), `INVALID_PASSWORD` (403: senha errada), `RATE_LIMITED` (429: muitas tentativas — a conferência conta no limite de login do Auth), `REAUTH_UNAVAILABLE` (409: conta sem e-mail/senha, login social, P-06). Depois apaga a foto do Storage e o usuário do Auth; o resto cai em cascata (a influência já somada nas zonas fica, por ser agregada). Resposta: `{ "deleted": true }`.
 
 ## Acesso direto às tabelas (supabase-js + RLS)
 
@@ -144,7 +146,8 @@ LGPD (RF-002, RNF-013). Export devolve JSON (com `Content-Disposition` de anexo)
 
 | Tabela / view | Cliente pode | Observação |
 |---|---|---|
-| `profiles` | ler o próprio (staff lê todos); atualizar **só** `username`, `city`, `avatar_url`, `units` (`km`/`mi`), `notification_prefs` | `role`, `trust`, `status`, `xp`, `faction`, `streak_weeks` só pelo servidor (UPDATE nessas colunas = `42501`). Cidade natal: 1 troca por temporada (`CITY_CHANGE_LIMIT`, RN-013). `notification_prefs` = `{ invasion, conquest, moderation, missions }` (booleans) |
+| `profiles` | ler **só o próprio** (inclusive staff, QA-16); atualizar **só** `username`, `city`, `avatar_url`, `units` (`km`/`mi`), `notification_prefs` | `role`, `trust`, `status`, `xp`, `faction`, `streak_weeks` só pelo servidor (UPDATE nessas colunas = `42501`). Cidade natal: 1 troca por temporada (`CITY_CHANGE_LIMIT`, RN-013). `notification_prefs` = `{ invasion, conquest, moderation, missions }` (booleans), até 512 bytes. **`avatar_url`** (QA-05): só a URL pública do bucket na pasta do próprio usuário — `http(s)://<host>/storage/v1/object/public/avatars/<seu id>/<arquivo>` (o `getPublicUrl` do supabase-js), com host `<ref>.supabase.co`, `localhost`, `127.0.0.1` ou IP de rede local; `null` remove. Outro valor → `23514` (`profiles_avatar_url_bucket`) |
+| `staff_profiles` (view, QA-16) | ler (só staff ativo vê linhas; corredor comum recebe lista vazia) | `id, username, faction, city, avatar_url, role, status, suspended_until, trust, xp, streak_weeks, is_demo, created_at, updated_at` — **sem data de nascimento**. O painel de moderação/admin lê perfis de outros por aqui (ex.: `from('staff_profiles').select('id,username,trust').in('id', ids)` e a busca de contas com `.ilike('username', ...)`) |
 | `public_profiles` (view) | ler | `id, username, faction, city, xp, avatar_url, created_at, crew_id, crew_tag`; contas inativas não aparecem |
 | `devices` | ler os próprios | sem a coluna `secret` |
 | `activities`, `activity_points`, `activity_zones` | ler os próprios (staff lê todos) | escrita só pelas functions. `activities.result` guarda a resposta oficial do `finish-activity`. **RN-010:** em `activity_points` de outra pessoa (painel de moderação) não vêm os pontos dentro das zonas de privacidade do dono (o `seq` fica com buraco); o dono vê tudo |
@@ -154,9 +157,10 @@ LGPD (RF-002, RNF-013). Export devolve JSON (com `Content-Disposition` de anexo)
 | `chests` | ler os próprios | baús sorteados por dia (`id, day, lat, lng, rarity, xp, opened_at, activity_id`); use `rpc('daily_chests')`, que sorteia na primeira chamada do dia. Escrita só pelo servidor |
 | `privacy_zones` | CRUD dos próprios (`label?`, `lat`, `lng`, `radius_m`) | RN-010: até 3 (`PRIVACY_ZONES_LIMIT`); `radius_m` padrão 200, de 50 a 1000; `label` de 1 a 40 caracteres ou nulo. Cadastro: `from('privacy_zones').insert({ label: 'Casa', lat, lng })`; editar: `update({ lat, lng, radius_m }).eq('id', id)`; remover: `delete().eq('id', id)`. Os pontos dentro do raio pontuam normalmente, mas não aparecem para terceiros |
 | `zones`, `zone_events` | ler tudo | Realtime ligado em `zones`. Em `zone_events` não há `user_id`/`activity_id` para o cliente (privacidade de percurso). Zonas criadas por corridas têm `name` e `city` (D-43) |
-| `crews` | ler; criar com `insert({ name, tag })` (líder = você, facção = a sua, `invite_code` gerado); líder renomeia/apaga | sigla 3–5 letras (vira maiúscula). RN-011 em trigger: `FACTION_REQUIRED`, `ALREADY_IN_CREW` |
+| `crews` | ler **só a própria crew** (líder e membros, com o `invite_code` para convidar; QA-01); criar com `insert({ name, tag })` (líder = você, facção = a sua, `invite_code` gerado; o `select('*')` do insert devolve a linha ao líder); líder renomeia/apaga | sigla 3–5 letras (vira maiúscula). RN-011 em trigger: `FACTION_REQUIRED`, `ALREADY_IN_CREW` |
+| `public_crews` (view, QA-01) | ler | `id, name, tag, faction, leader_id, created_at, members` de todas as crews, **sem o código de convite** (listas, busca, nome/sigla de crew alheia) |
 | `crew_members` | ler; sair (`delete` da própria linha) ou o líder remover membro | entrada só por `join_crew`. Se o líder sai, o membro mais antigo assume; crew vazia é apagada |
-| `moderation_reviews` | staff lê tudo; o corredor lê as das próprias corridas | |
+| `moderation_reviews` | staff lê tudo; o corredor lê as das próprias corridas | colunas `id, activity_id, decision, justification, created_at`; `moderator_id` não sai pela API (QA-16) |
 | `seasons` | ler | temporada atual = mês de Brasília (`AAAA-MM`) |
 | `leaderboard_individual` | ler | `position, user_id, username, faction, city, crew_tag, rp, meters, runs` (temporada) |
 | `leaderboard_crews` | ler | `position, crew_id, name, tag, faction, rp, members` |

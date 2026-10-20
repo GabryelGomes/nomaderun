@@ -136,6 +136,9 @@ end $$;
 -- B cria uma crew (striders)
 select pg_temp.login('a5a5a5a5-0000-4000-8000-00000000000b');
 insert into public.crews (name, tag) values ('Crew Segura', 'SEG');
+-- QA-01: só membros leem o código; o líder guarda para o teste de RN-011 abaixo
+create temp table seg_code as select invite_code from public.crews where tag = 'SEG';
+grant select on seg_code to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 2. Usuário comum (A)
@@ -166,7 +169,7 @@ select is(pg_temp.affected($q$delete from public.crew_members where user_id = 'a
 select throws_like($$ select public.admin_set_user_status('a5a5a5a5-0000-4000-8000-00000000000b', 'inactive') $$, '%FORBIDDEN%',
   'corredor não inativa contas');
 select is(public.username_available($$x' or '1'='1$$), false, 'username_available com texto malicioso só responde false');
-select is((select count(*)::int from public.crews where tag = 'SEG'), 1, 'crews são visíveis para todos (nome e sigla para rankings)');
+select is((select count(*)::int from public.public_crews where tag = 'SEG'), 1, 'crews são visíveis para todos em public_crews (nome e sigla, sem o convite; QA-01)');
 
 -- ---------------------------------------------------------------------------
 -- 3. Líder de crew (B)
@@ -180,7 +183,7 @@ select throws_ok($$ update public.crews set leader_id = 'a5a5a5a5-0000-4000-8000
 
 -- C (coyotes) não entra na crew dos striders
 select pg_temp.login('a5a5a5a5-0000-4000-8000-00000000000c');
-select throws_like($$ select public.join_crew((select invite_code from public.crews where tag = 'SEG')) $$, '%CREW_FACTION_MISMATCH%',
+select throws_like($$ select public.join_crew((select invite_code from seg_code)) $$, '%CREW_FACTION_MISMATCH%',
   'usuário de outra facção não entra na crew (RN-011)');
 
 -- ---------------------------------------------------------------------------

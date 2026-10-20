@@ -93,6 +93,7 @@ export async function scoreAndApply(opts: {
       earnedToday: ctx.earnedToday,
       revealedFog: ctx.revealedFog,
       ghostPace: activity.ghost_pace,
+      mission: activity.mission,
       now,
       chests: ctx.chests ?? [],
       crewTracks: crew?.tracks ?? [],

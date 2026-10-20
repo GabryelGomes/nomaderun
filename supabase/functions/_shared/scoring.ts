@@ -27,6 +27,7 @@ import {
 } from './domain.ts';
 import { type CrewTrack, detectPack } from './group.ts';
 import { HttpError } from './http.ts';
+import { GHOST_PACE_MAX, GHOST_PACE_MIN } from './validate.ts';
 
 export type StoredPoint = {
   seq: number;
@@ -128,6 +129,8 @@ export type ScoringInput = {
   earnedToday: Record<string, number>;
   revealedFog: string[];
   ghostPace: number | null;
+  /** Missão gravada na corrida; o fantasma (M_fantasma, RN-019) só vale na `fuga` (QA-02). */
+  mission?: 'livre' | 'fuga' | 'caca';
   now: number;
   /** RN-017: baús ainda fechados do corredor (só na missão Caça; vazio nas outras). */
   chests?: ChestCandidate[];
@@ -204,6 +207,12 @@ const toDomainZone = (z: DbZone): Zone => ({
   blocked: z.blocked,
 });
 
+/** QA-02: fantasma só na missão Fuga e com ritmo plausível (150–900 s/km); senão é ignorado. */
+export function officialGhostPace(mission: ScoringInput['mission'], ghostPace: number | null): number | undefined {
+  if (mission !== 'fuga' || ghostPace === null || !Number.isFinite(ghostPace)) return undefined;
+  return ghostPace >= GHOST_PACE_MIN && ghostPace <= GHOST_PACE_MAX ? ghostPace : undefined;
+}
+
 export function computeOfficialResult(input: ScoringInput): OfficialResult {
   const geo = toGeoPoints(input.points);
   const run: LiveRun = { ...startRun(input.startedAt), points: geo };
@@ -220,7 +229,7 @@ export function computeOfficialResult(input: ScoringInput): OfficialResult {
     zones,
     revealedFog: new Set(input.revealedFog),
     now: input.now,
-    ghostPace: input.ghostPace ?? undefined,
+    ghostPace: officialGhostPace(input.mission, input.ghostPace),
     earnedTodayByZone: input.earnedToday,
     packZones: pack && pack.zones.length ? new Set(pack.zones) : undefined,
   };

@@ -3,7 +3,7 @@
 import { loadActivity, scoreAndApply } from '../_shared/finish.ts';
 import { handler, HttpError, json, readJson } from '../_shared/http.ts';
 import { requireUser } from '../_shared/supabase.ts';
-import { parseFinish } from '../_shared/validate.ts';
+import { checkEndedAt, parseFinish } from '../_shared/validate.ts';
 
 Deno.serve(handler(['POST'], async (req) => {
   const user = await requireUser(req);
@@ -21,5 +21,7 @@ Deno.serve(handler(['POST'], async (req) => {
   if (activity.last_seq < body.lastSeq) {
     throw new HttpError(409, 'MISSING_POINTS', 'Faltam pontos desta corrida no servidor. Reenvie a fila.', { lastSeq: activity.last_seq });
   }
-  return json(await scoreAndApply({ mode: 'finish', activity, points, endedAt: body.endedAt }));
+  // QA-09: endedAt entre o início da corrida e agora + 5 min
+  const endedAt = checkEndedAt(body.endedAt, Date.parse(activity.started_at));
+  return json(await scoreAndApply({ mode: 'finish', activity, points, endedAt }));
 }));
