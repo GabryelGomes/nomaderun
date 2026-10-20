@@ -13,6 +13,7 @@ Duas ferramentas configuradas no projeto para o Claude gastar menos contexto:
 # rtk
 brew install rtk     # macOS / Linux
 # ou: curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+# (se der 403 da API do GitHub, fixe a versão: ... | RTK_VERSION=v1.0.1 sh)
 
 # CodeGraph
 npm install -g @colbymchenry/codegraph
@@ -42,3 +43,6 @@ No Claude Code, `/mcp` deve mostrar `codegraph` conectado.
 
 - O hook do rtk só age no Bash. As ferramentas nativas `Read`, `Grep` e `Glob` não passam por ele.
 - Sem o rtk instalado, o hook não faz nada e os comandos rodam normalmente.
+- O rtk às vezes mostra `No hook installed — run rtk init -g`. Pode ignorar: o hook
+  está no projeto (`.claude/settings.json`), não na configuração global que ele procura.
+- O CodeGraph envia estatísticas anônimas de uso; desligue com `codegraph telemetry off`.

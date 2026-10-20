@@ -11,7 +11,11 @@ remote="${CLAUDE_CODE_REMOTE:-false}"
 
 if ! command -v rtk >/dev/null 2>&1; then
   if [ "$remote" = "true" ]; then
-    curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh >/dev/null 2>&1 \
+    # A API do GitHub costuma dar 403 (rate limit); fixa a última tag via git.
+    rtk_version=$(git ls-remote --tags --refs https://github.com/rtk-ai/rtk.git 'v*' 2>/dev/null \
+      | sed 's#.*refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+    curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh \
+      | RTK_VERSION="$rtk_version" sh >/dev/null 2>&1 \
       || echo "rtk: falha ao instalar" >&2
   else
     echo "rtk não instalado: veja docs/ECONOMIA-DE-TOKENS.md" >&2
