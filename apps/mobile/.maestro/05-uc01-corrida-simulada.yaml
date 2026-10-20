@@ -1,0 +1,49 @@
+# UC-01 (RF-004, RF-006, RF-008): conta nova → Correr → Simulação → contagem → corrida (~4 min de relógio até
+# passar pela zona neutra) → segurar para encerrar → resumo OFICIAL com "Zona conquistada".
+appId: ${APP_ID}
+name: UC-01 Corrida simulada e conquista
+tags: [uc-01, rf-004, rf-006, rf-008]
+---
+- runFlow: 01-cadastro-onboarding.yaml
+- tapOn: "Correr"
+- extendedWaitUntil:
+    visible:
+      id: "corrida-comecar"
+    timeout: 15000
+- tapOn:
+    id: "corrida-missao-livre"
+    optional: true
+- tapOn:
+    id: "corrida-sinal-simulacao"
+- tapOn:
+    id: "corrida-comecar"
+- extendedWaitUntil:
+    visible:
+      id: "corrida-pausar"
+    timeout: 20000
+- assertVisible:
+    id: "corrida-sos"
+# a simulação passa pelo desvio até a zona neutra mais próxima: o painel avisa quando a conquista está garantida
+- extendedWaitUntil:
+    visible:
+      text: "Conquista garantida ao terminar"
+    timeout: 300000
+- longPressOn: "Segure para encerrar"
+- extendedWaitUntil:
+    visible:
+      id: "tela-resumo"
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: "resumo-zona-conquistada"
+    timeout: 30000
+- assertVisible:
+    id: "resumo-metricas"
+- assertNotVisible:
+    id: "resumo-status-provisional"
+- tapOn:
+    id: "resumo-concluir"
+- extendedWaitUntil:
+    visible:
+      id: "mapa-status"
+    timeout: 15000

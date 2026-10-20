@@ -7,8 +7,9 @@
 
 - **Fase:** 2 (corrida de ponta a ponta) concluída no app; Fase 3 do A3 concluída; pendências do backend da Fase 3 (A2) e do app (A3: P-20, P-24, P-25, P-27) concluídas
 - **Em andamento:** —
+- **Fase 4 (A5):** T4.1–T4.4 feitos (cobertura do domain 100% linhas / 99,6% ramos com limite no Jest, revisão de segurança com relatório em `docs/QA.md`, matriz de rastreabilidade, Maestro UC-01..03, Playwright ponta a ponta e comparação de imagem). Nenhum achado Alto; 4 Médios (QA-01..04) para A2/A3.
 - **Feito na fase:** T1.1–T1.3 e T3.6 (A2 Backend): banco com RLS, Edge Functions usando o domain do app, seed de Goiânia, jobs diários; T1.4–T1.6 (A3 Frontend): cliente Supabase, auth, guardas de rota, onboarding no servidor, perfil e LGPD. **Fase 1 concluída.** **Fase 2/3 (A3):** T2.6 (mapa e folha da zona com o servidor), T3.1 (central de notificações e alerta de invasão), T3.2 (rankings e cidades), T3.3 (painel de moderação), T3.4 (crews) e P-03 (foto de perfil). **Fase 2 (A4):** T2.1–T2.5 (GPS, permissões, sinal fraco, segundo plano por flag, pedômetro, fila SQLite, sync assinada com HMAC, resumo oficial/provisório, histórico com período, Corrida Segura) e T3.5 no app (neblina do servidor). **Fase 3 (A2):** Realtime das notificações (P-13), Caça no servidor com o app ligado (P-12/P-19, T3.5 ✅), M_grupo, rankings por semana/distrito (P-16), zona de privacidade (RN-010), nomes de zonas novas, RN-003 conferida e guia de deploy com bundle verificado (P-08).
-- **Próximos passos:** A5: Fase 4 (testes, segurança, Maestro; validar em aparelho P-17), com `npm run db:reset` antes (P-14); Coordenação: deploy real no Cloud seguindo `supabase/DEPLOY.md` (P-08).
+- **Próximos passos:** A2: QA-01, QA-02, QA-04 (P-29, P-30, P-32) e os Baixos do backend; A3: QA-03 (P-31), QA-12/13 (P-36); Coordenação: P-08 (deploy), P-09, QA-14/15; validação em aparelho (P-05, P-17, P-21, P-28) e rodar os fluxos Maestro (`apps/mobile/.maestro/README.md`).
 - **Backend local no ar:** API `http://127.0.0.1:54321` · chave anon/publishable na entrada de T1.1–T1.3 abaixo · e-mails em `http://127.0.0.1:54324`.
 - **Bloqueios:** nenhum
 
@@ -16,15 +17,15 @@
 
 | # | Pendência | Dono | Origem |
 |---|---|---|---|
-| P-01 | Cobertura de ramos do domain em 85% (meta 90%) | A5 | Baseline |
+| ~~P-01~~ | **Resolvida (A5, T4.1):** domain com 100% de linhas e 99,59% de ramos; `coverageThreshold` de 90% em `src/domain` (`npx jest --coverage`). Texto antigo: cobertura de ramos do domain em 85% (meta 90%) | A5 | Baseline |
 | P-02 | Seção 6.2 do ERS descreve paleta diferente da aprovada (D-15) | A6 | Baseline |
 | P-05 | Validar em aparelho (Expo Go / development build): seletor de foto (`expo-image-picker`) e notificação local de invasão com o app aberto, SecureStore em partes, deep link `nomaderun://nova-senha`, permissão de notificações no Expo Go Android, compartilhamento do JSON exportado | A3/A5 | T1.4–T1.6 |
 | P-06 | Login Google/Apple só com credenciais reais (código pronto, aparece com `EXPO_PUBLIC_AUTH_PROVIDERS`) | Coordenação | T1.5 |
-| P-07 | Testes de tela (React Native Testing Library) e fluxos Maestro de cadastro/login/onboarding usando os testIDs listados no log de T1.4–T1.6 | A5 | T1.5 |
+| P-07 | Fluxos Maestro de cadastro/login/onboarding e UC-01..03 **feitos** (`apps/mobile/.maestro/`, ids conferidos por `src/__tests__/testids.test.ts`), falta **rodar em aparelho**. Testes de tela com React Native Testing Library não feitos (biblioteca não instalada) | A5 | T1.5 |
 | P-08 | Deploy real no Supabase Cloud ainda não feito (precisa de conta). O bundle do deploy por Docker foi verificado localmente com o domain fora de `supabase/` (`npm run functions:bundle-check`) e o plano B está pronto (`npm run domain:copy`, D-44). Seguir `supabase/DEPLOY.md` / `npm run deploy` | Coordenação/A2 | T1.2 |
 | P-09 | Rate limit de login só vale no Cloud (local o Auth não tem IP do proxy); conferir após `supabase config push` e ajustar se travar a apresentação (D-21) | A2/Coordenação | T1.1 |
 | P-10 | Imagens `supabase/mailpit` e `supabase/pg_prove` não baixam aqui: usar `npm run mail` e `npm run db:test:psql` (D-27); rodar `npx supabase test db` onde houver a imagem | A5 | T1.3 |
-| P-11 | RNF-009: medir p95 de `/zones` com 2.000 zonas (hoje 22–28 ms com 271) | A5 | T1.2 |
+| ~~P-11~~ | **Resolvida (A5):** 2.000 zonas no bbox → `zones_in_bbox` 39 ms no banco, `GET /zones` p95 35 ms; mas a resposta para em 1.000 (QA-04 → P-32). Texto antigo: RNF-009: medir p95 de `/zones` com 2.000 zonas | A5 | T1.2 |
 | ~~P-12~~ | **Resolvida (A2, Fase 3):** M_grupo no servidor (D-40), baús sorteados e abertos pelo servidor (D-39), nome e cidade de zonas novas (D-43). Texto antigo: `M_grupo` não aplicado; baús sem gravação; nomes/cidade de zonas novas vazios | A2 | T1.2 |
 | ~~P-13~~ | **Resolvida (A2):** `notifications` na publicação `supabase_realtime`, RLS vale no Realtime (pgTAP `08`, e2e). A troca da consulta de 20 s ficou para o A3 (P-24) | A2 | T3.1 |
 | P-14 | Banco local alterado pelos testes do A3: a corrida em revisão do seed (`…b000-000000000001`) foi aprovada no Playwright e várias cópias dela foram aprovadas pela integração (zonas perto do parque mudaram). Para a fila não ficar vazia foi criada a cópia `…b000-000000000002` em revisão. Antes da apresentação ou de testes que dependam do seed: `npm run db:reset` (quando ninguém estiver usando o banco) | Coordenação/A5 | T3.3 |
@@ -40,6 +41,16 @@
 | ~~P-27~~ | **Resolvida (A3):** tela `/zonas-privacidade` (Perfil → Conta), até 3 endereços com 200 m, posição atual ou toque no mapa, remover (D-47). Texto antigo: Tela "Zonas de privacidade" (RN-010): até 3 endereços com raio (padrão 200 m) via `from('privacy_zones')`; erro `PRIVACY_ZONES_LIMIT`. Contrato no `API_CONTRATO.md` | A3 | Fase 3 (A2) |
 | P-28 | Validar no aparelho a Caça com GPS real (baús do servidor aparecem perto da última corrida, abrem no resumo oficial com XP; sem internet, baús locais). Comentário de `listMyChestOpens` em `activities-repo.ts` ("servidor ainda não grava") ficou desatualizado (arquivo do A4) | A5 / A4 | Fase 3 (A2) |
 | P-22 | Logo após `npx supabase db reset`, a primeira assinatura Realtime pode não receber eventos por alguns segundos (teste RNF-003 falhou 1× e passou nas 2 seguintes, 0,7–1,0 s). Na apresentação: resetar o banco com antecedência e abrir o app depois | A5/A6 | Fechamento da Fase 2 |
+| P-29 | **QA-01 (Média):** `crews.invite_code` legível por qualquer usuário logado → entra em qualquer crew da mesma facção sem convite. Grant por coluna sem `invite_code` + RPC para membros (ver `docs/QA.md`) | A2 | T4.2 |
+| P-30 | **QA-02 (Média):** `ghostPace` do cliente (60–3600 s/km) dá M_fantasma 1,5 e +50 XP em qualquer missão (até `livre`). Só com `mission = 'fuga'` e só os ritmos oferecidos | A2 (A1 se for no domain) | T4.2 |
+| P-31 | **QA-03 (Média):** link `nomaderun://` com tokens troca a sessão atual sem confirmação (fluxo implícito). `flowType: 'pkce'`, ignorar tokens com sessão ativa | A3 | T4.2 |
+| P-32 | **QA-04 (Média):** `/zones` devolve no máximo 1.000 zonas (`max_rows` do PostgREST); contrato/RNF-009 dizem 2.000 | A2 | T4.2 |
+| P-33 | **QA-05, 07, 08, 09, 16 (Baixa, backend):** `avatar_url` com qualquer esquema/host; conta inativada com token válido no PostgREST por até 1 h; sem teto de pontos/corridas; `endedAt` sem limite; staff lê nascimento | A2 | T4.2 |
+| P-34 | **QA-06 (Baixa):** Auth — rate limit só no Cloud e `sign_in_sign_ups = 3`/5 min por IP pode travar a apresentação (NAT); `secure_password_change = false`; exclusão de conta sem reautenticação (junto de P-09) | A2/Coordenação | T4.2 |
+| P-35 | **QA-11 (Baixa):** pgTAP `07` e `10` falham se o banco não estiver limpo (dependem do seed intacto) | A2 (ou A5) | T4.2 |
+| P-36 | **QA-12/13 (Baixa, telas):** "Reduzir movimento" não vale para Button/IconButton/HoldButton; chips de camada 36 pt; faixa "Defendendo" verde (ERS: amarela); métricas podem cair a 38 pt; 8 interativos sem testID (`Correr` do mapa, `HoldButton`, chips…) — apagar da BASELINE de `testids.test.ts`/`reduced-motion.test.ts` ao corrigir | A3/A4 | T4.3 |
+| P-37 | **QA-14/15 (Baixa):** `apps/mobile/coverage/` versionada (tirar do git e pôr no `.gitignore`); `npm audit` com avisos em ferramentas do SDK 57 (`npx expo install --fix` antes da entrega) | Coordenação | T4.2 |
+| P-38 | **QA-10 (risco aceito):** o HMAC não prova que o cliente é o app (chave registrada pelo próprio cliente; `startedAt`/`mission`/`ghostPace` fora da assinatura). Registrar como limite do MVP (D-04); pós-MVP: Play Integrity/App Attest | Coordenação | T4.2 |
 
 ## Modelo de entrada
 
@@ -54,6 +65,28 @@
 ```
 
 ## Log
+
+### 2026-10-21 — T4.1, T4.2, T4.3, T4.4 — Cobertura, revisão de segurança, rastreabilidade, Maestro e ponta a ponta (A5 QA e segurança)
+- **Feito:**
+  - **T4.1 (RNF-008):** testes de ramo (`branches.test.ts`: formatação, h3-runtime com TextDecoder falso, regiões com h3-js mockado, casos-limite do antifraude, auto-pausa, zona bloqueada, `defended`) e **testes de propriedade sem dependência nova** (`prop.ts` com semente fixa): RP inteiro em 0..300 − ganho do dia (também somando corridas e no `finishRun`), conquista com histerese 110%/30 e ataque 50%/40%, decaimento monotônico (nunca entre 0 e o piso, zera em 60 dias), escudo 0–3, nenhum trecho válido > 40 km/h nem salto, simulado = 0 RP/0 XP, confiança 0–100; fila nunca duplica/pula `seq` com gravações simultâneas (memória e SQLite). Domain: **100% linhas, 99,59% ramos** (era 95/84,5). `coverageThreshold` de 90% em `./src/domain/` (linhas, ramos, funções, instruções) na seção `jest` do `package.json`, com `collectCoverageFrom` de todo `src/` e só reporters de texto (vale em `npx jest --coverage`).
+  - **T4.2:** revisão adversarial com relatório em **`docs/QA.md`** (escopo, método, 17 achados, tabela de controles, garantias da plataforma). Cada suspeita virou teste: pgTAP **`12_security_audit`** (44), Deno **`security_inputs.test.ts`** (10) e **teste adversarial HTTP** `supabase/tests/security/edge-security.ts` (81 verificações; achados abertos aparecem como `ACHADO QA-xx`, `STRICT=1` faz falhar). **Nenhum Alto.** Médios: QA-01 convite de crew legível (A2), QA-02 `ghostPace` dá M_fantasma em qualquer missão (A2), QA-03 deep link com tokens troca a sessão (A3), QA-04 `/zones` corta em 1.000 (A2).
+  - **T4.3:** matriz RF/RNF/RN → testes em `docs/QA.md` §10 com lacunas; fluxos **Maestro** `apps/mobile/.maestro/` (cadastro/onboarding, login, UC-03 mapa/camadas/zona, UC-02 alerta → zona, UC-01 corrida simulada → "Zona conquistada") + README; **`src/__tests__/testids.test.ts`** (AST do TypeScript: interativo novo sem `testID`/descrição derruba o teste; todo id/texto dos fluxos Maestro existe no código) e **`reduced-motion.test.ts`**. Retorno visual obrigatório e RNF-011/015 conferidos (`docs/QA.md` §9).
+  - **T4.4:** todas as suítes contra o Supabase local (abaixo); **Playwright** no repositório: `apps/mobile/e2e-web/demo-flow.cjs` (fluxo completo da demonstração) e `visual.spec.cjs` + `playwright.config.cjs` (comparação de imagem 0,2%, referências em `e2e-web/__screenshots__/` geradas com o seed limpo; mapa de calor `fixme`). P-11 medida.
+- **Arquivos:** `docs/QA.md` (novo); `apps/mobile/package.json` (só `jest`); `apps/mobile/src/domain/__tests__/{prop.ts,properties.test.ts,branches.test.ts}`; `apps/mobile/src/services/offline/__tests__/queue-properties.test.ts`; `apps/mobile/src/__tests__/{testids,reduced-motion}.test.ts`; `apps/mobile/.maestro/{config.yaml,README.md,01..05-*.yaml,subflows/*.yaml}`; `apps/mobile/e2e-web/{demo-flow.cjs,serve.cjs,playwright.config.cjs,visual.spec.cjs,README.md,__screenshots__/*.png}`; `supabase/tests/database/12_security_audit.test.sql`; `supabase/tests/security/{edge-security.ts,run.sh}`; `supabase/functions/tests/security_inputs.test.ts`; docs `PROGRESSO.md`, `REQUISITOS.md`, `PLANO_DESENVOLVIMENTO.md`.
+- **Testes executados (banco recém-resetado):**
+  - `apps/mobile`: `npm run typecheck` ok · `eslint src` 0 erros/0 avisos · `npx jest --coverage` → **341 passaram**, 23 ignorados, limite do domain ok.
+  - `npm run db:test:psql` → **242/242** (12 arquivos) · `npm run functions:test` → **51 ok**, 1 ignorado · `npm run e2e` → **54/54** · `bash supabase/tests/security/run.sh` → **81/81** + 5 achados sinalizados.
+  - Integração do app (`NOMADE_IT=1 … npx jest integration --forceExit`) → **23/23**.
+  - Playwright `node e2e-web/demo-flow.cjs <export>` → **12/12** (61–63 s de simulação até a zona neutra; "Zona conquistada, mais 52 RP em Setor Marista 24"; moderador aprova "parcial, 406 RP"); comparação de imagem → 4/4 (1 `fixme`).
+  - P-11: 2.000 zonas → `GET /zones` p95 35 ms (1.000 devolvidas, QA-04). Bundle web sem segredos; bcrypt `$2a$10$`.
+  - No fim: `npx supabase db reset` + ~15 s (P-22).
+- **Problemas encontrados:** `apps/mobile/coverage/` é versionada (rodar com `lcov` muda arquivos rastreados; QA-14 — por isso os reporters ficaram só de texto); pgTAP 07/10 dependem do banco limpo (QA-11); o servidor estático precisa servir `.mjs` como JavaScript senão o worker do MapLibre não carrega e o mapa web fica vazio (corrigido no `e2e-web/serve.cjs`); o `test-db.sh` conta `not ok … # TODO` como falha, então achados abertos ficaram no teste adversarial, não como TODO no pgTAP.
+- **Pendências:** novas P-29 a P-38 (tabela acima). Fechadas: P-01, P-11. P-07 parcial (Maestro pronto, falta aparelho). Continuam: P-05, P-17, P-21, P-28 (aparelho), P-09, P-10, P-22.
+- **Para a coordenação / próximos:**
+  - Distribuir: **A2** P-29, P-30, P-32, P-33, P-35 (e P-34 com a coordenação); **A3** P-31 e P-36 (com o A4 no `run-screen`/`hold-button`); **Coordenação** P-37, P-38, P-08.
+  - Ao corrigir um achado: rode `STRICT=1 bash supabase/tests/security/run.sh` (o `ACHADO` vira `ok`) e apague a entrada correspondente das BASELINEs de `src/__tests__/testids.test.ts` / `reduced-motion.test.ts`.
+  - Mudança visual aprovada no mapa ou na folha da zona → regenerar as imagens com `--update-snapshots` depois de `npm run db:reset` (`apps/mobile/e2e-web/README.md`).
+  - Maestro no aparelho: `apps/mobile/.maestro/README.md`.
 
 ### 2026-10-20 — P-20, P-24, P-25, P-27 — Pendências do app da Fase 3 (A3 Frontend)
 - **Feito:**

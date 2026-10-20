@@ -1,0 +1,67 @@
+# RF-001/RF-003/RNF-013: cadastro com 16+ e aceites separados → onboarding (nome, time, localização,
+# notificações com explicação própria) → mapa. Conta nova a cada execução.
+appId: ${APP_ID}
+name: Cadastro e onboarding
+tags: [auth, rf-001, rf-003]
+---
+- runFlow: subflows/abrir-app.yaml
+- evalScript: ${output.stamp = String(Date.now()).slice(-8)}
+- tapOn:
+    id: "entrar-criar-conta"
+- extendedWaitUntil:
+    visible:
+      id: "tela-cadastro"
+    timeout: 10000
+- tapOn:
+    id: "cadastro-email"
+- inputText: qa${output.stamp}@nomaderun.test
+- tapOn:
+    id: "cadastro-senha"
+- inputText: Maestro@${output.stamp}
+- tapOn:
+    id: "cadastro-usuario"
+- inputText: qa_${output.stamp}
+- tapOn:
+    id: "cadastro-nascimento"
+- inputText: "15/05/2000"
+- hideKeyboard
+- tapOn:
+    id: "cadastro-aceite-termos"
+- tapOn:
+    id: "cadastro-aceite-privacidade"
+- tapOn:
+    id: "cadastro-botao"
+# onboarding
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-escolher-time"
+    timeout: 30000
+- assertVisible:
+    id: "onboarding-nome"
+- tapOn:
+    id: "onboarding-escolher-time"
+- tapOn:
+    id: "onboarding-faccao-striders"
+- tapOn:
+    id: "onboarding-faccao-continuar"
+- tapOn:
+    id: "onboarding-localizacao-continuar"
+# diálogo do sistema (Android/iOS): aceita se aparecer
+- tapOn:
+    text: "(While using the app|Allow while using the app|Permitir durante o uso do app|Ao usar o app|Allow Once|Permitir)"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-notificacoes-continuar"
+    timeout: 15000
+- tapOn:
+    id: "onboarding-notificacoes-continuar"
+- tapOn:
+    text: "(Allow|Permitir)"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "mapa-status"
+    timeout: 30000
+- assertVisible:
+    id: "mapa-camada"

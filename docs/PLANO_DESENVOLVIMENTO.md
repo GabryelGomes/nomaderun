@@ -75,10 +75,10 @@ Legenda de status: ⬜ a fazer · 🟨 em andamento · ✅ feito · ⛔ bloquead
 ### Fase 4 — Qualidade e segurança (A5)
 | ID | Tarefa | Dono | Depende | Status |
 |---|---|---|---|---|
-| T4.1 | Cobertura do domain ≥ 90% (linhas e ramos), testes dos services | A5 | Fase 2 | ⬜ |
-| T4.2 | Revisão de segurança (OWASP Top 10, RLS por tabela, segredos, HMAC) com relatório em `docs/QA.md` | A5 | Fase 2 | ⬜ |
-| T4.3 | Matriz de rastreabilidade RF/RN → teste; fluxos Maestro UC-01..03; testIDs | A5 | Fase 3 | ⬜ |
-| T4.4 | Teste de integração ponta a ponta contra o Supabase local (cadastro → corrida → zona) | A5 | Fase 2 | ⬜ |
+| T4.1 | Cobertura do domain ≥ 90% (linhas e ramos), testes dos services | A5 | Fase 2 | ✅ (100% linhas, 99,6% ramos; limite no Jest; testes de propriedade) |
+| T4.2 | Revisão de segurança (OWASP Top 10, RLS por tabela, segredos, HMAC) com relatório em `docs/QA.md` | A5 | Fase 2 | ✅ (0 Alto, 4 Médios QA-01..04 → P-29..P-32) |
+| T4.3 | Matriz de rastreabilidade RF/RN → teste; fluxos Maestro UC-01..03; testIDs | A5 | Fase 3 | ✅ (Maestro falta rodar em aparelho, P-07) |
+| T4.4 | Teste de integração ponta a ponta contra o Supabase local (cadastro → corrida → zona) | A5 | Fase 2 | ✅ (todas as suítes verdes; Playwright 12/12 + comparação de imagem) |
 
 ### Fase 5 — Entrega (A6, A1)
 | ID | Tarefa | Dono | Depende | Status |

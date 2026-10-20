@@ -7,7 +7,7 @@
  * e do seed (contas de demonstração). Cria contas `sec_*` e corridas em Brasília (longe do seed de Goiânia).
  */
 import { canonicalBatch, hmacSha256Hex, type SignedPoint } from '../../functions/_shared/hmac.ts';
-import { offset } from '../../functions/_shared/domain.ts';
+import { cellBoundary, cellsAround, offset, zoneOf } from '../../functions/_shared/domain.ts';
 
 const API = Deno.env.get('API_URL') ?? 'http://127.0.0.1:54321';
 const ANON = Deno.env.get('ANON_KEY')!;
@@ -307,6 +307,19 @@ console.log(`  info - 12 logins errados seguidos: ${statuses.join(',')} (${limit
 // ---------- 11. Mensagens de erro sem detalhes internos ----------
 const leaky = bodies.filter((b) => /stack|\bat \w+ \(|postgres|PGRST\d|relation "|syntax error|sb_secret|service_role|SUPABASE_|Deno\./i.test(b.text) && b.label.includes('/functions/'));
 check(leaky.length === 0, 'nenhuma resposta das functions vaza stack, SQL, nomes de tabela ou chaves', leaky.map((b) => `${b.label}: ${b.text.slice(0, 120)}`));
+
+// ---------- 12. Limite de linhas do PostgREST no /zones (RNF-009: até 2.000 zonas) ----------
+const loadCenter = zoneOf({ lat: -15.6, lng: -47.7 });
+const loadCells = cellsAround(loadCenter, 20).slice(0, 1200);
+const loadRows = loadCells.map((c) => {
+  const ring = cellBoundary(c);
+  return { id: c, name: `Carga ${c.slice(-4)}`, city: 'Carga QA', is_demo: true, geom: `SRID=4326;POLYGON((${[...ring, ring[0]].map((p) => `${p.lng} ${p.lat}`).join(', ')}))` };
+});
+const ins = await call('POST', `${API}/rest/v1/zones`, SERVICE, loadRows, SERVICE, { Prefer: 'return=minimal,resolution=ignore-duplicates' });
+check(ins.status === 201, '1.200 zonas de carga inseridas (service role)', ins.status);
+const many = await call('GET', `${FN}/zones?bbox=-47.85,-15.75,-47.55,-15.45`, A.token);
+known('QA-04', many.data?.zones?.length >= 1200, `/zones devolve todas as zonas da área (até 2.000); veio ${many.data?.zones?.length}`);
+await call('DELETE', `${API}/rest/v1/zones?city=eq.Carga%20QA`, SERVICE, undefined, SERVICE);
 
 // limpeza
 for (const u of [A, B, M]) await call('DELETE', `${API}/auth/v1/admin/users/${u.id}`, SERVICE, undefined, SERVICE);

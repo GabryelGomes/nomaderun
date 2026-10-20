@@ -2,6 +2,7 @@
  * T4.1 — ramos do domain que os testes de regra não exercitavam (P-01): formatação, casos-limite do
  * antifraude, auto-pausa, zonas bloqueadas, h3-runtime e suavização das regiões.
  */
+/* eslint-disable @typescript-eslint/no-require-imports -- jest.isolateModules precisa de require() para recarregar o módulo */
 import { describe, expect, it, jest } from '@jest/globals';
 
 import { validateActivity } from '../anti-cheat';

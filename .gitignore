@@ -12,3 +12,4 @@ apps/mobile/.env
 supabase/.temp/
 supabase/.branches/
 node_modules/
+apps/mobile/coverage/
