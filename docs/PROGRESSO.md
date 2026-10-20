@@ -5,55 +5,63 @@
 
 ## Estado atual (resumo)
 
-- **Fase:** 2 (corrida de ponta a ponta) concluída no app; Fase 3 do A3 concluída; pendências do backend da Fase 3 (A2) e do app (A3: P-20, P-24, P-25, P-27) concluídas
-- **Em andamento:** —
-- **Fase 4 (A5):** T4.1–T4.4 feitos (cobertura do domain 100% linhas / 99,6% ramos com limite no Jest, revisão de segurança com relatório em `docs/QA.md`, matriz de rastreabilidade, Maestro UC-01..03, Playwright ponta a ponta e comparação de imagem). Nenhum achado Alto; 4 Médios (QA-01..04) para A2/A3.
-- **Feito na fase:** T1.1–T1.3 e T3.6 (A2 Backend): banco com RLS, Edge Functions usando o domain do app, seed de Goiânia, jobs diários; T1.4–T1.6 (A3 Frontend): cliente Supabase, auth, guardas de rota, onboarding no servidor, perfil e LGPD. **Fase 1 concluída.** **Fase 2/3 (A3):** T2.6 (mapa e folha da zona com o servidor), T3.1 (central de notificações e alerta de invasão), T3.2 (rankings e cidades), T3.3 (painel de moderação), T3.4 (crews) e P-03 (foto de perfil). **Fase 2 (A4):** T2.1–T2.5 (GPS, permissões, sinal fraco, segundo plano por flag, pedômetro, fila SQLite, sync assinada com HMAC, resumo oficial/provisório, histórico com período, Corrida Segura) e T3.5 no app (neblina do servidor). **Fase 3 (A2):** Realtime das notificações (P-13), Caça no servidor com o app ligado (P-12/P-19, T3.5 ✅), M_grupo, rankings por semana/distrito (P-16), zona de privacidade (RN-010), nomes de zonas novas, RN-003 conferida e guia de deploy com bundle verificado (P-08).
-- **Fase 4 (A2, 2026-10-22):** achados do backend corrigidos (QA-01, 02, 04, 05, 06, 07, 08, 09, 11, 16 → P-29, P-30, P-32, P-33, P-35 fechadas; P-34 só falta o rate limit da apresentação, P-09). O app precisa acompanhar o contrato novo (P-39).
-- **Fase 4 (A3, 2026-10-22):** QA-03, QA-12, QA-13 e a parte do app de QA-06 corrigidos; contrato da D-50 no app (P-39). P-31, P-36 e P-39 fechadas.
-- **Próximos passos:** Coordenação: P-08 (deploy), P-09, QA-14/15; validação em aparelho (P-05, P-17, P-21, P-28) e rodar os fluxos Maestro (`apps/mobile/.maestro/README.md`).
-- **Backend local no ar:** API `http://127.0.0.1:54321` · chave anon/publishable na entrada de T1.1–T1.3 abaixo · e-mails em `http://127.0.0.1:54324`.
-- **Bloqueios:** nenhum
+- **Fase:** **5 concluída — MVP pronto para apresentação** (T0–T5 ✅ no `PLANO_DESENVOLVIMENTO.md`).
+- **Requisitos (61):** 32 ✅ · 22 🟡 · 5 ⬜ · 2 ➖. Nenhum P0 sem fazer (P0: 16 ✅, 9 🟡). Detalhes em `REQUISITOS.md`.
+- **Testes (2026-10-22, banco local):** app `npm test` 360 ✅ (26 de integração ignorados sem `NOMADE_IT`) · `typecheck` ok · pgTAP 285/285 · Deno 58 ok · e2e 56/56 · segurança `STRICT=1` 89/89 (A2) · Playwright demo 14/14, auth 17/17, imagem 4/4 (A3).
+- **Como rodar e apresentar:** `README.md` (instalação e testes), `docs/COMO_APRESENTAR.md` (checklist, roteiro de 10 min, banca, plano B), `apps/mobile/README.md`.
+- **O que falta para a equipe humana:** validar em aparelho (P-05, P-07, P-17, P-21, P-28), deploy no Cloud se for apresentar pela nuvem (P-08, P-09/P-34), `npx expo install --fix` (P-37), revisão do ERS (P-02 → `ERS-ALTERACOES-PROPOSTAS.md`).
+- **Backend local:** API `http://127.0.0.1:54321` · chaves com `npx supabase status -o env` · e-mails em `http://127.0.0.1:54324` (`npm run mail`). Banco resetado no fim da Fase 5 (estado do seed).
+- **Bloqueios:** nenhum no código. Dependem de fora: aparelho físico, conta no Supabase Cloud, credenciais Google/Apple.
 
 ## Pendências abertas
 
-| # | Pendência | Dono | Origem |
-|---|---|---|---|
-| ~~P-01~~ | **Resolvida (A5, T4.1):** domain com 100% de linhas e 99,59% de ramos; `coverageThreshold` de 90% em `src/domain` (`npx jest --coverage`). Texto antigo: cobertura de ramos do domain em 85% (meta 90%) | A5 | Baseline |
-| P-02 | Seção 6.2 do ERS descreve paleta diferente da aprovada (D-15) | A6 | Baseline |
-| P-05 | Validar em aparelho (Expo Go / development build): seletor de foto (`expo-image-picker`) e notificação local de invasão com o app aberto, SecureStore em partes, deep link `nomaderun://nova-senha`, permissão de notificações no Expo Go Android, compartilhamento do JSON exportado | A3/A5 | T1.4–T1.6 |
-| P-06 | Login Google/Apple só com credenciais reais (código pronto, aparece com `EXPO_PUBLIC_AUTH_PROVIDERS`) | Coordenação | T1.5 |
-| P-07 | Fluxos Maestro de cadastro/login/onboarding e UC-01..03 **feitos** (`apps/mobile/.maestro/`, ids conferidos por `src/__tests__/testids.test.ts`), falta **rodar em aparelho**. Testes de tela com React Native Testing Library não feitos (biblioteca não instalada) | A5 | T1.5 |
-| P-08 | Deploy real no Supabase Cloud ainda não feito (precisa de conta). O bundle do deploy por Docker foi verificado localmente com o domain fora de `supabase/` (`npm run functions:bundle-check`) e o plano B está pronto (`npm run domain:copy`, D-44). Seguir `supabase/DEPLOY.md` / `npm run deploy` | Coordenação/A2 | T1.2 |
-| P-09 | Rate limit de login só vale no Cloud (local o Auth não tem IP do proxy); conferir após `supabase config push` e ajustar se travar a apresentação (D-21) | A2/Coordenação | T1.1 |
-| P-10 | Imagens `supabase/mailpit` e `supabase/pg_prove` não baixam aqui: usar `npm run mail` e `npm run db:test:psql` (D-27); rodar `npx supabase test db` onde houver a imagem | A5 | T1.3 |
-| ~~P-11~~ | **Resolvida (A5):** 2.000 zonas no bbox → `zones_in_bbox` 39 ms no banco, `GET /zones` p95 35 ms; mas a resposta para em 1.000 (QA-04 → P-32). Texto antigo: RNF-009: medir p95 de `/zones` com 2.000 zonas | A5 | T1.2 |
-| ~~P-12~~ | **Resolvida (A2, Fase 3):** M_grupo no servidor (D-40), baús sorteados e abertos pelo servidor (D-39), nome e cidade de zonas novas (D-43). Texto antigo: `M_grupo` não aplicado; baús sem gravação; nomes/cidade de zonas novas vazios | A2 | T1.2 |
-| ~~P-13~~ | **Resolvida (A2):** `notifications` na publicação `supabase_realtime`, RLS vale no Realtime (pgTAP `08`, e2e). A troca da consulta de 20 s ficou para o A3 (P-24) | A2 | T3.1 |
-| P-14 | Banco local alterado pelos testes do A3: a corrida em revisão do seed (`…b000-000000000001`) foi aprovada no Playwright e várias cópias dela foram aprovadas pela integração (zonas perto do parque mudaram). Para a fila não ficar vazia foi criada a cópia `…b000-000000000002` em revisão. Antes da apresentação ou de testes que dependam do seed: `npm run db:reset` (quando ninguém estiver usando o banco) | Coordenação/A5 | T3.3 |
-| ~~P-15~~ | **Resolvida (A4):** `game-store.zones` removido; corrida, estimativa e resumo leem `useZones`; após o resultado oficial o app recarrega a área (`loadBbox`) em vez de `upsertZones`, porque o `finish-activity` não devolve o estado completo das zonas. Texto antigo: `game-store.zones` (seed local) está obsoleto: resumo/corrida devem ler `useZones` (zones-store) para a estimativa e o mapa; o A4 chama `useZones.getState().upsertZones(...)` após cada corrida confirmada | A4 | T2.6 |
-| P-17 | Validar em aparelho: GPS real no Expo Go (permissões negada/negada de vez → Ajustes, GPS desligado, sinal fraco E3), pedômetro (permissão de movimento no iOS), tela acesa, SMS do SOS com vários números, compartilhamento da Escolta, alerta de parada; development build com `NOMADE_BACKGROUND_LOCATION=1` (permissão "sempre", notificação do serviço no Android, pontos com a tela bloqueada) | A5 | T2.1–T2.5 |
-| P-18 | Escolta "ao vivo" no MVP = link do Google Maps com a posição atual, compartilhado ao ligar (D-36). Rastreamento contínuo exige backend (posições por corrida + página pública com token) | A2/Coordenação | T2.5 |
-| ~~P-19~~ | **Resolvida (A2, com exceção autorizada no app):** `rpc('daily_chests')` + abertura no `finish-activity`; `useRunSession` pede os baús do servidor na primeira posição da Caça (fallback local sem internet); `chest_opens` gravado pelo servidor | A2 → A4 | T3.5 |
-| ~~P-20~~ | **Resolvida (A3):** trechos inválidos do resultado oficial em cinza no mapa do resumo, recortados pelo `seq` no servidor (`track-repo`, prop `invalidPaths` do `TerritoryMap`, D-48). Texto antigo: UC-01 E1 pede trechos inválidos "em cinza" no mapa do resumo: o `TerritoryMap` (components, A3) só desenha um percurso. Hoje o resumo lista os trechos com a explicação. Precisa de um `path` com segmentos inválidos (fromSeq/toSeq vêm em `invalidSegments`) | A3 | T2.4 |
-| P-21 | Passos com a tela bloqueada: no Android (serviço em primeiro plano) o pedômetro JS continua; no iOS pode não haver eventos em segundo plano e trechos de 8–20 km/h > 60 s com 0 passos virariam `NO_STEPS`. Validar no aparelho; alternativa: `Pedometer.getStepCountAsync(início, fim)` por fix no iOS | A4/A5 | T2.3 |
-| ~~P-16~~ | **Resolvida no servidor (A2):** RPCs `ranking_runners`/`ranking_crews`/`ranking_factions` com semana/temporada e geral/facção/cidade/distrito (D-41). Tela: P-25. Estado/país fora (sem campos no perfil); Liga do Bairro, Raid e Próximo encontro continuam demonstração rotulada | A2 | T3.2 |
-| ~~P-24~~ | **Resolvida (A3):** central pelo Realtime; consulta de 20 s só com o canal fora de `SUBSCRIBED` + recuperação ao reconectar/voltar ao primeiro plano (D-45). Texto antigo: Central de notificações: com `notifications` no Realtime (P-13), trocar a consulta a cada 20 s por fallback (ex.: só quando o canal não estiver `SUBSCRIBED`, e ao voltar ao primeiro plano) em `features/notifications/controller.ts` (D-29) | A3 | Fase 3 (A2) |
-| ~~P-25~~ | **Resolvida (A3):** Clube com chips Temporada/Semana e escopo Todos/cidade/Meu time/distrito pelas RPCs `ranking_*` (D-46). Texto antigo: Clube: filtros de período (semana/temporada) e escopo distrito nos rankings com `rpc('ranking_*')` (distrito = `districtOf(zoneId)`, nome por `rpc('district_label')`); contrato em `API_CONTRATO.md` | A3 | Fase 3 (A2) |
-| ~~P-27~~ | **Resolvida (A3):** tela `/zonas-privacidade` (Perfil → Conta), até 3 endereços com 200 m, posição atual ou toque no mapa, remover (D-47). Texto antigo: Tela "Zonas de privacidade" (RN-010): até 3 endereços com raio (padrão 200 m) via `from('privacy_zones')`; erro `PRIVACY_ZONES_LIMIT`. Contrato no `API_CONTRATO.md` | A3 | Fase 3 (A2) |
-| P-28 | Validar no aparelho a Caça com GPS real (baús do servidor aparecem perto da última corrida, abrem no resumo oficial com XP; sem internet, baús locais). Comentário de `listMyChestOpens` em `activities-repo.ts` ("servidor ainda não grava") ficou desatualizado (arquivo do A4) | A5 / A4 | Fase 3 (A2) |
-| P-22 | Logo após `npx supabase db reset`, a primeira assinatura Realtime pode não receber eventos por alguns segundos (teste RNF-003 falhou 1× e passou nas 2 seguintes, 0,7–1,0 s). Na apresentação: resetar o banco com antecedência e abrir o app depois | A5/A6 | Fechamento da Fase 2 |
-| ~~P-29~~ | **Resolvida (A2, D-50):** só líder/membros leem `crews`; `public_crews` sem o código (pgTAP `13`, adversarial). Texto antigo: **QA-01 (Média):** `crews.invite_code` legível por qualquer usuário logado | A2 | T4.2 |
-| ~~P-30~~ | **Resolvida (A2, D-50):** `ghostPace` só na `fuga`, 150–900 s/km, ignorado nas outras missões (validação, gravação e cálculo; Deno `qa_fixes`, pgTAP `13`, adversarial). Fantasma do dono da zona/amigo fica para depois. Texto antigo: **QA-02 (Média):** `ghostPace` do cliente dá M_fantasma em qualquer missão | A2 | T4.2 |
-| ~~P-31~~ | **Resolvida (A3, 2026-10-22):** fluxo PKCE, tokens na URL recusados, troca de conta por link só com confirmação (D-51, `docs/QA.md` §13). Texto antigo: **QA-03 (Média):** link `nomaderun://` com tokens troca a sessão atual sem confirmação (fluxo implícito). `flowType: 'pkce'`, ignorar tokens com sessão ativa | A3 | T4.2 |
-| ~~P-32~~ | **Resolvida (A2, D-50):** `/zones` via `zones_in_bbox_json` (até 2.000) e `max_rows = 2000` (pgTAP `13`, adversarial com 2.100 zonas). Texto antigo: **QA-04 (Média):** `/zones` devolve no máximo 1.000 zonas | A2 | T4.2 |
-| ~~P-33~~ | **Resolvida (A2, D-50):** QA-05 CHECK do `avatar_url` (bucket `avatars`, pasta do próprio id) e tamanho de `notification_prefs`; QA-07 pre-request 401 `ACCOUNT_INACTIVE` + policies restritivas (`suspended` mantém acesso, decisão); QA-08 14.400 pontos/corrida, 3 corridas abertas, `Content-Length`; QA-09 `endedAt` entre início e agora + 5 min; QA-16 `staff_profiles` sem nascimento e `moderator_id` fora da API | A2 | T4.2 |
-| P-34 | **Parcial (A2, D-50):** `secure_password_change = true` e `account-delete` com senha conferida no Auth feitos. Falta só o rate limit da apresentação (coordenação, passo a passo em `supabase/DEPLOY.md` §3, junto de P-09). Texto antigo: **QA-06 (Baixa):** Auth — rate limit só no Cloud; `secure_password_change = false`; exclusão de conta sem reautenticação | Coordenação | T4.2 |
-| ~~P-35~~ | **Resolvida (A2):** `07` e `10` criam/limpam os próprios dados dentro da transação (versão antiga falha e nova passa sobre o mesmo banco sujo; suíte verde depois de e2e + adversarial). Texto antigo: **QA-11 (Baixa):** pgTAP `07` e `10` falham se o banco não estiver limpo | A2 | T4.2 |
-| ~~P-36~~ | **Resolvida (A3, 2026-10-22):** "Reduzir movimento" em Button/IconButton/HoldButton, chips com 44 pt de toque, faixa amarela, métricas fixas em 48 pt, testIDs nos 8 elementos e BASELINEs vazias (D-52). Texto antigo: **QA-12/13 (Baixa, telas):** "Reduzir movimento" não vale para Button/IconButton/HoldButton; chips de camada 36 pt; faixa "Defendendo" verde (ERS: amarela); métricas podem cair a 38 pt; 8 interativos sem testID (`Correr` do mapa, `HoldButton`, chips…) — apagar da BASELINE de `testids.test.ts`/`reduced-motion.test.ts` ao corrigir | A3/A4 | T4.3 |
-| P-37 | **QA-14/15 (Baixa):** `apps/mobile/coverage/` versionada (tirar do git e pôr no `.gitignore`); `npm audit` com avisos em ferramentas do SDK 57 (`npx expo install --fix` antes da entrega) | Coordenação | T4.2 |
-| ~~P-39~~ | **Resolvida (A3, 2026-10-22):** senha na exclusão, cidade no cadastro, `staff_profiles` no painel, `ACCOUNT_INACTIVE` encerra a sessão, `POINTS_LIMIT`/`TOO_MANY_OPEN_RUNS` definitivos na fila, `endedAt` limitado a agora; crews alheias não são lidas pelo app (D-53). Troca de senha que peça login recente tem mensagem própria. Texto antigo: **App acompanhar o contrato da D-50:** (1) `account-delete` com `{ confirm: "EXCLUIR", password }` (erros `INVALID_PASSWORD` 403, `RATE_LIMITED` 429, `REAUTH_UNAVAILABLE` 409); (2) `city` em `signUp` (`CITY_INVALID`); (3) `moderation-repo` ler perfis de outros em `staff_profiles` (não em `profiles`, que agora só devolve o próprio); (4) crews de outros em `public_crews`; (5) `401` com `ACCOUNT_INACTIVE` = encerrar a sessão; (6) troca de senha pode pedir login recente (`secure_password_change`); (7) fila de sincronização (A4) tratar `TOO_MANY_OPEN_RUNS` e `POINTS_LIMIT` (409) e enviar `ghostPace` só na `fuga`. Integrações do app que excluem conta sem senha ou leem `profiles` como moderador precisam do ajuste | A3 / A4 | Fase 4 (A2) |
-| P-38 | **QA-10 (risco aceito):** o HMAC não prova que o cliente é o app (chave registrada pelo próprio cliente; `startedAt`/`mission`/`ghostPace` fora da assinatura). Registrar como limite do MVP (D-04); pós-MVP: Play Integrity/App Attest | Coordenação | T4.2 |
+Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud · 🔑 credenciais de terceiros · 🧑 decisão/ação da equipe · 💻 código.
+
+| # | Pendência | Depende de | Dono | Origem |
+|---|---|---|---|---|
+| P-02 | ERS §6.2 descreve a paleta "Asfalto & Giz", mas o visual aprovado é o "Pista" (D-15). **Proposta pronta** em `docs/ERS-ALTERACOES-PROPOSTAS.md` (ERS v1.1, com outras diferenças); falta os autores editarem `docs/ERS/ERS-NOMADE-RUN.md` e regerarem o PDF/DOCX | 🧑 | Autores | Baseline |
+| P-05 | Validar em aparelho: seletor de foto, notificação local de invasão com o app aberto, SecureStore em partes, deep link `nomaderun://nova-senha?code=…` e diálogo "Trocar de conta?", permissão de notificações no Expo Go Android, compartilhamento do JSON exportado | 📱 | Equipe/A5 | T1.4–T1.6 |
+| P-06 | Login Google/Apple só com credenciais reais (código pronto, aparece com `EXPO_PUBLIC_AUTH_PROVIDERS`) | 🔑 ☁️ | Equipe | T1.5 |
+| P-07 | Fluxos Maestro feitos (`apps/mobile/.maestro/`), falta **rodar em aparelho**. Testes de tela com React Native Testing Library não feitos | 📱 | Equipe/A5 | T1.5 |
+| P-08 | Deploy no Supabase Cloud não feito (precisa de conta). Bundle verificado e plano B pronto; seguir `supabase/DEPLOY.md` (`npm run deploy`) | ☁️ | Equipe | T1.2 |
+| P-09 / P-34 | Limite de login só vale no Cloud: subir para 30 por 5 min antes da apresentação e voltar para 3 depois (`DEPLOY.md` §3, `COMO_APRESENTAR.md` §2). O resto de P-34 (QA-06) foi feito | ☁️ 🧑 | Equipe | T1.1, T4.2 |
+| P-10 | Imagens `supabase/mailpit` e `supabase/pg_prove` não baixam neste ambiente: usar `npm run mail` e `npm run db:test:psql` (D-27). Em outra máquina, `npx supabase test db` também serve | — (contorno pronto) | — | T1.3 |
+| P-17 | Validar em aparelho: GPS real no Expo Go (permissões, GPS desligado, sinal fraco), pedômetro, tela acesa, SMS do SOS, Escolta, alerta de parada; development build com `NOMADE_BACKGROUND_LOCATION=1` (permissão "sempre", notificação do serviço, pontos com a tela bloqueada) | 📱 | Equipe/A5 | T2.1–T2.5 |
+| P-18 | Escolta "ao vivo" = link com a posição atual ao ligar (D-36). Rastreamento contínuo exige backend (posições por corrida + página pública com token) | 💻 | Pós-MVP | T2.5 |
+| P-21 | Passos com a tela bloqueada no iOS podem não chegar (trechos de 8–20 km/h viram `NO_STEPS`). Validar; alternativa `Pedometer.getStepCountAsync` por fix | 📱 💻 | A4/A5 | T2.3 |
+| P-22 | Logo após `npx supabase db reset`, a primeira assinatura Realtime pode demorar alguns segundos. Na apresentação: resetar com antecedência e esperar ~15 s (está no `COMO_APRESENTAR.md`) | 🧑 | Equipe | Fase 2 |
+| P-28 | Validar a Caça com GPS real (baús do servidor perto da última corrida, abrem no resumo oficial). Comentário de `listMyChestOpens` em `activities-repo.ts` desatualizado | 📱 💻 | A5/A4 | Fase 3 |
+| P-37 | QA-15: `npm audit` com avisos em ferramentas de build do SDK 57 (`npx expo install --fix` antes da entrega; bloqueado neste ambiente). A parte QA-14 (`apps/mobile/coverage/` no git) já foi resolvida pela coordenação | 🧑 | Equipe | T4.2 |
+| P-38 | QA-10 (risco aceito): o HMAC não prova que o cliente é o app oficial. Pós-MVP: Play Integrity/App Attest | 💻 | Pós-MVP | T4.2 |
+| P-41 | **Novo (A6):** slide "O que entregamos e o que falta" (`docs/apresentacao/slides/slides/entregas.html`, PDF e página web) ainda diz "60 testes" e "sem servidor". Atualizar com os números de `COMO_APRESENTAR.md` §5 e regerar | 🧑 | Autores | T5.1 |
+
+## Pendências fechadas
+
+| # | Como foi resolvida | Quem |
+|---|---|---|
+| P-01 | Domain com 100% de linhas e 99,6% de ramos; limite de 90% no Jest | A5 |
+| P-03 | Foto de perfil (`expo-image-picker` → bucket `avatars`) | A3 |
+| P-04 | Contrato escrito × backend real conferido (`choose_faction(p_faction)`, `units`, chaves de `notification_prefs`) | A2/A3 |
+| P-11 | `/zones` com 2.000 zonas: p95 35 ms | A5 |
+| P-12 | M_grupo no servidor (D-40), baús do servidor (D-39), nome e cidade de zonas novas (D-43) | A2 |
+| P-13 | `notifications` no Realtime com RLS | A2 |
+| P-14 | Banco alterado pelos testes: resetado no fim da Fase 5 (`npx supabase db reset`); vale a regra de resetar antes da apresentação | A6 |
+| P-15 | `game-store.zones` removido; tudo lê `useZones` | A4 |
+| P-16 | RPCs `ranking_*` por semana/temporada e escopo (D-41) | A2 |
+| P-19 | Caça com baús do servidor e fallback local | A2/A4 |
+| P-20 | Trechos inválidos em cinza no resumo (D-48) | A3 |
+| P-24 | Central pelo Realtime, consulta só de reserva (D-45) | A3 |
+| P-25 | Filtros de período e escopo no Clube (D-46) | A3 |
+| P-26 | `packZones` no domain; ponte `applyPack` removida | A1 |
+| P-27 | Tela de zonas de privacidade (D-47) | A3 |
+| P-29 | QA-01: convite de crew só para líder e membros; `public_crews` (D-50) | A2 |
+| P-30 | QA-02: `ghostPace` só na Fuga, 150–900 s/km (D-50) | A2 |
+| P-31 | QA-03: links por PKCE, tokens na URL recusados (D-51) | A3 |
+| P-32 | QA-04: `/zones` até 2.000 zonas (D-50) | A2 |
+| P-33 | QA-05/07/08/09/16 (D-50) | A2 |
+| P-35 | QA-11: pgTAP independente do estado do banco | A2 |
+| P-36 | QA-12/13: "Reduzir movimento", 44 pt, faixa amarela, testIDs (D-52) | A3 |
+| P-39 | App acompanhou o contrato da D-50 (D-53) | A3 |
 
 ## Modelo de entrada
 
@@ -68,6 +76,37 @@
 ```
 
 ## Log
+
+### 2026-10-22 — P-40, P-37 — Notificação de demonstração no seed e higiene do repositório (A1 Coordenação)
+- **Feito:** o seed passa a criar um "Alerta de Invasão!" de demonstração para `corredor_demo` na zona do parque sob ataque (`supabase/scripts/gen-seed.ts` → `npm run seed:gen` → `supabase/seed.sql`), para o fluxo Maestro `04-uc02-alerta-invasao.yaml` e para a demo da central de notificações. `apps/mobile/coverage/` já tinha saído do git (QA-14) — P-37 fica só com o `npm audit`.
+- **Testes:** `npx supabase db reset` → ok (1 notificação de demonstração); pgTAP 285/285; e2e 56/56; adversarial STRICT 89/89; integração do app 26/26; `npm test` 360 passaram.
+- **Pendências:** P-40 fechada.
+
+### 2026-10-22 — T5.1, T5.2, P-02 — Documentação final, guia de apresentação e validação (A6 Documentação e coordenação)
+- **Feito:**
+  - **README da raiz** reescrito como porta de entrada: o que é, o que o MVP entrega, tecnologias, estrutura, instalação passo a passo (Node 22, Docker, Expo Go; `npm install` na raiz e em `apps/mobile`; `npm run db:start`; `npm run functions:serve`; `.env` com `npx supabase status -o env` e o IP da máquina; `npx expo start`), contas de demonstração, todos os testes, links da documentação e bloco "Documentos do TCC". Branch atualizada para `claude/dreamy-ptolemy-xnm4r7`.
+  - **`docs/COMO_APRESENTAR.md`** (novo): backend local × Cloud, checklist do dia anterior (limite de login 30 → 3, reset + 15 s, rede, bateria, Simulação como plano B), roteiro de ~10 min em 11 passos com os requisitos de cada um, arquitetura e segurança em 1 minuto, números para os slides, perguntas da banca com as limitações e plano B por falha.
+  - **`REQUISITOS.md`** revisado linha a linha contra o ERS, o código e `QA.md` §10, com resumo por status e prioridade. Ficou mais rigoroso que antes: viraram 🟡 os itens em que o ERS pede algo que não existe (RF-004 tela bloqueada sem validação, RF-006 parciais/gráfico/recordes, RF-011 convite por link/metas/presença, RF-012 fantasma de amigo, RF-015 estado/país, RF-017 sem imagem, RF-020 cidades no perfil/medalha, RF-024 Escolta ao vivo, RNF-005 medições, RNF-008 sem CI, RN-008 acelerômetro); RF-010, RF-016 e RNF-009 subiram (servidor e QA-04 prontos).
+  - **`PLANO_DESENVOLVIMENTO.md`**: T5.1/T5.2 ✅, prioridades alinhadas ao `REQUISITOS.md` (RN-012 em P2; RNF-005/014 em P0; RNF-002/003/009 em P1) e seção "Pós-MVP / próximos passos" com 11 itens priorizados.
+  - **`ARQUITETURA.md`**: 17 tabelas, views públicas (`public_profiles`, `staff_profiles`, `public_crews`, rankings), RPCs, 8 functions, Realtime, 4 jobs do pg_cron, limites da ingestão, segurança com PKCE, `check_request`/conta ativa e HMAC; ambientes e limitações.
+  - **P-02:** `docs/ERS-ALTERACOES-PROPOSTAS.md` (novo) com a proposta do ERS v1.1: paleta e tipografia "Pista", formas por time no lugar de hachura, regiões em vez de hexágonos, react-native-maps/MapLibre, painel no app, API real, notificações, limite de login aproximado, Escolta, tela bloqueada, ritmo do fantasma, baús, limites de uso, PKCE, exclusão com senha, escopo da primeira versão e linha de controle de revisões.
+  - **`apps/mobile/README.md`** reescrito (não fala mais em protótipo com estado local): backend, variáveis, painel web, flag `NOMADE_BACKGROUND_LOCATION=1` com development build, testes, integração, Playwright e Maestro. `GUIA-DO-DESENVOLVEDOR.md`: branch nova e seção do app atualizada (sem a orientação antiga de trocar os tokens pelo visual preto + laranja, que contrariava a D-15).
+- **Arquivos:** `README.md`, `apps/mobile/README.md`, `docs/COMO_APRESENTAR.md` (novo), `docs/ERS-ALTERACOES-PROPOSTAS.md` (novo), `docs/REQUISITOS.md`, `docs/PROGRESSO.md`, `docs/PLANO_DESENVOLVIMENTO.md`, `docs/ARQUITETURA.md`, `docs/GUIA-DO-DESENVOLVEDOR.md`. Nenhum código alterado.
+- **Testes executados (stack local já no ar; README seguido até onde o ambiente permite, sem aparelho):**
+  - Raiz: `npm run e2e` → **56/56** · `npm run db:test:psql` → **285/285** (13 arquivos) · `npm run functions:test` → **58 ok**, 1 ignorado · `curl …/functions/v1/zones` sem token → 401 (functions no ar).
+  - `apps/mobile`: `npm test` → **360 passaram**, 26 ignorados (42 suítes + 4 ignoradas) · `npm run typecheck` → ok · `npx expo config --type public` → ok (o `app.config.js` carrega).
+  - `npx supabase status` fora de um terminal interativo imprime JSON e sai com código 1 por causa dos serviços desligados de propósito: o README passou a usar `npx supabase status -o env` (`API_URL`, `ANON_KEY`), conferido.
+  - No fim: `npx supabase db reset` → seed limpo (271 zonas, 4 contas de demonstração, 0 notificações).
+- **Problemas encontrados:** (1) o seed não tem notificações, então o passo de central do Maestro `04` deve falhar com o banco limpo (P-40); (2) o slide de entregas ainda diz "60 testes" e "sem servidor" (P-41); (3) não há aparelho nem conta no Cloud neste ambiente: `npx expo start` no celular, Maestro e deploy não foram executados.
+- **Pendências:** novas P-40 e P-41; P-14 fechada (banco resetado). Tabela reorganizada em abertas × fechadas, com a coluna "Depende de" (aparelho, Cloud, credenciais, equipe, código).
+- **Próximos passos para a equipe humana (em ordem):**
+  1. **Ensaiar a demo** seguindo `docs/COMO_APRESENTAR.md` num celular de verdade, com o backend local; anotar o que falhar (cobre boa parte de P-05/P-17/P-28).
+  2. **Decidir local × Cloud.** Se Cloud: `supabase/DEPLOY.md` com `WITH_SEED=1` (P-08) e limite de login em 30 na véspera (P-09), de volta a 3 depois.
+  3. **Atualizar o slide de entregas** e o PDF da apresentação (P-41); gravar o vídeo de reserva.
+  4. **Rodar o Maestro** num aparelho ou emulador (P-07).
+  5. **Antes de entregar o código:** P-37 (`npx expo install --fix`) e commit/PR da branch para a `main`.
+  6. **ERS v1.1** a partir de `docs/ERS-ALTERACOES-PROPOSTAS.md` e regerar o PDF/DOCX (P-02).
+  7. Depois da banca: itens da seção "Pós-MVP" do plano (development build, CI, medições, P0/P1 parciais).
 
 ### 2026-10-22 — QA-03, QA-06 (app), QA-12, QA-13, P-39 — Correções do app pelo QA e contrato da D-50 (A3 Frontend)
 - **Feito:**

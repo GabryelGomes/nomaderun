@@ -322,6 +322,18 @@ insert into auth.identities (provider_id, user_id, identity_data, provider, last
 values ('00000000-0000-4000-a000-000000000004', '00000000-0000-4000-a000-000000000004', '{"sub":"00000000-0000-4000-a000-000000000004","email":"suspeito.demo@nomaderun.app","email_verified":true}'::jsonb, 'email', now(), now(), now());
 update public.profiles set faction = 'coyotes', role = 'runner', trust = 40 where id = '00000000-0000-4000-a000-000000000004';
 
+-- Alerta de invasão de demonstração para o corredor_demo (UC-02, RF-009; usado pelo fluxo Maestro 04)
+insert into public.notifications (user_id, type, title, body, data, created_at)
+select '00000000-0000-4000-a000-000000000001', 'invasion', 'Alerta de Invasão!',
+       format('Seu território em %s está sendo conquistado pelos Urban Coyotes. Corra lá nas próximas 24h para defender.', z.name),
+       jsonb_build_object('zoneId', z.id, 'attacker', z.attacker, 'demo', true,
+                          'lat', extensions.st_y(extensions.st_centroid(z.geom)), 'lng', extensions.st_x(extensions.st_centroid(z.geom))),
+       z.attack_started_at
+  from public.zones z
+ where z.attack_started_at is not null and z.owner = 'striders'
+ order by z.id
+ limit 1;
+
 -- Corrida em revisão para o painel de moderação (trust 40 → 30 após as penalidades; RN-009)
 insert into public.devices (id, user_id, secret, platform, model)
 values ('00000000-0000-4000-c000-000000000001', '00000000-0000-4000-a000-000000000004', extensions.gen_random_bytes(32), 'android', 'Aparelho de demonstração');
@@ -331,7 +343,7 @@ insert into public.activities (id, user_id, device_id, status, mission, started_
 values ('00000000-0000-4000-b000-000000000001', '00000000-0000-4000-a000-000000000004', '00000000-0000-4000-c000-000000000001', 'review', 'livre', to_timestamp(1792402200),
   to_timestamp(1792403385), to_timestamp(1792403385),
   3645, 1140, 313, 0, 0, '{VEHICLE_SUSPECTED}', '[{"fromSeq":685,"toSeq":730,"code":"VEHICLE_SUSPECTED","reason":"Velocidade de veículo por mais de 30 segundos. O trecho não conta."}]'::jsonb,
-  1185, false, 30, 'LOW_TRUST', '{"activityId":"00000000-0000-4000-b000-000000000001","status":"review","meters":3645,"movingSeconds":1140,"avgPace":313,"rpTotal":0,"xp":0,"flags":["VEHICLE_SUSPECTED"],"invalidSegments":[{"fromSeq":685,"toSeq":730,"code":"VEHICLE_SUSPECTED","reason":"Velocidade de veículo por mais de 30 segundos. O trecho não conta."}],"zones":[],"newFogCells":0,"beatGhost":null,"trust":30,"review":{"reason":"LOW_TRUST","message":"Seu Índice de Confiança está abaixo de 40: a corrida passa por revisão manual e só pontua depois da aprovação."}}'::jsonb);
+  1185, false, 30, 'LOW_TRUST', '{"activityId":"00000000-0000-4000-b000-000000000001","status":"review","meters":3645,"movingSeconds":1140,"avgPace":313,"rpTotal":0,"xp":0,"flags":["VEHICLE_SUSPECTED"],"invalidSegments":[{"fromSeq":685,"toSeq":730,"code":"VEHICLE_SUSPECTED","reason":"Velocidade de veículo por mais de 30 segundos. O trecho não conta."}],"zones":[],"newFogCells":0,"beatGhost":null,"trust":30,"review":{"reason":"LOW_TRUST","message":"Seu Índice de Confiança está abaixo de 40: a corrida passa por revisão manual e só pontua depois da aprovação."},"chests":[],"group":null}'::jsonb);
 
 insert into public.activity_points (activity_id, seq, lat, lng, t, accuracy, speed, altitude, mocked, steps) values
   ('00000000-0000-4000-b000-000000000001', 0, -16.7135888, -49.2404598, 1792402200000, 6, 3.2, 748, false, 0),

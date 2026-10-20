@@ -159,6 +159,18 @@ select id, 'under_attack', attacker, owner, attack_started_at from public.zones 
 -- Contas de demonstração
 ${userSql}
 
+-- Alerta de invasão de demonstração para o corredor_demo (UC-02, RF-009; usado pelo fluxo Maestro 04)
+insert into public.notifications (user_id, type, title, body, data, created_at)
+select '00000000-0000-4000-a000-000000000001', 'invasion', 'Alerta de Invasão!',
+       format('Seu território em %s está sendo conquistado pelos Urban Coyotes. Corra lá nas próximas 24h para defender.', z.name),
+       jsonb_build_object('zoneId', z.id, 'attacker', z.attacker, 'demo', true,
+                          'lat', extensions.st_y(extensions.st_centroid(z.geom)), 'lng', extensions.st_x(extensions.st_centroid(z.geom))),
+       z.attack_started_at
+  from public.zones z
+ where z.attack_started_at is not null and z.owner = 'striders'
+ order by z.id
+ limit 1;
+
 -- Corrida em revisão para o painel de moderação (trust 40 → ${r.trust} após as penalidades; RN-009)
 insert into public.devices (id, user_id, secret, platform, model)
 values (${q(deviceId)}, ${q(suspect.id)}, extensions.gen_random_bytes(32), 'android', 'Aparelho de demonstração');

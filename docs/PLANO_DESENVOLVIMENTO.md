@@ -11,10 +11,12 @@ Demonstrar na faculdade, de ponta a ponta e com dados reais no banco: **criar co
 
 | Nível | Requisitos | Critério |
 |---|---|---|
-| **P0 — obrigatório** | RF-001, RF-002, RF-003, RF-004, RF-005, RF-006, RF-007, RF-008, RF-010, RF-021, RF-024; RN-001..004, RN-007..009, RN-011; RNF-006, RNF-007, RNF-008, RNF-013 | Sem isso não há demonstração |
-| **P1 — importante** | RF-009, RF-012, RF-015, RF-018, RF-019, RF-022, RF-023, RF-025, RF-011 (básico), RF-020; RN-005, RN-010, RN-012..014, RN-016, RN-017, RN-019; RNF-010..012, RNF-015 | Entra se P0 estiver verde |
-| **P2 — desejável** | RF-013, RF-014, RF-016, RF-017, RF-026, RF-027; RN-006, RN-015, RN-018 | Versão simples ou dados de demonstração identificados |
-| **Fora do MVP** | Medição de RNF-001 (k6 contra produção), RNF-004 (bateria), RNF-002/003 medidos em aparelho; login Google/Apple com credenciais reais | Documentados como pendência |
+| **P0 — obrigatório** | RF-001, RF-002, RF-003, RF-004, RF-005, RF-006, RF-007, RF-008, RF-010, RF-021, RF-024; RN-001..004, RN-007..009, RN-011; RNF-005, RNF-006, RNF-007, RNF-008, RNF-013, RNF-014 | Sem isso não há demonstração |
+| **P1 — importante** | RF-009, RF-011 (básico), RF-012, RF-015, RF-018, RF-019, RF-020, RF-022, RF-023, RF-025; RN-005, RN-010, RN-013, RN-014, RN-016, RN-017, RN-019; RNF-002, RNF-003, RNF-009..012, RNF-015 | Entra se P0 estiver verde |
+| **P2 — desejável** | RF-013, RF-014, RF-016, RF-017, RF-026, RF-027; RN-006, RN-012, RN-015, RN-018 | Versão simples ou dados de demonstração identificados |
+| **Fora do MVP** | Medição de RNF-001 (k6 contra produção) e RNF-004 (bateria); RNF-002 medido em aparelho; login Google/Apple com credenciais reais | Documentados como pendência |
+
+> Ajuste na revisão final (A6, T5.2): a tabela passou a ter as mesmas prioridades do `REQUISITOS.md` (RN-012 é P2; RNF-005/014 são P0; RNF-002/003/009 são P1). Resultado final por prioridade no topo do `REQUISITOS.md`.
 
 ## 3. Equipe de agentes e responsabilidades
 
@@ -83,10 +85,30 @@ Legenda de status: ⬜ a fazer · 🟨 em andamento · ✅ feito · ⛔ bloquead
 ### Fase 5 — Entrega (A6, A1)
 | ID | Tarefa | Dono | Depende | Status |
 |---|---|---|---|---|
-| T5.1 | README e `docs/COMO_APRESENTAR.md` (subir backend, rodar app, roteiro da demo, contas de teste) | A6 | Fase 4 | ⬜ |
-| T5.2 | Validação final do fluxo completo e atualização de REQUISITOS/PROGRESSO | A1/A6 | T5.1 | ⬜ |
+| T5.1 | README e `docs/COMO_APRESENTAR.md` (subir backend, rodar app, roteiro da demo, contas de teste) | A6 | Fase 4 | ✅ (também `apps/mobile/README.md`, `ERS-ALTERACOES-PROPOSTAS.md`, ARQUITETURA revisada) |
+| T5.2 | Validação final do fluxo completo e atualização de REQUISITOS/PROGRESSO | A1/A6 | T5.1 | ✅ (comandos do README conferidos; `npm test` 360, e2e 56/56, pgTAP 285, Deno 58; aparelho e Cloud ficam para a equipe humana) |
 
-## 5. Critérios de conclusão (Definition of Done) de toda tarefa
+**Situação final:** todas as tarefas T0–T5 concluídas. O MVP está pronto para apresentação com o backend local ou no Supabase Cloud. O que falta depende de aparelho, de conta no Cloud ou de credenciais (pendências abertas no `PROGRESSO.md`).
+
+## 5. Pós-MVP / próximos passos
+
+Em ordem de prioridade. Os três primeiros grupos são necessários antes de qualquer piloto com corredores reais.
+
+| # | O quê | Por quê | Pendência / requisito |
+|---|---|---|---|
+| 1 | **Validar em aparelho** (Android e iPhone): GPS real, permissões, pedômetro, SMS do SOS, foto, link de recuperação, Caça com GPS; rodar os fluxos Maestro | Nada disso roda no ambiente de desenvolvimento usado; é o maior risco da demo | P-05, P-07, P-17, P-21, P-28; RNF-012, RNF-014 |
+| 2 | **Deploy no Supabase Cloud** e conferir limite de login, `db_pre_request` e e2e contra a nuvem | HTTPS, limite de login e disponibilidade só existem lá | P-08, P-09, P-34; RNF-007 |
+| 3 | **Development build** com GPS em segundo plano e push remoto | Expo Go não grava com a tela bloqueada nem recebe push | RF-004, RF-009, D-10, D-13 |
+| 4 | **CI** (GitHub Actions) com `typecheck`, ESLint, Jest com cobertura, Deno e pgTAP a cada push | RNF-008 pede análise estática automática a cada alteração | RNF-008, `docs/QA.md` §11 |
+| 5 | Higiene antes da entrega: tirar `apps/mobile/coverage/` do git, `npx expo install --fix` para os avisos do `npm audit` | Achados QA-14/15 | P-37 |
+| 6 | **Verificação do aparelho** (Play Integrity / App Attest) junto do HMAC | A chave HMAC é registrada pelo próprio cliente | P-38, RNF-006 |
+| 7 | **Medições**: k6 com 5.000 corredores, bateria por hora, mapa < 2,5 s, contraste por ferramenta, leitor de tela | Critérios do ERS ainda não medidos | RNF-001, 002, 004, 011 |
+| 8 | Completar os P0/P1 parciais: tela de troca de facção, parciais por km e gráfico de ritmo, Escolta ao vivo, convite de crew por link e metas, filtros estado/país, fantasma de amigo, acelerômetro no antifraude | Fecham os 🟡 de prioridade alta | RF-003, 006, 011, 012, 015, 024; RN-008, RN-019; P-18 |
+| 9 | Login Google/Apple com credenciais reais | Código pronto, falta configurar os provedores | P-06, RF-001 |
+| 10 | P2: mapa de calor (com o estado na comparação de imagem), feed social, missões e medalhas, Prefeito, Raid e Liga no servidor, imagem no compartilhamento | Escopo desejável do ERS | RF-013, 014, 016, 017, 026, 027; RN-006, 012, 015, 018 |
+| 11 | Atualizar o ERS para a v1.1 | O documento oficial ainda descreve a paleta e o mapa antigos | P-02, `docs/ERS-ALTERACOES-PROPOSTAS.md` |
+
+## 6. Critérios de conclusão (Definition of Done) de toda tarefa
 
 1. Código segue as camadas de `ARQUITETURA.md`; sem segredo no código.
 2. `npm run typecheck`, `./node_modules/.bin/eslint src` e `npm test` verdes em `apps/mobile`; backend: migrations aplicam do zero e os testes SQL/Deno passam.
