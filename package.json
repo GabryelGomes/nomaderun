@@ -14,7 +14,12 @@
     "domain:vendor-h3": "bash supabase/scripts/vendor-h3.sh",
     "seed:gen": "deno run --allow-read --allow-write --config supabase/scripts/deno.json supabase/scripts/gen-seed.ts",
     "e2e": "bash supabase/scripts/e2e.sh",
-    "mail": "bash supabase/scripts/mail-sink.sh"
+    "mail": "bash supabase/scripts/mail-sink.sh",
+    "functions:bundle-check": "bash supabase/scripts/bundle-check.sh",
+    "domain:copy": "node supabase/scripts/domain-copy.mjs",
+    "domain:copy:check": "node supabase/scripts/domain-copy.mjs --check",
+    "domain:copy:restore": "node supabase/scripts/domain-copy.mjs --restore",
+    "deploy": "bash supabase/scripts/deploy.sh"
   },
   "devDependencies": {
     "supabase": "2.121.0"

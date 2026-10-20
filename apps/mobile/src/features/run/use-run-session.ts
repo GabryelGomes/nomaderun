@@ -33,6 +33,7 @@ import { setActiveRunId } from './active-run';
 import { confirmRun, endRun, recordPoints, setRunPaused, startRecording } from './run-controller';
 import { toGeoPoints } from './summary-model';
 import { nearestNeutral, SIM_SPEED_MPS, simulationRoute } from './simulation';
+import { loadHuntChests } from './hunt-chests';
 import { createVoiceGuide, type VoiceGuide } from './voice-guide';
 
 export type RunMode = 'gps' | 'simulacao';
@@ -84,6 +85,7 @@ export function useRunSession(mode: RunMode) {
     lastReadSeq: -1,
     voice: true,
     background: false,
+    huntRequested: false,
   });
 
   const guideRef = useRef<VoiceGuide | null>(null);
@@ -97,6 +99,18 @@ export function useRunSession(mode: RunMode) {
   const changePhase = useCallback((p: Phase) => {
     live.current.phase = p;
     setPhase(p);
+  }, []);
+
+  /** Caça no GPS real: pede os baús do dia ao servidor na primeira posição (sem internet, baús locais). */
+  const requestHunt = useCallback((near: LatLng) => {
+    const l = live.current;
+    if (l.huntRequested) return;
+    l.huntRequested = true;
+    void loadHuntChests({ lat: near.lat, lng: near.lng }).then((h) => {
+      for (const id of h.openedIds) l.opened.add(id);
+      if (h.openedIds.length) setOpenedIds([...l.opened]);
+      setChests((cs) => (cs.length ? cs : h.chests));
+    });
   }, []);
 
   /** Atualiza a corrida ao vivo e os eventos de jogo com um ponto já gravado na fila. */
@@ -199,7 +213,7 @@ export function useRunSession(mode: RunMode) {
       setPedometer(hasSteps);
       const onFix = (f: Fix) => {
         if (cancelled) return;
-        if (mission === 'caca') setChests((cs) => (cs.length ? cs : seedChests(f)));
+        if (mission === 'caca') requestHunt(f);
         ingest({ ...f, steps: stepCounter.take() });
       };
       if (backgroundLocationEnabled()) {
@@ -214,7 +228,7 @@ export function useRunSession(mode: RunMode) {
           const pts = await getQueueStore().readPoints(runId, l.lastReadSeq + 1, 500);
           for (const p of pts) {
             l.lastReadSeq = p.seq;
-            if (mission === 'caca') setChests((cs) => (cs.length ? cs : seedChests(p)));
+            if (mission === 'caca') requestHunt(p);
             show(p);
           }
         }, 1000);
@@ -227,7 +241,7 @@ export function useRunSession(mode: RunMode) {
       sub?.remove();
       if (poll) clearInterval(poll);
     };
-  }, [gpsOn, runId, ingest, show, mission]);
+  }, [gpsOn, runId, ingest, show, mission, requestHunt]);
 
   // Relógio de parede no modo GPS.
   useEffect(() => {

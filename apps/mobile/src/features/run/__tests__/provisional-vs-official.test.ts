@@ -105,7 +105,10 @@ function compare(points: QueuedPoint[], opts: { trust?: number; recentPaces?: nu
     context: { faction: 'striders', basePace: basePace(recentPaces), streakDays: streakWeeks, zones, revealedFog: new Set(), now: NOW },
   });
 
-  const { activityId: _id, ...rest } = official;
+  // `chests` (RN-017) e `group` (M_grupo, RN-001) dependem de dados que só o servidor tem; sem baús e sem crew vêm vazios.
+  const { activityId: _id, chests, group, ...rest } = official;
+  expect(chests).toEqual([]);
+  expect(group).toBeNull();
   const { source, ...mine } = summary;
   expect(source).toBe('provisional');
   expect(mine).toEqual(rest);

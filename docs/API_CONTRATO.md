@@ -1,7 +1,7 @@
 # Contrato da API (app ↔ Supabase)
 
 > Dono: **Backend (A2)**. O app (frontend e GPS) programa contra este contrato. Qualquer mudança aqui precisa de registro em `DECISOES_TECNICAS.md` e aviso no `PROGRESSO.md`.
-> Última revisão: 2026-10-20 (T1.1–T1.3, implementado e testado: pgTAP, Deno e e2e).
+> Última revisão: 2026-10-20 (Fase 3 do A2: baús, M_grupo, rankings por período/distrito, zona de privacidade, Realtime das notificações, nomes de zonas novas — D-39 a D-44; implementado e testado: pgTAP, Deno e e2e).
 
 Base das functions: `${EXPO_PUBLIC_SUPABASE_URL}/functions/v1/<nome>`. Todas exigem `Authorization: Bearer <JWT do usuário>` (o servidor confere o token no Auth a cada chamada; conta excluída ou banida recebe 401).
 Erros: HTTP 4xx/5xx com corpo `{ "error": { "code": "<CODIGO>", "message": "<texto em pt-BR>", "details"?: { ... } } }`. O campo `details` é opcional (hoje só `lastSeq`, ver ingest/finish).
@@ -96,14 +96,18 @@ Fecha a corrida e calcula o resultado oficial com o **mesmo** `src/domain` do ap
   "zones": [ { "zoneId": "89a8...", "name": "Setor Bueno 3", "meters": 800, "rp": 115,
                "outcome": "conquered|defended|influence|none", "ownerBefore": null, "ownerAfter": "striders" } ],
   "newFogCells": 12, "beatGhost": null, "trust": 100,
-  "review": null      // ou { "reason": "LOW_TRUST|TRUST_SUSPENDED|SUSPENDED|NO_PEDOMETER_LONG_RUN", "message": "texto pt-BR" }
+  "review": null,     // ou { "reason": "LOW_TRUST|TRUST_SUSPENDED|SUSPENDED|NO_PEDOMETER_LONG_RUN", "message": "texto pt-BR" }
+  "chests": [ { "chestId": "uuid", "rarity": "comum|raro|lendario", "xp": 20 } ],   // baús abertos nesta corrida (XP já somado em xp)
+  "group": null       // ou { "zones": ["89a8..."], "members": 2 } — zonas com M_grupo 1,25 e quantos colegas correram junto
 }
 ```
 - `status`: `rejected` = localização simulada (nada pontua); `review` = vai para a moderação e **não pontua** até ser aprovada (`rpTotal = 0`, `xp = 0`, `zones = []`); `partial` = parte dos trechos foi invalidada.
 - `review.reason`: `LOW_TRUST` (índice < 40 antes ou depois desta corrida, RN-009), `TRUST_SUSPENDED` (índice ficou < 10: suspenso 30 dias), `SUSPENDED` (conta já suspensa), `NO_PEDOMETER_LONG_RUN` (sem pedômetro e > 10 km, RN-008).
 - `trust` é o Índice de Confiança depois da corrida. `flags` usa os códigos do domain (`MOCK_LOCATION`, `TELEPORT`, `POINT_SPEED`, `VEHICLE_SUSPECTED`, `NO_STEPS`, `NO_PEDOMETER`); a explicação pt-BR vem em `invalidSegments[].reason` (`FLAG_EXPLANATION`).
-- `name` nunca é nulo: zona sem nome (criada na primeira corrida numa região nova, RF-020) vem como `"Zona XXXX"` (4 caracteres do índice H3).
-- Efeitos: zonas criadas/atualizadas (Realtime avisa o mapa), `activity_zones`, `zone_events`, XP, trust, neblina, notificações (invasão, território perdido, zona conquistada).
+- `name` nunca é nulo. Zona criada nesta corrida (RF-020) ganha nome e cidade na gravação (D-43): nome-base da zona com nome mais próxima (até ~3 km, sem o número final) + o próximo número (`"Jardim Goiás 39"`); sem vizinha, a cidade natal do corredor (`"Goiânia 1"`); sem cidade, `"Zona 1"`. `"Zona XXXX"` (4 caracteres do H3) fica só como último recurso.
+- `chests` (RN-017): só na missão `caca`; abre os baús do dia ainda fechados (de `daily_chests`) a até 25 m de um ponto de trecho válido, uma vez cada. Corrida `rejected` ou `review` não abre (a aprovação da moderação abre). O app pode mostrar a prévia ao passar perto, mas o XP oficial é o daqui.
+- `group` (RN-001, M_grupo): 1,25 nas zonas em que o corredor e pelo menos mais 2 membros da mesma Crew correram a até 50 m entre si em ≥ 60% dos metros válidos, comparando com as corridas deles no mesmo intervalo (pontos já sincronizados). Só o servidor calcula: o provisório do app não tem esse bônus.
+- Efeitos: zonas criadas/atualizadas (Realtime avisa o mapa), `activity_zones`, `zone_events`, XP, trust, neblina, baús (`chests.opened_at` + `chest_opens`), notificações (invasão, território perdido, zona conquistada; Realtime avisa a central).
 
 Códigos: `MISSING_POINTS` (409: `lastSeq` maior que o recebido — reenviar a fila a partir de `details.lastSeq + 1`), `NOT_OWNER` (403), `FACTION_REQUIRED` (409: escolha a facção antes), `ACTIVITY_CLOSED` (409), `BUSY` (503: muitas corridas na mesma área ao mesmo tempo; tente de novo), `ACCOUNT_INACTIVE` (403).
 
@@ -132,7 +136,7 @@ Aprovar recalcula a pontuação com o estado atual das zonas (ignora o trust) e 
 Lista para o painel: `from('activities').select('*').eq('status','review')` (staff lê todas) e `from('activity_points')` para o percurso.
 
 ### `GET /account-export` · `POST /account-delete`
-LGPD (RF-002, RNF-013). Export devolve JSON (com `Content-Disposition` de anexo) com e-mail, perfil, aparelhos (sem segredo), corridas com pontos e zonas, contatos, notificações, neblina, baús, crew e decisões de moderação. Delete exige `{ "confirm": "EXCLUIR" }`, apaga a foto do Storage e o usuário do Auth; o resto cai em cascata (a influência já somada nas zonas fica, por ser agregada). Resposta: `{ "deleted": true }`.
+LGPD (RF-002, RNF-013). Export devolve JSON (com `Content-Disposition` de anexo) com e-mail, perfil, aparelhos (sem segredo), corridas com pontos e zonas, contatos, notificações, neblina, baús (`chests` sorteados e `chestOpens`), zonas de privacidade (`privacyZones`), crew e decisões de moderação. Delete exige `{ "confirm": "EXCLUIR" }`, apaga a foto do Storage e o usuário do Auth; o resto cai em cascata (a influência já somada nas zonas fica, por ser agregada). Resposta: `{ "deleted": true }`.
 
 ## Acesso direto às tabelas (supabase-js + RLS)
 
@@ -143,11 +147,13 @@ LGPD (RF-002, RNF-013). Export devolve JSON (com `Content-Disposition` de anexo)
 | `profiles` | ler o próprio (staff lê todos); atualizar **só** `username`, `city`, `avatar_url`, `units` (`km`/`mi`), `notification_prefs` | `role`, `trust`, `status`, `xp`, `faction`, `streak_weeks` só pelo servidor (UPDATE nessas colunas = `42501`). Cidade natal: 1 troca por temporada (`CITY_CHANGE_LIMIT`, RN-013). `notification_prefs` = `{ invasion, conquest, moderation, missions }` (booleans) |
 | `public_profiles` (view) | ler | `id, username, faction, city, xp, avatar_url, created_at, crew_id, crew_tag`; contas inativas não aparecem |
 | `devices` | ler os próprios | sem a coluna `secret` |
-| `activities`, `activity_points`, `activity_zones` | ler os próprios (staff lê todos) | escrita só pelas functions. `activities.result` guarda a resposta oficial do `finish-activity` |
+| `activities`, `activity_points`, `activity_zones` | ler os próprios (staff lê todos) | escrita só pelas functions. `activities.result` guarda a resposta oficial do `finish-activity`. **RN-010:** em `activity_points` de outra pessoa (painel de moderação) não vêm os pontos dentro das zonas de privacidade do dono (o `seq` fica com buraco); o dono vê tudo |
 | `safety_contacts` | CRUD dos próprios (`name`, `phone`) | máx. 5 (`CONTACTS_LIMIT`); `phone` aceita `+`, dígitos, espaço, `()` e `-` (8–20) |
-| `notifications` | ler e marcar `read_at` nas próprias | `type` ∈ `invasion, territory_lost, conquest, moderation, mission, system`; `data` traz `zoneId`, `lat`, `lng` (abrir o mapa na zona, RF-009) ou `activityId` |
-| `fog_cells`, `chest_opens` | ler as próprias | escrita pelo servidor (neblina no finish; baús ficam para T3.5) |
-| `zones`, `zone_events` | ler tudo | Realtime ligado em `zones`. Em `zone_events` não há `user_id`/`activity_id` para o cliente (privacidade de percurso) |
+| `notifications` | ler e marcar `read_at` nas próprias | `type` ∈ `invasion, territory_lost, conquest, moderation, mission, system`; `data` traz `zoneId`, `lat`, `lng` (abrir o mapa na zona, RF-009) ou `activityId`. **Realtime ligado (P-13):** `channel('notif').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.<uid>' }, ...)`; a RLS vale no Realtime (sem o filtro, cada um continua recebendo só as suas). A consulta periódica pode virar só fallback |
+| `fog_cells`, `chest_opens` | ler as próprias | escrita pelo servidor no finish (neblina; `chest_opens.chest_id` = `chests.id`) |
+| `chests` | ler os próprios | baús sorteados por dia (`id, day, lat, lng, rarity, xp, opened_at, activity_id`); use `rpc('daily_chests')`, que sorteia na primeira chamada do dia. Escrita só pelo servidor |
+| `privacy_zones` | CRUD dos próprios (`label?`, `lat`, `lng`, `radius_m`) | RN-010: até 3 (`PRIVACY_ZONES_LIMIT`); `radius_m` padrão 200, de 50 a 1000; `label` de 1 a 40 caracteres ou nulo. Cadastro: `from('privacy_zones').insert({ label: 'Casa', lat, lng })`; editar: `update({ lat, lng, radius_m }).eq('id', id)`; remover: `delete().eq('id', id)`. Os pontos dentro do raio pontuam normalmente, mas não aparecem para terceiros |
+| `zones`, `zone_events` | ler tudo | Realtime ligado em `zones`. Em `zone_events` não há `user_id`/`activity_id` para o cliente (privacidade de percurso). Zonas criadas por corridas têm `name` e `city` (D-43) |
 | `crews` | ler; criar com `insert({ name, tag })` (líder = você, facção = a sua, `invite_code` gerado); líder renomeia/apaga | sigla 3–5 letras (vira maiúscula). RN-011 em trigger: `FACTION_REQUIRED`, `ALREADY_IN_CREW` |
 | `crew_members` | ler; sair (`delete` da própria linha) ou o líder remover membro | entrada só por `join_crew`. Se o líder sai, o membro mais antigo assume; crew vazia é apagada |
 | `moderation_reviews` | staff lê tudo; o corredor lê as das próprias corridas | |
@@ -170,6 +176,13 @@ Storage: bucket público **`avatars`** (até 2 MB, JPEG/PNG/WebP). Cada usuário
 | `mark_notifications_read` | `ids uuid[]` (nulo = todas) | `integer` (quantas) | — |
 | `admin_set_user_status` | `p_user_id`, `p_status` (`active|inactive|suspended`) | `{ userId, status }` | `FORBIDDEN` (só admin; não altera o próprio), `INVALID_STATUS`, `NOT_FOUND`. `inactive` bloqueia o login; `suspended` = fora da competição por 30 dias |
 | `zones_in_bbox` | `min_lng, min_lat, max_lng, max_lat` | linhas de `zones` (sem geometria) | — |
+| `daily_chests` | `p_lat?`, `p_lng?` (posição atual; usada só se o usuário ainda não tem corrida) | `{ day: "AAAA-MM-DD", chests: [{ id, lat, lng, rarity, xp, openedAt }] }` (`openedAt` em epoch ms ou null). 5 a 8 baús por dia (Brasília) num raio de 3 km do último ponto da última corrida, nunca em zona bloqueada; comum 70% (20 XP), raro 25% (60 XP), lendário 5% (150 XP). Mesma lista o dia todo; sem corrida e sem posição → `chests: []` | `UNAUTHORIZED`, `VALIDATION` (posição incompleta/inválida) |
+| `ranking_runners` | `p_period` (`week`\|`season`, padrão `season`), `p_scope` (`general`\|`faction`\|`city`\|`district`), `p_value` (facção, cidade natal ou distrito), `p_limit` (padrão 100, máx. 500) | `position, user_id, username, faction, city, crew_tag, rp, meters, runs` | `VALIDATION` |
+| `ranking_crews` | mesmos parâmetros | `position, crew_id, name, tag, faction, rp, members` (escopos `city`/`district`: só crews com pontos ali; `city` = cidade natal dos membros) | `VALIDATION` |
+| `ranking_factions` | `p_period`, `p_scope` (`general`\|`city`\|`district`), `p_value` | `position, faction, rp, runners, zones` (`zones` = dominadas agora no escopo: `zones.city` ou o distrito) | `VALIDATION` |
+| `district_label` | `p_district` | `text` — nome-base mais comum das zonas do distrito (`"Jardim Goiás"`) ou `"Distrito XXXX"` | — |
+
+Rankings (RF-015, P-16, D-41): semana = desde segunda 00:00 de Brasília; temporada = desde o dia 1. **Distrito** = célula H3 de resolução 7 que contém a zona; no app use `districtOf(zoneId)` de `src/domain/grid.ts` (ex.: a zona do perfil/da folha) e passe em `p_value`. Exemplo: `rpc('ranking_runners', { p_period: 'week', p_scope: 'district', p_value: districtOf(zoneId) })`. As views `leaderboard_*` continuam valendo para temporada/geral.
 | `is_staff` / `is_admin` | — | `boolean` | — |
 
 Erros de RPC chegam do PostgREST com `message = "CODIGO: texto em pt-BR"` (separe no primeiro `": "`).

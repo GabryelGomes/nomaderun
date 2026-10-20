@@ -5,6 +5,9 @@
 import {
   applyTrust,
   basePace,
+  CHEST_XP,
+  type ChestRarity,
+  chestsInReach,
   type CheatFlag,
   cellBoundary,
   emptyInfluence,
@@ -22,6 +25,7 @@ import {
   zoneOf,
   type FactionId,
 } from './domain.ts';
+import { applyPack, type CrewTrack, detectPack } from './group.ts';
 import { HttpError } from './http.ts';
 
 export type StoredPoint = {
@@ -125,7 +129,14 @@ export type ScoringInput = {
   revealedFog: string[];
   ghostPace: number | null;
   now: number;
+  /** RN-017: baús ainda fechados do corredor (só na missão Caça; vazio nas outras). */
+  chests?: ChestCandidate[];
+  /** RN-001: percursos dos colegas de Crew no mesmo intervalo (M_grupo). */
+  crewTracks?: CrewTrack[];
 };
+
+export type ChestCandidate = { id: string; lat: number; lng: number; rarity: ChestRarity };
+export type OpenedChest = { chestId: string; rarity: ChestRarity; xp: number };
 
 type GeoJsonPolygon = { type: 'Polygon'; coordinates: number[][][] };
 
@@ -152,6 +163,7 @@ export type OfficialResult = {
   activityZones: { zoneId: string; meters: number; rp: number; outcome: string; ownerBefore: FactionId | null; ownerAfter: FactionId | null }[];
   events: ZoneEvent[];
   fogCells: string[];
+  chests: OpenedChest[];
   response: FinishResponse;
 };
 
@@ -170,6 +182,10 @@ export type FinishResponse = {
   beatGhost: boolean | null;
   trust: number;
   review: { reason: ReviewReason; message: string } | null;
+  /** RN-017: baús abertos nesta corrida (o XP já está em `xp`). */
+  chests: OpenedChest[];
+  /** RN-001: zonas que receberam M_grupo (1,25) e colegas de Crew que correram junto; null sem grupo. */
+  group: { zones: string[]; members: number } | null;
 };
 
 export function cellPolygon(cell: string): GeoJsonPolygon {
@@ -195,7 +211,7 @@ export function computeOfficialResult(input: ScoringInput): OfficialResult {
   const zones: Record<string, Zone> = {};
   for (const z of input.zones) zones[z.id] = toDomainZone(z);
 
-  const result = finishRun(run, {
+  const ctx = {
     faction: input.faction,
     basePace: basePace(input.recentPaces),
     streakDays: input.streakWeeks,
@@ -204,8 +220,15 @@ export function computeOfficialResult(input: ScoringInput): OfficialResult {
     now: input.now,
     ghostPace: input.ghostPace ?? undefined,
     earnedTodayByZone: input.earnedToday,
-  });
+  };
+  const plain = finishRun(run, ctx);
+  // RN-001: M_grupo — etapa antes de fechar a pontuação (ver group.ts)
+  const pack = input.crewTracks?.length ? detectPack(geo, input.crewTracks) : null;
+  const result = pack && pack.zones.length ? applyPack(plain, ctx, pack.zones) : plain;
   const v = result.validation;
+  // RN-017: baús a até 25 m de um ponto de trecho válido (cada um abre uma vez)
+  const opened = openChests(geo, v, input.chests ?? []);
+  const chestXp = opened.reduce((sum, c) => sum + c.xp, 0);
 
   let status: ActivityStatus =
     v.status === 'valid' ? 'valid' : v.status === 'partially_valid' ? 'partial' : v.status === 'rejected' ? 'rejected' : 'review';
@@ -271,7 +294,7 @@ export function computeOfficialResult(input: ScoringInput): OfficialResult {
     movingSeconds: Math.round(result.movingSeconds),
     avgPace,
     rpTotal: scored ? result.rpTotal : 0,
-    xp: scored ? result.xp : 0,
+    xp: scored ? result.xp + chestXp : 0,
     flags: v.flags,
     invalidSegments: segments,
     zones: zoneOutcomes.map((o) => ({
@@ -287,6 +310,8 @@ export function computeOfficialResult(input: ScoringInput): OfficialResult {
     beatGhost: result.beatGhost,
     trust: trustAfter,
     review: status === 'review' && reviewReason ? { reason: reviewReason, message: REVIEW_MESSAGE[reviewReason] } : null,
+    chests: scored ? opened : [],
+    group: scored && pack && pack.zones.length ? { zones: pack.zones, members: pack.members.length } : null,
   };
 
   return {
@@ -306,6 +331,24 @@ export function computeOfficialResult(input: ScoringInput): OfficialResult {
     })),
     events: scored ? result.events : [],
     fogCells: scored ? result.newFogCells : [],
+    chests: scored ? opened : [],
     response,
   };
+}
+
+/** Baús ao alcance (domain `chestsInReach`, 25 m) de algum ponto de trecho válido da corrida. */
+export function openChests(points: GeoPoint[], validation: ReturnType<typeof validateActivity>, candidates: ChestCandidate[]): OpenedChest[] {
+  if (candidates.length === 0 || validation.status === 'rejected') return [];
+  const chests = candidates.map((c) => ({ id: c.id, position: { lat: c.lat, lng: c.lng }, rarity: c.rarity }));
+  const opened = new Set<string>();
+  const onValid = new Set<number>();
+  for (const s of validation.steps) {
+    if (!s.valid) continue;
+    onValid.add(s.from);
+    onValid.add(s.to);
+  }
+  for (const i of [...onValid].sort((a, b) => a - b)) {
+    for (const c of chestsInReach(points[i], chests, opened)) opened.add(c.id);
+  }
+  return chests.filter((c) => opened.has(c.id)).map((c) => ({ chestId: c.id, rarity: c.rarity, xp: CHEST_XP[c.rarity] }));
 }

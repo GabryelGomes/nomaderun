@@ -11,10 +11,22 @@ const domainFiles = [...Deno.readDirSync(DOMAIN)]
   .map((e) => e.name.replace(/\.ts$/, ''))
   .sort();
 
+const copyMode = exists('supabase/functions/_shared/domain_copy');
+
 Deno.test('a ponte _shared/domain.ts importa todos os arquivos do domain com extensão .ts', () => {
   const bridge = Deno.readTextFileSync(new URL('supabase/functions/_shared/domain.ts', ROOT));
   for (const f of domainFiles) {
-    assert.ok(bridge.includes(`apps/mobile/src/domain/${f}.ts'`), `faltou ${f}.ts em _shared/domain.ts`);
+    const target = copyMode ? `./domain_copy/${f}.ts'` : `apps/mobile/src/domain/${f}.ts'`;
+    assert.ok(bridge.includes(target), `faltou ${target} em _shared/domain.ts`);
+  }
+});
+
+// Plano B da D-02 (npm run domain:copy): a cópia precisa ser idêntica ao domain, só com `.ts` nos imports relativos.
+Deno.test('plano B: cópia do domain em dia com o app', { ignore: !copyMode }, () => {
+  for (const f of domainFiles) {
+    const src = Deno.readTextFileSync(new URL(`${f}.ts`, DOMAIN)).replace(/((?:from|import)\s+')(\.\/[^'.]+)(')/g, '$1$2.ts$3');
+    const copy = Deno.readTextFileSync(new URL(`supabase/functions/_shared/domain_copy/${f}.ts`, ROOT));
+    assert.equal(copy.slice(copy.indexOf('\n') + 1), src, `${f}.ts divergiu do domain: rode npm run domain:copy`);
   }
 });
 

@@ -1,7 +1,16 @@
 /** Orquestra o cálculo oficial + gravação transacional, com novas tentativas em caso de conflito (D-23). */
 import type { FactionId } from './domain.ts';
 import { HttpError } from './http.ts';
-import { computeOfficialResult, type DbZone, type FinishResponse, type StoredPoint, candidateCells, toGeoPoints } from './scoring.ts';
+import type { CrewTrack } from './group.ts';
+import {
+  candidateCells,
+  type ChestCandidate,
+  computeOfficialResult,
+  type DbZone,
+  type FinishResponse,
+  type StoredPoint,
+  toGeoPoints,
+} from './scoring.ts';
 import { DbError, rpc } from './supabase.ts';
 
 export type ActivityRow = {
@@ -11,6 +20,7 @@ export type ActivityRow = {
   started_at: string;
   ghost_pace: number | null;
   last_seq: number;
+  mission?: 'livre' | 'fuga' | 'caca';
 };
 
 export type LoadedActivity = { activity: ActivityRow | null; points: StoredPoint[]; result: FinishResponse | null };
@@ -27,6 +37,7 @@ type FinishContext = {
   zones: DbZone[];
   earnedToday: Record<string, number>;
   revealedFog: string[];
+  chests?: ChestCandidate[];
 };
 
 export const MAX_ATTEMPTS = 3;
@@ -45,6 +56,14 @@ export async function scoreAndApply(opts: {
 }): Promise<FinishResponse> {
   const { activity, points, mode } = opts;
   const { zoneIds, fogCells } = candidateCells(toGeoPoints(points));
+  // RN-001 (M_grupo): percursos dos colegas de Crew no mesmo intervalo de tempo
+  const crew = points.length
+    ? await rpc<{ crewId: string | null; tracks: CrewTrack[] }>('svc_crew_tracks', {
+      p_user: activity.user_id,
+      p_from_ms: points[0].t,
+      p_to_ms: points[points.length - 1].t,
+    })
+    : null;
 
   for (let attempt = 1; ; attempt++) {
     const ctx = await rpc<FinishContext>('svc_finish_context', {
@@ -75,6 +94,8 @@ export async function scoreAndApply(opts: {
       revealedFog: ctx.revealedFog,
       ghostPace: activity.ghost_pace,
       now,
+      chests: ctx.chests ?? [],
+      crewTracks: crew?.tracks ?? [],
     });
     const r = official.response;
     const payload = {
@@ -100,6 +121,7 @@ export async function scoreAndApply(opts: {
       activityZones: official.activityZones,
       events: official.events,
       fogCells: official.fogCells,
+      chests: official.chests,
       result: r,
       moderation: opts.moderation ?? null,
     };
@@ -108,7 +130,8 @@ export async function scoreAndApply(opts: {
       if (res?.error === 'ALREADY_FINISHED' && res.result) return res.result;
       if (res?.error === 'NOT_IN_REVIEW') throw new HttpError(409, 'NOT_IN_REVIEW', 'A corrida não está em revisão.');
       if (res?.error) throw new HttpError(409, res.error, 'Não foi possível gravar o resultado da corrida.');
-      return r;
+      // o banco devolve o resultado com os nomes das zonas criadas agora (P-12)
+      return res?.result ?? r;
     } catch (e) {
       if (e instanceof DbError && e.message.startsWith('ZONE_CONFLICT') && attempt < MAX_ATTEMPTS) continue;
       if (e instanceof DbError && e.message.startsWith('ZONE_CONFLICT')) {
