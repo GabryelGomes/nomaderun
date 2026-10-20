@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1792502612938" clover="3.2.0">
+  <project timestamp="1792502612939" name="All files">
+    <metrics statements="392" coveredstatements="375" conditionals="256" coveredconditionals="217" methods="84" coveredmethods="78" elements="732" coveredelements="670" complexity="0" loc="392" ncloc="392" packages="2" files="12" classes="12"/>
+    <package name="domain">
+      <metrics statements="370" coveredstatements="353" conditionals="242" coveredconditionals="203" methods="82" coveredmethods="76"/>
+      <file name="anti-cheat.ts" path="/home/user/nomaderun/apps/mobile/src/domain/anti-cheat.ts">
+        <metrics statements="68" coveredstatements="68" conditionals="43" coveredconditionals="36" methods="10" coveredmethods="10"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="13" count="2" type="stmt"/>
+        <line num="14" count="2" type="stmt"/>
+        <line num="15" count="2" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="46" count="27" type="stmt"/>
+        <line num="47" count="27" type="stmt"/>
+        <line num="48" count="27" type="stmt"/>
+        <line num="49" count="4011" type="cond" truecount="4" falsecount="0"/>
+        <line num="50" count="3" type="stmt"/>
+        <line num="51" count="152" type="cond" truecount="1" falsecount="1"/>
+        <line num="52" count="152" type="stmt"/>
+        <line num="53" count="152" type="stmt"/>
+        <line num="57" count="4011" type="stmt"/>
+        <line num="58" count="4011" type="stmt"/>
+        <line num="60" count="27" type="stmt"/>
+        <line num="61" count="4230" type="cond" truecount="2" falsecount="0"/>
+        <line num="62" count="246" type="cond" truecount="2" falsecount="0"/>
+        <line num="63" count="246" type="stmt"/>
+        <line num="65" count="3984" type="stmt"/>
+        <line num="68" count="27" type="stmt"/>
+        <line num="73" count="2455" type="cond" truecount="2" falsecount="0"/>
+        <line num="74" count="2" type="stmt"/>
+        <line num="77" count="14" type="stmt"/>
+        <line num="78" count="2440" type="stmt"/>
+        <line num="79" count="2440" type="cond" truecount="2" falsecount="0"/>
+        <line num="80" count="14" type="stmt"/>
+        <line num="81" count="634" type="stmt"/>
+        <line num="83" count="14" type="stmt"/>
+        <line num="84" count="14" type="stmt"/>
+        <line num="85" count="2425" type="stmt"/>
+        <line num="86" count="2425" type="stmt"/>
+        <line num="87" count="2425" type="stmt"/>
+        <line num="88" count="2425" type="stmt"/>
+        <line num="89" count="2425" type="cond" truecount="1" falsecount="3"/>
+        <line num="90" count="2425" type="stmt"/>
+        <line num="91" count="2425" type="cond" truecount="4" falsecount="0"/>
+        <line num="92" count="1" type="stmt"/>
+        <line num="93" count="1" type="stmt"/>
+        <line num="94" count="2424" type="cond" truecount="2" falsecount="0"/>
+        <line num="95" count="3" type="stmt"/>
+        <line num="96" count="3" type="stmt"/>
+        <line num="98" count="2425" type="stmt"/>
+        <line num="101" count="2425" type="stmt"/>
+        <line num="103" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="104" count="13" type="stmt"/>
+        <line num="107" count="1805" type="cond" truecount="5" falsecount="0"/>
+        <line num="108" count="1640" type="cond" truecount="1" falsecount="1"/>
+        <line num="109" count="1640" type="stmt"/>
+        <line num="116" count="14" type="stmt"/>
+        <line num="117" count="14" type="stmt"/>
+        <line num="118" count="14" type="stmt"/>
+        <line num="119" count="14" type="stmt"/>
+        <line num="120" count="2425" type="cond" truecount="2" falsecount="0"/>
+        <line num="122" count="156" type="stmt"/>
+        <line num="123" count="156" type="cond" truecount="1" falsecount="1"/>
+        <line num="127" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="128" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="129" count="1" type="stmt"/>
+        <line num="130" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="132" count="14" type="stmt"/>
+        <line num="136" count="2" type="stmt"/>
+      </file>
+      <file name="games.ts" path="/home/user/nomaderun/apps/mobile/src/domain/games.ts">
+        <metrics statements="41" coveredstatements="41" conditionals="28" coveredconditionals="27" methods="12" coveredmethods="12"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="10" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="11" count="2" type="stmt"/>
+        <line num="15" count="2" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="20" count="969" type="stmt"/>
+        <line num="21" count="6783" type="cond" truecount="2" falsecount="0"/>
+        <line num="26" count="6" type="stmt"/>
+        <line num="27" count="6" type="stmt"/>
+        <line num="28" count="969" type="stmt"/>
+        <line num="29" count="969" type="cond" truecount="2" falsecount="0"/>
+        <line num="32" count="6" type="stmt"/>
+        <line num="37" count="2" type="stmt"/>
+        <line num="41" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="42" count="2" type="stmt"/>
+        <line num="46" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="47" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="48" count="1" type="stmt"/>
+        <line num="52" count="2" type="stmt"/>
+        <line num="54" count="2" type="stmt"/>
+        <line num="60" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="64" count="2" type="stmt"/>
+        <line num="65" count="2" type="stmt"/>
+        <line num="66" count="2" type="stmt"/>
+        <line num="72" count="6" type="cond" truecount="4" falsecount="0"/>
+        <line num="73" count="5" type="cond" truecount="4" falsecount="0"/>
+        <line num="74" count="4" type="stmt"/>
+        <line num="78" count="2" type="stmt"/>
+        <line num="79" count="2" type="stmt"/>
+        <line num="85" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="86" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="87" count="1" type="stmt"/>
+        <line num="91" count="2" type="stmt"/>
+        <line num="92" count="2" type="stmt"/>
+        <line num="95" count="10" type="stmt"/>
+        <line num="98" count="3" type="stmt"/>
+        <line num="99" count="3" type="stmt"/>
+        <line num="100" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="101" count="1" type="stmt"/>
+        <line num="102" count="1" type="stmt"/>
+        <line num="104" count="3" type="stmt"/>
+      </file>
+      <file name="geo.ts" path="/home/user/nomaderun/apps/mobile/src/domain/geo.ts">
+        <metrics statements="26" coveredstatements="16" conditionals="11" coveredconditionals="2" methods="8" coveredmethods="5"/>
+        <line num="3" count="5" type="stmt"/>
+        <line num="5" count="51411" type="stmt"/>
+        <line num="9" count="10212" type="stmt"/>
+        <line num="10" count="10212" type="stmt"/>
+        <line num="12" count="10212" type="stmt"/>
+        <line num="14" count="10212" type="stmt"/>
+        <line num="18" count="4396" type="stmt"/>
+        <line num="22" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="23" count="5" type="stmt"/>
+        <line num="28" count="3521" type="stmt"/>
+        <line num="29" count="3521" type="stmt"/>
+        <line num="30" count="3521" type="stmt"/>
+        <line num="31" count="3521" type="stmt"/>
+        <line num="32" count="3521" type="stmt"/>
+        <line num="36" count="3521" type="stmt"/>
+        <line num="41" count="3521" type="stmt"/>
+        <line num="46" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="57" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="58" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="63" count="0" type="stmt"/>
+      </file>
+      <file name="grid.ts" path="/home/user/nomaderun/apps/mobile/src/domain/grid.ts">
+        <metrics statements="10" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="7" coveredmethods="6"/>
+        <line num="9" count="4" type="stmt"/>
+        <line num="11" count="4" type="stmt"/>
+        <line num="13" count="4" type="stmt"/>
+        <line num="15" count="4901" type="stmt"/>
+        <line num="16" count="969" type="stmt"/>
+        <line num="17" count="4" type="stmt"/>
+        <line num="20" count="5814" type="stmt"/>
+        <line num="21" count="5814" type="stmt"/>
+        <line num="26" count="54" type="stmt"/>
+        <line num="30" count="974" type="stmt"/>
+      </file>
+      <file name="h3-runtime.ts" path="/home/user/nomaderun/apps/mobile/src/domain/h3-runtime.ts">
+        <metrics statements="17" coveredstatements="10" conditionals="12" coveredconditionals="7" methods="3" coveredmethods="2"/>
+        <line num="10" count="4" type="stmt"/>
+        <line num="11" count="4" type="stmt"/>
+        <line num="14" count="4" type="stmt"/>
+        <line num="15" count="4" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="18" count="4" type="stmt"/>
+        <line num="22" count="4" type="cond" truecount="3" falsecount="1"/>
+        <line num="24" count="4" type="stmt"/>
+        <line num="26" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="28" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="39" count="8" type="cond" truecount="4" falsecount="0"/>
+        <line num="40" count="4" type="stmt"/>
+        <line num="42" count="4" type="stmt"/>
+      </file>
+      <file name="regions.ts" path="/home/user/nomaderun/apps/mobile/src/domain/regions.ts">
+        <metrics statements="34" coveredstatements="34" conditionals="15" coveredconditionals="12" methods="8" coveredmethods="8"/>
+        <line num="21" count="10" type="stmt"/>
+        <line num="22" count="10" type="stmt"/>
+        <line num="23" count="19" type="stmt"/>
+        <line num="24" count="19" type="stmt"/>
+        <line num="25" count="304" type="stmt"/>
+        <line num="26" count="304" type="stmt"/>
+        <line num="27" count="304" type="stmt"/>
+        <line num="28" count="304" type="stmt"/>
+        <line num="30" count="19" type="stmt"/>
+        <line num="32" count="10" type="stmt"/>
+        <line num="40" count="9" type="stmt"/>
+        <line num="41" count="9" type="stmt"/>
+        <line num="42" count="27" type="stmt"/>
+        <line num="43" count="324" type="stmt"/>
+        <line num="44" count="324" type="stmt"/>
+        <line num="45" count="324" type="stmt"/>
+        <line num="48" count="9" type="stmt"/>
+        <line num="53" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="54" count="7" type="stmt"/>
+        <line num="55" count="7" type="stmt"/>
+        <line num="56" count="7" type="stmt"/>
+        <line num="57" count="7" type="cond" truecount="3" falsecount="2"/>
+        <line num="58" count="7" type="stmt"/>
+        <line num="59" count="90" type="stmt"/>
+        <line num="68" count="5" type="stmt"/>
+        <line num="69" count="5" type="stmt"/>
+        <line num="70" count="43" type="cond" truecount="2" falsecount="0"/>
+        <line num="71" count="37" type="cond" truecount="2" falsecount="0"/>
+        <line num="72" count="37" type="stmt"/>
+        <line num="73" count="37" type="stmt"/>
+        <line num="75" count="5" type="stmt"/>
+        <line num="76" count="5" type="stmt"/>
+        <line num="77" count="7" type="stmt"/>
+        <line num="79" count="5" type="stmt"/>
+      </file>
+      <file name="run-engine.ts" path="/home/user/nomaderun/apps/mobile/src/domain/run-engine.ts">
+        <metrics statements="62" coveredstatements="62" conditionals="50" coveredconditionals="45" methods="13" coveredmethods="13"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="28" count="7" type="stmt"/>
+        <line num="33" count="1978" type="stmt"/>
+        <line num="34" count="1978" type="stmt"/>
+        <line num="35" count="1978" type="stmt"/>
+        <line num="36" count="1978" type="cond" truecount="2" falsecount="0"/>
+        <line num="38" count="1971" type="stmt"/>
+        <line num="39" count="1971" type="stmt"/>
+        <line num="40" count="1971" type="cond" truecount="1" falsecount="1"/>
+        <line num="41" count="1971" type="cond" truecount="2" falsecount="1"/>
+        <line num="43" count="1971" type="cond" truecount="2" falsecount="0"/>
+        <line num="44" count="1971" type="stmt"/>
+        <line num="45" count="1971" type="cond" truecount="4" falsecount="0"/>
+        <line num="46" count="12" type="stmt"/>
+        <line num="49" count="1959" type="stmt"/>
+        <line num="50" count="1959" type="stmt"/>
+        <line num="51" count="57474" type="stmt"/>
+        <line num="52" count="1959" type="cond" truecount="2" falsecount="0"/>
+        <line num="53" count="1749" type="stmt"/>
+        <line num="54" count="1749" type="stmt"/>
+        <line num="56" count="1959" type="stmt"/>
+        <line num="70" count="30" type="stmt"/>
+        <line num="71" count="30" type="stmt"/>
+        <line num="72" count="1" type="stmt"/>
+        <line num="75" count="1" type="stmt"/>
+        <line num="114" count="4" type="stmt"/>
+        <line num="115" count="4" type="stmt"/>
+        <line num="116" count="4" type="stmt"/>
+        <line num="117" count="4" type="stmt"/>
+        <line num="118" count="960" type="cond" truecount="1" falsecount="1"/>
+        <line num="119" count="960" type="stmt"/>
+        <line num="120" count="960" type="stmt"/>
+        <line num="121" count="960" type="stmt"/>
+        <line num="122" count="960" type="cond" truecount="2" falsecount="0"/>
+        <line num="123" count="960" type="stmt"/>
+        <line num="125" count="4" type="stmt"/>
+        <line num="126" count="4" type="stmt"/>
+        <line num="128" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="130" count="4" type="stmt"/>
+        <line num="131" count="4" type="stmt"/>
+        <line num="132" count="4" type="stmt"/>
+        <line num="133" count="4" type="stmt"/>
+        <line num="135" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="136" count="3" type="stmt"/>
+        <line num="137" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="138" count="12" type="cond" truecount="1" falsecount="1"/>
+        <line num="139" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="140" count="12" type="stmt"/>
+        <line num="149" count="12" type="stmt"/>
+        <line num="150" count="12" type="stmt"/>
+        <line num="151" count="12" type="stmt"/>
+        <line num="152" count="12" type="stmt"/>
+        <line num="153" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="154" count="12" type="stmt"/>
+        <line num="155" count="12" type="stmt"/>
+        <line num="165" count="19" type="stmt"/>
+        <line num="167" count="227283" type="cond" truecount="5" falsecount="0"/>
+        <line num="168" count="4" type="stmt"/>
+        <line num="170" count="4" type="stmt"/>
+        <line num="174" count="4" type="stmt"/>
+      </file>
+      <file name="scoring.ts" path="/home/user/nomaderun/apps/mobile/src/domain/scoring.ts">
+        <metrics statements="24" coveredstatements="24" conditionals="20" coveredconditionals="17" methods="7" coveredmethods="7"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="11" count="2" type="stmt"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="13" count="2" type="stmt"/>
+        <line num="14" count="2" type="stmt"/>
+        <line num="15" count="2" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="19" count="45" type="stmt"/>
+        <line num="23" count="24" type="cond" truecount="3" falsecount="1"/>
+        <line num="24" count="24" type="cond" truecount="1" falsecount="1"/>
+        <line num="25" count="24" type="stmt"/>
+        <line num="29" count="21" type="stmt"/>
+        <line num="34" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="35" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="36" count="3" type="stmt"/>
+        <line num="37" count="2" type="stmt"/>
+        <line num="38" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="60" count="18" type="stmt"/>
+        <line num="68" count="18" type="stmt"/>
+        <line num="75" count="18" type="cond" truecount="2" falsecount="0"/>
+        <line num="76" count="18" type="stmt"/>
+        <line num="77" count="18" type="stmt"/>
+      </file>
+      <file name="territory.ts" path="/home/user/nomaderun/apps/mobile/src/domain/territory.ts">
+        <metrics statements="76" coveredstatements="76" conditionals="53" coveredconditionals="48" methods="11" coveredmethods="10"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="11" count="2" type="stmt"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="13" count="2" type="stmt"/>
+        <line num="15" count="2" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="19" count="2" type="stmt"/>
+        <line num="20" count="2" type="stmt"/>
+        <line num="22" count="2" type="stmt"/>
+        <line num="43" count="27" type="stmt"/>
+        <line num="46" count="27" type="stmt"/>
+        <line num="51" count="20" type="stmt"/>
+        <line num="52" count="20" type="stmt"/>
+        <line num="53" count="20" type="stmt"/>
+        <line num="54" count="80" type="cond" truecount="2" falsecount="0"/>
+        <line num="55" count="73" type="cond" truecount="2" falsecount="0"/>
+        <line num="56" count="20" type="stmt"/>
+        <line num="57" count="20" type="stmt"/>
+        <line num="60" count="20" type="stmt"/>
+        <line num="63" count="2" type="stmt"/>
+        <line num="67" count="23" type="cond" truecount="4" falsecount="0"/>
+        <line num="68" count="7" type="stmt"/>
+        <line num="70" count="16" type="stmt"/>
+        <line num="75" count="20" type="stmt"/>
+        <line num="76" count="20" type="stmt"/>
+        <line num="77" count="20" type="cond" truecount="1" falsecount="1"/>
+        <line num="79" count="20" type="cond" truecount="2" falsecount="0"/>
+        <line num="80" count="13" type="stmt"/>
+        <line num="81" count="13" type="cond" truecount="4" falsecount="0"/>
+        <line num="82" count="8" type="stmt"/>
+        <line num="83" count="8" type="stmt"/>
+        <line num="84" count="8" type="stmt"/>
+        <line num="86" count="13" type="stmt"/>
+        <line num="89" count="7" type="stmt"/>
+        <line num="90" count="7" type="stmt"/>
+        <line num="92" count="7" type="cond" truecount="5" falsecount="0"/>
+        <line num="93" count="1" type="stmt"/>
+        <line num="94" count="1" type="stmt"/>
+        <line num="95" count="1" type="stmt"/>
+        <line num="96" count="1" type="stmt"/>
+        <line num="97" count="1" type="stmt"/>
+        <line num="98" count="1" type="stmt"/>
+        <line num="99" count="1" type="stmt"/>
+        <line num="102" count="6" type="cond" truecount="1" falsecount="3"/>
+        <line num="103" count="6" type="cond" truecount="5" falsecount="0"/>
+        <line num="104" count="3" type="stmt"/>
+        <line num="105" count="3" type="stmt"/>
+        <line num="106" count="3" type="stmt"/>
+        <line num="107" count="3" type="cond" truecount="4" falsecount="0"/>
+        <line num="108" count="2" type="stmt"/>
+        <line num="109" count="2" type="stmt"/>
+        <line num="110" count="2" type="stmt"/>
+        <line num="112" count="6" type="stmt"/>
+        <line num="117" count="21" type="cond" truecount="4" falsecount="0"/>
+        <line num="118" count="20" type="stmt"/>
+        <line num="119" count="20" type="stmt"/>
+        <line num="120" count="20" type="stmt"/>
+        <line num="124" count="2" type="stmt"/>
+        <line num="125" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="129" count="4" type="stmt"/>
+        <line num="130" count="4" type="stmt"/>
+        <line num="131" count="16" type="stmt"/>
+        <line num="132" count="16" type="cond" truecount="2" falsecount="0"/>
+        <line num="134" count="4" type="stmt"/>
+        <line num="135" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="136" count="1" type="stmt"/>
+        <line num="137" count="1" type="stmt"/>
+        <line num="142" count="3" type="stmt"/>
+        <line num="147" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="149" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="154" count="4" type="stmt"/>
+        <line num="159" count="1" type="stmt"/>
+        <line num="160" count="4" type="stmt"/>
+        <line num="161" count="1" type="stmt"/>
+      </file>
+      <file name="trust.ts" path="/home/user/nomaderun/apps/mobile/src/domain/trust.ts">
+        <metrics statements="11" coveredstatements="11" conditionals="10" coveredconditionals="9" methods="3" coveredmethods="3"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="19" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="20" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="21" count="4" type="stmt"/>
+        <line num="27" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="28" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="29" count="1" type="stmt"/>
+      </file>
+      <file name="types.ts" path="/home/user/nomaderun/apps/mobile/src/domain/types.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="3" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="domain.__tests__">
+      <metrics statements="22" coveredstatements="22" conditionals="14" coveredconditionals="14" methods="2" coveredmethods="2"/>
+      <file name="helpers.ts" path="/home/user/nomaderun/apps/mobile/src/domain/__tests__/helpers.ts">
+        <metrics statements="22" coveredstatements="22" conditionals="14" coveredconditionals="14" methods="2" coveredmethods="2"/>
+        <line num="5" count="5" type="stmt"/>
+        <line num="20" count="21" type="cond" truecount="2" falsecount="0"/>
+        <line num="21" count="21" type="stmt"/>
+        <line num="22" count="21" type="cond" truecount="2" falsecount="0"/>
+        <line num="23" count="21" type="cond" truecount="2" falsecount="0"/>
+        <line num="24" count="21" type="stmt"/>
+        <line num="25" count="21" type="stmt"/>
+        <line num="26" count="21" type="stmt"/>
+        <line num="27" count="3516" type="stmt"/>
+        <line num="33" count="3516" type="cond" truecount="2" falsecount="0"/>
+        <line num="35" count="21" type="stmt"/>
+        <line num="40" count="2" type="stmt"/>
+        <line num="41" count="2" type="stmt"/>
+        <line num="42" count="2" type="stmt"/>
+        <line num="43" count="2" type="stmt"/>
+        <line num="44" count="5" type="stmt"/>
+        <line num="45" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="46" count="5" type="stmt"/>
+        <line num="47" count="5" type="stmt"/>
+        <line num="48" count="5" type="stmt"/>
+        <line num="49" count="5" type="stmt"/>
+        <line num="51" count="2" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
