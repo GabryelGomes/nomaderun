@@ -124,7 +124,7 @@ export function CaptureCelebration({ faction, zone, rp }: { faction: FactionId; 
             tabular
             color={night ? neon.orangeText : undefined}
             muted={!night}
-            style={[{ textAlign: 'center' }, night ? { textShadowColor: neon.textGlow.color, textShadowRadius: 14, textShadowOffset: { width: 0, height: 0 } } : null]}>
+            style={{ textAlign: 'center' }}>
             +{rp} RP em {zone}
           </Text>
         </FadeUp>

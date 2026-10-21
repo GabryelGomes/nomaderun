@@ -43,7 +43,15 @@ export function HeroWordmark({ testID, delay = 0, neon = false }: { testID?: str
                 style={[
                   { fontSize: size, lineHeight: size },
                   neon && line === 'RUN'
-                    ? { textShadowColor: neonTokens.textGlow.color, textShadowRadius: neonTokens.textGlow.radius, textShadowOffset: { width: 0, height: 0 } }
+                    ? {
+                        textShadowColor: neonTokens.textGlow.color,
+                        textShadowRadius: neonTokens.textGlow.radius,
+                        textShadowOffset: { width: 0, height: 0 },
+                        // No iOS a sombra é recortada na caixa do próprio texto: a caixa cresce do tamanho do
+                        // brilho (padding) e a margem negativa devolve o layout ao lugar.
+                        padding: glow,
+                        margin: -glow,
+                      }
                     : null,
                 ]}>
                 {line}

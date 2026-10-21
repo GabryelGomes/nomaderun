@@ -241,7 +241,7 @@ export function SummaryScreen() {
 
 /**
  * Métrica do resumo que conta até o valor (CountUp, algarismos tabulares); duas por linha em qualquer largura.
- * `accent` (neon, D-59): número em laranja com brilho — os pontos do jogo se destacam das métricas de corrida.
+ * `accent` (neon, D-59): número em laranja — os pontos do jogo se destacam das métricas de corrida.
  */
 function StatCount({
   label,
@@ -275,8 +275,8 @@ function StatCount({
         variant="headline"
         delay={delay}
         accessibilityLabel={a11y}
+        // Sem textShadow: no iOS a sombra fica recortada na caixa do texto e vira um retângulo (visto no iPhone 15).
         color={accent ? neon.orangeText : undefined}
-        style={accent ? { textShadowColor: neon.textGlow.color, textShadowRadius: 14, textShadowOffset: { width: 0, height: 0 } } : undefined}
       />
     </View>
   );
