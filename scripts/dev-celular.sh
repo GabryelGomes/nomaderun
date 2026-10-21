@@ -4,7 +4,7 @@
 # Uso (na raiz do repositório):  npm run celular
 #   IP=192.168.0.10 npm run celular   → força o IP (ex.: se a detecção errar)
 #   NO_START=1 npm run celular        → só configura, não abre o Expo
-#   ONLINE=1 npm run celular          → Expo com conta (por padrão roda offline, sem login)
+#   OFFLINE=1 npm run celular         → Expo sem conta (só Android; o iPhone exige login)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -115,9 +115,9 @@ fi
 # 8. Expo com o QR code apontando para o IP da rede
 say "Abrindo o Expo — leia o QR code com o Expo Go (Android) ou a câmera (iPhone)"
 cd "$APP"
-# --offline: o Expo não fala com os servidores da Expo, então não pede conta nem login
-# (nem no computador nem no Expo Go). Para o modo normal (com conta): ONLINE=1 npm run celular
-if [ -n "${ONLINE:-}" ]; then
-  REACT_NATIVE_PACKAGER_HOSTNAME="$LAN_IP" exec npx expo start --clear
+# Expo Go no iPhone só abre projeto assinado por uma conta: rode `npx expo login` uma vez
+# com a mesma conta do Expo Go. OFFLINE=1 roda sem conta (funciona só no Android).
+if [ -n "${OFFLINE:-}" ]; then
+  REACT_NATIVE_PACKAGER_HOSTNAME="$LAN_IP" exec npx expo start --clear --offline
 fi
-REACT_NATIVE_PACKAGER_HOSTNAME="$LAN_IP" exec npx expo start --clear --offline
+REACT_NATIVE_PACKAGER_HOSTNAME="$LAN_IP" exec npx expo start --clear

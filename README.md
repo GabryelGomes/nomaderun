@@ -119,7 +119,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon key do supabase status>
 
 **No celular, troque `127.0.0.1` pelo IP do computador na rede** (o celular não enxerga o `127.0.0.1` do computador). Para descobrir o IP: `ipconfig getifaddr en0` (macOS), `hostname -I` (Linux) ou `ipconfig` (Windows, campo "Endereço IPv4"). Para usar só no navegador do próprio computador, `127.0.0.1` funciona.
 
-**Atalho (recomendado para o celular):** na raiz, `npm run celular` faz tudo de uma vez: confere o Docker, sobe o Supabase e as Edge Functions, descobre o IP que o celular alcança (no WSL, pergunta ao Windows), grava o `apps/mobile/.env`, testa o backend por esse IP e abre o Expo com o QR code certo. Se o IP detectado estiver errado: `IP=192.168.0.10 npm run celular`. O Expo roda em modo offline, sem pedir login nem no computador nem no Expo Go; para usar uma conta Expo: `ONLINE=1 npm run celular`.
+**Atalho (recomendado para o celular):** na raiz, `npm run celular` faz tudo de uma vez: confere o Docker, sobe o Supabase e as Edge Functions, descobre o IP que o celular alcança (no WSL, pergunta ao Windows), grava o `apps/mobile/.env`, testa o backend por esse IP e abre o Expo com o QR code certo. Se o IP detectado estiver errado: `IP=192.168.0.10 npm run celular`. **iPhone:** o Expo Go só abre o projeto com a mesma conta Expo logada no celular e no computador (`npx expo login -u <usuário>`). No Android dá para rodar sem conta: `OFFLINE=1 npm run celular`.
 
 **No WSL (Windows):** o `hostname -I` dentro do WSL devolve um IP interno (172.x) que o celular não alcança, e o Expo Go fica carregando sem parar. Use o IP do **Windows** na rede Wi-Fi (`ipconfig` no PowerShell, "Endereço IPv4") no `.env` e no Expo:
 
