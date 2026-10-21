@@ -20,7 +20,7 @@
   "team": {
     "striders": { "name": "Neon Striders", "color": "#2FA8FF", "shape": "circulo" },
     "volt": { "name": "Volt Runners", "color": "#19E6A8", "shape": "triangulo" },
-    "owls": { "name": "Night Owls", "color": "#FF4FD8", "shape": "losango" },
+    "owls": { "name": "Night Owls", "color": "#FF2D55", "shape": "losango" },
     "coyotes": { "name": "Urban Coyotes", "color": "#FFD60A", "shape": "quadrado" }
   },
   "map": {

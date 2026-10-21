@@ -33,6 +33,6 @@ export const neon = {
 export const neonTeam: Record<FactionId, string> = {
   striders: '#2FA8FF',
   volt: '#19E6A8',
-  owls: '#FF4FD8',
+  owls: '#FF2D55',
   coyotes: '#FFD60A',
 };

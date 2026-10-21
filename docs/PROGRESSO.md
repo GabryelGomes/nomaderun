@@ -23,7 +23,6 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 | P-05 | Validar em aparelho: seletor de foto, notificação local de invasão com o app aberto, SecureStore em partes, deep link `nomaderun://nova-senha?code=…` e diálogo "Trocar de conta?", permissão de notificações no Expo Go Android, compartilhamento do JSON exportado | 📱 | Equipe/A5 | T1.4–T1.6 |
 | P-06 | Login Google/Apple só com credenciais reais (código pronto, aparece com `EXPO_PUBLIC_AUTH_PROVIDERS`) | 🔑 ☁️ | Equipe | T1.5 |
 | P-07 | Fluxos Maestro feitos (`apps/mobile/.maestro/`), falta **rodar em aparelho**. Testes de tela com React Native Testing Library não feitos | 📱 | Equipe/A5 | T1.5 |
-| P-08 | Deploy no Supabase Cloud não feito (precisa de conta). Bundle verificado e plano B pronto; seguir `supabase/DEPLOY.md` (`npm run deploy`) | ☁️ | Equipe | T1.2 |
 | P-09 / P-34 | Limite de login só vale no Cloud: subir para 30 por 5 min antes da apresentação e voltar para 3 depois (`DEPLOY.md` §3, `COMO_APRESENTAR.md` §2). O resto de P-34 (QA-06) foi feito | ☁️ 🧑 | Equipe | T1.1, T4.2 |
 | P-10 | Imagens `supabase/mailpit` e `supabase/pg_prove` não baixam neste ambiente: usar `npm run mail` e `npm run db:test:psql` (D-27). Em outra máquina, `npx supabase test db` também serve | — (contorno pronto) | — | T1.3 |
 | P-17 | Validar em aparelho: GPS real no Expo Go (permissões, GPS desligado, sinal fraco), pedômetro, tela acesa, SMS do SOS, Escolta, alerta de parada; development build com `NOMADE_BACKGROUND_LOCATION=1` (permissão "sempre", notificação do serviço, pontos com a tela bloqueada) | 📱 | Equipe/A5 | T2.1–T2.5 |
@@ -34,7 +33,6 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 | P-37 | QA-15: `npm audit` com avisos em ferramentas de build do SDK 57 (`npx expo install --fix` antes da entrega; bloqueado neste ambiente). A parte QA-14 (`apps/mobile/coverage/` no git) já foi resolvida pela coordenação | 🧑 | Equipe | T4.2 |
 | P-38 | QA-10 (risco aceito): o HMAC não prova que o cliente é o app oficial. Pós-MVP: Play Integrity/App Attest | 💻 | Pós-MVP | T4.2 |
 | P-41 | **Novo (A6):** slide "O que entregamos e o que falta" (`docs/apresentacao/slides/slides/entregas.html`, PDF e página web) ainda diz "60 testes" e "sem servidor". Atualizar com os números de `COMO_APRESENTAR.md` §5 e regerar | 🧑 | Autores | T5.1 |
-| P-42 | **Novo (A5, T6.5):** QA-18 (Média) — a faixa de território escondida da corrida continua para o leitor de tela (lê "Corra aqui para conquistar" sem faixa; `aria-live` em mudança invisível). QA-19 (Média) — contraste da faixa rival: branco sobre Volt 3,42:1 e Owls 4,19:1. Detalhes e correção sugerida em `QA.md` §14.5 | 💻 | A4 (A7 no token) | T6.5 |
 | P-43 | **Novo (A5, T6.5):** ajustes Baixa de layout — QA-20 alerta do mapa corta "pontos em dobro" (A8); QA-21 mais de 4 tamanhos de fonte em 21 de 28 telas (A7 com os donos); QA-23 "2 não lidas" quebra em 360 (A3); QA-24 nome "(você)" cortado no ranking em 360 (A8); QA-25 links do cadastro com 20 pt (A3) | 💻 | A3/A7/A8 | T6.5 |
 | P-44 | **Novo (A5, T6.5):** QA-22 — botões laranja, aba ativa e card "Sob ataque" com texto branco a 3,12:1 (marca aprovada, D-15). Decidir: rótulo ≥ 19 pt negrito, texto escuro sobre laranja ou `orangeText` no card | 🧑 | Autores + A7 | T6.5 |
 | P-45 | **Novo (A5, T6.5):** checklist do aparelho da Fase 6 (`QA.md` §14.7: folha 0,55/0,9, teclado, barra fixa acima das abas nativas, 60 fps, vibração, VoiceOver/TalkBack, reduzir movimento do sistema, tela bloqueada, área segura) | 📱 | Equipe/A5 | T6.5 |
@@ -80,6 +78,11 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 ```
 
 ## Log
+
+### 2026-10-21 — Deploy na nuvem, EAS Update e Night Owls vermelho (A1 Arquiteto)
+- **Feito:** os autores fizeram o deploy no Supabase Cloud (projeto `rbdxksunpfbaxkelnsob`: migrations, seed de demonstração, config de Auth e as 8 functions; `/zones` responde 401 sem token) e publicaram o app no EAS Update (branch `demo`, conta `deltafaria785`): funciona de qualquer rede sem o PC ligado. Correções no caminho: modelo de e-mail e vector buckets fora do `config push` (plano gratuito). Night Owls passou a vermelho (D-60).
+- **Fechadas:** P-08 (deploy) e P-42 (QA-18/QA-19, corrigidos antes).
+- **Para a equipe:** antes de cada `eas update`, conferir que o `.env` aponta para `https://rbdxksunpfbaxkelnsob.supabase.co` (o `npm run celular` reescreve com o IP local) e publicar com `--clear-cache`.
 
 ### 2026-10-21 — D-59 — Neon no resumo da corrida (A1 Arquiteto)
 - **Feito:** resumo com o fundo herói do login (`NeonBackdrop`) quando há conquista; card da celebração aceso (borda laranja e brilho); anel com fundo escuro e brilho na cor neon do time; "+RP em {zona}", pontos de território, XP e o "+RP" de cada zona em laranja com brilho.
