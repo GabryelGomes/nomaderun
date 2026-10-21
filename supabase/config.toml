@@ -146,8 +146,10 @@ max_catalogs = 2
 # [storage.analytics.buckets.my-warehouse]
 
 # Store vector embeddings in S3 for large and durable datasets
+# Desligado: o app não usa, e no plano gratuito do Supabase Cloud o `config push` falha com
+# "Please upgrade the project to a paid tier to enable vector buckets".
 [storage.vector]
-enabled = true
+enabled = false
 max_buckets = 10
 max_indexes = 5
 
