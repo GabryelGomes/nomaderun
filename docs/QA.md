@@ -426,3 +426,11 @@ Faça em um iPhone (de preferência SE ou 13 mini) e em um Android médio, com o
 7. **Reduzir movimento do sistema** (iOS: Ajustes → Acessibilidade → Movimento → Reduzir movimento; Android: Acessibilidade → Remover animações): abra entrar, mapa, clube, resumo e troque de aba. Só aparecem fades: nada sobe, escala ou desliza; o pódio já aparece com a altura final; os números já aparecem com o valor final.
 8. **Tela bloqueada:** comece uma corrida com GPS real, bloqueie o aparelho por 2 min e desbloqueie. A corrida continua (tempo e distância avançaram) e a faixa de território aparece em até 3 s ao entrar numa zona (ERS §6.2). Com development build e `NOMADE_BACKGROUND_LOCATION=1`, confira também a notificação do serviço (P-17/P-21).
 9. **Área segura:** em aparelho com notch/ilha dinâmica, nada encosta no topo (pílula do mapa, faixa da corrida, título dos modais Termos/Privacidade no Android) nem no indicador de início (controles da corrida, "Concluir" do resumo).
+
+### 14.8 Correções após a T6.5 (A1, 2026-10-21)
+| Achado | Status | Como foi resolvido | Teste |
+|---|---|---|---|
+| QA-18 (Média) | ✅ corrigido | A faixa de território escondida recebe `aria-hidden` e sai da região viva (`accessibilityLiveRegion='none'`); o texto fica vazio quando não há faixa | Conferir no aparelho com VoiceOver/TalkBack (§14.7) |
+| QA-19 (Média) | ✅ corrigido | `readableBackground` (`src/features/run/banner-color.ts`) escurece só o necessário o fundo da faixa: Volt −16% (4,64:1), Owls −6% (4,67:1); Striders e Coyotes inalterados | `src/features/run/__tests__/banner-color.test.ts` (4 times ≥ 4,5:1) |
+| QA-20, QA-23, QA-24, QA-25 (Baixa) | ⬜ abertos | Textos cortados/quebrados em 360 pt e links de 20 pt | P-42 a P-45 |
+| QA-21, QA-22 (Baixa) | ⬜ decisão | Mais de 4 tamanhos de fonte; branco sobre o laranja da marca 3,12:1 (já existia, D-15) | Decisão dos autores |

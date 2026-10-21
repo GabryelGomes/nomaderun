@@ -81,6 +81,12 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-21 — QA-18, QA-19 — Faixa de território acessível (A1 Arquiteto)
+- **Feito:** faixa escondida fora do leitor de tela (`aria-hidden`, sem região viva); fundo da faixa rival com contraste ≥ 4,5:1 via `readableBackground` (Volt e Owls escurecidos o mínimo).
+- **Arquivos:** `apps/mobile/src/features/run/banner-color.ts` (novo), `apps/mobile/src/features/run/__tests__/banner-color.test.ts` (novo), `apps/mobile/src/features/screens/run-screen.tsx`, `docs/QA.md` §14.8.
+- **Testes:** typecheck ok; eslint ok; `npm test` → 404 passaram (26 ignorados).
+- **Pendências:** QA-20, 23, 24, 25 (Baixa, P-42 a P-45); QA-21/22 dependem de decisão dos autores; checklist do aparelho em `QA.md` §14.7.
+
 ### 2026-10-21 — T6.5 — QA visual, motion e acessibilidade da Fase 6 (A5 QA e Segurança)
 - **Feito:**
   - **Varredura por script** (Playwright no export web, backend local): 31 telas em 360×640, 375×667, 390×844 e 430×932, com e sem `reducedMotion: 'reduce'`. Moderação (fila, detalhe, contas) em 375×667 e 1280×800. Extras: modo escuro em 375×667 e resumo com conquista nos dois modos.

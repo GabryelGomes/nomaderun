@@ -20,6 +20,7 @@ import { formatDuration, formatKm, formatPace } from '@/domain/geo';
 import { CAPTURE_THRESHOLD, defenseWindowOpen, TAKEOVER_RATIO } from '@/domain/territory';
 import { DEMO_CENTER, zoneName } from '@/demo/demo-data';
 import { mapZonesNear } from '@/features/map-data';
+import { readableBackground } from '@/features/run/banner-color';
 import { loadSafetyContacts } from '@/features/run/run-controller';
 import { timeFontSize, TickerText } from '@/features/run/ticker-text';
 import { useGpsPreflight } from '@/features/run/use-gps-preflight';
@@ -297,7 +298,9 @@ function ActiveRun({ mode }: { mode: RunMode }) {
         />
         <Animated.View
           testID="corrida-faixa-territorio"
-          accessibilityLiveRegion="polite"
+          // Escondida (opacidade 0) não pode ser lida pelo leitor de tela (QA-18).
+          accessibilityLiveRegion={bannerOn ? 'polite' : 'none'}
+          aria-hidden={!bannerOn}
           pointerEvents="none"
           style={{
             position: 'absolute',
@@ -310,7 +313,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             padding: space[3],
             borderRadius: radius.lg,
             borderCurve: 'continuous',
-            backgroundColor: rival ? factions[owner!].color : defending ? palette.warning : colors.surface,
+            backgroundColor: rival ? readableBackground(factions[owner!].color, bannerInk) : defending ? palette.warning : colors.surface,
             boxShadow: floating,
             // ERS §6.2: entra de cima em ≤ 3 s (power3.out, 300 ms). Reduzir movimento: só opacidade.
             opacity: bannerOn ? 1 : 0,
@@ -325,7 +328,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
               {defending ? 'Defendendo seu território' : rival ? `Território dos ${factions[owner!].name}` : ''}
             </Text>
             <Text variant="caption" color={bannerInk}>
-              {defending ? 'Pontos em dobro nesta zona' : 'Corra aqui para conquistar'}
+              {defending ? 'Pontos em dobro nesta zona' : rival ? 'Corra aqui para conquistar' : ''}
             </Text>
           </View>
         </Animated.View>
