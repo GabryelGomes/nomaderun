@@ -79,6 +79,14 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-21 — Revisão nº 1 do projeto (revisor-nomaderun)
+- **Feito:** revisão completa, sem alterar código de produção. Resultado em **`docs/REVISAO.md`**: 3 achados Alta, 4 Média, 6 Baixa, melhorias e próximos passos.
+- **Destaques:** (A-1) contas `admin.demo`/`moderador.demo` com senha pública no README e seed enviado ao Cloud, com o repositório público; (A-2) o mapa sempre abre em Goiânia, com o ponto do usuário fixo (`DEMO_CENTER`); (A-3) sem `eas.json` no repositório e `.env` local em `127.0.0.1`, então o próximo `eas update` pode quebrar o app publicado; (M-1) brilho dos chips cortado em retângulo no iOS (`ScrollView` horizontal com 4 pt de folga); (M-2) branco sobre o laranja neon = 2,87:1 (QA-22 piorou).
+- **Arquivos:** `docs/REVISAO.md` (novo), este arquivo.
+- **Testes executados:** `npm run typecheck` ok · `eslint src` 0 · `npx jest --coverage` 406 ✅ (26 ignorados), domain 99,54%/99,59% · integração `NOMADE_IT=1` 26/26 · `npm run db:test:psql` 285/285 · `npm run functions:test` 58 ok (1 ignorado) · `npm run e2e` 56/56 · segurança `STRICT=1` 89/89. Playwright e Maestro não rodados. No fim: `npx supabase db reset`.
+- **Pendências:** sugeridas em `REVISAO.md` §5. Ação urgente para a equipe: trocar as senhas das contas de demonstração no Cloud.
+- **Para o próximo agente:** comece por A-1 (painel do Cloud, equipe) e A-3/A-2 (código, A1/A3). Os casos 📱 da revisão só se confirmam no iPhone.
+
 ### 2026-10-21 — Deploy na nuvem, EAS Update e Night Owls vermelho (A1 Arquiteto)
 - **Feito:** os autores fizeram o deploy no Supabase Cloud (projeto `rbdxksunpfbaxkelnsob`: migrations, seed de demonstração, config de Auth e as 8 functions; `/zones` responde 401 sem token) e publicaram o app no EAS Update (branch `demo`, conta `deltafaria785`): funciona de qualquer rede sem o PC ligado. Correções no caminho: modelo de e-mail e vector buckets fora do `config push` (plano gratuito). Night Owls passou a vermelho (D-60).
 - **Fechadas:** P-08 (deploy) e P-42 (QA-18/QA-19, corrigidos antes).
