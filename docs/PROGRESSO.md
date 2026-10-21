@@ -81,6 +81,11 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-21 — D-59 — Neon no resumo da corrida (A1 Arquiteto)
+- **Feito:** resumo com o fundo herói do login (`NeonBackdrop`) quando há conquista; card da celebração aceso (borda laranja e brilho); anel com fundo escuro e brilho na cor neon do time; "+RP em {zona}", pontos de território, XP e o "+RP" de cada zona em laranja com brilho.
+- **Arquivos:** `components/capture-celebration.tsx`, `features/screens/summary-screen.tsx`.
+- **Testes:** typecheck ok; eslint ok; `npm test` → 406 passaram; `e2e-web/demo-flow.cjs` → 14/14 (corrida simulada até o resumo oficial com conquista).
+
 ### 2026-10-21 — D-58 — Neon nas boas-vindas e no cadastro (A1 Arquiteto)
 - **Feito:** boas-vindas do onboarding e cadastro (e a confirmação de e-mail) com o `NeonBackdrop` do login; selos acesos em componente compartilhado (`features/auth/neon-badges.tsx`); "RUN" laranja com brilho nas boas-vindas. As outras etapas do onboarding ficam com a luz ambiente. Removido o brilho extra em volta do "Entrar" (o `Button` já brilha desde a D-59).
 - **Testes:** typecheck ok; eslint ok; `npm test` → 406 passaram; Playwright (390×844, sistema em modo claro) do cadastro e das boas-vindas com conta nova, sem erros de console. Captura `docs/ui-audit/d58-boasvindas-cadastro-neon-390.png`.

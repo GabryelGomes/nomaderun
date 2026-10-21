@@ -16,10 +16,12 @@ import { formatDuration, formatKm, formatPace } from '@/domain/geo';
 import { DEMO_CENTER } from '@/demo/demo-data';
 import { mapZonesNear } from '@/features/map-data';
 import { invalidReasons } from '@/features/run/summary-model';
+import { NeonBackdrop } from '@/features/auth/neon-backdrop';
 import { useRunRecord } from '@/features/run/use-run-record';
 import { getInvalidStretches } from '@/services/api/track-repo';
 import { useGame } from '@/store/game-store';
 import { useZones } from '@/store/zones-store';
+import { neon } from '@/theme/neon';
 import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
@@ -104,9 +106,11 @@ export function SummaryScreen() {
   return (
     <ScreenScroll
       testID="tela-resumo"
+      // Neon (D-59): conquista = o fundo herói do login (rota animada); senão, a luz ambiente padrão.
+      background={highlight ? <NeonBackdrop /> : undefined}
       footer={<Button testID="resumo-concluir" label="Concluir" size="lg" wide onPress={() => (router.canDismiss() ? router.dismissAll() : router.replace('/atividades'))} />}>
       {highlight ? (
-        <Surface style={{ paddingVertical: space[6], alignItems: 'center' }}>
+        <Surface style={{ paddingVertical: space[6], alignItems: 'center', borderColor: colors.action, boxShadow: neon.cardGlow }}>
           <View testID="resumo-zona-conquistada" accessible accessibilityLabel={`Zona conquistada, mais ${highlight.rp} RP em ${highlight.name}`}>
             <CaptureCelebration faction={faction} zone={highlight.name} rp={highlight.rp} />
           </View>
@@ -151,8 +155,8 @@ export function SummaryScreen() {
               a11y={`Ritmo médio ${r.avgPace ? formatPace(r.avgPace) : 'indisponível'} por quilômetro`}
               delay={T + 120}
             />
-            <StatCount label="Pontos de território" value={r.rpTotal} unit="RP" a11y={`${r.rpTotal} pontos de território`} delay={T + 180} />
-            <StatCount label="Experiência" value={r.xp} format={(n) => `+${Math.round(n)}`} unit="XP" a11y={`mais ${r.xp} de experiência`} delay={T + 240} />
+            <StatCount label="Pontos de território" value={r.rpTotal} unit="RP" a11y={`${r.rpTotal} pontos de território`} delay={T + 180} accent />
+            <StatCount label="Experiência" value={r.xp} format={(n) => `+${Math.round(n)}`} unit="XP" a11y={`mais ${r.xp} de experiência`} delay={T + 240} accent />
             <StatCount label="Ruas reveladas" value={r.newFogCells} unit="células" a11y={`${r.newFogCells} células reveladas`} delay={T + 300} />
           </View>
           {record.simulated ? (
@@ -192,7 +196,7 @@ export function SummaryScreen() {
                       {z.outcome === 'conquered' && official ? 'Zona conquistada' : OUTCOME_LABEL[z.outcome]}, {Math.round(z.meters)} m
                     </Text>
                   </View>
-                  <Text variant="bodyBold" tabular>
+                  <Text variant="bodyBold" tabular color={z.rp > 0 ? colors.accentText : undefined}>
                     +{z.rp}
                   </Text>
                 </View>
@@ -235,14 +239,45 @@ export function SummaryScreen() {
   );
 }
 
-/** Métrica do resumo que conta até o valor (CountUp, algarismos tabulares); duas por linha em qualquer largura. */
-function StatCount({ label, value, from, format, unit, a11y, delay }: { label: string; value: number; from?: number; format?: (n: number) => string; unit?: string; a11y: string; delay: number }) {
+/**
+ * Métrica do resumo que conta até o valor (CountUp, algarismos tabulares); duas por linha em qualquer largura.
+ * `accent` (neon, D-59): número em laranja com brilho — os pontos do jogo se destacam das métricas de corrida.
+ */
+function StatCount({
+  label,
+  value,
+  from,
+  format,
+  unit,
+  a11y,
+  delay,
+  accent,
+}: {
+  label: string;
+  value: number;
+  from?: number;
+  format?: (n: number) => string;
+  unit?: string;
+  a11y: string;
+  delay: number;
+  accent?: boolean;
+}) {
   return (
     <View style={{ width: '50%', gap: 2, paddingRight: space[2] }}>
       <Text variant="caption" muted numberOfLines={1}>
         {label}
       </Text>
-      <CountUp value={value} from={from} format={format} unit={unit} variant="headline" delay={delay} accessibilityLabel={a11y} />
+      <CountUp
+        value={value}
+        from={from}
+        format={format}
+        unit={unit}
+        variant="headline"
+        delay={delay}
+        accessibilityLabel={a11y}
+        color={accent ? neon.orangeText : undefined}
+        style={accent ? { textShadowColor: neon.textGlow.color, textShadowRadius: 14, textShadowOffset: { width: 0, height: 0 } } : undefined}
+      />
     </View>
   );
 }

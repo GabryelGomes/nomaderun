@@ -6,7 +6,9 @@ import Svg, { Circle } from 'react-native-svg';
 
 import type { FactionId } from '@/domain/types';
 import { cssEasings, durations, easings } from '@/theme/motion';
+import { neon, neonTeam } from '@/theme/neon';
 import { factions, palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/use-theme';
 
 import { CHALK_INTERVAL_MS, CHALK_STROKE_MS, CHALK_STROKES, CHALK_TOTAL_MS } from './capture-celebration.math';
 import { FadeUp } from './motion/fade-up';
@@ -62,6 +64,8 @@ function ChalkStroke({ index, clock, color }: { index: number; clock: SharedValu
  */
 export function CaptureCelebration({ faction, zone, rp }: { faction: FactionId; zone: string; rp: number }) {
   const reduced = useReducedMotion();
+  const { scheme, colors } = useTheme();
+  const night = scheme === 'dark';
   const f = factions[faction];
   const clock = useSharedValue(reduced ? CHALK_TOTAL_MS : 0);
   useEffect(() => {
@@ -80,12 +84,15 @@ export function CaptureCelebration({ faction, zone, rp }: { faction: FactionId; 
         style={{
           width: SIZE,
           height: SIZE,
+          borderRadius: SIZE / 2,
+          // Neon (D-59): o anel brilha na cor neon do time.
+          boxShadow: night ? `0 0 36px ${neonTeam[faction]}66` : undefined,
           animationName: reduced ? { from: { opacity: 0 }, to: { opacity: 1 } } : undefined,
           animationDuration: durations.reducedFade,
           animationFillMode: 'both',
         }}>
         <Svg width={SIZE} height={SIZE}>
-          <Circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill={f.tint} stroke={palette.line} strokeWidth={STROKE} />
+          <Circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill={night ? colors.surfaceSunken : f.tint} stroke={night ? colors.line : palette.line} strokeWidth={STROKE} />
         </Svg>
         {Array.from({ length: CHALK_STROKES }, (_, i) => (
           <ChalkStroke key={i} index={i} clock={clock} color={f.color} />
@@ -112,7 +119,12 @@ export function CaptureCelebration({ faction, zone, rp }: { faction: FactionId; 
           Zona conquistada
         </RevealText>
         <FadeUp delay={reduced ? 0 : titleDelay + 200}>
-          <Text variant="lead" muted tabular style={{ textAlign: 'center' }}>
+          <Text
+            variant="lead"
+            tabular
+            color={night ? neon.orangeText : undefined}
+            muted={!night}
+            style={[{ textAlign: 'center' }, night ? { textShadowColor: neon.textGlow.color, textShadowRadius: 14, textShadowOffset: { width: 0, height: 0 } } : null]}>
             +{rp} RP em {zone}
           </Text>
         </FadeUp>
