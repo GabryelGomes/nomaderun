@@ -5,9 +5,9 @@
 
 ## Estado atual (resumo)
 
-- **Fase:** **5 concluída — MVP pronto para apresentação** (T0–T5 ✅ no `PLANO_DESENVOLVIMENTO.md`). **Fase 6 em andamento** (D-54): T6.1 ✅ (fundação de motion e layout, `docs/DESIGN_MOBILE_MOTION.md`); T6.2 ✅ (telas de conta e perfil, D-57); T6.3 ✅ (telas de jogo); T6.4 ✅ (fluxo da corrida, D-56); T6.5 liberada.
+- **Fase:** **5 concluída — MVP pronto para apresentação** (T0–T5 ✅ no `PLANO_DESENVOLVIMENTO.md`). **Fase 6 em andamento** (D-54): T6.1 ✅ (fundação de motion e layout, `docs/DESIGN_MOBILE_MOTION.md`); T6.2 ✅ (telas de conta e perfil, D-57); T6.3 ✅ (telas de jogo); T6.4 ✅ (fluxo da corrida, D-56); T6.5 ✅ (QA visual, motion e acessibilidade, `QA.md` §14); T6.6 liberada.
 - **Requisitos (61):** 32 ✅ · 22 🟡 · 5 ⬜ · 2 ➖. Nenhum P0 sem fazer (P0: 16 ✅, 9 🟡). Detalhes em `REQUISITOS.md`.
-- **Testes (2026-10-22, banco local):** app `npm test` 360 ✅ (26 de integração ignorados sem `NOMADE_IT`) · `typecheck` ok · pgTAP 285/285 · Deno 58 ok · e2e 56/56 · segurança `STRICT=1` 89/89 (A2) · Playwright demo 14/14, auth 17/17, imagem 4/4 (A3).
+- **Testes (2026-10-21, T6.5, banco local):** app `npm test` 398 ✅ (26 de integração ignorados sem `NOMADE_IT`; integração 26/26 com o backend) · `typecheck` ok · eslint 0 · domain 99,5% ramos/100% linhas · Playwright demo 14/14, auth 17/17, imagem 4/4 (referências regeneradas na T6.5) · varredura visual de 31 telas × 8 combinações sem rolagem horizontal, sem nada fora da tela e sem erros de console. Backend (Fase 5): pgTAP 285/285 · Deno 58 ok · e2e 56/56 · segurança `STRICT=1` 89/89.
 - **Como rodar e apresentar:** `README.md` (instalação e testes), `docs/COMO_APRESENTAR.md` (checklist, roteiro de 10 min, banca, plano B), `apps/mobile/README.md`.
 - **O que falta para a equipe humana:** validar em aparelho (P-05, P-07, P-17, P-21, P-28), deploy no Cloud se for apresentar pela nuvem (P-08, P-09/P-34), `npx expo install --fix` (P-37), revisão do ERS (P-02 → `ERS-ALTERACOES-PROPOSTAS.md`).
 - **Backend local:** API `http://127.0.0.1:54321` · chaves com `npx supabase status -o env` · e-mails em `http://127.0.0.1:54324` (`npm run mail`). Banco resetado no fim da Fase 5 (estado do seed).
@@ -34,6 +34,10 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 | P-37 | QA-15: `npm audit` com avisos em ferramentas de build do SDK 57 (`npx expo install --fix` antes da entrega; bloqueado neste ambiente). A parte QA-14 (`apps/mobile/coverage/` no git) já foi resolvida pela coordenação | 🧑 | Equipe | T4.2 |
 | P-38 | QA-10 (risco aceito): o HMAC não prova que o cliente é o app oficial. Pós-MVP: Play Integrity/App Attest | 💻 | Pós-MVP | T4.2 |
 | P-41 | **Novo (A6):** slide "O que entregamos e o que falta" (`docs/apresentacao/slides/slides/entregas.html`, PDF e página web) ainda diz "60 testes" e "sem servidor". Atualizar com os números de `COMO_APRESENTAR.md` §5 e regerar | 🧑 | Autores | T5.1 |
+| P-42 | **Novo (A5, T6.5):** QA-18 (Média) — a faixa de território escondida da corrida continua para o leitor de tela (lê "Corra aqui para conquistar" sem faixa; `aria-live` em mudança invisível). QA-19 (Média) — contraste da faixa rival: branco sobre Volt 3,42:1 e Owls 4,19:1. Detalhes e correção sugerida em `QA.md` §14.5 | 💻 | A4 (A7 no token) | T6.5 |
+| P-43 | **Novo (A5, T6.5):** ajustes Baixa de layout — QA-20 alerta do mapa corta "pontos em dobro" (A8); QA-21 mais de 4 tamanhos de fonte em 21 de 28 telas (A7 com os donos); QA-23 "2 não lidas" quebra em 360 (A3); QA-24 nome "(você)" cortado no ranking em 360 (A8); QA-25 links do cadastro com 20 pt (A3) | 💻 | A3/A7/A8 | T6.5 |
+| P-44 | **Novo (A5, T6.5):** QA-22 — botões laranja, aba ativa e card "Sob ataque" com texto branco a 3,12:1 (marca aprovada, D-15). Decidir: rótulo ≥ 19 pt negrito, texto escuro sobre laranja ou `orangeText` no card | 🧑 | Autores + A7 | T6.5 |
+| P-45 | **Novo (A5, T6.5):** checklist do aparelho da Fase 6 (`QA.md` §14.7: folha 0,55/0,9, teclado, barra fixa acima das abas nativas, 60 fps, vibração, VoiceOver/TalkBack, reduzir movimento do sistema, tela bloqueada, área segura) | 📱 | Equipe/A5 | T6.5 |
 
 ## Pendências fechadas
 
@@ -76,6 +80,40 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 ```
 
 ## Log
+
+### 2026-10-21 — T6.5 — QA visual, motion e acessibilidade da Fase 6 (A5 QA e Segurança)
+- **Feito:**
+  - **Varredura por script** (Playwright no export web, backend local): 31 telas em 360×640, 375×667, 390×844 e 430×932, com e sem `reducedMotion: 'reduce'`. Moderação (fila, detalhe, contas) em 375×667 e 1280×800. Extras: modo escuro em 375×667 e resumo com conquista nos dois modos.
+  - **Itens medidos:** rolagem horizontal, elementos fora da tela, interativos sob barra fixa/abas (rolando até o fim), textos cortados e sobrepostos, alvos < 44 pt, tamanhos de fonte por tela, contraste de todos os textos, títulos acessíveis e console.
+  - **Resultado geral:** 0 rolagem horizontal, 0 fora da tela, 0 coberto no fim da rolagem e 0 erro de console do app nas 236 medições.
+  - **Motion:** estados finais corretos e toque no CTA 18–50 ms após montar (16/16 ok). Com reduzir: nenhum deslocamento ou escala, nada pisca, pódio e contadores já no valor final. Durações percebidas no `QA.md` §14.3 (entrar 1,7 s; contagem 2,2 s; telas comuns 0,8–1,0 s; com reduzir 0,2–0,3 s).
+  - **Acessibilidade:** títulos revelados com `role=heading` + frase inteira; `CountUp` com o valor final no rótulo desde o 1º quadro; "Defendendo" 7,13:1; pódio 15,46:1.
+  - **Imagens de referência** do `visual.spec.cjs` regeneradas de propósito (seed limpo), estáveis em 2 execuções.
+  - **Checklist do aparelho** escrito no `QA.md` §14.7.
+- **Arquivos:** `docs/QA.md` (§14), `docs/ui-audit/t65-depois-{360x640,375x667,390x844,430x932}.png` (novos), `apps/mobile/e2e-web/__screenshots__/{mapa-dominado-ataque,zona-neutral,zona-owned,zona-attacked}.png` (regeneradas), `docs/PROGRESSO.md`, `docs/PLANO_DESENVOLVIMENTO.md`, `docs/REQUISITOS.md` (RNF-011, RNF-012). Nenhum código de produção nem de teste alterado; os scripts da varredura ficaram no scratchpad da sessão.
+- **Testes executados:**
+  - `npm run typecheck` → ok
+  - `./node_modules/.bin/eslint src` → 0
+  - `npx jest --coverage` → 398 ✅, 26 ignorados; domain 99,54/99,59/97,56/100 (limite ok)
+  - `testids.test` → ok; fluxos Maestro conferidos: seletores por `id` e textos ainda no código
+  - `demo-flow.cjs` → 14/14
+  - `auth-flow.cjs` → 17/17
+  - `visual.spec.cjs` → 4 falhas contra as antigas (esperado, D-54) → regeneradas → 4/4 duas vezes
+  - integração `NOMADE_IT=1` → 26/26
+- **Achados:** sem Alta.
+  - **Média (A4):** QA-18, faixa de território escondida exposta ao leitor de tela; QA-19, contraste da faixa rival Volt/Owls.
+  - **Baixa:** QA-20 alerta do mapa cortado (A8); QA-21 tamanhos de fonte (A7 + donos); QA-22 laranja 3,12:1 (marca, autores); QA-23 "2 não lidas" em 360 (A3); QA-24 "(você)" cortado no ranking em 360 (A8); QA-25 links do cadastro (A3).
+  - Pendências P-42 a P-45.
+- **Problemas encontrados:**
+  - O container reiniciou duas vezes (Docker e processos de fundo caíram). A varredura foi retomada em lotes por combinação, com o relatório gravado a cada tela.
+  - O Auth local limita a 2 e-mails/hora: a "Nova senha" usou 1, e reiniciei o container `supabase_auth_nomaderun` antes do `auth-flow` e da integração.
+  - No web, `hitSlop` não existe: chips (36–40 pt), Escolta (32 pt) e `Switch` (40×20) aparecem abaixo de 44 só no navegador.
+  - A faixa de território com time rival/"Defendendo" não aparece na rota da simulação. O contraste foi calculado pelos tokens.
+- **Pendências:** P-42 a P-45 (novas). O resto do aparelho continua em P-05/P-07/P-17/P-21.
+- **Para o próximo agente (T6.6, A1/A6):**
+  - Durações e momentos herói para o guia de apresentação estão no `QA.md` §14.3.
+  - Antes de apresentar, considerar QA-18/QA-19 (pequenos, no `run-screen.tsx`) e a decisão de QA-22.
+  - O banco foi resetado no fim (`npx supabase db reset` + 15 s).
 
 ### 2026-10-23 — T6.4 — Fluxo da corrida: layout mobile e motion (A4 GPS e Integrações)
 - **Feito (por tela):**

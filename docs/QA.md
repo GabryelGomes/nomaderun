@@ -2,6 +2,7 @@
 
 > Dono: **A5 (QA e segurança)**. Revisão de 2026-10-21 sobre o commit `6871486` (branch `claude/dreamy-ptolemy-xnm4r7`) mais as alterações em andamento do A3 na mesma árvore.
 > Achados viram tarefa para o dono indicado (o A5 não corrige código de produção). Estado de cada achado também na tabela de pendências do `PROGRESSO.md`.
+> **Fase 6 (T6.5, A5, 2026-10-21):** QA visual, motion e acessibilidade em 4 resoluções — **seção 14** (achados QA-18 a QA-25, checklist do aparelho).
 > **Atualização 2026-10-22 (A2):** QA-01, 02, 04, 05, 06, 07, 08, 09, 11 e 16 corrigidos no backend — status, teste que prova e riscos aceitos na **seção 12**.
 
 ## 1. Escopo
@@ -281,3 +282,147 @@ Resultados após as correções (banco recém-resetado): pgTAP **285/285** (13 a
 | QA-13 | ✅ corrigido | `mapa-correr`, `mapa-camada-<todos\|meu-time\|explorado>` (com rótulo e dica), `arena-modo-<id>`, `arena-correr`, `clube-encontro-presenca`, `perfil-escolta`/`perfil-alerta-parada`, `corrida-encerrar` (prop `testID` do `HoldButton`); fluxos Maestro 03 e 05 usam os ids | `testids.test` (BASELINEs vazias; ids dos fluxos existem) |
 | P-39 | ✅ | Cidade natal opcional no cadastro (`options.data.city`); painel lê `staff_profiles`; crews de outros: o app só lê a própria crew (permitido a membros), sem mudança; `401 ACCOUNT_INACTIVE` (PostgREST `PT401` e functions) encerra a sessão e mostra "Conta inativada" na tela Entrar; fila: `POINTS_LIMIT`/`TOO_MANY_OPEN_RUNS` = falha definitiva com mensagem clara, pontos locais mantidos; `endedAt` limitado a "agora" (a simulação 10× gerava fim no futuro e o servidor novo recusava, deixando o resumo provisório) | `errors.test`, `sync-engine.test` (3 novos), `session-link.test`, `integration.phase2` (token de conta inativada → `ACCOUNT_INACTIVE`, reativada volta), `demo-flow.cjs` (nome no painel, cidade gravada), `auth-flow.cjs` (conta inativada) |
 
+
+## 14. Fase 6 — QA visual, motion e acessibilidade (T6.5, A5, 2026-10-21)
+
+> Escopo: as telas mudadas na Fase 6 (D-54 a D-57) pelos agentes A7 (fundação), A3 (conta e perfil), A8 (jogo) e A4 (corrida). O A5 não corrigiu código de produção. Os achados abaixo têm dono e também estão na tabela de pendências do `PROGRESSO.md` (P-42 a P-44).
+
+### 14.1 Método
+
+- **Onde:** export web (`npx expo export -p web`) servido por `e2e-web/serve.cjs`, Chromium do Playwright (`/opt/pw-browsers`), backend local com o seed, `deviceScaleFactor 1`, `pt-BR`, geolocalização do Parque Flamboyant. Os blocos do mapa-base são bloqueados (proxy), como nas outras suítes.
+- **Matriz:** 360×640, 375×667, 390×844 e 430×932, cada uma com `reducedMotion: 'no-preference'` e `'reduce'` (8 combinações). São 31 telas por combinação: entrar, cadastro, recuperar senha, nova senha, termos, privacidade, onboarding (4 etapas), mapa, folha da zona (neutra, dominada, sob ataque), arena, clube, ranking (pódio), crew, notificações, perfil, editar, conta, contatos, zonas de privacidade, nova corrida, contagem, corrida, resumo oficial, resumo provisório (terminado sem internet) e atividades. A moderação (fila, detalhe e contas) foi medida em 375×667 e 1280×800, com e sem reduzir. Extras: modo escuro em 375×667 (24 telas) e resumo **com conquista** com e sem reduzir.
+- **Script por tela** (estilos e caixas calculados no DOM; scripts em `scratchpad`, fora do repositório):
+  - rolagem horizontal da página;
+  - textos e interativos fora da tela na horizontal (ignorando rolagens horizontais de propósito, como o `ChipRow`);
+  - interativos abaixo da tela sem rolagem possível;
+  - interativos cobertos por barra fixa ou abas: rola todos os contêineres até o fim e testa `elementFromPoint` na metade de baixo;
+  - textos cortados (reticências e `line-clamp`) e textos sobrepostos;
+  - alvos < 44 pt;
+  - quantidade de tamanhos de fonte;
+  - contraste de cada texto (cor efetiva com a opacidade dos ancestrais sobre o fundo opaco mais próximo; 4,5:1, ou 3:1 para texto grande);
+  - títulos (`role=heading` + `aria-label` com palavras `aria-hidden`);
+  - console (erros e avisos).
+- **Motion por tela:**
+  - `document.getAnimations()` na montagem e a cada 100 ms até as animações finitas terminarem. Isso dá a duração percebida da entrada, as animações infinitas, os quadros-chave com transformação e as animações de opacidade que se repetem (pisca/pulsa);
+  - transformações inline nos primeiros 500 ms;
+  - posição e tamanho de todos os `testID` em 4 quadros comparados com o quadro final (com reduzir);
+  - elementos com opacidade < 0,6 ou palavras do `RevealText` ainda deslocadas depois de tudo parar;
+  - interativos sem receber o toque na montagem que passam a receber depois.
+- **Toque durante a entrada:** clique por coordenada (sem esperar a estabilidade que o Playwright exige) em 8 CTAs entre 18 e 50 ms após a tela montar, com navegação dentro do app (aba ou botão). Isso evita clicar no HTML estático antes da hidratação.
+- **CountUp:** rótulo acessível no 1º quadro × no fim e o texto a cada 50 ms até estabilizar.
+
+### 14.2 Resultados por resolução
+
+| Combinação | Telas | Rolagem horizontal | Fora da tela | Sob barra fixa (no fim da rolagem) | Erros de console | Textos cortados | Telas com > 4 tamanhos de fonte | Entrada mais longa |
+|---|---|---|---|---|---|---|---|---|
+| 360×640 | 30 | 0 | 0 | 0 | 0 | 1 (alerta do mapa) | 21 | 2,2 s (contagem) |
+| 360×640 reduzir | 30 | 0 | 0 | 0 | 0 | 2 (alerta do mapa; nome no ranking) | 20 | 0,5 s |
+| 375×667 | 33 | 0 | 0 | 0 | 0 | 1 | 24 | 2,2 s |
+| 375×667 reduzir | 33 | 0 | 0 | 0 | 0 | 1 | 23 | 0,6 s |
+| 390×844 | 30 | 0 | 0 | 0 | 0 | 1 | 21 | 2,2 s |
+| 390×844 reduzir | 30 | 0 | 0 | 0 | 0 | 1 | 20 | 0,7 s |
+| 430×932 | 30 | 0 | 0 | 0 | 0 | 1 | 21 | 2,2 s |
+| 430×932 reduzir | 30 | 0 | 0 | 0 | 0 | 1 | 20 | 0,6 s |
+| 1280×800 (moderação), com e sem reduzir | 3 + 3 | 0 | 0 | 0 | 0 | 0 | 3 | 0,8 s |
+| 375×667 modo escuro | 24 | 0 | 0 | 0 | 0 | 1 | 19 | 2,2 s |
+
+- **Console:** só avisos do próprio Chromium sem GPU ("Automatic fallback to software WebGL", "GPU stall due to ReadPixels") no mapa e nos 3 erros de rede dos blocos do mapa-base. Nenhum erro ou aviso do app, inclusive "button dentro de button" (corrigido pelo A8).
+- **Sobreposições:** as encontradas (editar perfil em 360 e 430) são conteúdo passando por baixo da `BottomBar` opaca antes de rolar. No fim da rolagem nada fica coberto. Não é bug.
+- **Alvos < 44 pt no web:**
+  - chips de camada e dos filtros (36–40 pt), Escolta da corrida (32 pt) e `Switch` (40×20). No aparelho valem o `hitSlop` (4 a 12 pt; chips e Escolta chegam a 44) e o `Switch` nativo. No web o `hitSlop` não existe (limitação do RN Web).
+  - os links "Termos de Uso"/"Política de Privacidade" no meio da frase do cadastro (20 pt) já estão registrados pelo A3 (ver QA-25).
+- **Marca:** comparando `t65-depois-*.png` com `2026-10-antes-iphone-se.png`, a paleta "Pista", Inter/Inter Tight, as cores e formas dos times e os chips continuam os mesmos. Mudaram o layout e o motion, como a D-54 pede.
+
+### 14.3 Motion
+
+| Verificação | Resultado |
+|---|---|
+| Estado final das entradas | ✅ Em todas as 236 medições: nenhum elemento com opacidade < 0,6 depois de parar, nenhuma palavra de `RevealText` deslocada e nenhuma animação finita rodando após 2,5 s. A única exceção é a faixa de território da corrida, escondida de propósito (opacidade 0) quando não há zona; ela tem outro problema (QA-18). Resumo com conquista: anel de 6 traços completo, marca do time e "Zona conquistada" no fim, com e sem reduzir. |
+| Toque durante a entrada | ✅ 16/16 (8 CTAs × 2 modos): entrar → criar conta, mapa → Correr, arena → Correr agora, folha da zona → Correr aqui, perfil → Editar perfil, clube → Criar ou entrar, nova corrida → Simulação. Todos foram tocados entre 18 e 50 ms após montar e funcionaram, mesmo com o alvo ainda em opacidade 0 (perfil) ou 0,58 (reduzir). Nenhuma camada de entrada captura o toque. |
+| Reduzir movimento sem deslocar nem escalar | ✅ Nenhum quadro-chave de entrada com `transform`/`translate`/`scale` e nenhuma transformação inline durante a entrada. As mudanças de posição entre quadros vêm da fonte web chegando (larguras de texto) e de dados carregando, não de animação. Rotações só nos indicadores de carregamento do sistema (`ActivityIndicator`). Pódio: altura constante (205 pt) com reduzir; cresce de 125 a 199 pt sem reduzir. `CountUp` mostra o valor final direto. |
+| Nada pisca ou pulsa com reduzir | ✅ Nenhuma animação de opacidade repetida ou alternada; as únicas infinitas são os indicadores de carregamento. |
+| Contagem 3-2-1 | ✅ O número sobe da máscara (expo.out), a barra enche em 0,8 s por número e some aos 2,4 s. Cabe nas 4 larguras (223–267 pt). Com reduzir, só troca. |
+
+**Duração percebida das entradas** (do fim do carregamento até a última animação finita; com reduzir ficam entre 0,2 e 0,3 s, só fade):
+
+| Tela | Duração |
+|---|---|
+| Entrar (herói "NOMADE RUN") | 1,7–1,8 s |
+| Onboarding boas-vindas | 1,65 s; etapas 1,0 s |
+| Contagem 3-2-1 | 2,2 s (por desenho, 3 × 0,8 s) |
+| Pódio do ranking | ~1,5–1,9 s (pedestais 1,5 s) |
+| Mapa | 0,8–1,0 s |
+| Folha da zona, arena, clube, perfil, conta, contatos, nova corrida, termos | 0,8–1,0 s |
+| Editar perfil, crew | ~1,0 s |
+| Notificações | 0,5–0,6 s |
+| Resumo | 0,5–1,0 s (anel termina em 720 ms) |
+| Corrida | 0,2 s (controles sem entrada, como pede o guia) |
+| `CountUp` | XP do perfil 0,77 s; dano do raid 1,07 s; km das atividades 0,58 s |
+
+### 14.4 Acessibilidade
+
+| Verificação | Resultado |
+|---|---|
+| Títulos revelados (`RevealText`/`HeroWordmark`) como frase única | ✅ Em todas as telas o título tem `role=heading` + `aria-label` com a frase inteira ("Crie uma senha nova", "Nova corrida", "Corrida concluída", "Escolha seu time", "NOMADE RUN"…) e as palavras animadas ficam `aria-hidden`. Nenhum título dividido sem rótulo. A celebração é um bloco acessível só ("Zona conquistada, mais 33 RP em Setor Pedro Ludovico 36"). |
+| `CountUp` com o valor final | ✅ O rótulo já é o final no 1º quadro, enquanto o texto ainda mostra 0: "45 de 100 XP para o nível 2.", "2.312 quilômetros de dano", "0,7 quilômetros no período". O pódio lê "Pódio: 1º Neon Striders, 150 RP; 2º …". |
+| Faixa amarela "Defendendo" | ✅ tinta `ink` sobre `warning`: **7,13:1** |
+| Pódio | ✅ 1º lugar (branco sobre tinta) 15,46:1; demais 15,46:1; nomes `ink2` sobre fundo 5,94:1 |
+| Alertas | ✅ alerta do mapa (tinta sobre branco), erro (`danger` 4,83:1). ⚠️ **Card "Sob ataque" da folha da zona**: branco sobre laranja 3,12:1 (QA-22). ⚠️ **Faixa de território rival na corrida**: branco sobre Volt 3,42:1 e sobre Owls 4,19:1 (QA-19) |
+| Botões laranja e aba ativa | ⚠️ 3,12:1 (2,84:1 no escuro), abaixo de 4,5:1 para rótulo de 16–18 pt negrito. Já existia antes da Fase 6 (marca, D-15): QA-22 |
+
+### 14.5 Achados
+
+| # | Severidade | Tela | Achado | Como reproduzir | Arquivo provável | Resolução sugerida | Dono |
+|---|---|---|---|---|---|---|---|
+| QA-18 | Média | Corrida | A faixa de território escondida (opacidade 0, fora da tela) continua na árvore de acessibilidade, sem `aria-hidden`, e com `accessibilityLiveRegion="polite"`. VoiceOver/TalkBack pode ler "Corra aqui para conquistar" sem faixa nenhuma, e a região viva anuncia mudanças invisíveis | Nova corrida → Simulação → Começar. No DOM, `[data-testid=corrida-faixa-territorio]` tem opacidade 0, sem `aria-hidden` e com `aria-live=polite` (nas 8 combinações). No aparelho: VoiceOver ligado, deslizar pelos elementos | `src/features/screens/run-screen.tsx` (`Animated.View` da faixa) | Com `bannerOn` falso: `accessibilityElementsHidden` + `importantForAccessibility="no-hide-descendants"` (e `aria-hidden` no web); a região viva só com a faixa visível | A4 |
+| QA-19 | Média | Corrida | Contraste da faixa "Território dos {time}": texto branco (16 pt negrito + legenda 12 pt) sobre Volt `#009E73` = 3,42:1 e sobre Owls `#C0559A` = 4,19:1 (precisa de 4,5:1). Striders 5,19:1 e Coyotes 7,60:1 passam | Correr numa zona dos Volt ou dos Owls (GPS real ou simulação que passe por uma); calculado dos tokens | `run-screen.tsx` (`bannerInk`) e `theme/tokens.ts` (`onColor` dos times) | Sem mudar a cor do time: faixa em `surface` com badge/borda do time e texto `ink`. Outra opção: `onColor` escuro para Volt (`ink` = 4,52:1). Owls não passa nem com `ink` (3,69:1), então precisa da faixa em superfície | A4 (com A7 para o token) |
+| QA-20 | Baixa | Mapa | O alerta compacto corta a 2ª linha nas 4 larguras (até em 430): "Sob ataque dos Urban Coyotes · defend…". A parte "pontos em dobro", que é o motivo para defender, some | Entrar como `corredor_demo` → mapa | `src/features/screens/map-screen.tsx` (alerta, `numberOfLines`) | Texto mais curto ("Sob ataque · defesa vale 2×") ou 2 linhas no subtítulo | A8 |
+| QA-21 | Baixa | Várias | Mais de 4 tamanhos de fonte em 21 de 28 telas (checklist §4 do `DESIGN_MOBILE_MOTION.md`). Arena e nova corrida têm 9; clube, perfil, atividades e corrida, 8; mapa, 7. Exemplo na nova corrida: 12, 14, 16, 18, 18,48, 20, 22, 24, 32 | Script: estilos calculados dos textos visíveis | `src/theme/tokens.ts`/`components/text.tsx` e as telas | A7 define a escala por tipo de tela (ex.: headline, title, body, caption + número), e os donos trocam as variantes que sobram. Não bloqueia a apresentação | A7 (A4, A8, A3) |
+| QA-22 | Baixa (marca) | Botões, aba ativa, card "Sob ataque" | Texto branco sobre laranja `#FF5A1F` = 3,12:1 (2,84:1 no escuro). O rótulo de 16–18 pt negrito não conta como "texto grande", então precisa de 4,5:1. Inclui o card de ataque da folha da zona (texto de 12–16 pt), o contador do sino e "Prepare-se". Já existia antes da Fase 6 (visual aprovado, D-15) | Qualquer CTA laranja | `theme/tokens.ts`, `components/button.tsx`, `zone-sheet.tsx` | Decisão dos autores. Opções sem mudar a cor: rótulo ≥ 19 pt negrito (vale 3:1), texto `ink` sobre laranja (4,96:1) ou `orangeText` `#C93F00` como fundo do card de ataque (5,01:1) | Autores + A7 |
+| QA-23 | Baixa | Notificações (360) | "2 não lidas" quebra em 2 linhas, apertado pelo botão "Marcar todas como lidas" | 360×640 → Notificações com 2 não lidas | `src/features/notifications/notifications-screen.tsx` | `flexShrink`/`numberOfLines={1}` no contador ou botão mais curto ("Marcar lidas") | A3 |
+| QA-24 | Baixa | Ranking (360) | O nome "corredor_demo (você)" é cortado com reticências na 1ª linha do ranking | 360×640 → Clube → Corredores | `club-screen.tsx` (`ranking-linha-*`) | Deixar o "(você)" numa 2ª linha ou trocar pelo destaque visual já existente | A8 |
+| QA-25 | Baixa (já conhecido) | Cadastro | Links "Termos de Uso"/"Política de Privacidade" dentro da frase têm 20 pt de altura (o aceite ao lado tem 44 pt) | Cadastro | `sign-up-screen.tsx` | Os links também estão nas telas de termos/privacidade via aceite; aumentar a área (`hitSlop` vertical) | A3 |
+
+Sem achados de severidade Alta. Informativo (não é bug): no web a fonte Inter chega depois do 1º quadro e muda a largura dos textos; no aparelho a fonte vem embutida.
+
+### 14.6 Regressão (2026-10-21)
+
+| Suíte | Resultado |
+|---|---|
+| `npm run typecheck` | ok |
+| `./node_modules/.bin/eslint src` | 0 problemas |
+| `npx jest --coverage` | **398 passaram**, 26 ignorados (46 suítes + 4). Domain 99,54% instruções, 99,59% ramos, 97,56% funções, 100% linhas (limite de 90% ok) |
+| `src/__tests__/testids.test.ts` (inclui os ids dos fluxos Maestro) | ok. Fluxos `01`–`05` conferidos: os seletores são por `id`; os textos usados ("E-mail ou senha incorretos.", ".*zonas em .*", "Conquista garantida ao terminar") continuam no código e não são títulos divididos em palavras |
+| `e2e-web/demo-flow.cjs` | **14/14** (banco resetado antes: "Zona conquistada, mais 51 RP em Estádio Serra Dourada", moderador aprova "parcial, 419 RP") |
+| `e2e-web/auth-flow.cjs` | **17/17** |
+| `e2e-web/visual.spec.cjs` | Contra as referências antigas: 4 falhas, esperadas pela D-54. **Regeneradas de propósito** com o seed limpo (`--update-snapshots`) e confirmadas em 2 execuções: **4/4** (+1 `fixme`) |
+| Integração (`NOMADE_IT=1 … npx jest integration --forceExit`) | **26/26** em 4 suítes |
+| Maestro em aparelho | não executado (sem aparelho; P-07) |
+
+Capturas "depois": `docs/ui-audit/t65-depois-{360x640,375x667,390x844,430x932}.png` (folha de contato por resolução, sem reduzir movimento; a de 375 inclui a moderação).
+
+### 14.7 Checklist do aparelho (só o celular valida)
+
+Faça em um iPhone (de preferência SE ou 13 mini) e em um Android médio, com o backend da apresentação. Use a conta `corredor.demo@nomaderun.app`. Marque ✅/❌ e anote o aparelho.
+
+1. **Folha da zona nos detents 0,55/0,9 (iOS):** no mapa, toque numa zona. Na altura menor, o nome, o dono, o card de ataque e o botão "Defender/Correr aqui" aparecem sem rolar. Arraste para cima: a influência e os maiores corredores rolam. No Android a folha abre e o botão aparece.
+2. **Teclado:**
+   - Entrar: toque em E-mail, digite e use "próximo" até Senha. O botão "Entrar" continua visível com o teclado aberto.
+   - Cadastro: os campos encadeados e o último campo visível acima do teclado.
+   - Contatos de segurança → Adicionar: o campo aparece acima do teclado. No Android (edge-to-edge) confira se nada fica atrás do teclado.
+3. **Barra fixa acima das abas nativas:** Perfil → Editar perfil. "Salvar alterações" fica acima da barra de abas (iOS 26 com abas flutuantes também). Role até o fim: a última seção fica acima do botão. Faça o mesmo em Contatos e Zonas de privacidade ("Adicionar…").
+4. **60 fps** (iOS: Perf Monitor do menu de desenvolvimento; Android: "Profile GPU rendering"):
+   - abra o mapa e arraste/aproxime com o alerta aberto;
+   - Clube → quadro Times (pódio crescendo);
+   - Perfil e Atividades (cascatas e contadores);
+   - corrida com **GPS real**, que troca os algarismos do tempo (na Simulação a troca é sem animação, D-56).
+   Não pode haver travadas visíveis nem quadros abaixo de ~55 fps.
+5. **Vibração:** na contagem 3-2-1, uma vibração leve por número. No resumo com zona conquistada, uma única vibração (antes vinha em dobro). Segurar "encerrar" dá retorno ao confirmar.
+6. **VoiceOver (iOS) / TalkBack (Android):**
+   - títulos ("Nova corrida", "Corrida concluída", "NOMADE RUN") lidos uma vez e como cabeçalho;
+   - XP e dano do raid lidos com o valor final;
+   - pódio lido numa frase;
+   - na corrida, o tempo e as métricas pelo rótulo, e **nada lido sobre território quando a faixa não aparece** (hoje deve falhar: QA-18).
+7. **Reduzir movimento do sistema** (iOS: Ajustes → Acessibilidade → Movimento → Reduzir movimento; Android: Acessibilidade → Remover animações): abra entrar, mapa, clube, resumo e troque de aba. Só aparecem fades: nada sobe, escala ou desliza; o pódio já aparece com a altura final; os números já aparecem com o valor final.
+8. **Tela bloqueada:** comece uma corrida com GPS real, bloqueie o aparelho por 2 min e desbloqueie. A corrida continua (tempo e distância avançaram) e a faixa de território aparece em até 3 s ao entrar numa zona (ERS §6.2). Com development build e `NOMADE_BACKGROUND_LOCATION=1`, confira também a notificação do serviço (P-17/P-21).
+9. **Área segura:** em aparelho com notch/ilha dinâmica, nada encosta no topo (pílula do mapa, faixa da corrida, título dos modais Termos/Privacidade no Android) nem no indicador de início (controles da corrida, "Concluir" do resumo).
