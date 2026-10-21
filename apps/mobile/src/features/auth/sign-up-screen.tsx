@@ -13,6 +13,7 @@ import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { CheckRow, ErrorNotice, FormScaffold, InfoNotice, StrengthMeter, TextField, TextLink } from './form-ui';
+import { NeonBackdrop } from './neon-backdrop';
 import { hasErrors, maskBirthdate, MIN_AGE, parseBirthdate, passwordStrength, validateSignUp, type SignUpErrors } from './validation';
 
 /**
@@ -77,7 +78,7 @@ export function SignUpScreen() {
 
   if (confirmSent) {
     return (
-      <FormScaffold testID="tela-cadastro-confirmar">
+      <FormScaffold testID="tela-cadastro-confirmar" background={<NeonBackdrop />}>
         <RevealText testID="cadastro-confirmar-titulo">Confira seu e-mail</RevealText>
         <FadeUp delay={200}>
           <InfoNotice
@@ -92,7 +93,7 @@ export function SignUpScreen() {
   }
 
   return (
-    <FormScaffold testID="tela-cadastro">
+    <FormScaffold testID="tela-cadastro" background={<NeonBackdrop />}>
       <View style={{ gap: space[4] }}>
         <RevealText testID="cadastro-titulo">Criar conta</RevealText>
         <FadeUp delay={150}>

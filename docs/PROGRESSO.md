@@ -81,6 +81,10 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-21 — D-58 — Neon nas boas-vindas e no cadastro (A1 Arquiteto)
+- **Feito:** boas-vindas do onboarding e cadastro (e a confirmação de e-mail) com o `NeonBackdrop` do login; selos acesos em componente compartilhado (`features/auth/neon-badges.tsx`); "RUN" laranja com brilho nas boas-vindas. As outras etapas do onboarding ficam com a luz ambiente. Removido o brilho extra em volta do "Entrar" (o `Button` já brilha desde a D-59).
+- **Testes:** typecheck ok; eslint ok; `npm test` → 406 passaram; Playwright (390×844, sistema em modo claro) do cadastro e das boas-vindas com conta nova, sem erros de console. Captura `docs/ui-audit/d58-boasvindas-cadastro-neon-390.png`.
+
 ### 2026-10-21 — D-59 — App inteiro no neon da apresentação (A1 Arquiteto)
 - **Feito:** tema escuro "Pit Lane Neon" em todo o app, sempre escuro (inclusive barra de abas, teclado e mapa nativos); botões e ações com brilho laranja; chips, cards de missão/sinal e filtros do mapa acesos em laranja quando selecionados; cards com borda fina; progresso do onboarding, sequência semanal e barra do raid em laranja; luz ambiente (`components/neon-ambient.tsx`) atrás das abas e das telas com `ScreenScroll`.
 - **Arquivos:** `theme/{tokens,use-theme,neon}.ts`, `components/{button,surface,chip-row,screen,tab-stack,neon-ambient,territory-map,territory-map.web}.tsx`, `app/_layout.tsx`, `app.json`, `features/screens/{run,map-layer-chips,onboarding,activities,arena,game-motion}*.tsx`.

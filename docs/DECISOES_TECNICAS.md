@@ -350,7 +350,7 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
 - **Contexto:** os autores acharam a tela de login "simples demais" e pediram neons e um visual mais atual. A apresentação já tem um design system neon (`docs/apresentacao/design-tokens.json`: base `#070708`, laranja `#FF6A13`, brilho em camadas da mesma cor).
 - **Decisão:** as telas de entrada usam esse visual, sempre escuras (`ForceScheme` em `theme/use-theme.ts`), com `NeonBackdrop` (manchas de luz que respiram, rota neon desenhada em 2,8 s e um "corredor" de luz percorrendo a rota), "RUN" em laranja neon com brilho, selos dos times com brilho neon e botão principal com brilho. Tokens em `theme/neon.ts`. O resto do app mantém a paleta "Pista" (D-15/D-54). O foco dos campos de texto ganhou borda e brilho na cor de ação em todos os formulários.
 - **Regras:** decorativo fora do leitor de tela; "Reduzir movimento" deixa tudo estático (rota já desenhada, sem corredor e sem respiração).
-- **Consequências:** login visualmente alinhado aos slides; se os autores gostarem, o mesmo tratamento pode ir para boas-vindas/onboarding e o cadastro.
+- **Consequências:** login visualmente alinhado aos slides. Estendido a pedido dos autores (2026-10-21) às boas-vindas do onboarding e ao cadastro.
 
 ### D-59 — App inteiro no visual neon ("Pit Lane Neon"), sempre escuro
 2026-10-21 · A1 Arquiteto (pedido dos autores após aprovarem o login neon da D-58)

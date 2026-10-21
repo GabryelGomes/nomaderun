@@ -15,6 +15,8 @@ import { Text } from '@/components/text';
 import { FACTION_IDS, type FactionId } from '@/domain/types';
 import { ErrorNotice } from '@/features/auth/form-ui';
 import { HeroWordmark } from '@/features/auth/hero-wordmark';
+import { NeonBackdrop } from '@/features/auth/neon-backdrop';
+import { NeonBadges } from '@/features/auth/neon-badges';
 import { chooseFaction, saveProfile } from '@/features/auth/session-controller';
 import { validateUsername } from '@/features/auth/validation';
 import { useSession } from '@/store/session-store';
@@ -150,6 +152,8 @@ export function OnboardingScreen() {
   return (
     <ScreenScroll
       testID="tela-onboarding"
+      // Boas-vindas com o fundo neon do login (D-58); as outras etapas ficam com a luz ambiente.
+      background={step === 'boas-vindas' ? <NeonBackdrop /> : undefined}
       footer={footer}
       gap={space[6]}
       contentContainerStyle={{ flexGrow: 1, paddingTop: insets.top + space[6], paddingHorizontal: space[6] }}>
@@ -158,12 +162,8 @@ export function OnboardingScreen() {
       {step === 'boas-vindas' && (
         <StepPanel step={step} fill>
           <View style={{ gap: space[4] }}>
-            <Stagger style={{ flexDirection: 'row', gap: space[2] }}>
-              {FACTION_IDS.map((f) => (
-                <TeamBadge key={f} faction={f} size={44} />
-              ))}
-            </Stagger>
-            <HeroWordmark testID="onboarding-titulo" delay={120} />
+            <NeonBadges />
+            <HeroWordmark testID="onboarding-titulo" delay={120} neon />
             <FadeUp delay={500} style={{ gap: space[4] }}>
               <Text variant="lead">Corra a sua cidade. Cada rua conta.</Text>
               <Text muted>
