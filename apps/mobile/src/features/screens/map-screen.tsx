@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, IconButton } from '@/components/button';
 import { FadeUp } from '@/components/motion';
+import { tabBarClearance } from '@/components/screen';
 import { TeamBadge } from '@/components/team-badge';
 import { Icon } from '@/components/icon';
 import { Text } from '@/components/text';
@@ -192,7 +193,8 @@ export function MapScreen() {
         <IconButton testID="mapa-camada" icon="layers" label="Trocar camada do mapa" onPress={() => setLayer((l) => (l === 'todos' ? 'meu-time' : l === 'meu-time' ? 'explorado' : 'todos'))} />
       </View>
 
-      <View style={{ position: 'absolute', left: space[4], right: space[4], bottom: space[4], gap: space[2] }}>
+      {/* Acima da barra de abas flutuante do iOS (o "Correr" ficava atrás dela no iPhone 15). */}
+      <View style={{ position: 'absolute', left: space[4], right: space[4], bottom: tabBarClearance(insets.bottom), gap: space[2] }}>
         {alert && !alertCollapsed ? (
           // Alerta compacto (uma linha de título + uma de apoio) que entra por baixo; recolhível ao lado do "Correr".
           <FadeUp key={alert.id} distance={24} duration={600} curve="reveal" delay={200}>

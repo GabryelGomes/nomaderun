@@ -147,10 +147,8 @@ describe('parallaxValues — cabeçalho', () => {
     expect(parallaxValues(400, 240, 0.5, false).opacity).toBe(0);
   });
 
-  it('puxando para baixo, cresce preso ao topo', () => {
-    const v = parallaxValues(-60, 240, 0.5, false);
-    expect(v.scale).toBeCloseTo(1.25);
-    expect(v.translateY).toBe(-30);
+  it('rolagem negativa (título grande do iOS ou puxão) não amplia nem desloca o cabeçalho', () => {
+    for (const y of [-160, -60, -1]) expect(parallaxValues(y, 240, 0.5, false)).toEqual({ translateY: 0, scale: 1, opacity: 1 });
   });
 
   it('"Reduzir movimento": parado em qualquer rolagem, só a opacidade muda', () => {

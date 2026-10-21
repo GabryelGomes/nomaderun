@@ -26,6 +26,20 @@ export const layout = {
   ctaHeight: 60,
 } as const;
 
+/**
+ * Altura da barra de abas nativa do iOS (flutuante, "liquid glass"), que passa POR CIMA do conteúdo
+ * das telas de aba. Medida no iPhone 15: ~61 pt de barra acima da área segura inferior.
+ */
+export const IOS_TAB_BAR_HEIGHT = 64;
+
+/**
+ * Distância do fundo da tela para um elemento flutuante (ex.: "Correr" do mapa) numa tela de aba não
+ * ficar atrás da barra de abas. No iOS soma a barra flutuante; no Android a barra fica fora do conteúdo.
+ */
+export function tabBarClearance(insetBottom: number, os: string | undefined = process.env.EXPO_OS): number {
+  return os === 'ios' ? insetBottom + IOS_TAB_BAR_HEIGHT + space[2] : space[4];
+}
+
 export type Edge = 'top' | 'bottom';
 
 /**
@@ -46,7 +60,7 @@ export type BottomBarProps = {
   onHeightChange?: (height: number) => void;
   /** Fundo da cor da tela atrás do botão (padrão: sim), para o texto rolando não aparecer ao redor do CTA. */
   backdrop?: boolean;
-  /** Soma a área segura inferior (padrão: sim). Desligue dentro de abas, onde a barra de abas já cuida. */
+  /** Soma a área segura inferior (padrão: sim). Desligue dentro de abas: aí o CTA fica acima da barra de abas (ver `tabBarClearance`). */
   safeBottom?: boolean;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -72,7 +86,9 @@ export function BottomBar({ children, onHeightChange, backdrop = true, safeBotto
           bottom: 0,
           paddingHorizontal: layout.gutter,
           paddingTop: space[2],
-          paddingBottom: (safeBottom ? insets.bottom : 0) + layout.footerOffset,
+          // Dentro de abas (safeBottom=false): no iOS a barra de abas flutua por cima do conteúdo, então o
+          // CTA sobe acima dela; no Android continua a 16 pt (a barra fica fora do conteúdo).
+          paddingBottom: safeBottom ? insets.bottom + layout.footerOffset : tabBarClearance(insets.bottom),
           gap: space[2],
           backgroundColor: backdrop ? colors.background : 'transparent',
         },
