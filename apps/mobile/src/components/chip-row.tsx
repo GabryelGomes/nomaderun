@@ -9,6 +9,9 @@ import { PressableScale } from './motion/pressable';
 import { layout } from './screen';
 import { Text } from './text';
 
+/** Espaço em volta da linha de chips para o brilho do selecionado não ser recortado. */
+export const GLOW_ROOM = 14;
+
 export type ChipSize = 'sm' | 'md';
 
 /** Alturas atuais dos chips do app: 36 (filtros do Clube, texto `caption`) e 40 (período, ritmo; texto `bodyBold`). */
@@ -103,6 +106,9 @@ export function ChipRow<T extends string>({
 }: ChipRowProps<T>) {
   const items = (options ?? []).map((o) => (Array.isArray(o) ? { key: o[0] as T, label: o[1] as string, accessibilityLabel: undefined } : (o as { key: T; label: string; accessibilityLabel?: string })));
   const g = layout.gutter;
+  // Folga para o brilho do chip selecionado: no iOS a ScrollView recorta o que passa das bordas e o brilho
+  // (14 px) aparecia cortado em linhas retas (revisão nº 1, M-1). A margem negativa mantém o layout.
+  const room = GLOW_ROOM;
   return (
     <ScrollView
       testID={testID}
@@ -111,8 +117,8 @@ export function ChipRow<T extends string>({
       keyboardShouldPersistTaps="handled"
       accessibilityRole={role === 'radio' ? 'radiogroup' : undefined}
       accessibilityLabel={accessibilityLabel}
-      style={[bleed ? { marginHorizontal: -g, flexGrow: 0 } : { flexGrow: 0 }, style]}
-      contentContainerStyle={{ gap: space[2], paddingHorizontal: bleed ? g : 0, paddingVertical: 4, alignItems: 'center' }}>
+      style={[{ flexGrow: 0, marginVertical: -room, marginHorizontal: bleed ? -g : -room }, style]}
+      contentContainerStyle={{ gap: space[2], paddingHorizontal: bleed ? g : room, paddingVertical: room, alignItems: 'center' }}>
       {items.map((o) => (
         <Chip
           key={o.key}

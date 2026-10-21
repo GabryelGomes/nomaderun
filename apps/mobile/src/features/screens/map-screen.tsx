@@ -17,6 +17,7 @@ import type { LatLng } from '@/domain/types';
 import { DEMO_CENTER, DEMO_CITY, zoneName } from '@/demo/demo-data';
 import { mapZonesInBounds } from '@/features/map-data';
 import { bboxAround } from '@/services/api/zones-repo';
+import { currentPosition } from '@/services/location/current';
 import { useGame } from '@/store/game-store';
 import { selectUnreadCount, useNotifications } from '@/store/notifications-store';
 import { useSession } from '@/store/session-store';
@@ -88,6 +89,20 @@ export function MapScreen() {
   const [alertCollapsed, setAlertCollapsed] = useState(false);
   const [bounds, setBounds] = useState<MapBounds>(INITIAL_BOUNDS);
   const requestBbox = useLiveZones();
+  // Posição real do corredor (revisão nº 1, A-2): centraliza o mapa e carrega as zonas em volta.
+  // Sem permissão/GPS, o mapa fica na região de demonstração (Goiânia), rotulada como tal.
+  const [here, setHere] = useState<LatLng | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void currentPosition().then((p) => {
+      if (!alive || !p) return;
+      setHere(p);
+      void useZones.getState().loadBbox(bboxAround(p, MAP_SPAN * 0.8));
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
   const onRegionChange = useCallback(
     (b: MapBounds) => {
       setBounds(b);
@@ -128,8 +143,8 @@ export function MapScreen() {
         explored={explored}
         center={MAP_CENTER}
         span={MAP_SPAN}
-        user={DEMO_CENTER}
-        focus={focus}
+        user={here}
+        focus={focus ?? here ?? undefined}
         onRegionChange={onRegionChange}
         onZonePress={(id) => router.push({ pathname: '/zona/[id]', params: { id } })}
       />
@@ -160,7 +175,9 @@ export function MapScreen() {
                   ? `Sem internet: mostrando o último mapa salvo`
                   : zonesError && !hasZones
                     ? 'Não foi possível carregar as zonas'
-                    : `${mine.length} zonas em ${city}`}
+                    : here
+                      ? `${mine.length} zonas em ${city}`
+                      : `${mine.length} zonas em ${DEMO_CITY} · demonstração`}
             </Text>
           </View>
           {statusError ? (

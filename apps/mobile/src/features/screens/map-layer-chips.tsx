@@ -5,6 +5,7 @@ import { Text } from '@/components/text';
 import { cssEasings, durations } from '@/theme/motion';
 import { floating, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
+import { GLOW_ROOM } from '@/components/chip-row';
 
 export type Layer = 'todos' | 'meu-time' | 'explorado';
 
@@ -27,8 +28,9 @@ export function LayerChips({ value, onChange }: { value: Layer; onChange: (l: La
       horizontal
       showsHorizontalScrollIndicator={false}
       accessibilityLabel="Camadas do mapa"
-      style={{ flexGrow: 0 }}
-      contentContainerStyle={{ gap: space[2], paddingHorizontal: space[4], paddingVertical: 4 }}>
+      // Folga para o brilho do filtro ativo (no iOS a ScrollView recorta o que passa das bordas).
+      style={{ flexGrow: 0, marginVertical: -GLOW_ROOM }}
+      contentContainerStyle={{ gap: space[2], paddingHorizontal: space[4], paddingVertical: GLOW_ROOM }}>
       {LAYERS.map(([key, label]) => {
         const on = value === key;
         return (

@@ -119,6 +119,8 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon key do supabase status>
 
 **No celular, troque `127.0.0.1` pelo IP do computador na rede** (o celular não enxerga o `127.0.0.1` do computador). Para descobrir o IP: `ipconfig getifaddr en0` (macOS), `hostname -I` (Linux) ou `ipconfig` (Windows, campo "Endereço IPv4"). Para usar só no navegador do próprio computador, `127.0.0.1` funciona.
 
+**Publicar para usar de qualquer rede (EAS Update + Supabase Cloud):** copie `apps/mobile/.env.production.example` para `apps/mobile/.env.production`, preencha a chave anon/publishable da nuvem e rode `npm run publicar -- "mensagem"` na raiz. O script recusa publicar com URL local ou chave secreta.
+
 **Atalho (recomendado para o celular):** na raiz, `npm run celular` faz tudo de uma vez: confere o Docker, sobe o Supabase e as Edge Functions, descobre o IP que o celular alcança (no WSL, pergunta ao Windows), grava o `apps/mobile/.env`, testa o backend por esse IP e abre o Expo com o QR code certo. Se o IP detectado estiver errado: `IP=192.168.0.10 npm run celular`. **iPhone:** o Expo Go só abre o projeto com a mesma conta Expo logada no celular e no computador (`npx expo login -u <usuário>`). No Android dá para rodar sem conta: `OFFLINE=1 npm run celular`.
 
 **No WSL (Windows):** o `hostname -I` dentro do WSL devolve um IP interno (172.x) que o celular não alcança, e o Expo Go fica carregando sem parar. Use o IP do **Windows** na rede Wi-Fi (`ipconfig` no PowerShell, "Endereço IPv4") no `.env` e no Expo:
@@ -144,7 +146,7 @@ Sem as duas variáveis do `.env`, o app abre a tela "Backend não configurado".
 
 ### Contas de demonstração
 
-Criadas pelo `seed.sql` e marcadas como demonstração (`is_demo = true`). Servem só para o banco local ou para a apresentação; troque as senhas se usar o seed num projeto na nuvem.
+Criadas pelo `seed.sql` e marcadas como demonstração (`is_demo = true`). **Estas senhas valem só para o banco local.** O repositório é público: num projeto na nuvem, troque as senhas de `admin.demo` e `moderador.demo` logo depois do seed (como fazer: `docs/COMO_APRESENTAR.md` §1).
 
 | Papel | E-mail | Senha | Time |
 |---|---|---|---|

@@ -79,6 +79,12 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-21 — Correções da revisão nº 1 (A1 Arquiteto)
+- **Feito:** A-2 mapa centraliza na posição real (`services/location/current.ts`, testado) e, sem localização, mostra Goiânia rotulada como demonstração; A-3 `npm run publicar` (`scripts/publicar.sh`) publica no EAS Update sempre com `apps/mobile/.env.production` (recusa URL local e chave secreta), `.env.production.example`; M-1 folga de 14 pt para o brilho dos chips (`GLOW_ROOM`) nas linhas roláveis e nos filtros do mapa; docs: aviso das senhas demo só locais + como trocar na nuvem (README, COMO_APRESENTAR §1 com a opção C), RNF-010 como desvio (D-59), RNF-011 atualizado.
+- **A-1 (Alta) depende dos autores:** trocar as senhas de `admin.demo` e `moderador.demo` no Supabase Cloud (SQL em `COMO_APRESENTAR.md` §1).
+- **Testes:** typecheck ok; eslint ok; `npm test` → 410 passaram (4 novos de `currentPosition`); guardas do `publicar.sh` testadas (sem arquivo, URL local, chave secreta).
+- **Pendente:** M-2/QA-22 (texto dos botões laranja) é decisão dos autores; QA-20/23/24/25 e itens Baixa da `REVISAO.md`.
+
 ### 2026-10-21 — Revisão nº 1 do projeto (revisor-nomaderun)
 - **Feito:** revisão completa, sem alterar código de produção. Resultado em **`docs/REVISAO.md`**: 3 achados Alta, 4 Média, 6 Baixa, melhorias e próximos passos.
 - **Destaques:** (A-1) contas `admin.demo`/`moderador.demo` com senha pública no README e seed enviado ao Cloud, com o repositório público; (A-2) o mapa sempre abre em Goiânia, com o ponto do usuário fixo (`DEMO_CENTER`); (A-3) sem `eas.json` no repositório e `.env` local em `127.0.0.1`, então o próximo `eas update` pode quebrar o app publicado; (M-1) brilho dos chips cortado em retângulo no iOS (`ScrollView` horizontal com 4 pt de folga); (M-2) branco sobre o laranja neon = 2,87:1 (QA-22 piorou).
