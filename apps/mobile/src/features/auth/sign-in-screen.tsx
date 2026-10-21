@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { View } from 'react-native';
+import { useRef, useState } from 'react';
+import { type TextInput, View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { FadeUp, Stagger } from '@/components/motion';
 import { TeamBadge } from '@/components/team-badge';
 import { Text } from '@/components/text';
 import { FACTION_IDS } from '@/domain/types';
@@ -12,6 +13,7 @@ import { useSession } from '@/store/session-store';
 import { space } from '@/theme/tokens';
 
 import { ErrorNotice, FormScaffold, TextField, TextLink } from './form-ui';
+import { HeroWordmark } from './hero-wordmark';
 import { providerLabel, signInWithProvider } from './oauth';
 import { validateEmail } from './validation';
 
@@ -23,6 +25,7 @@ export function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<{ email?: string; password?: string }>({});
   const notice = useSession((s) => s.signedOutNotice);
+  const passwordRef = useRef<TextInput>(null);
 
   const submit = async () => {
     const emailErr = validateEmail(email);
@@ -47,46 +50,51 @@ export function SignInScreen() {
   return (
     <FormScaffold testID="tela-entrar">
       <View style={{ gap: space[4] }}>
-        <View style={{ flexDirection: 'row', gap: 6 }}>
+        <Stagger style={{ flexDirection: 'row', gap: space[2] }}>
           {FACTION_IDS.map((f) => (
             <TeamBadge key={f} faction={f} size={44} />
           ))}
-        </View>
-        <Text variant="hero" accessibilityRole="header" style={{ fontSize: 76, lineHeight: 76 }}>
-          {'NOMADE\nRUN'}
-        </Text>
-        <Text variant="lead">Entre para continuar correndo a sua cidade.</Text>
+        </Stagger>
+        <HeroWordmark testID="entrar-titulo" delay={120} />
+        <FadeUp delay={500}>
+          <Text variant="lead">Entre para continuar correndo a sua cidade.</Text>
+        </FadeUp>
       </View>
 
       <View style={{ gap: space[4] }}>
         <ErrorNotice message={error} testID="entrar-erro" />
         {error ? null : <ErrorNotice message={notice} testID="entrar-aviso-sessao" />}
-        <TextField
-          testID="entrar-email"
-          label="E-mail"
-          value={email}
-          onChangeText={setEmail}
-          placeholder="voce@email.com"
-          autoCapitalize="none"
-          autoComplete="email"
-          keyboardType="email-address"
-          textContentType="emailAddress"
-          returnKeyType="next"
-          error={fieldError.email}
-        />
-        <TextField
-          testID="entrar-senha"
-          label="Senha"
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Sua senha"
-          secret
-          autoComplete="current-password"
-          textContentType="password"
-          returnKeyType="go"
-          onSubmitEditing={submit}
-          error={fieldError.password}
-        />
+        <FadeUp delay={600} style={{ gap: space[4] }}>
+          <TextField
+            testID="entrar-email"
+            label="E-mail"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="voce@email.com"
+            autoCapitalize="none"
+            autoComplete="email"
+            keyboardType="email-address"
+            textContentType="emailAddress"
+            returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => passwordRef.current?.focus()}
+            error={fieldError.email}
+          />
+          <TextField
+            testID="entrar-senha"
+            inputRef={passwordRef}
+            label="Senha"
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Sua senha"
+            secret
+            autoComplete="current-password"
+            textContentType="password"
+            returnKeyType="go"
+            onSubmitEditing={submit}
+            error={fieldError.password}
+          />
+        </FadeUp>
         <Button testID="entrar-botao" label={busy ? 'Entrando…' : 'Entrar'} size="lg" wide disabled={busy} onPress={submit} />
         <TextLink testID="entrar-esqueci" label="Esqueci minha senha" href="/recuperar-senha" />
       </View>

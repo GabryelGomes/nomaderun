@@ -4,9 +4,11 @@ import { ActivityIndicator, ScrollView, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { TeamBadge } from '@/components/team-badge';
-import { EmptyState, SectionHeader, Surface } from '@/components/surface';
+import { Stagger } from '@/components/motion';
+import { EmptyState, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { ErrorNotice, TextField } from '@/features/auth/form-ui';
+import { SectionTitle } from '@/features/screens/game-motion';
 import { useResource } from '@/features/screens/use-resource';
 import { listUsers, setUserStatus, type ManagedUser } from '@/services/api/moderation-repo';
 import { useSession } from '@/store/session-store';
@@ -51,7 +53,7 @@ export function AdminUsersScreen() {
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={{ padding: space[4], gap: space[6], paddingBottom: space[12], width: '100%', maxWidth: 960, alignSelf: 'center' }}>
       <View style={{ gap: space[3] }}>
-        <SectionHeader title="Contas" />
+        <SectionTitle title="Contas" />
         <Text muted>Uma conta inativa não consegue entrar e some dos rankings. Reativar devolve o acesso.</Text>
         <TextField
           testID="admin-busca"
@@ -75,33 +77,35 @@ export function AdminUsersScreen() {
         <EmptyState title="Nenhuma conta" body="Nenhum nome de usuário corresponde à busca." />
       ) : (
         <Surface>
-          {data.map((u) => {
-            const manageable = canManageUser(role, me, u.id);
-            return (
-              <View key={u.id} testID={`admin-conta-${u.username}`} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
-                <TeamBadge faction={u.faction} size={28} />
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text variant="bodyBold">{u.username}</Text>
-                  <Text variant="small" muted>
-                    {ROLE_TEXT[u.role]} · {STATUS_TEXT[u.status] ?? u.status} · confiança {u.trust}
-                  </Text>
+          <Stagger gap={space[3]}>
+            {data.map((u) => {
+              const manageable = canManageUser(role, me, u.id);
+              return (
+                <View key={u.id} testID={`admin-conta-${u.username}`} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
+                  <TeamBadge faction={u.faction} size={28} />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text variant="bodyBold">{u.username}</Text>
+                    <Text variant="small" muted>
+                      {ROLE_TEXT[u.role]} · {STATUS_TEXT[u.status] ?? u.status} · confiança {u.trust}
+                    </Text>
+                  </View>
+                  {manageable ? (
+                    <Button
+                      testID={`admin-alternar-${u.username}`}
+                      label={busyId === u.id ? 'Salvando…' : u.status === 'inactive' ? 'Reativar' : 'Inativar'}
+                      kind={u.status === 'inactive' ? 'secondary' : 'danger'}
+                      disabled={busyId !== null}
+                      onPress={() => toggle(u)}
+                    />
+                  ) : (
+                    <Text variant="caption" muted>
+                      {u.id === me ? 'Você' : ''}
+                    </Text>
+                  )}
                 </View>
-                {manageable ? (
-                  <Button
-                    testID={`admin-alternar-${u.username}`}
-                    label={busyId === u.id ? 'Salvando…' : u.status === 'inactive' ? 'Reativar' : 'Inativar'}
-                    kind={u.status === 'inactive' ? 'secondary' : 'danger'}
-                    disabled={busyId !== null}
-                    onPress={() => toggle(u)}
-                  />
-                ) : (
-                  <Text variant="caption" muted>
-                    {u.id === me ? 'Você' : ''}
-                  </Text>
-                )}
-              </View>
-            );
-          })}
+              );
+            })}
+          </Stagger>
         </Surface>
       )}
     </ScrollView>

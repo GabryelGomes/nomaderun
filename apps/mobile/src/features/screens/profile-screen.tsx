@@ -1,8 +1,10 @@
 import { router, type Href } from 'expo-router';
-import { Pressable, ScrollView, Switch, View } from 'react-native';
+import { Switch, View } from 'react-native';
 
 import { TeamBadge } from '@/components/team-badge';
 import { Icon } from '@/components/icon';
+import { CountUp, FadeUp, Pressable, RevealText, Stagger } from '@/components/motion';
+import { ScreenScroll } from '@/components/screen';
 import { SectionHeader, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { ProgressBar } from '@/components/territory-bar';
@@ -35,118 +37,130 @@ export function ProfileScreen() {
   const staff = useSession((x) => canModerate(x.profile?.role));
 
   return (
-    <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: space[4], gap: space[6], paddingBottom: space[12] }}>
+    <ScreenScroll testID="tela-perfil" edges={[]} contentInsetAdjustmentBehavior="automatic" gap={space[6]}>
       <Surface>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[4] }}>
           <TeamBadge faction={faction} size={64} />
           <View style={{ flex: 1 }}>
-            <Text variant="headline">{s.name}</Text>
-            <Text muted>
-              {factions[faction].name}, nível {lvl.level}
-            </Text>
+            {/* Momento herói do perfil: o nome sobe de dentro da máscara (D-54). */}
+            <RevealText testID="perfil-nome">{s.name || 'Corredor'}</RevealText>
+            <FadeUp delay={150}>
+              <Text muted>
+                {factions[faction].name}, nível {lvl.level}
+              </Text>
+            </FadeUp>
           </View>
         </View>
         <ProgressBar value={lvl.intoLevel / lvl.needed} color={factions[faction].color} />
-        <Text variant="small" muted tabular>
-          {lvl.intoLevel} de {lvl.needed} XP para o nível {lvl.level + 1}. Cada nível libera uma cor de rastro ou moldura.
-        </Text>
+        <View>
+          <CountUp
+            testID="perfil-xp"
+            value={lvl.intoLevel}
+            delay={250}
+            variant="small"
+            muted
+            format={(n) => `${Math.round(n).toLocaleString('pt-BR')} de ${lvl.needed.toLocaleString('pt-BR')} XP para o nível ${lvl.level + 1}.`}
+            accessibilityLabel={`${lvl.intoLevel} de ${lvl.needed} XP para o nível ${lvl.level + 1}.`}
+          />
+          <Text variant="small" muted>
+            Cada nível libera uma cor de rastro ou moldura.
+          </Text>
+        </View>
       </Surface>
 
-      <View style={{ flexDirection: 'row', gap: space[3] }}>
+      <Stagger delay={150} style={{ flexDirection: 'row', gap: space[3] }} itemStyle={{ flex: 1 }}>
         <Surface style={{ flex: 1 }}>
           <Icon name="fog" size={22} color={colors.text} />
-          <Text variant="headline" tabular>
-            {s.fog.length}
-          </Text>
+          <CountUp testID="perfil-celulas" value={s.fog.length} delay={250} variant="headline" accessibilityLabel={`${s.fog.length} células reveladas`} />
           <Text variant="small" muted>
             células reveladas
           </Text>
         </Surface>
         <Surface style={{ flex: 1 }}>
           <Icon name="territory" size={22} color={colors.text} />
-          <Text variant="headline" tabular>
-            {conquered}
-          </Text>
+          <CountUp testID="perfil-zonas" value={conquered} delay={300} variant="headline" accessibilityLabel={`${conquered} zonas conquistadas`} />
           <Text variant="small" muted>
             zonas conquistadas
           </Text>
         </Surface>
-      </View>
+      </Stagger>
+      <Stagger delay={250} gap={space[6]}>
 
-      <View style={{ gap: space[3] }}>
-        <SectionHeader title="Conquistas" />
-        <Surface>
-          {ACHIEVEMENTS.map((a) => {
-            const done = a.done(runs, conquered, s.fog.length);
-            return (
-              <View key={a.title} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
-                <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: done ? colors.action : colors.surfaceSunken }}>
-                  <Icon name={done ? 'check' : 'lock'} size={16} color={done ? colors.onAction : colors.textSecondary} />
+        <View style={{ gap: space[3] }}>
+          <SectionHeader title="Conquistas" />
+          <Surface>
+            {ACHIEVEMENTS.map((a) => {
+              const done = a.done(runs, conquered, s.fog.length);
+              return (
+                <View key={a.title} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
+                  <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: done ? colors.action : colors.surfaceSunken }}>
+                    <Icon name={done ? 'check' : 'lock'} size={16} color={done ? colors.onAction : colors.textSecondary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text variant="bodyBold">{a.title}</Text>
+                    <Text variant="small" muted>
+                      {a.body}
+                    </Text>
+                  </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text variant="bodyBold">{a.title}</Text>
-                  <Text variant="small" muted>
-                    {a.body}
-                  </Text>
-                </View>
-              </View>
-            );
-          })}
-        </Surface>
-      </View>
+              );
+            })}
+          </Surface>
+        </View>
 
-      <View style={{ gap: space[3] }}>
-        <SectionHeader title="Corrida Segura" />
+        <View style={{ gap: space[3] }}>
+          <SectionHeader title="Corrida Segura" />
+          <Surface>
+            <Row testID="perfil-escolta" title="Escolta ao vivo" body={s.contacts.length > 0 ? `${s.contacts.join(' e ')} veem sua localização durante a corrida.` : 'Cadastre contatos de segurança para eles verem sua localização durante a corrida.'} value={s.escortOn} onChange={s.toggleEscort} />
+            <Row testID="perfil-alerta-parada" title="Alerta de parada" body="Se você ficar parado por 10 minutos, perguntamos se está tudo bem e avisamos seus contatos." value={s.stopAlertOn} onChange={s.toggleStopAlert} />
+            <Text variant="small" muted>
+              Seu início e fim de corrida perto de casa ficam escondidos dos outros corredores.
+            </Text>
+          </Surface>
+        </View>
+
         <Surface>
-          <Row testID="perfil-escolta" title="Escolta ao vivo" body={s.contacts.length > 0 ? `${s.contacts.join(' e ')} veem sua localização durante a corrida.` : 'Cadastre contatos de segurança para eles verem sua localização durante a corrida.'} value={s.escortOn} onChange={s.toggleEscort} />
-          <Row testID="perfil-alerta-parada" title="Alerta de parada" body="Se você ficar parado por 10 minutos, perguntamos se está tudo bem e avisamos seus contatos." value={s.stopAlertOn} onChange={s.toggleStopAlert} />
+          <Text variant="bodyBold">Índice de confiança: {s.trust}</Text>
           <Text variant="small" muted>
-            Seu início e fim de corrida perto de casa ficam escondidos dos outros corredores.
+            {trust === 'ok'
+              ? 'Suas corridas contam normalmente.'
+              : trust === 'review'
+                ? 'Suas próximas corridas passam por revisão antes de pontuar.'
+                : 'Sua participação na competição está suspensa por 30 dias.'}
           </Text>
         </Surface>
-      </View>
 
-      <Surface>
-        <Text variant="bodyBold">Índice de confiança: {s.trust}</Text>
-        <Text variant="small" muted>
-          {trust === 'ok'
-            ? 'Suas corridas contam normalmente.'
-            : trust === 'review'
-              ? 'Suas próximas corridas passam por revisão antes de pontuar.'
-              : 'Sua participação na competição está suspensa por 30 dias.'}
-        </Text>
-      </Surface>
-
-      <View style={{ gap: space[3] }}>
-        <SectionHeader title="Conta" />
-        <Surface>
-          <LinkRow testID="perfil-editar" title="Editar perfil" body="Nome de usuário, foto, cidade, unidade e notificações." onPress={() => router.push('/perfil/editar')} />
-          <LinkRow
-            testID="perfil-notificacoes"
-            title="Notificações"
-            body={unread > 0 ? `${unread === 1 ? '1 não lida' : `${unread} não lidas`}. Invasões, conquistas e moderação.` : 'Invasões, conquistas e resultados da moderação.'}
-            onPress={() => router.push('/notificacoes')}
-          />
-          <LinkRow testID="perfil-contatos-seguranca" title="Contatos de segurança" body="Até 5 pessoas avisadas pela Corrida Segura." onPress={() => router.push('/contatos-seguranca' as Href)} />
-          <LinkRow
-            testID="perfil-zonas-privacidade"
-            title="Zonas de privacidade"
-            body="Até 3 endereços que não aparecem no seu percurso para outras pessoas."
-            onPress={() => router.push('/zonas-privacidade' as Href)}
-          />
-          {staff ? <LinkRow testID="perfil-moderacao" title="Painel de moderação" body="Corridas em revisão e contas." onPress={() => router.push('/moderacao')} /> : null}
-          <LinkRow testID="perfil-conta" title="Conta e privacidade" body="Exportar seus dados, excluir a conta, termos." onPress={() => router.push('/perfil/conta')} />
-          <LinkRow testID="perfil-sair" title="Sair" body="Desconectar deste aparelho." onPress={() => signOut()} />
-        </Surface>
-      </View>
-    </ScrollView>
+        <View style={{ gap: space[3] }}>
+          <SectionHeader title="Conta" />
+          <Surface>
+            <LinkRow testID="perfil-editar" title="Editar perfil" body="Nome de usuário, foto, cidade, unidade e notificações." onPress={() => router.push('/perfil/editar')} />
+            <LinkRow
+              testID="perfil-notificacoes"
+              title="Notificações"
+              body={unread > 0 ? `${unread === 1 ? '1 não lida' : `${unread} não lidas`}. Invasões, conquistas e moderação.` : 'Invasões, conquistas e resultados da moderação.'}
+              onPress={() => router.push('/notificacoes')}
+            />
+            <LinkRow testID="perfil-contatos-seguranca" title="Contatos de segurança" body="Até 5 pessoas avisadas pela Corrida Segura." onPress={() => router.push('/contatos-seguranca' as Href)} />
+            <LinkRow
+              testID="perfil-zonas-privacidade"
+              title="Zonas de privacidade"
+              body="Até 3 endereços que não aparecem no seu percurso para outras pessoas."
+              onPress={() => router.push('/zonas-privacidade' as Href)}
+            />
+            {staff ? <LinkRow testID="perfil-moderacao" title="Painel de moderação" body="Corridas em revisão e contas." onPress={() => router.push('/moderacao')} /> : null}
+            <LinkRow testID="perfil-conta" title="Conta e privacidade" body="Exportar seus dados, excluir a conta, termos." onPress={() => router.push('/perfil/conta')} />
+            <LinkRow testID="perfil-sair" title="Sair" body="Desconectar deste aparelho." onPress={() => signOut()} />
+          </Surface>
+        </View>
+      </Stagger>
+    </ScreenScroll>
   );
 }
 
 function LinkRow({ title, body, onPress, testID }: { title: string; body: string; onPress: () => void; testID: string }) {
   const { colors } = useTheme();
   return (
-    <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={title} onPress={onPress} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
+    <Pressable testID={testID} accessibilityLabel={title} hitSlop={0} onPress={onPress} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
       <View style={{ flex: 1 }}>
         <Text variant="bodyBold">{title}</Text>
         <Text variant="small" muted>

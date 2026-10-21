@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { Button } from '@/components/button';
 import { Icon } from '@/components/icon';
 import { Surface } from '@/components/surface';
+import { FadeUp, RevealText } from '@/components/motion';
 import { Text } from '@/components/text';
 import { useSession } from '@/store/session-store';
 import { space } from '@/theme/tokens';
@@ -28,17 +29,17 @@ export function UnavailableScreen() {
       <FormScaffold testID="tela-backend-nao-configurado">
         <View style={{ gap: space[4] }}>
           <Icon name="warning" size={40} color={colors.text} />
-          <Text variant="headline" accessibilityRole="header">
-            Backend não configurado
-          </Text>
+          <RevealText testID="indisponivel-titulo">Backend não configurado</RevealText>
           <Text>O app precisa saber o endereço do servidor do NOMADE RUN para criar contas e salvar corridas.</Text>
         </View>
-        <Surface>
-          <Text variant="bodyBold">Como resolver</Text>
-          <Text muted>1. Copie apps/mobile/.env.example para apps/mobile/.env.</Text>
-          <Text muted>2. Preencha EXPO_PUBLIC_SUPABASE_URL e EXPO_PUBLIC_SUPABASE_ANON_KEY (veja npx supabase status).</Text>
-          <Text muted>3. Reinicie o servidor do Expo com npx expo start --clear.</Text>
-        </Surface>
+        <FadeUp delay={200}>
+          <Surface>
+            <Text variant="bodyBold">Como resolver</Text>
+            <Text muted>1. Copie apps/mobile/.env.example para apps/mobile/.env.</Text>
+            <Text muted>2. Preencha EXPO_PUBLIC_SUPABASE_URL e EXPO_PUBLIC_SUPABASE_ANON_KEY (veja npx supabase status).</Text>
+            <Text muted>3. Reinicie o servidor do Expo com npx expo start --clear.</Text>
+          </Surface>
+        </FadeUp>
       </FormScaffold>
     );
   }
@@ -50,17 +51,18 @@ export function UnavailableScreen() {
   };
 
   return (
-    <FormScaffold testID="tela-perfil-indisponivel">
+    <FormScaffold
+      testID="tela-perfil-indisponivel"
+      footer={
+        <>
+          <Button testID="indisponivel-tentar" label={busy ? 'Tentando…' : 'Tentar de novo'} size="lg" wide disabled={busy} onPress={retry} />
+          <Button testID="indisponivel-sair" label="Sair da conta" kind="secondary" size="lg" wide onPress={() => signOut()} />
+        </>
+      }>
       <View style={{ gap: space[4] }}>
         <Icon name="warning" size={40} color={colors.text} />
-        <Text variant="headline" accessibilityRole="header">
-          Não foi possível carregar seu perfil
-        </Text>
+        <RevealText testID="indisponivel-titulo">Não foi possível carregar seu perfil</RevealText>
         <Text>{profileError?.message ?? 'Tente de novo em instantes.'}</Text>
-      </View>
-      <View style={{ gap: space[3] }}>
-        <Button testID="indisponivel-tentar" label={busy ? 'Tentando…' : 'Tentar de novo'} size="lg" wide disabled={busy} onPress={retry} />
-        <Button testID="indisponivel-sair" label="Sair da conta" kind="secondary" size="lg" wide onPress={() => signOut()} />
       </View>
     </FormScaffold>
   );

@@ -10,6 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { useScreenTransition } from '@/components/motion';
 import { LinkConfirmDialog } from '@/features/auth/link-confirm-dialog';
 import { resolveRouteGroup, type RouteGroup } from '@/features/auth/route-guard';
 import { useSessionBootstrap } from '@/features/auth/session-controller';
@@ -43,6 +44,11 @@ export default function RootLayout() {
   const [lastGroup, setLastGroup] = useState<Exclude<RouteGroup, 'splash'> | null>(null);
   if (computed !== 'splash' && computed !== lastGroup) setLastGroup(computed);
   const group = computed === 'splash' ? lastGroup : computed;
+  // Transições de tela (D-54): empilhadas deslizam da direita, telas cheias sobem com fade, troca de
+  // contexto (entrar ↔ onboarding ↔ app) só esmaece. "Reduzir movimento": tudo vira fade curto.
+  const push = useScreenTransition('push');
+  const modal = useScreenTransition('modal');
+  const fade = useScreenTransition('fade');
   const [loaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -76,9 +82,10 @@ export default function RootLayout() {
         <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Protected guard={group === 'app'}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="corrida" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
-            <Stack.Screen name="resumo" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="(tabs)" options={fade} />
+            <Stack.Screen name="corrida" options={{ presentation: 'fullScreenModal', gestureEnabled: false, ...modal }} />
+            <Stack.Screen name="resumo" options={{ presentation: 'modal', ...modal }} />
+            {/* Folha nativa (formSheet): mantém a animação de folha do sistema, que já respeita "Reduzir movimento". */}
             <Stack.Screen
               name="zona/[id]"
               options={{
@@ -88,28 +95,28 @@ export default function RootLayout() {
                 contentStyle: { backgroundColor: process.env.EXPO_OS === 'ios' ? 'transparent' : colors.surface },
               }}
             />
-            <Stack.Screen name="notificacoes" options={{ ...pushHeader, title: 'Notificações' }} />
+            <Stack.Screen name="notificacoes" options={{ ...pushHeader, ...push, title: 'Notificações' }} />
             {/* Arquivo da rota criado pelo A4 (Corrida Segura, T2.5). */}
-            <Stack.Screen name="contatos-seguranca" options={{ ...pushHeader, title: 'Contatos de segurança' }} />
-            <Stack.Screen name="zonas-privacidade" options={{ ...pushHeader, title: 'Zonas de privacidade' }} />
+            <Stack.Screen name="contatos-seguranca" options={{ ...pushHeader, ...push, title: 'Contatos de segurança' }} />
+            <Stack.Screen name="zonas-privacidade" options={{ ...pushHeader, ...push, title: 'Zonas de privacidade' }} />
             <Stack.Protected guard={staff}>
-              <Stack.Screen name="moderacao" />
+              <Stack.Screen name="moderacao" options={push} />
             </Stack.Protected>
           </Stack.Protected>
           <Stack.Protected guard={group === 'onboarding'}>
-            <Stack.Screen name="onboarding" />
+            <Stack.Screen name="onboarding" options={fade} />
           </Stack.Protected>
           <Stack.Protected guard={group === 'auth'}>
-            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(auth)" options={fade} />
           </Stack.Protected>
           <Stack.Protected guard={group === 'auth' || group === 'recovery'}>
-            <Stack.Screen name="nova-senha" />
+            <Stack.Screen name="nova-senha" options={fade} />
           </Stack.Protected>
           <Stack.Protected guard={group === 'unavailable'}>
-            <Stack.Screen name="indisponivel" />
+            <Stack.Screen name="indisponivel" options={fade} />
           </Stack.Protected>
-          <Stack.Screen name="termos" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="privacidade" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="termos" options={{ presentation: 'modal', ...modal }} />
+          <Stack.Screen name="privacidade" options={{ presentation: 'modal', ...modal }} />
         </Stack>
         <LinkConfirmDialog />
       </ThemeProvider>

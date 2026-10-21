@@ -4,6 +4,7 @@ import { View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Icon } from '@/components/icon';
+import { FadeUp, RevealText } from '@/components/motion';
 import { Text } from '@/components/text';
 import * as authRepo from '@/services/api/auth-repo';
 import { useSession } from '@/store/session-store';
@@ -50,9 +51,7 @@ export function NewPasswordScreen() {
       <FormScaffold testID="tela-nova-senha">
         <View style={{ gap: space[4] }}>
           <Icon name="lock" size={40} color={colors.text} />
-          <Text variant="headline" accessibilityRole="header">
-            Nova senha
-          </Text>
+          <RevealText testID="nova-senha-titulo">Nova senha</RevealText>
           <ErrorNotice message={linkError?.message} testID="nova-senha-erro-link" />
           <Text muted>
             {linkError
@@ -72,10 +71,10 @@ export function NewPasswordScreen() {
     <FormScaffold testID="tela-nova-senha">
       <View style={{ gap: space[4] }}>
         <Icon name="lock" size={40} color={colors.text} />
-        <Text variant="headline" accessibilityRole="header">
-          Crie uma senha nova
-        </Text>
-        <Text muted>Depois de salvar, você continua conectado neste celular.</Text>
+        <RevealText testID="nova-senha-titulo">Crie uma senha nova</RevealText>
+        <FadeUp delay={150}>
+          <Text muted>Depois de salvar, você continua conectado neste celular.</Text>
+        </FadeUp>
       </View>
       <View style={{ gap: space[4] }}>
         <ErrorNotice message={error} testID="nova-senha-erro" />

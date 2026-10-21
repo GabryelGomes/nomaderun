@@ -5,6 +5,7 @@ import { View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Icon } from '@/components/icon';
+import { FadeUp, RevealText } from '@/components/motion';
 import { Text } from '@/components/text';
 import * as authRepo from '@/services/api/auth-repo';
 import { space } from '@/theme/tokens';
@@ -38,18 +39,20 @@ export function ForgotPasswordScreen() {
     <FormScaffold testID="tela-recuperar-senha">
       <View style={{ gap: space[4] }}>
         <Icon name="mail" size={40} color={colors.text} />
-        <Text variant="headline" accessibilityRole="header">
-          Recuperar senha
-        </Text>
-        <Text muted>Digite o e-mail da sua conta. Enviamos um link para você criar uma senha nova.</Text>
+        <RevealText testID="recuperar-titulo">Recuperar senha</RevealText>
+        <FadeUp delay={150}>
+          <Text muted>Digite o e-mail da sua conta. Enviamos um link para você criar uma senha nova.</Text>
+        </FadeUp>
       </View>
 
       {sent ? (
-        <InfoNotice
-          testID="recuperar-enviado"
-          title="Pronto"
-          body={`Se existir uma conta com ${email.trim()}, o link chega em instantes. Abra-o neste celular. Não chegou? Confira o spam.`}
-        />
+        <FadeUp>
+          <InfoNotice
+            testID="recuperar-enviado"
+            title="Pronto"
+            body={`Se existir uma conta com ${email.trim()}, o link chega em instantes. Abra-o neste celular. Não chegou? Confira o spam.`}
+          />
+        </FadeUp>
       ) : (
         <View style={{ gap: space[4] }}>
           <ErrorNotice message={error} testID="recuperar-erro" />

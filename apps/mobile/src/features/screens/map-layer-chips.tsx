@@ -1,0 +1,66 @@
+import { Pressable, ScrollView } from 'react-native';
+import Animated from 'react-native-reanimated';
+
+import { Text } from '@/components/text';
+import { cssEasings, durations } from '@/theme/motion';
+import { floating, radius, space } from '@/theme/tokens';
+import { useTheme } from '@/theme/use-theme';
+
+export type Layer = 'todos' | 'meu-time' | 'explorado';
+
+export const LAYERS: readonly (readonly [Layer, string])[] = [
+  ['todos', 'Todos os times'],
+  ['meu-time', 'Só meu time'],
+  ['explorado', 'Onde já corri'],
+];
+
+/**
+ * Filtros de camada flutuando sobre o mapa. Mesmo comportamento do `ChipRow` (uma linha que rola na
+ * horizontal de ponta a ponta, alvo ≥ 44 pt), com a sombra flutuante que os chips precisam sobre o mapa.
+ * Não usa o `ChipRow` porque o testID do grupo viraria "mapa-camada", que já é o botão de camadas.
+ * A troca de seleção cruza as cores com power2.inOut (300 ms, sem movimento: vale com "Reduzir movimento").
+ */
+export function LayerChips({ value, onChange }: { value: Layer; onChange: (l: Layer) => void }) {
+  const { colors } = useTheme();
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      accessibilityLabel="Camadas do mapa"
+      style={{ flexGrow: 0 }}
+      contentContainerStyle={{ gap: space[2], paddingHorizontal: space[4], paddingVertical: 4 }}>
+      {LAYERS.map(([key, label]) => {
+        const on = value === key;
+        return (
+          <Pressable
+            key={key}
+            testID={`mapa-camada-${key}`}
+            accessibilityRole="button"
+            accessibilityLabel={label}
+            accessibilityHint="Filtra as zonas mostradas no mapa"
+            accessibilityState={{ selected: on }}
+            // QA-12: o desenho continua com 36 pt; a área de toque chega a 44 pt.
+            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+            onPress={() => onChange(key)}>
+            <Animated.View
+              style={{
+                paddingHorizontal: space[4],
+                height: 36,
+                justifyContent: 'center',
+                borderRadius: radius.pill,
+                backgroundColor: on ? colors.text : colors.surface,
+                boxShadow: floating,
+                transitionProperty: 'backgroundColor',
+                transitionDuration: durations.state,
+                transitionTimingFunction: cssEasings.swap,
+              }}>
+              <Text variant="caption" color={on ? colors.surface : colors.text} numberOfLines={1}>
+                {label}
+              </Text>
+            </Animated.View>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+}

@@ -1,9 +1,11 @@
 import { router, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Icon, type IconName } from '@/components/icon';
+import { FadeUp, Pressable, staggerDelay } from '@/components/motion';
+import { ScreenScroll } from '@/components/screen';
 import { EmptyState, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { useNow } from '@/features/use-now';
@@ -66,20 +68,16 @@ export function NotificationsScreen() {
   };
 
   return (
-    <ScrollView
-      testID="tela-notificacoes"
-      contentInsetAdjustmentBehavior="automatic"
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={pull} />}
-      contentContainerStyle={{ padding: space[4], gap: space[4], paddingBottom: space[12] }}>
+    <ScreenScroll testID="tela-notificacoes" edges={['bottom']} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={pull} />}>
       <Stack.Screen options={{ title: 'Notificações' }} />
 
       {unread > 0 ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3] }}>
+        <FadeUp style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3] }}>
           <Text muted testID="notificacoes-nao-lidas">
             {unread === 1 ? '1 não lida' : `${unread} não lidas`}
           </Text>
           <Button testID="notificacoes-marcar-todas" label="Marcar todas como lidas" kind="ghost" onPress={() => void markRead(null)} />
-        </View>
+        </FadeUp>
       ) : null}
 
       {error && items.length === 0 ? (
@@ -96,43 +94,44 @@ export function NotificationsScreen() {
         <EmptyState title="Nada por aqui ainda" body="Avisos de invasão, zonas conquistadas e resultados da moderação aparecem nesta lista." />
       ) : (
         <Surface>
-          {items.map((n) => {
+          {items.map((n, index) => {
             const isUnread = n.readAt === null;
             const hasZone = zoneTarget(n) !== null;
             return (
-              <Pressable
-                key={n.id}
-                testID={`notificacao-${n.id}`}
-                accessibilityRole="button"
-                accessibilityLabel={`${isUnread ? 'Não lida. ' : ''}${n.title}. ${n.body}${hasZone ? ' Toque para ver a zona no mapa.' : ''}`}
-                onPress={() => openNotification(n)}
-                style={{ minHeight: 44, flexDirection: 'row', alignItems: 'flex-start', gap: space[3] }}>
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: isUnread ? colors.action : colors.surfaceSunken,
-                  }}>
-                  <Icon name={TYPE_ICON[n.type]} size={16} color={isUnread ? colors.onAction : colors.textSecondary} />
-                </View>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text variant={isUnread ? 'bodyBold' : 'body'}>{n.title}</Text>
-                  <Text variant="small" muted>
-                    {n.body}
-                  </Text>
-                  <Text variant="caption" muted>
-                    {timeAgo(n.createdAt, now)}
-                  </Text>
-                </View>
-                {hasZone ? <Icon name="chevron" size={18} color={colors.textSecondary} /> : null}
-              </Pressable>
+              <FadeUp key={n.id} delay={staggerDelay(index)}>
+                <Pressable
+                  testID={`notificacao-${n.id}`}
+                  hitSlop={0}
+                  accessibilityLabel={`${isUnread ? 'Não lida. ' : ''}${n.title}. ${n.body}${hasZone ? ' Toque para ver a zona no mapa.' : ''}`}
+                  onPress={() => openNotification(n)}
+                  style={{ minHeight: 44, flexDirection: 'row', alignItems: 'flex-start', gap: space[3] }}>
+                  <View
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: isUnread ? colors.action : colors.surfaceSunken,
+                    }}>
+                    <Icon name={TYPE_ICON[n.type]} size={16} color={isUnread ? colors.onAction : colors.textSecondary} />
+                  </View>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text variant={isUnread ? 'bodyBold' : 'body'}>{n.title}</Text>
+                    <Text variant="small" muted>
+                      {n.body}
+                    </Text>
+                    <Text variant="caption" muted>
+                      {timeAgo(n.createdAt, now)}
+                    </Text>
+                  </View>
+                  {hasZone ? <Icon name="chevron" size={18} color={colors.textSecondary} /> : null}
+                </Pressable>
+              </FadeUp>
             );
           })}
         </Surface>
       )}
-    </ScrollView>
+    </ScreenScroll>
   );
 }

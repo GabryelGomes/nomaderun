@@ -1,9 +1,10 @@
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
 import { Button, IconButton } from '@/components/button';
 import { Icon } from '@/components/icon';
+import { FadeUp, RevealText, staggerDelay } from '@/components/motion';
 import { Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import TerritoryMap from '@/components/territory-map';
@@ -71,6 +72,15 @@ export function PrivacyZonesScreen() {
 
   const full = zones.length >= MAX_PRIVACY_ZONES;
 
+  /** Mesmo mapa nos dois modos; ao adicionar, fica dentro do formulário (toque escolhe o ponto). */
+  const map = (
+    <Surface padded={false} style={{ overflow: 'hidden', height: 240 }}>
+      <View testID="zonas-privacidade-mapa" style={{ flex: 1 }} accessibilityLabel={adding ? 'Mapa. Toque para escolher o ponto do endereço.' : 'Mapa com suas zonas de privacidade.'}>
+        <TerritoryMap zones={[]} center={center} span={1500} circles={circles} focus={focus} onMapPress={adding ? setPoint : undefined} />
+      </View>
+    </Surface>
+  );
+
   const open = () => {
     setAdding(true);
     setLabel('');
@@ -124,51 +134,34 @@ export function PrivacyZonesScreen() {
   };
 
   return (
-    <FormScaffold testID="tela-zonas-privacidade" modal>
+    <FormScaffold
+      testID="tela-zonas-privacidade"
+      nativeHeader
+      footer={
+        adding ? undefined : (
+          <Button
+            testID="zonas-privacidade-adicionar"
+            label={full ? `Limite de ${MAX_PRIVACY_ZONES} endereços atingido` : 'Adicionar endereço'}
+            icon="shield"
+            kind="secondary"
+            size="lg"
+            wide
+            disabled={full}
+            onPress={open}
+          />
+        )
+      }>
       <Text muted>
         Até {MAX_PRIVACY_ZONES} endereços, como casa ou trabalho. O trecho da corrida a menos de {DEFAULT_PRIVACY_RADIUS} m deles continua valendo pontos, mas não aparece para
         outras pessoas.
       </Text>
 
-      <Surface>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text variant="title">Seus endereços</Text>
-          <Text testID="zonas-privacidade-contagem" variant="small" tabular muted>
-            {zones.length} de {MAX_PRIVACY_ZONES}
-          </Text>
-        </View>
-        {loaded && zones.length === 0 ? <Text muted>Nenhum endereço ainda.</Text> : null}
-        {zones.map((z, i) => {
-          const name = z.label ?? `Endereço ${i + 1}`;
-          return (
-            <View key={z.id} testID={`zona-privacidade-${i}`} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 48 }}>
-              <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceSunken, alignItems: 'center', justifyContent: 'center' }}>
-                <Icon name="shield" size={18} color={colors.text} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text variant="bodyBold" numberOfLines={1}>
-                  {name}
-                </Text>
-                <Text variant="small" muted tabular>
-                  Raio de {z.radiusM} m · {fmt(z)}
-                </Text>
-              </View>
-              <IconButton testID={`zona-privacidade-${i}-remover`} icon="close" label={`Remover ${name}`} tone="sunken" size={44} onPress={() => (busy ? undefined : void remove(z))} />
-            </View>
-          );
-        })}
-      </Surface>
-
-      <Surface padded={false} style={{ overflow: 'hidden', height: 240 }}>
-        <View testID="zonas-privacidade-mapa" style={{ flex: 1 }} accessibilityLabel={adding ? 'Mapa. Toque para escolher o ponto do endereço.' : 'Mapa com suas zonas de privacidade.'}>
-          <TerritoryMap zones={[]} center={center} span={1500} circles={circles} focus={focus} onMapPress={adding ? setPoint : undefined} />
-        </View>
-      </Surface>
-
+      {/* Ao adicionar, o mapa e o formulário vêm primeiro: o ponto é escolhido tocando no mapa. */}
       {adding ? (
-        <View style={{ gap: space[4], padding: space[4], borderRadius: radius.lg, backgroundColor: colors.surface }}>
+        <FadeUp testID="zona-privacidade-editor" style={{ gap: space[4], padding: space[4], borderRadius: radius.lg, backgroundColor: colors.surface }}>
           <Text variant="title">Novo endereço</Text>
-          <TextField testID="zona-privacidade-nome" label="Nome (opcional)" value={label} onChangeText={setLabel} placeholder="Casa" autoCapitalize="sentences" maxLength={40} />
+          {map}
+          <TextField testID="zona-privacidade-nome" onSurface label="Nome (opcional)" value={label} onChangeText={setLabel} placeholder="Casa" autoCapitalize="sentences" maxLength={40} returnKeyType="done" />
           <Text testID="zona-privacidade-ponto" muted>
             {point ? `Ponto escolhido: ${fmt(point)}. Raio de ${DEFAULT_PRIVACY_RADIUS} m.` : 'Toque no mapa para escolher o ponto ou use sua posição atual.'}
           </Text>
@@ -183,19 +176,51 @@ export function PrivacyZonesScreen() {
           />
           <Button testID="zona-privacidade-salvar" label={busy ? 'Salvando…' : 'Salvar'} size="lg" wide disabled={busy || !point} onPress={() => void save()} />
           <Button testID="zona-privacidade-cancelar" label="Cancelar" kind="ghost" wide onPress={() => setAdding(false)} />
-        </View>
-      ) : (
-        <Button
-          testID="zonas-privacidade-adicionar"
-          label={full ? `Limite de ${MAX_PRIVACY_ZONES} endereços atingido` : 'Adicionar endereço'}
-          icon="shield"
-          kind="secondary"
-          wide
-          disabled={full}
-          onPress={open}
-        />
-      )}
+        </FadeUp>
+      ) : null}
+
+      <FadeUp delay={100}>
+        <Surface>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space[3] }}>
+            <RevealText variant="title" header delay={100} style={{ flex: 1 }}>
+              Seus endereços
+            </RevealText>
+            <Text testID="zonas-privacidade-contagem" variant="small" tabular muted>
+              {zones.length} de {MAX_PRIVACY_ZONES}
+            </Text>
+          </View>
+          {!loaded ? (
+            <View testID="zonas-privacidade-carregando" accessible accessibilityLabel="Carregando endereços" style={{ paddingVertical: space[4] }}>
+              <ActivityIndicator color={colors.action} />
+            </View>
+          ) : null}
+          {loaded && zones.length === 0 ? <Text muted>Nenhum endereço ainda. Adicione sua casa para esconder o começo e o fim das corridas.</Text> : null}
+          {zones.map((z, i) => {
+            const name = z.label ?? `Endereço ${i + 1}`;
+            return (
+              <FadeUp key={z.id} delay={staggerDelay(i)} testID={`zona-privacidade-${i}`} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 48 }}>
+                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceSunken, alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon name="shield" size={18} color={colors.text} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text variant="bodyBold" numberOfLines={1}>
+                    {name}
+                  </Text>
+                  <Text variant="small" muted tabular>
+                    Raio de {z.radiusM} m · {fmt(z)}
+                  </Text>
+                </View>
+                <IconButton testID={`zona-privacidade-${i}-remover`} icon="close" label={`Remover ${name}`} tone="sunken" size={44} onPress={() => (busy ? undefined : void remove(z))} />
+              </FadeUp>
+            );
+          })}
+        </Surface>
+      </FadeUp>
+
+      {adding ? null : <FadeUp delay={200}>{map}</FadeUp>}
+
       <ErrorNotice message={error} testID="zonas-privacidade-erro" />
+      {error && !adding ? <Button testID="zonas-privacidade-tentar" label="Tentar de novo" kind="secondary" wide onPress={() => void reload()} /> : null}
     </FormScaffold>
   );
 }

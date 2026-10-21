@@ -1,9 +1,10 @@
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { View } from 'react-native';
+import { useRef, useState } from 'react';
+import { type TextInput, View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { FadeUp, RevealText } from '@/components/motion';
 import { Text } from '@/components/text';
 import * as authRepo from '@/services/api/auth-repo';
 import { MESSAGES } from '@/services/api/errors';
@@ -33,6 +34,12 @@ export function SignUpScreen() {
   const [confirmSent, setConfirmSent] = useState(false);
 
   const strength = passwordStrength(password);
+  const senhaRef = useRef<TextInput>(null);
+  const usuarioRef = useRef<TextInput>(null);
+  const nascimentoRef = useRef<TextInput>(null);
+  const cidadeRef = useRef<TextInput>(null);
+  /** "Próximo" do teclado leva ao campo seguinte. */
+  const next = { returnKeyType: 'next' as const, submitBehavior: 'submit' as const };
 
   const submit = async () => {
     const form = { email, password, username, birthdate, city, acceptedTerms, acceptedPrivacy };
@@ -71,14 +78,14 @@ export function SignUpScreen() {
   if (confirmSent) {
     return (
       <FormScaffold testID="tela-cadastro-confirmar">
-        <Text variant="headline" accessibilityRole="header">
-          Confira seu e-mail
-        </Text>
-        <InfoNotice
-          testID="cadastro-confirmacao"
-          title="Conta criada"
-          body={`Enviamos um link de confirmação para ${email.trim()}. Abra o link neste celular e depois entre com sua senha.`}
-        />
+        <RevealText testID="cadastro-confirmar-titulo">Confira seu e-mail</RevealText>
+        <FadeUp delay={200}>
+          <InfoNotice
+            testID="cadastro-confirmacao"
+            title="Conta criada"
+            body={`Enviamos um link de confirmação para ${email.trim()}. Abra o link neste celular e depois entre com sua senha.`}
+          />
+        </FadeUp>
         <Button testID="cadastro-ir-entrar" label="Ir para Entrar" size="lg" wide onPress={() => router.replace('/entrar')} />
       </FormScaffold>
     );
@@ -87,13 +94,13 @@ export function SignUpScreen() {
   return (
     <FormScaffold testID="tela-cadastro">
       <View style={{ gap: space[4] }}>
-        <Text variant="headline" accessibilityRole="header">
-          Criar conta
-        </Text>
-        <Text muted>Leva um minuto. Depois você escolhe seu time e já pode correr.</Text>
+        <RevealText testID="cadastro-titulo">Criar conta</RevealText>
+        <FadeUp delay={150}>
+          <Text muted>Leva um minuto. Depois você escolhe seu time e já pode correr.</Text>
+        </FadeUp>
       </View>
 
-      <View style={{ gap: space[4] }}>
+      <FadeUp delay={250} style={{ gap: space[4] }}>
         <ErrorNotice message={serverError} testID="cadastro-erro" />
         <TextField
           testID="cadastro-email"
@@ -105,10 +112,15 @@ export function SignUpScreen() {
           autoComplete="email"
           keyboardType="email-address"
           textContentType="emailAddress"
+          {...next}
+          onSubmitEditing={() => senhaRef.current?.focus()}
           error={errors.email}
         />
         <TextField
           testID="cadastro-senha"
+          inputRef={senhaRef}
+          {...next}
+          onSubmitEditing={() => usuarioRef.current?.focus()}
           label="Senha"
           value={password}
           onChangeText={setPassword}
@@ -121,6 +133,9 @@ export function SignUpScreen() {
         />
         <TextField
           testID="cadastro-usuario"
+          inputRef={usuarioRef}
+          {...next}
+          onSubmitEditing={() => nascimentoRef.current?.focus()}
           label="Nome de usuário"
           value={username}
           onChangeText={setUsername}
@@ -134,6 +149,9 @@ export function SignUpScreen() {
         />
         <TextField
           testID="cadastro-nascimento"
+          inputRef={nascimentoRef}
+          {...next}
+          onSubmitEditing={() => cidadeRef.current?.focus()}
           label="Data de nascimento"
           value={birthdate}
           onChangeText={(t) => setBirthdate(maskBirthdate(t))}
@@ -146,6 +164,8 @@ export function SignUpScreen() {
         />
         <TextField
           testID="cadastro-cidade"
+          inputRef={cidadeRef}
+          returnKeyType="done"
           label="Cidade natal (opcional)"
           value={city}
           onChangeText={setCity}
@@ -155,7 +175,7 @@ export function SignUpScreen() {
           error={errors.city}
           help="Conta pontos para a sua cidade no placar entre cidades. Dá para mudar depois no perfil."
         />
-      </View>
+      </FadeUp>
 
       <View style={{ gap: space[2] }}>
         <CheckRow testID="cadastro-aceite-termos" label="Li e aceito os Termos de Uso" checked={acceptedTerms} onChange={setAcceptedTerms} error={errors.acceptedTerms}>
