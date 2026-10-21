@@ -38,17 +38,21 @@ export const light = {
   danger: palette.danger,
 } as const;
 
+/**
+ * Tema escuro = "Pit Lane Neon" da apresentação (D-59, `docs/apresentacao/design-tokens.json`):
+ * base quase preta, superfícies grafite com borda fina, um neon só (laranja) para ação e destaque.
+ */
 export const dark = {
-  background: palette.night,
-  surface: palette.nightSurface,
-  surfaceSunken: '#26262A',
-  text: '#F2F2F4',
-  textSecondary: '#A0A0A8',
-  line: '#34343A',
-  action: '#FF6B33',
+  background: '#070708',
+  surface: '#111215',
+  surfaceSunken: '#1A1B20',
+  text: '#F3F1ED',
+  textSecondary: '#A8A6A1',
+  line: '#24252B',
+  action: '#FF6A13',
   onAction: palette.white,
-  accentText: '#FF8A5C',
-  danger: '#FF6B5E',
+  accentText: '#FF7A2A',
+  danger: '#FF4D45',
 } as const;
 
 export type ThemeColors = { [K in keyof typeof light]: string };
@@ -93,7 +97,7 @@ export const type = {
 } as const;
 
 /** The one elevation shadow, only for things floating over the map. */
-export const floating = '0 2px 12px rgba(36, 36, 40, 0.12)';
+export const floating = '0 4px 18px rgba(0, 0, 0, 0.45)';
 
 /**
  * Valores de motion da fase anterior (expo-animation), mantidos por compatibilidade.

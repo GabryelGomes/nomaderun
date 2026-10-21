@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { useColorScheme, View } from 'react-native';
+import { View } from 'react-native';
 import MapView, { Circle, Marker, Polygon, Polyline } from 'react-native-maps';
 
 import { zoneOf } from '@/domain/grid';
 import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/use-theme';
 
 import { mapLayers } from './territory-map.layers';
 import type { TerritoryMapProps } from './territory-map.types';
@@ -44,7 +45,7 @@ export default function TerritoryMap(props: TerritoryMapProps) {
   const { zones, center, span = 1800, myFaction, onlyMine, explored, user, path, invalidPaths, circles, chests, onZonePress, onMapPress, followUser, interactive = true, onRegionChange, focus, style } = props;
   const layers = useMemo(() => mapLayers({ zones, myFaction, onlyMine, explored }), [zones, myFaction, onlyMine, explored]);
   const map = useRef<MapView>(null);
-  const night = useColorScheme() === 'dark';
+  const night = useTheme().scheme === 'dark';
   const delta = span / 111_000;
 
   useEffect(() => {

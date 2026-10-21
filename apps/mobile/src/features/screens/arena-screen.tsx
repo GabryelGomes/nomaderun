@@ -72,7 +72,7 @@ export function ArenaScreen() {
               de {DEMO_RAID.hpKm.toLocaleString('pt-BR')} km de vida do chefão
             </Text>
           </View>
-          <GrowBar value={DEMO_RAID.damageKm / DEMO_RAID.hpKm} color={colors.text} height={12} delay={200} />
+          <GrowBar value={DEMO_RAID.damageKm / DEMO_RAID.hpKm} color={colors.action} height={12} delay={200} glow />
           <Text variant="small" muted>
             Goiânia inteira causa dano ao chefão. Sua próxima corrida conta.
           </Text>

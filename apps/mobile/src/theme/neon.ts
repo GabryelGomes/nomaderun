@@ -20,6 +20,11 @@ export const neon = {
   /** Brilho de botão/campo focado. */
   buttonGlow: '0 0 28px rgba(255,106,19,0.55), 0 0 8px rgba(255,106,19,0.6)',
   focusGlow: '0 0 0 1px rgba(255,106,19,0.9), 0 0 18px rgba(255,106,19,0.35)',
+  dangerGlow: '0 0 22px rgba(255,77,69,0.5)',
+  /** Card "aceso" (selecionado/destaque): borda laranja e brilho suave. */
+  cardGlow: '0 0 30px rgba(255,106,19,0.22)',
+  /** Fundo do chip/cartão selecionado (laranja a 14%). */
+  activeFill: 'rgba(255,106,19,0.14)',
   routeDrawMs: 2800,
   pulseMs: 2200,
 } as const;

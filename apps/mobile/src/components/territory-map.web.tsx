@@ -2,11 +2,12 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 
 import type { GeoJSONSource, Map as MLMap, MapMouseEvent, StyleSpecification } from 'maplibre-gl';
 import { useEffect, useRef, useState } from 'react';
-import { useColorScheme, View } from 'react-native';
+import { View } from 'react-native';
 
 import { zoneOf } from '@/domain/grid';
 import type { LatLng } from '@/domain/types';
 import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/use-theme';
 
 import { circleRing, mapLayers } from './territory-map.layers';
 import type { TerritoryMapProps } from './territory-map.types';
@@ -65,7 +66,7 @@ export default function TerritoryMap(props: TerritoryMapProps) {
   const host = useRef<View>(null);
   const mapRef = useRef<MLMap | null>(null);
   const [ready, setReady] = useState(false);
-  const night = useColorScheme() === 'dark';
+  const night = useTheme().scheme === 'dark';
   const latest = useRef(props);
   useEffect(() => {
     latest.current = props;

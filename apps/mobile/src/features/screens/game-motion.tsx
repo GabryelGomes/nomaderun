@@ -32,7 +32,7 @@ function useGrowTo(target: number, delay: number, duration: number) {
 }
 
 /** Barra de progresso (vida do raid, vagas da crew) que cresce com expo.out. Mesmo desenho do `ProgressBar`. */
-export function GrowBar({ value, color, height = 8, delay = 0, testID }: { value: number; color: string; height?: number; delay?: number; testID?: string }) {
+export function GrowBar({ value, color, height = 8, delay = 0, testID, glow }: { value: number; color: string; height?: number; delay?: number; testID?: string; glow?: boolean }) {
   const { colors } = useTheme();
   const pct = clampFraction(value) * 100;
   const { v, reduced } = useGrowTo(pct, delay, durations.count);
@@ -42,7 +42,8 @@ export function GrowBar({ value, color, height = 8, delay = 0, testID }: { value
       testID={testID}
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: 100, now: Math.round(pct) }}
-      style={[{ height, borderRadius: radius.pill, overflow: 'hidden', backgroundColor: colors.surfaceSunken }, reduced ? enterAnimation({ reduced: true }) : null]}>
+      // `glow` (neon, D-59): brilho laranja em volta da trilha (o recorte da barra cortaria o do preenchimento).
+      style={[{ height, borderRadius: radius.pill, overflow: 'hidden', backgroundColor: colors.surfaceSunken, boxShadow: glow ? '0 0 16px rgba(255,106,19,0.45)' : undefined }, reduced ? enterAnimation({ reduced: true }) : null]}>
       <Animated.View style={[{ height: '100%', backgroundColor: color, borderRadius: radius.pill }, fill]} />
     </Animated.View>
   );

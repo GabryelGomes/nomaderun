@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { Pressable, type PressableProps, View } from 'react-native';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
 
+import { neon } from '@/theme/neon';
 import { floating, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
@@ -58,6 +59,8 @@ export function Button({ label, kind = 'primary', icon, size = 'md', wide, trail
           backgroundColor: palette.bg,
           borderWidth: kind === 'secondary' ? 1 : 0,
           borderColor: palette.border,
+          // Neon (D-59): o botão principal acende com o brilho laranja da apresentação.
+          boxShadow: kind === 'primary' && !disabled ? neon.buttonGlow : kind === 'danger' && !disabled ? neon.dangerGlow : undefined,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
@@ -112,7 +115,9 @@ export function IconButton({
           backgroundColor: bg,
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: tone === 'surface' ? floating : undefined,
+          borderWidth: tone === 'surface' || tone === 'sunken' ? 1 : 0,
+          borderColor: colors.line,
+          boxShadow: tone === 'action' ? neon.buttonGlow : tone === 'danger' ? neon.dangerGlow : tone === 'surface' ? floating : undefined,
           ...pressFeedback(pressed, reduced),
         }}>
         <Icon name={icon} size={size * 0.42} color={fg} />

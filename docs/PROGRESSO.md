@@ -81,6 +81,12 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-21 — D-59 — App inteiro no neon da apresentação (A1 Arquiteto)
+- **Feito:** tema escuro "Pit Lane Neon" em todo o app, sempre escuro (inclusive barra de abas, teclado e mapa nativos); botões e ações com brilho laranja; chips, cards de missão/sinal e filtros do mapa acesos em laranja quando selecionados; cards com borda fina; progresso do onboarding, sequência semanal e barra do raid em laranja; luz ambiente (`components/neon-ambient.tsx`) atrás das abas e das telas com `ScreenScroll`.
+- **Arquivos:** `theme/{tokens,use-theme,neon}.ts`, `components/{button,surface,chip-row,screen,tab-stack,neon-ambient,territory-map,territory-map.web}.tsx`, `app/_layout.tsx`, `app.json`, `features/screens/{run,map-layer-chips,onboarding,activities,arena,game-motion}*.tsx`.
+- **Testes:** typecheck ok; eslint ok; `npm test` → 406 passaram; Playwright visual regenerado (4/4 em segunda execução); captura `docs/ui-audit/d59-app-neon-390.png`.
+- **Pendências:** conferir no iPhone (barra de abas escura, mapa Apple escuro, brilhos); RNF-010 vira desvio documentado na proposta de ERS v1.1.
+
 ### 2026-10-21 — Correções no iPhone 15 e login neon (A1 Arquiteto)
 - **Feito (a partir de prints reais do iPhone 15):**
   - **Clube e Arena:** o parallax tratava o deslocamento negativo do título grande do iOS (~ −150 pt) como "puxão" e ampliava o cabeçalho até 2×, cortando o conteúdo. Agora só reage ao rolar para cima (`parallax-math.ts`).

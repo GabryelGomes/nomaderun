@@ -87,7 +87,7 @@ export function ActivitiesScreen() {
           </View>
           <View style={{ flexDirection: 'row', gap: space[2] }}>
             {Array.from({ length: STREAK_RUNS_PER_WEEK }, (_, i) => (
-              <View key={i} style={{ flex: 1, height: 10, borderRadius: radius.pill, backgroundColor: i < thisWeek.length ? colors.text : colors.surfaceSunken }} />
+              <View key={i} style={{ flex: 1, height: 10, borderRadius: radius.pill, backgroundColor: i < thisWeek.length ? colors.action : colors.surfaceSunken, boxShadow: i < thisWeek.length ? '0 0 10px rgba(255,106,19,0.55)' : undefined }} />
             ))}
           </View>
           <Text variant="caption" muted>

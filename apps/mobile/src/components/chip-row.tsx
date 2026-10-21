@@ -2,6 +2,7 @@ import { type ReactNode } from 'react';
 import { ScrollView, type StyleProp, type ViewStyle } from 'react-native';
 
 import { radius, space } from '@/theme/tokens';
+import { neon } from '@/theme/neon';
 import { useTheme } from '@/theme/use-theme';
 
 import { PressableScale } from './motion/pressable';
@@ -29,7 +30,7 @@ export type ChipProps = {
 };
 
 /**
- * Chip com o visual atual (pílula; selecionado = fundo da cor do texto). O alvo de toque passa de 44 pt
+ * Chip em pílula. Selecionado (neon, D-59): contorno e brilho laranja, texto laranja sobre laranja a 14%. O alvo de toque passa de 44 pt
  * com `hitSlop` sem mudar o desenho. Retorno de toque do `PressableScale`.
  */
 export function Chip({ testID, accessibilityLabel, label, selected, onPress, size = 'sm', role = 'radio', tabular }: ChipProps) {
@@ -43,8 +44,17 @@ export function Chip({ testID, accessibilityLabel, label, selected, onPress, siz
       accessibilityState={role === 'radio' ? { checked: selected } : { selected }}
       hitSlop={{ top: c.slop, bottom: c.slop, left: 2, right: 2 }}
       onPress={onPress}
-      style={{ paddingHorizontal: space[4], height: c.height, justifyContent: 'center', borderRadius: radius.pill, backgroundColor: selected ? colors.text : colors.surface }}>
-      <Text variant={c.variant} tabular={tabular} color={selected ? colors.surface : colors.text} numberOfLines={1}>
+      style={{
+        paddingHorizontal: space[4],
+        height: c.height,
+        justifyContent: 'center',
+        borderRadius: radius.pill,
+        backgroundColor: selected ? neon.activeFill : colors.surface,
+        borderWidth: 1,
+        borderColor: selected ? colors.action : colors.line,
+        boxShadow: selected ? '0 0 14px rgba(255,106,19,0.35)' : undefined,
+      }}>
+      <Text variant={c.variant} tabular={tabular} color={selected ? colors.accentText : colors.text} numberOfLines={1}>
         {label}
       </Text>
     </PressableScale>

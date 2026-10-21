@@ -1,5 +1,4 @@
 import { createContext, createElement, useContext, type ReactNode } from 'react';
-import { useColorScheme } from 'react-native';
 
 import { dark, light, type ThemeColors } from './tokens';
 
@@ -12,9 +11,13 @@ export function ForceScheme({ scheme, children }: { scheme: Scheme; children: Re
   return createElement(SchemeOverride.Provider, { value: scheme }, children);
 }
 
-/** Light by day, dark at night or when the system asks (RNF-010). */
+/**
+ * O app é sempre escuro, no visual neon da apresentação (D-59). O tema claro continua em `tokens.ts`
+ * para quem quiser voltar (troque `APP_SCHEME`).
+ */
+export const APP_SCHEME: Scheme = 'dark';
+
 export function useTheme(): { colors: ThemeColors; scheme: Scheme } {
-  const system = useColorScheme() === 'dark' ? 'dark' : 'light';
-  const scheme = useContext(SchemeOverride) ?? system;
+  const scheme = useContext(SchemeOverride) ?? APP_SCHEME;
   return { colors: scheme === 'dark' ? dark : light, scheme };
 }

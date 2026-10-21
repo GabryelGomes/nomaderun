@@ -35,6 +35,7 @@ import { useSession } from '@/store/session-store';
 import { useZones } from '@/store/zones-store';
 import { cssEasings, durations } from '@/theme/motion';
 import { factions, floating, palette, radius, space } from '@/theme/tokens';
+import { neon } from '@/theme/neon';
 import { useTheme } from '@/theme/use-theme';
 
 const MISSIONS: { id: MissionId; title: string; body: string; icon: IconName }[] = [
@@ -131,7 +132,9 @@ export function RunScreen() {
                   borderCurve: 'continuous',
                   backgroundColor: colors.surface,
                   borderWidth: 2,
-                  borderColor: on ? colors.text : 'transparent',
+                  // Selecionado aceso em neon (D-59).
+                  borderColor: on ? colors.action : 'transparent',
+                  boxShadow: on ? neon.cardGlow : undefined,
                 }}>
                 <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: on ? colors.action : colors.surfaceSunken, alignItems: 'center', justifyContent: 'center' }}>
                   <Icon name={m.icon} size={22} color={on ? colors.onAction : colors.text} />
@@ -192,7 +195,8 @@ export function RunScreen() {
                 borderCurve: 'continuous',
                 backgroundColor: colors.surface,
                 borderWidth: 2,
-                borderColor: source === key ? colors.text : 'transparent',
+                borderColor: source === key ? colors.action : 'transparent',
+                boxShadow: source === key ? neon.cardGlow : undefined,
               }}>
               <Text variant="bodyBold">{title}</Text>
               <Text variant="caption" muted>

@@ -6,6 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
+import { NeonAmbient } from './neon-ambient';
+
 /**
  * Helpers de layout mobile (D-54, T6.1): área segura, grade de 8 pt e barra fixa inferior que
  * **reserva o espaço** do botão — o conteúdo nunca termina escondido atrás do CTA (bug "botão Começar
@@ -179,12 +181,12 @@ export function ScreenScroll({
   background,
   ...rest
 }: ScreenScrollProps) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const { insets, reserve, setBarHeight } = useReserve(footer, edges, footerProps);
   const manualTop = edges.includes('top');
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {background}
+      {background ?? (scheme === 'dark' ? <NeonAmbient /> : null)}
       <Animated.ScrollView
         testID={testID}
         contentInsetAdjustmentBehavior={manualTop ? 'never' : 'automatic'}

@@ -8,6 +8,7 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
+import { Appearance } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useScreenTransition } from '@/components/motion';
@@ -22,6 +23,8 @@ import { fonts } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 SplashScreen.preventAutoHideAsync();
+// App sempre escuro no visual neon (D-59): barra de abas nativa, teclado e alertas do sistema também.
+if (process.env.EXPO_OS !== 'web') Appearance.setColorScheme('dark');
 
 export default function RootLayout() {
   const { colors, scheme } = useTheme();

@@ -48,13 +48,16 @@ export function LayerChips({ value, onChange }: { value: Layer; onChange: (l: La
                 height: 36,
                 justifyContent: 'center',
                 borderRadius: radius.pill,
-                backgroundColor: on ? colors.text : colors.surface,
-                boxShadow: floating,
+                // Neon (D-59): ativo com contorno e brilho laranja, como os chips do resto do app.
+                backgroundColor: on ? '#2A1609' : colors.surface,
+                borderWidth: 1,
+                borderColor: on ? colors.action : colors.line,
+                boxShadow: on ? '0 0 14px rgba(255,106,19,0.45)' : floating,
                 transitionProperty: 'backgroundColor',
                 transitionDuration: durations.state,
                 transitionTimingFunction: cssEasings.swap,
               }}>
-              <Text variant="caption" color={on ? colors.surface : colors.text} numberOfLines={1}>
+              <Text variant="caption" color={on ? colors.accentText : colors.text} numberOfLines={1}>
                 {label}
               </Text>
             </Animated.View>
