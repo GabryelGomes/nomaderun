@@ -157,6 +157,8 @@ export type ScreenScrollProps = CommonProps &
   Omit<ComponentProps<typeof Animated.ScrollView>, 'children'> & {
     /** Desligue para formulários longos que já tratam o teclado de outro jeito. */
     keyboardAware?: boolean;
+    /** Camada fixa desenhada atrás do conteúdo (ex.: fundo neon das telas de entrada). */
+    background?: ReactNode;
   };
 
 /**
@@ -174,6 +176,7 @@ export function ScreenScroll({
   keyboardAware = true,
   contentContainerStyle,
   testID,
+  background,
   ...rest
 }: ScreenScrollProps) {
   const { colors } = useTheme();
@@ -181,6 +184,7 @@ export function ScreenScroll({
   const manualTop = edges.includes('top');
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
+      {background}
       <Animated.ScrollView
         testID={testID}
         contentInsetAdjustmentBehavior={manualTop ? 'never' : 'automatic'}

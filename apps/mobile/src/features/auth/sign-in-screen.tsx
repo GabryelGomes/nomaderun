@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useRef, useState } from 'react';
 import { type TextInput, View } from 'react-native';
 
@@ -10,14 +11,20 @@ import { FACTION_IDS } from '@/domain/types';
 import * as authRepo from '@/services/api/auth-repo';
 import { env } from '@/services/api/env';
 import { useSession } from '@/store/session-store';
+import { neon, neonTeam } from '@/theme/neon';
 import { space } from '@/theme/tokens';
+import { ForceScheme } from '@/theme/use-theme';
 
 import { ErrorNotice, FormScaffold, TextField, TextLink } from './form-ui';
 import { HeroWordmark } from './hero-wordmark';
+import { NeonBackdrop } from './neon-backdrop';
 import { providerLabel, signInWithProvider } from './oauth';
 import { validateEmail } from './validation';
 
-/** Entrar (RF-001). Erros: credenciais inválidas, sem internet, muitas tentativas (RNF-007). */
+/**
+ * Entrar (RF-001). Erros: credenciais inválidas, sem internet, muitas tentativas (RNF-007).
+ * Visual neon (D-58): sempre escuro, com o fundo "Pit Lane Neon" da apresentação.
+ */
 export function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,66 +55,76 @@ export function SignInScreen() {
   };
 
   return (
-    <FormScaffold testID="tela-entrar">
-      <View style={{ gap: space[4] }}>
-        <Stagger style={{ flexDirection: 'row', gap: space[2] }}>
-          {FACTION_IDS.map((f) => (
-            <TeamBadge key={f} faction={f} size={44} />
+    <ForceScheme scheme="dark">
+      <StatusBar style="light" />
+      <FormScaffold testID="tela-entrar" background={<NeonBackdrop />}>
+        <View style={{ gap: space[4] }}>
+          <Stagger style={{ flexDirection: 'row', gap: space[3] }}>
+            {FACTION_IDS.map((f) => (
+              // Brilho na cor neon de cada time (mesmas cores da apresentação).
+              <View key={f} style={{ borderRadius: 22, boxShadow: `0 0 18px ${neonTeam[f]}88` }}>
+                <TeamBadge faction={f} size={44} />
+              </View>
+            ))}
+          </Stagger>
+          <HeroWordmark testID="entrar-titulo" delay={120} neon />
+          <FadeUp delay={500}>
+            <Text variant="lead" color={neon.ink2}>
+              Entre para continuar correndo a sua cidade.
+            </Text>
+          </FadeUp>
+        </View>
+
+        <View style={{ gap: space[4] }}>
+          <ErrorNotice message={error} testID="entrar-erro" />
+          {error ? null : <ErrorNotice message={notice} testID="entrar-aviso-sessao" />}
+          <FadeUp delay={600} style={{ gap: space[4] }}>
+            <TextField
+              testID="entrar-email"
+              label="E-mail"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="voce@email.com"
+              autoCapitalize="none"
+              autoComplete="email"
+              keyboardType="email-address"
+              textContentType="emailAddress"
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => passwordRef.current?.focus()}
+              error={fieldError.email}
+            />
+            <TextField
+              testID="entrar-senha"
+              inputRef={passwordRef}
+              label="Senha"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Sua senha"
+              secret
+              autoComplete="current-password"
+              textContentType="password"
+              returnKeyType="go"
+              onSubmitEditing={submit}
+              error={fieldError.password}
+            />
+          </FadeUp>
+          <View style={{ borderRadius: 999, boxShadow: busy ? undefined : neon.buttonGlow }}>
+            <Button testID="entrar-botao" label={busy ? 'Entrando…' : 'Entrar'} size="lg" wide disabled={busy} onPress={submit} />
+          </View>
+          <TextLink testID="entrar-esqueci" label="Esqueci minha senha" href="/recuperar-senha" />
+        </View>
+
+        <View style={{ gap: space[3], marginTop: 'auto' }}>
+          {env.oauthProviders.map((p) => (
+            <Button key={p} testID={`entrar-${p}`} label={providerLabel[p]} kind="secondary" size="lg" wide onPress={() => social(p)} />
           ))}
-        </Stagger>
-        <HeroWordmark testID="entrar-titulo" delay={120} />
-        <FadeUp delay={500}>
-          <Text variant="lead">Entre para continuar correndo a sua cidade.</Text>
-        </FadeUp>
-      </View>
-
-      <View style={{ gap: space[4] }}>
-        <ErrorNotice message={error} testID="entrar-erro" />
-        {error ? null : <ErrorNotice message={notice} testID="entrar-aviso-sessao" />}
-        <FadeUp delay={600} style={{ gap: space[4] }}>
-          <TextField
-            testID="entrar-email"
-            label="E-mail"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="voce@email.com"
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            textContentType="emailAddress"
-            returnKeyType="next"
-            submitBehavior="submit"
-            onSubmitEditing={() => passwordRef.current?.focus()}
-            error={fieldError.email}
-          />
-          <TextField
-            testID="entrar-senha"
-            inputRef={passwordRef}
-            label="Senha"
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Sua senha"
-            secret
-            autoComplete="current-password"
-            textContentType="password"
-            returnKeyType="go"
-            onSubmitEditing={submit}
-            error={fieldError.password}
-          />
-        </FadeUp>
-        <Button testID="entrar-botao" label={busy ? 'Entrando…' : 'Entrar'} size="lg" wide disabled={busy} onPress={submit} />
-        <TextLink testID="entrar-esqueci" label="Esqueci minha senha" href="/recuperar-senha" />
-      </View>
-
-      <View style={{ gap: space[3], marginTop: 'auto' }}>
-        {env.oauthProviders.map((p) => (
-          <Button key={p} testID={`entrar-${p}`} label={providerLabel[p]} kind="secondary" size="lg" wide onPress={() => social(p)} />
-        ))}
-        <Text variant="caption" muted style={{ textAlign: 'center' }}>
-          Ainda não corre com a gente?
-        </Text>
-        <Button testID="entrar-criar-conta" label="Criar conta" kind="secondary" size="lg" wide onPress={() => router.push('/cadastro')} />
-      </View>
-    </FormScaffold>
+          <Text variant="caption" muted style={{ textAlign: 'center' }}>
+            Ainda não corre com a gente?
+          </Text>
+          <Button testID="entrar-criar-conta" label="Criar conta" kind="secondary" size="lg" wide onPress={() => router.push('/cadastro')} />
+        </View>
+      </FormScaffold>
+    </ForceScheme>
   );
 }

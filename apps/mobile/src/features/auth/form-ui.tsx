@@ -8,6 +8,7 @@ import { Pressable as PressableScale } from '@/components/motion';
 import { ScreenScroll, type Edge, type ScreenScrollProps } from '@/components/screen';
 import { Text } from '@/components/text';
 import { fonts, palette, radius, space } from '@/theme/tokens';
+import { neon } from '@/theme/neon';
 import { useTheme } from '@/theme/use-theme';
 
 /**
@@ -30,6 +31,7 @@ export function FormScaffold({
   nativeHeader,
   footer,
   footerProps,
+  background,
 }: {
   children: ReactNode;
   testID?: string;
@@ -37,6 +39,8 @@ export function FormScaffold({
   nativeHeader?: boolean;
   footer?: ReactNode;
   footerProps?: ScreenScrollProps['footerProps'];
+  /** Fundo próprio atrás do conteúdo (ex.: `NeonBackdrop`). */
+  background?: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const sheet = nativeHeader || (modal && process.env.EXPO_OS === 'ios');
@@ -47,6 +51,7 @@ export function FormScaffold({
       edges={edges}
       footer={footer}
       footerProps={footerProps}
+      background={background}
       gap={space[6]}
       contentContainerStyle={{ flexGrow: 1, paddingHorizontal: space[6], paddingTop: (sheet ? 0 : insets.top) + (nativeHeader ? space[4] : space[6]) }}>
       {children}
@@ -70,6 +75,7 @@ export type TextFieldProps = Omit<TextInputProps, 'style'> & {
 export function TextField({ label, error, help, testID, secret, inputRef, onSurface, ...input }: TextFieldProps) {
   const { colors } = useTheme();
   const [hidden, setHidden] = useState(true);
+  const [focused, setFocused] = useState(false);
   return (
     <View style={{ gap: space[2] }}>
       <Text variant="caption" muted nativeID={`${testID}-label`}>
@@ -84,6 +90,14 @@ export function TextField({ label, error, help, testID, secret, inputRef, onSurf
           accessibilityLabelledBy={`${testID}-label`}
           accessibilityHint={error ?? undefined}
           secureTextEntry={secret ? hidden : input.secureTextEntry}
+          onFocus={(e) => {
+            setFocused(true);
+            input.onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            input.onBlur?.(e);
+          }}
           placeholderTextColor={colors.textSecondary}
           style={{
             height: 52,
@@ -94,8 +108,12 @@ export function TextField({ label, error, help, testID, secret, inputRef, onSurf
             color: colors.text,
             fontFamily: fonts.text,
             fontSize: 17,
-            borderWidth: error ? 1 : 0,
-            borderColor: error ? colors.danger : 'transparent',
+            // Foco com borda e brilho na cor de ação (D-58): indicador de foco visível em todos os formulários.
+            borderWidth: error || focused ? 1 : 0,
+            borderColor: error ? colors.danger : focused ? colors.action : 'transparent',
+            boxShadow: focused && !error ? neon.focusGlow : undefined,
+            // Sem o contorno padrão do navegador por cima da borda de foco (web).
+            outlineWidth: 0,
           }}
         />
         {secret ? (

@@ -4,6 +4,7 @@ import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { enterAnimation } from '@/components/motion';
 import { Text } from '@/components/text';
 import { distances, durations, staggers } from '@/theme/motion';
+import { neon as neonTokens } from '@/theme/neon';
 
 import { wordmarkSize } from './wordmark';
 
@@ -13,17 +14,20 @@ import { wordmarkSize } from './wordmark';
  * Componente local porque o `RevealText` compartilhado ainda não aceita tamanho de fonte próprio
  * (pedido registrado no PROGRESSO para o A7). O leitor de tela lê "NOMADE RUN" uma vez, como cabeçalho.
  * "Reduzir movimento": aparece só com opacidade.
+ * `neon` (D-58): "NOMADE" claro e "RUN" em laranja neon com brilho, como na apresentação.
  */
-export function HeroWordmark({ testID, delay = 0 }: { testID?: string; delay?: number }) {
+export function HeroWordmark({ testID, delay = 0, neon = false }: { testID?: string; delay?: number; neon?: boolean }) {
   const reduced = useReducedMotion();
   const { width } = useWindowDimensions();
   const size = wordmarkSize(width);
-  const pad = Math.ceil(size * 0.12);
+  // Folga da máscara: com neon, precisa caber o brilho (senão ele aparece cortado num retângulo).
+  const glow = neon ? neonTokens.textGlow.radius : 0;
+  const pad = Math.max(Math.ceil(size * 0.12), glow);
   return (
     <View testID={testID} accessible accessibilityRole="header" accessibilityLabel="NOMADE RUN">
       <View aria-hidden importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
         {['NOMADE', 'RUN'].map((line, i) => (
-          <View key={line} style={{ overflow: 'hidden', paddingVertical: pad, marginVertical: -pad, alignSelf: 'flex-start' }}>
+          <View key={line} style={{ overflow: 'hidden', paddingVertical: pad, marginVertical: -pad, paddingHorizontal: glow, marginHorizontal: -glow, alignSelf: 'flex-start' }}>
             <Animated.View
               style={enterAnimation({
                 reduced,
@@ -33,7 +37,15 @@ export function HeroWordmark({ testID, delay = 0 }: { testID?: string; delay?: n
                 delay: delay + i * staggers.line * 3,
                 curve: 'reveal',
               })}>
-              <Text variant="hero" style={{ fontSize: size, lineHeight: size }}>
+              <Text
+                variant="hero"
+                color={neon ? (line === 'RUN' ? neonTokens.orange : neonTokens.ink) : undefined}
+                style={[
+                  { fontSize: size, lineHeight: size },
+                  neon && line === 'RUN'
+                    ? { textShadowColor: neonTokens.textGlow.color, textShadowRadius: neonTokens.textGlow.radius, textShadowOffset: { width: 0, height: 0 } }
+                    : null,
+                ]}>
                 {line}
               </Text>
             </Animated.View>

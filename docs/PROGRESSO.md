@@ -81,6 +81,14 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-21 — Correções no iPhone 15 e login neon (A1 Arquiteto)
+- **Feito (a partir de prints reais do iPhone 15):**
+  - **Clube e Arena:** o parallax tratava o deslocamento negativo do título grande do iOS (~ −150 pt) como "puxão" e ampliava o cabeçalho até 2×, cortando o conteúdo. Agora só reage ao rolar para cima (`parallax-math.ts`).
+  - **Mapa e Editar perfil:** "Correr" e "Salvar alterações" ficavam atrás da barra de abas flutuante do iOS. `tabBarClearance` (`components/screen.tsx`) soma a barra no iOS; Android inalterado.
+  - **Login neon (D-58):** fundo "Pit Lane Neon" com rota animada, "RUN" laranja com brilho, selos e botão com brilho; foco dos campos com borda e brilho em todos os formulários.
+- **Testes:** typecheck ok; eslint ok; `npm test` → 406 passaram; Playwright do login em 390×844 (modo claro do sistema e reduzir movimento), sem erros de console. Captura: `docs/ui-audit/d58-login-neon-390.png`.
+- **Pendências:** conferir no iPhone (Clube/Arena, Correr acima das abas, login neon); levar o neon para boas-vindas/cadastro se os autores aprovarem; QA-20, 23, 24, 25.
+
 ### 2026-10-21 — QA-18, QA-19 — Faixa de território acessível (A1 Arquiteto)
 - **Feito:** faixa escondida fora do leitor de tela (`aria-hidden`, sem região viva); fundo da faixa rival com contraste ≥ 4,5:1 via `readableBackground` (Volt e Owls escurecidos o mínimo).
 - **Arquivos:** `apps/mobile/src/features/run/banner-color.ts` (novo), `apps/mobile/src/features/run/__tests__/banner-color.test.ts` (novo), `apps/mobile/src/features/screens/run-screen.tsx`, `docs/QA.md` §14.8.
