@@ -27,3 +27,5 @@ export * from '../../../apps/mobile/src/domain/paint.ts';
 export * from '../../../apps/mobile/src/domain/live-events.ts';
 export * from '../../../apps/mobile/src/domain/raid.ts';
 export * from '../../../apps/mobile/src/domain/league.ts';
+export * from '../../../apps/mobile/src/domain/share-privacy.ts';
+export * from '../../../apps/mobile/src/domain/gpx.ts';
