@@ -21,3 +21,5 @@ export * from '../../../apps/mobile/src/domain/run-engine.ts';
 export * from '../../../apps/mobile/src/domain/regions.ts';
 export * from '../../../apps/mobile/src/domain/season.ts';
 export * from '../../../apps/mobile/src/domain/progression.ts';
+export * from '../../../apps/mobile/src/domain/missions.ts';
+export * from '../../../apps/mobile/src/domain/reminders.ts';
