@@ -1,0 +1,422 @@
+[
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "NOMADE",
+  "width": 439.06
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "RUN",
+  "width": 203.23
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "2,02",
+  "width": 221.44
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "12,4",
+  "width": 202.98
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "418",
+  "width": 171.98
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "10:29",
+  "width": 268.31
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "5:12",
+  "width": 198.44
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "+183",
+  "width": 236.48
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "+46",
+  "width": 197.08
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "8",
+  "width": 65.34
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "86",
+  "width": 130.38
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "14",
+  "width": 107.63
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "23",
+  "width": 124.95
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "Jardim Goiás",
+  "width": 612.56
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "Setor Bueno",
+  "width": 575.73
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "Cheguei ao nível 8",
+  "width": 857.67
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "Mormaço de Outubro",
+  "width": 996.98
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "DERROTADO",
+  "width": 605.03
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "km",
+  "width": 146.64
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "pontos",
+  "width": 331.11
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "6,3",
+  "width": 158.36
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "1h04",
+  "width": 236.72
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "4,1",
+  "width": 132.03
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "3,6",
+  "width": 158.2
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "4,7",
+  "width": 153.13
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "Parque Vaca Brava",
+  "width": 873.5
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "Vila Nova",
+  "width": 439.41
+ },
+ {
+  "font": "InterTight_800ExtraBold",
+  "size": 100,
+  "text": "Áreas Verdes",
+  "width": 632.33
+ },
+ {
+  "font": "InterTight_600SemiBold",
+  "size": 100,
+  "text": "2,02 km  ·  10:29  ·  5:12 /km",
+  "width": 1136.14
+ },
+ {
+  "font": "InterTight_600SemiBold",
+  "size": 100,
+  "text": "10,00 km  ·  52:10  ·  5:13 /km",
+  "width": 1182.33
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "NEON STRIDERS",
+  "width": 803.28
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "URBAN COYOTES",
+  "width": 861.97
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "NIGHT OWLS",
+  "width": 644.88
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "VOLT RUNNERS",
+  "width": 768.81
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "QUINTA · 23 OUT · GOIÂNIA",
+  "width": 1351.23
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "SÁBADO · 1 NOV",
+  "width": 800.2
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "TEMPO",
+  "width": 362.5
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "RITMO",
+  "width": 330.72
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "PONTOS",
+  "width": 424.17
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "/km",
+  "width": 188.09
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "1 zona conquistada · 3 reforçadas",
+  "width": 1633.55
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "ZONA CONQUISTADA",
+  "width": 1060.8
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "Urban Coyotes",
+  "width": 727.94
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "Neon Striders",
+  "width": 672.77
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "NÍVEL",
+  "width": 296.25
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "NÍVEL NOVO",
+  "width": 616.91
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "KM NO TOTAL",
+  "width": 692.25
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "ZONAS",
+  "width": 354.94
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "CORRIDAS",
+  "width": 517.09
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "CHEFÃO DA CIDADE",
+  "width": 974.28
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "MEU DANO",
+  "width": 546.73
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "Flamboyant Runners · 1º lugar · 412 km",
+  "width": 1877.73
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "MINHA SEMANA",
+  "width": 815.44
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "20 – 26 OUT",
+  "width": 596.39
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "EM MOVIMENTO",
+  "width": 817.3
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "Sequência de 4 semanas",
+  "width": 1218.66
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "DADOS DE DEMONSTRAÇÃO",
+  "width": 1403.52
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "CORRA A SUA CIDADE. CADA RUA CONTA.",
+  "width": 2086.48
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "CORRA A SUA CIDADE.",
+  "width": 1125.2
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "ROTA PROTEGIDA",
+  "width": 873.39
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "PROVISÓRIO",
+  "width": 619.59
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "EM REVISÃO",
+  "width": 618.22
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "S",
+  "width": 65.48
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "T",
+  "width": 66.75
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "Q",
+  "width": 77.69
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "D",
+  "width": 72.22
+ },
+ {
+  "font": "Inter_700Bold",
+  "size": 100,
+  "text": "@gabryel",
+  "width": 473.25
+ },
+ {
+  "font": "Inter_500Medium",
+  "size": 100,
+  "text": "Faltam 1.900 XP para o nível 9",
+  "width": 1440.39
+ },
+ {
+  "font": "Inter_500Medium",
+  "size": 100,
+  "text": "Goiânia correu 3.600 km em 5 dias",
+  "width": 1663.44
+ },
+ {
+  "font": "Inter_500Medium",
+  "size": 100,
+  "text": "Rota protegida pela sua privacidade",
+  "width": 1713.83
+ }
+]
