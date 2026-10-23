@@ -5,8 +5,10 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import { isDemoUserId } from '@/demo/world';
 import { getSupabase } from '@/services/api/supabase';
 import { getActivityResult } from '@/services/api/activities-repo';
+import { isDemoClient } from '@/services/api/demo';
 import { ACCOUNT_INACTIVE, reportAccountInactive } from '@/services/api/errors';
 
 import type { ApiFailure, ApiResult, SyncTransport } from './types';
@@ -36,10 +38,34 @@ export async function parseFunctionsError(error: unknown): Promise<ApiFailure> {
   return { code: 'NETWORK', status: 0, message: NETWORK_MESSAGE };
 }
 
+/** Código da recusa quando uma conta de demonstração tenta falar com o servidor real (D-77). */
+export const DEMO_ISOLATION = 'DEMO_ISOLATION';
+
+const demoRefusal: ApiFailure = {
+  code: DEMO_ISOLATION,
+  status: 403,
+  message: 'Corrida da demonstração: ela fica só neste aparelho e nunca é enviada ao servidor.',
+};
+
+/**
+ * Defesa extra do isolamento da demonstração (D-77): o transporte REAL nunca envia nada em nome de um
+ * usuário `demo-…`. O cliente de demonstração (em memória) passa; um cliente real com sessão `demo-…` não.
+ */
+async function refusesDemoUser(client: SupabaseClient): Promise<boolean> {
+  if (isDemoClient(client)) return false;
+  try {
+    const { data } = (await client.auth?.getSession?.()) ?? { data: null };
+    return isDemoUserId(data?.session?.user?.id);
+  } catch {
+    return false;
+  }
+}
+
 export function createSupabaseTransport(get: () => SupabaseClient | null = getSupabase): SyncTransport {
   async function invoke<T>(name: string, body: Record<string, unknown>): Promise<ApiResult<T>> {
     const client = get();
     if (!client) return { ok: false, error: { code: 'NOT_CONFIGURED', status: 0, message: 'Backend não configurado.' } };
+    if (await refusesDemoUser(client)) return { ok: false, error: demoRefusal };
     try {
       const { data, error } = await client.functions.invoke(name, { method: 'POST', body });
       if (error) {

@@ -36,3 +36,17 @@ NODE_PATH="$(npm root -g)" WEB_DIST=/tmp/nomade-web node "$(npm root -g)/playwri
 ```
 
 Estados: mapa com zonas dominadas e zona sob ataque; folha da zona neutra, dominada e sob ataque (eventos e prazo mascarados); mapa de calor = `fixme` (RF-013 fora do MVP). O mapa-base externo é bloqueado no teste. As imagens de referência ficam em `__screenshots__/` e foram geradas com o seed limpo: depois de uma mudança visual aprovada (D-15), rode `npm run db:reset` e acrescente `--update-snapshots`.
+
+## Capturas do modo demonstração (T7.1.19, sem servidor)
+
+Não precisa de Supabase: o export roda com o servidor de demonstração em memória (D-77).
+
+```bash
+# em apps/mobile; o --clear é obrigatório (o cache do Metro ignora mudança de EXPO_PUBLIC_*)
+EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear --output-dir /tmp/nomade-demo
+NODE_PATH="$(npm root -g)" node e2e-web/capturas.cjs /tmp/nomade-demo <pasta>
+# filtros: --rotas=inicio,arena  --estados=cheio,vazio  --larguras=390  --sem-pngquant
+# ou --build para o script fazer o export (sempre com --clear)
+```
+
+Rota × estado (`?cenario=` do servidor de demonstração: cheio, vazio, carregando/lento, erro, offline, sob-ataque, sem-time, primeira-abertura, moderador) × 360/390/430. Relógio fixo, "Reduzir movimento", mapa-base trocado por um estilo vazio (as regiões aparecem sem internet) e selo "Demonstração" em toda captura. Saída em `docs/melhoria/capturas/<pasta>/`, comprimida com `pngquant --quality=85-98`, e `relatorio.json` (FCP, palavras visíveis, alvos < 44 px, interativos sem nome, erros da página; `pedidosAoServidor` tem de ser 0).
