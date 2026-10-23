@@ -21,7 +21,16 @@ export const CARD_FORMATS: Record<ShareCardFormat, { W: number; H: number; top: 
 /** O card é uma imagem só para o leitor de tela. Na web, `accessible` vazaria para o DOM: lá bastam role e aria-label. */
 export const A11Y_GROUP = Platform.OS === 'web' ? undefined : true;
 
-export const CARD_SLOGAN_STORIES = 'CORRA A SUA CIDADE. CADA RUA CONTA.';
+/** Área segura dos Stories (a barra do Instagram cobre o topo e o rodapé). */
+export const STORIES_SAFE = { top: 250, bottom: 1670 } as const;
+
+/** Linha de base do selo de demonstração nos Stories: abaixo da pílula do time (e do selo de status, se houver). */
+export function storiesDemoStampY(statusTag: string | null): number {
+  const top = CARD_FORMATS.stories.top;
+  return statusTag ? top + 122 : top + 70;
+}
+
+export const CARD_SLOGAN_STORIES ='CORRA A SUA CIDADE. CADA RUA CONTA.';
 export const CARD_SLOGAN_FEED = 'CORRA A SUA CIDADE.';
 
 export type CardSurfaceProps = {
@@ -65,7 +74,8 @@ export function CardFrame({ format, faction, isDemo, username, statusTag, a11yLa
           <CardText x={W / 2} y={1780} size={24} fill={cardColors.ink2} ls={5} anchor="middle">
             {CARD_SLOGAN_STORIES}
           </CardText>
-          {isDemo ? <DemoStamp x={W / 2} y={1830} /> : null}
+          {/* T7.2.5: o selo fica dentro da área segura do Instagram (y de 250 a 1670), sob a pílula do time. */}
+          {isDemo ? <DemoStamp x={W - 72} y={storiesDemoStampY(statusTag)} anchor="end" size={20} /> : null}
         </>
       ) : (
         <>
