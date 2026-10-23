@@ -230,6 +230,24 @@ describe('CelebrationSequence', () => {
     expect(empty).toHaveBeenCalledTimes(1);
   });
 
+  it('galeria /dev/motion: cada momento e cada ajuste tocam sem erro', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Gallery = require('@/app/dev/motion').default as () => ReactElement;
+    const r = render(<Gallery />);
+    const chips = r.root.findAll((n: ReactTestInstance) => typeof n.props.testID === 'string' && n.props.testID.startsWith('galeria-motion-') && typeof n.props.onPress === 'function' && !n.props.testID.startsWith('galeria-motion-vibrar'));
+    const ids = [...new Set(chips.map((c: ReactTestInstance) => c.props.testID as string))];
+    expect(ids).toEqual(expect.arrayContaining(['galeria-motion-bau', 'galeria-motion-time', 'galeria-motion-resumo', 'galeria-motion-reduzido-sim']));
+    for (const id of ids) {
+      act(() => {
+        byId(r, id, 'onPress').props.onPress({});
+      });
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+    }
+    expect(r.toJSON()).not.toBeNull();
+  });
+
   it('desenho padrão cobre todos os tipos, inclusive o grupo', () => {
     const all: CelebrationEvent[] = [
       ...EVENTS,

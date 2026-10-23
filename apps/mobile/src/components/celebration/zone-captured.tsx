@@ -4,6 +4,7 @@ import Animated from 'react-native-reanimated';
 
 import { Burst } from '@/components/motion/burst';
 import { Confetti } from '@/components/motion/confetti';
+import { formatCount } from '@/components/motion/count';
 import { CountUp } from '@/components/motion/count-up';
 import { ProgressRing } from '@/components/motion/progress-ring';
 import { TeamBadge } from '@/components/team-badge';
@@ -84,10 +85,7 @@ function ZoneSummary(props: ZoneCapturedProps & { text: string }) {
         </Text>
       </Animated.View>
       <Animated.View style={[{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }, step(still, rise(12), 500, at(Z.points))]}>
-        <Text variant="lead" color={neon.orangeText}>
-          +
-        </Text>
-        <CountUp value={points} duration={still ? 0 : 600} delay={still ? 0 : at(Z.points + 40)} variant="lead" color={neon.orangeText} accessibilityLabel={`${points} pontos`} />
+        <CountUp value={points} format={(n) => `+${formatCount(n)}`} duration={still ? 0 : 600} delay={still ? 0 : at(Z.points + 40)} variant="lead" color={neon.orangeText} accessibilityLabel={`mais ${points} pontos`} />
         <Text variant="lead" muted>
           pontos em {zone}
         </Text>

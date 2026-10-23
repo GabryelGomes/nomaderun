@@ -4,6 +4,7 @@ import Animated from 'react-native-reanimated';
 
 import { Burst } from '@/components/motion/burst';
 import { Confetti } from '@/components/motion/confetti';
+import { formatCount } from '@/components/motion/count';
 import { CountUp } from '@/components/motion/count-up';
 import { Flash } from '@/components/motion/flash';
 import { Shake } from '@/components/motion/shake';
@@ -117,10 +118,7 @@ export function ChestOpening(props: ChestOpeningProps) {
         </Text>
       </Animated.View>
       <Animated.View style={[{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }, step(still, { from: { opacity: 0, transform: [{ scale: 0.8 }] }, to: { opacity: 1, transform: [{ scale: 1 }] } }, springs.snappy.duration, at(C.xp), springCss('snappy'))]}>
-        <Text variant="headline" color={neon.orangeText}>
-          +
-        </Text>
-        <CountUp value={xp} duration={still ? 0 : 500} delay={still ? 0 : at(C.xp)} variant="headline" color={neon.orangeText} unit="XP" accessibilityLabel={`${xp} XP`} />
+        <CountUp value={xp} format={(n) => `+${formatCount(n)}`} duration={still ? 0 : 500} delay={still ? 0 : at(C.xp)} variant="headline" color={neon.orangeText} unit="XP" accessibilityLabel={`mais ${xp} XP`} />
       </Animated.View>
       {odds ? (
         <Animated.View style={step(still, { from: { opacity: 0 }, to: { opacity: 1 } }, 300, at(C.odds), cssEasings.standard)}>
