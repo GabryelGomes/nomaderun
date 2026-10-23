@@ -16,6 +16,7 @@ import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { CREW_FEED_TEXT, CrewFeed } from './crew-feed';
+import { FeedSettings } from './feed-settings';
 
 export function CrewFeedScreen() {
   const { colors } = useTheme();
@@ -33,6 +34,10 @@ export function CrewFeedScreen() {
         </PressableScale>
       </View>
       <CrewFeed faction={faction} onJoinCrew={() => router.push('/clube/crew')} />
+      <Text variant="title" accessibilityRole="header">
+        Privacidade do feed
+      </Text>
+      <FeedSettings />
     </ScreenScroll>
   );
 }

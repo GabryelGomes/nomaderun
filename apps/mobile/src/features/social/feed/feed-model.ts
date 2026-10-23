@@ -49,23 +49,23 @@ export function highlightLabel(h: FeedHighlight): string {
 /** Uma frase para o leitor de tela com o que o item mostra. */
 export function feedItemLabel(item: FeedItem, today: string): string {
   const s = feedStats(item);
-  const who = item.you ? 'Você' : item.actor.username;
-  const parts = [who, feedDateLabel(item.localDate, today), s.km, s.time, `ritmo ${s.pace}`, ...item.highlights.map(highlightLabel)];
+  const who = item.you ? 'Você' : item.author.username;
+  const parts = [who, feedDateLabel(item.day, today), s.km, s.time, `ritmo ${s.pace}`, ...item.highlights.map(highlightLabel)];
   if (item.routeHidden) parts.push('rota escondida');
   if (item.isDemo) parts.push('demonstração');
   return parts.filter(Boolean).join(', ');
 }
 
 /** Reação otimista: põe, troca ou tira (tocar de novo na mesma tira). */
-export function toggleReaction(item: Pick<FeedItem, 'reactions' | 'myReaction'>, reaction: FeedReaction): { reactions: FeedItem['reactions']; myReaction: FeedReaction | null } {
-  const reactions = { ...item.reactions };
-  if (item.myReaction) reactions[item.myReaction] = Math.max(0, reactions[item.myReaction] - 1);
-  if (item.myReaction === reaction) return { reactions, myReaction: null };
-  reactions[reaction] += 1;
-  return { reactions, myReaction: reaction };
+export function toggleReaction(item: Pick<FeedItem, 'kudos' | 'myReaction'>, reaction: FeedReaction): { kudos: FeedItem['kudos']; myReaction: FeedReaction | null } {
+  const kudos = { ...item.kudos };
+  if (item.myReaction) kudos[item.myReaction] = Math.max(0, kudos[item.myReaction] - 1);
+  if (item.myReaction === reaction) return { kudos, myReaction: null };
+  kudos[reaction] += 1;
+  return { kudos, myReaction: reaction };
 }
 
-export const totalReactions = (r: FeedItem['reactions']) => r.bora + r.fogo + r.raio;
+export const totalReactions = (r: FeedItem['kudos']) => r.bora + r.fogo + r.raio;
 
 /**
  * Pedaços da rota → caminhos SVG numa caixa `width × height` com margem, mantendo a proporção (projeção

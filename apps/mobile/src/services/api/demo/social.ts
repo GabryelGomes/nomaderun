@@ -1,6 +1,6 @@
 /**
  * Pares de demonstração da E8 (T7.2.5): feed da crew com reações (D-79) e `record_share`.
- * Imita o contrato proposto para a E9 (`docs/melhoria/relatorios/E8-onda2.md` §5):
+ * Imita o contrato da E9 (`docs/API_CONTRATO.md`, "Contrato v2 — onda 2"):
  *  - só a crew vê o feed; o item não traz hora nem coordenada fora da rota cortada;
  *  - a rota sai cortada pelo mesmo `clipRouteForSharing` do domain (zonas de privacidade do autor e
  *    pontas escondidas) e vai como polyline de precisão 4, no máximo 80 pontos por item;
@@ -18,7 +18,7 @@ import { demoRoute, zoneName } from '@/demo/demo-data';
 import { demoRunPoints } from '@/demo/world';
 
 import { encodePolyline, FEED_DAILY_REACTIONS, FEED_PAGE_SIZE, isFeedReaction, type FeedReaction } from '../feed-repo';
-import { iso, msOf, raise, type DemoDb, type Row } from './db';
+import { msOf, raise, type DemoDb, type Row } from './db';
 
 type RpcHandler = (db: DemoDb, userId: string | null, args: Row) => unknown;
 
@@ -48,6 +48,10 @@ type SocialState = {
   /** Rotas já cortadas por item (o corte é estável dentro da sessão). */
   routes: Map<string, string[] | null>;
   mates: StoredItem[] | null;
+  /** Itens que o autor tirou do feed. */
+  deleted: Set<string>;
+  /** `user_settings` de demonstração (padrão: tudo ligado). */
+  settings: Map<string, { shareRunsToFeed: boolean; feedShowMap: boolean }>;
 };
 
 const states = new WeakMap<DemoDb, SocialState>();
@@ -55,7 +59,7 @@ const states = new WeakMap<DemoDb, SocialState>();
 function stateOf(db: DemoDb): SocialState {
   let s = states.get(db);
   if (!s) {
-    s = { kudos: new Map(), given: new Map(), routes: new Map(), mates: null };
+    s = { kudos: new Map(), given: new Map(), routes: new Map(), mates: null, deleted: new Set(), settings: new Map() };
     states.set(db, s);
   }
   return s;
@@ -67,6 +71,8 @@ function requireUser(db: DemoDb, userId: string | null): Row {
   if (p.status === 'inactive') throw raise('ACCOUNT_INACTIVE: conta inativa');
   return p;
 }
+
+const settingsOf = (db: DemoDb, userId: string) => stateOf(db).settings.get(userId) ?? { shareRunsToFeed: true, feedShowMap: true };
 
 /** Semente estável por item (no servidor real ela é sorteada a cada geração do item). */
 function seedOf(text: string): number {
@@ -171,7 +177,7 @@ function visibleItems(db: DemoDb, userId: string): { crewId: string | null; item
   const crewId = db.crewOf(userId);
   if (!crewId) return { crewId: null, items: [] };
   const s = stateOf(db);
-  const own = ownItems(db, userId);
+  const own = settingsOf(db, userId).shareRunsToFeed ? ownItems(db, userId) : [];
   const mates = mateItems(db, crewId, userId);
   // Colegas aplaudem as corridas do corredor de demonstração (sempre os mesmos, para a captura ser estável).
   const crewMates = db.tables.crew_members.filter((m) => m.crew_id === crewId && m.user_id !== userId).map((m) => String(m.user_id)).sort();
@@ -180,7 +186,7 @@ function visibleItems(db: DemoDb, userId: string): { crewId: string | null; item
     const n = Math.max(0, crewMates.length - k);
     s.kudos.set(item.id, new Map(crewMates.slice(0, n).map((m, i) => [m, i === 0 && k === 0 ? 'raio' : i % 3 === 2 ? 'fogo' : 'bora'])));
   });
-  return { crewId, items: [...own, ...mates].sort((a, b) => b.createdAt - a.createdAt) };
+  return { crewId, items: [...own, ...mates].filter((i) => !s.deleted.has(i.id)).sort((a, b) => b.createdAt - a.createdAt) };
 }
 
 function countsOf(kudos: Map<string, FeedReaction> | undefined): Record<FeedReaction, number> {
@@ -192,25 +198,25 @@ function countsOf(kudos: Map<string, FeedReaction> | undefined): Record<FeedReac
 /** Data local (Brasília, UTC−3) sem hora. */
 const localDate = (ms: number) => new Date(ms - 3 * 3600_000).toISOString().slice(0, 10);
 
+/** Item `F` do contrato: sem hora, sem id de corrida, rota só se o autor deixa mostrar o mapa. */
 function itemRow(db: DemoDb, item: StoredItem, userId: string): Row {
-  const actor = db.profile(item.actorId);
+  const author = db.profile(item.actorId);
   const kudos = stateOf(db).kudos.get(item.id);
+  const route = settingsOf(db, item.actorId).feedShowMap ? item.route : null;
   return {
     id: item.id,
-    kind: 'run',
-    activityId: item.actorId === userId ? item.activityId : null,
-    actor: { username: actor?.username ?? 'corredor', faction: actor?.faction ?? null, avatarUrl: actor?.avatar_url ?? null },
+    day: localDate(item.createdAt),
     you: item.actorId === userId,
-    localDate: localDate(item.createdAt),
+    author: { username: author?.username ?? 'corredor', faction: author?.faction ?? null, avatarUrl: author?.avatar_url ?? null },
     meters: item.meters,
     movingSeconds: item.movingSeconds,
-    route: item.route,
-    routeHidden: item.route === null,
+    avgPace: item.meters > 0 ? Math.round(item.movingSeconds / (item.meters / 1000)) : null,
     highlights: item.highlights,
-    reactions: countsOf(kudos),
+    route,
+    routeHidden: true, // o corte sempre esconde começo e fim
+    kudos: countsOf(kudos),
     myReaction: kudos?.get(userId) ?? null,
     isDemo: true,
-    createdAt: iso(item.createdAt),
   };
 }
 
@@ -219,14 +225,15 @@ export const DEMO_SOCIAL_RPC_HANDLERS: Record<string, RpcHandler> = {
     requireUser(db, userId);
     const { crewId, items } = visibleItems(db, userId!);
     const crew = crewId ? db.tables.crews.find((c) => c.id === crewId) : null;
-    const before = msOf(args.p_before);
     const limit = Math.max(1, Math.min(50, typeof args.p_limit === 'number' ? args.p_limit : FEED_PAGE_SIZE));
-    const page = items.filter((i) => before === null || i.createdAt < before).slice(0, limit);
-    const more = items.filter((i) => before === null || i.createdAt < before).length > page.length;
+    // `p_before` = id do último item da página anterior.
+    const from = args.p_before ? items.findIndex((i) => i.id === args.p_before) + 1 : 0;
+    const page = from > 0 || !args.p_before ? items.slice(from, from + limit) : [];
+    const more = from + page.length < items.length && page.length > 0;
     return {
       crew: crew ? { id: crew.id, name: crew.name, tag: crew.tag, faction: crew.faction } : null,
       items: page.map((i) => itemRow(db, i, userId!)),
-      nextBefore: more && page.length ? iso(page[page.length - 1].createdAt) : null,
+      next: more ? page[page.length - 1].id : null,
     };
   },
 
@@ -248,7 +255,41 @@ export const DEMO_SOCIAL_RPC_HANDLERS: Record<string, RpcHandler> = {
       s.given.set(key, given + 1);
       kudos.set(userId!, reaction);
     }
-    return { itemId: item.id, reactions: countsOf(kudos), myReaction: kudos.get(userId!) ?? null };
+    return itemRow(db, item, userId!);
+  },
+
+  feed_item_kudos: (db, userId, args) => {
+    requireUser(db, userId);
+    const item = visibleItems(db, userId!).items.find((i) => i.id === args.p_item);
+    if (!item) throw raise('NOT_FOUND: item do feed não encontrado');
+    return [...(stateOf(db).kudos.get(item.id) ?? new Map<string, FeedReaction>())].map(([uid, reaction]) => {
+      const p = db.profile(uid);
+      return { username: p?.username ?? 'corredor', faction: p?.faction ?? null, avatarUrl: p?.avatar_url ?? null, reaction };
+    });
+  },
+
+  delete_feed_item: (db, userId, args) => {
+    requireUser(db, userId);
+    const item = visibleItems(db, userId!).items.find((i) => i.id === args.p_item && i.actorId === userId);
+    if (!item) return false;
+    stateOf(db).deleted.add(item.id);
+    return true;
+  },
+
+  my_feed_settings: (db, userId) => {
+    requireUser(db, userId);
+    return settingsOf(db, userId!);
+  },
+
+  set_feed_settings: (db, userId, args) => {
+    requireUser(db, userId);
+    const cur = settingsOf(db, userId!);
+    const next = {
+      shareRunsToFeed: typeof args.p_share_runs === 'boolean' ? args.p_share_runs : cur.shareRunsToFeed,
+      feedShowMap: typeof args.p_show_map === 'boolean' ? args.p_show_map : cur.feedShowMap,
+    };
+    stateOf(db).settings.set(userId!, next);
+    return next;
   },
 
   record_share: (db, userId, args) => {

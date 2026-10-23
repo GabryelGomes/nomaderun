@@ -16,13 +16,14 @@ jest.mock('@/services/api/env', () => {
 });
 
 /* eslint-disable import/first */
-import { listCrewFeed, reactToFeedItem, type FeedPage } from '../../feed-repo';
+import { deleteFeedItem, getFeedSettings, listCrewFeed, listFeedItemKudos, reactToFeedItem, setFeedSettings, type FeedPage } from '../../feed-repo';
 import { recordShare } from '../../share-repo';
 import { createDemoClient, setDemoClient } from '..';
 import { FEED_ROUTE_MAX_POINTS, thinPieces } from '../social';
 /* eslint-enable import/first */
 
 const NOW = Date.parse('2026-10-23T12:00:00Z');
+jest.setTimeout(30_000);
 const realFetch = globalThis.fetch;
 const fetchSpy = jest.fn(() => Promise.reject(new Error('rede proibida no modo demonstração')));
 
@@ -53,13 +54,13 @@ describe('feed da crew de demonstração', () => {
     expect(page.items).toHaveLength(6);
     expect(page.items.filter((i) => i.you)).toHaveLength(3);
     expect(page.items.every((i) => i.isDemo)).toBe(true);
-    const created = page.items.map((i) => Date.parse(i.createdAt));
-    expect([...created].sort((a, b) => b - a)).toEqual(created);
-    expect(page.nextBefore).toBeNull();
+    const days = page.items.map((i) => i.day);
+    expect([...days].sort().reverse()).toEqual(days);
+    expect(page.next).toBeNull();
   });
 
   it('sem hora no item: só a data local', () => {
-    for (const i of page.items) expect(i.localDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    for (const i of page.items) expect(i.day).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it('rota cortada: nenhum ponto dentro da zona de privacidade, nem perto do começo e do fim; ≤ 80 pontos', () => {
@@ -71,8 +72,9 @@ describe('feed da crew de demonstração', () => {
       expect(pts.length).toBeLessThanOrEqual(FEED_ROUTE_MAX_POINTS);
       // Precisão 4 da polyline ≈ 8 m de erro; a folga mínima do corte é 25 m.
       if (item.you) for (const p of pts) expect(distanceMeters(p, center)).toBeGreaterThan(Number(zone.radius_m) + 10);
-      if (item.activityId) {
-        const raw = client.db.pointsOf(item.activityId);
+      if (item.you) {
+        // Itens próprios da demonstração: `feed-<id da corrida>` (o id não vai no payload).
+        const raw = client.db.pointsOf(item.id.replace(/^feed-/, ''));
         const start = { lat: Number(raw[0].lat), lng: Number(raw[0].lng) };
         const end = { lat: Number(raw[raw.length - 1].lat), lng: Number(raw[raw.length - 1].lng) };
         for (const p of pts) {
@@ -84,18 +86,25 @@ describe('feed da crew de demonstração', () => {
     expect(page.items.some((i) => i.route)).toBe(true);
   });
 
-  it('colega da crew não recebe o id da corrida de outra pessoa', () => {
-    for (const i of page.items.filter((x) => !x.you)) expect(i.activityId).toBeNull();
+  it('o payload não traz id de corrida, horário nem coordenada fora da rota', () => {
+    for (const i of page.items) expect(Object.keys(i).sort()).toEqual(['author', 'avgPace', 'day', 'highlights', 'id', 'isDemo', 'kudos', 'meters', 'movingSeconds', 'myReaction', 'route', 'routeHidden', 'you']);
+  });
+
+  it('quem reagiu: só nomes da crew', async () => {
+    const mine = page.items.find((i) => i.you && i.kudos.bora > 0)!;
+    const who = expectOk(await listFeedItemKudos(mine.id));
+    expect(who.length).toBe(mine.kudos.bora + mine.kudos.fogo + mine.kudos.raio);
+    for (const k of who) expect(k.username).toMatch(/\.demo$/);
   });
 
   it('"Bora!": põe, troca e tira a reação; o contador acompanha', async () => {
     const mate = page.items.find((i) => !i.you)!;
-    const before = mate.reactions.bora;
+    const before = mate.kudos.bora;
     const put = expectOk(await reactToFeedItem(mate.id, 'bora'));
     expect(put.myReaction).toBe('bora');
-    expect(put.reactions.bora).toBe(before + 1);
+    expect(put.kudos.bora).toBe(before + 1);
     const swap = expectOk(await reactToFeedItem(mate.id, 'fogo'));
-    expect(swap.reactions.bora).toBe(before);
+    expect(swap.kudos.bora).toBe(before);
     expect(swap.myReaction).toBe('fogo');
     const off = expectOk(await reactToFeedItem(mate.id, null));
     expect(off.myReaction).toBeNull();
@@ -121,25 +130,42 @@ describe('feed da crew de demonstração', () => {
   it('paginação por cursor', async () => {
     const first = expectOk(await listCrewFeed({ limit: 4 }));
     expect(first.items).toHaveLength(4);
-    expect(first.nextBefore).not.toBeNull();
-    const second = expectOk(await listCrewFeed({ before: first.nextBefore, limit: 4 }));
+    expect(first.next).toBe(first.items[3].id);
+    const second = expectOk(await listCrewFeed({ before: first.next, limit: 4 }));
     expect(second.items).toHaveLength(2);
-    expect(second.nextBefore).toBeNull();
+    expect(second.next).toBeNull();
     expect(new Set([...first.items, ...second.items].map((i) => i.id)).size).toBe(6);
   });
 
   it('record_share só para a própria corrida', async () => {
-    const mine = page.items.find((i) => i.you && i.activityId)!;
-    expect(expectOk(await recordShare(mine.activityId!))).toEqual({ recorded: true, completedMissions: 0 });
+    const mine = client.db.tables.activities.find((a) => a.user_id === DEMO_USER_ID)!;
+    expect(expectOk(await recordShare(String(mine.id)))).toEqual({ recorded: true, completedMissions: 0 });
     const other = await recordShare('demo-revisao-1');
     expect(!other.ok && other.error.code).toBe('NOT_FOUND');
+  });
+});
+
+describe('preferências do feed e tirar do feed', () => {
+  it('desligar o mapa tira as rotas; desligar as corridas tira os itens; tirar 1 item', async () => {
+    setDemoClient(createDemoClient({ clock: () => NOW }));
+    expect(expectOk(await getFeedSettings())).toEqual({ shareRunsToFeed: true, feedShowMap: true });
+    expect(expectOk(await setFeedSettings({ feedShowMap: false }))).toEqual({ shareRunsToFeed: true, feedShowMap: false });
+    const noMap = expectOk(await listCrewFeed());
+    for (const i of noMap.items.filter((x) => x.you)) expect(i.route).toBeNull();
+    const mine = noMap.items.find((i) => i.you)!;
+    const mate = noMap.items.find((i) => !i.you)!;
+    expect(expectOk(await deleteFeedItem(mate.id))).toBe(false); // só o próprio
+    expect(expectOk(await deleteFeedItem(mine.id))).toBe(true);
+    expect(expectOk(await listCrewFeed()).items.map((i) => i.id)).not.toContain(mine.id);
+    await setFeedSettings({ shareRunsToFeed: false });
+    expect(expectOk(await listCrewFeed()).items.filter((i) => i.you)).toHaveLength(0);
   });
 });
 
 describe('feed fora de crew e afinamento da rota', () => {
   it('conta nova sem crew: crew nula e lista vazia (estado "Entre numa crew")', async () => {
     setDemoClient(createDemoClient({ clock: () => NOW, scenario: 'vazio' }));
-    expect(expectOk(await listCrewFeed())).toEqual({ crew: null, items: [], nextBefore: null });
+    expect(expectOk(await listCrewFeed())).toEqual({ crew: null, items: [], next: null });
   });
 
   it('thinPieces mantém as pontas de cada pedaço e respeita o teto', () => {

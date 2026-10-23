@@ -7,20 +7,18 @@ import { feedDateLabel, feedItemLabel, feedStats, highlightLabel, localToday, mi
 
 const item = (over: Partial<FeedItem> = {}): FeedItem => ({
   id: 'f1',
-  kind: 'run',
-  activityId: null,
-  actor: { username: 'ana.demo', faction: 'striders', avatarUrl: null },
+  author: { username: 'ana.demo', faction: 'striders', avatarUrl: null },
   you: false,
-  localDate: '2026-10-22',
+  day: '2026-10-22',
   meters: 5020,
   movingSeconds: 1690,
+  avgPace: 337,
   route: null,
   routeHidden: true,
   highlights: [{ kind: 'zone_conquered', name: 'Jardim Goiás' }],
-  reactions: { bora: 3, fogo: 1, raio: 0 },
+  kudos: { bora: 3, fogo: 1, raio: 0 },
   myReaction: null,
   isDemo: true,
-  createdAt: '2026-10-22T10:00:00Z',
   ...over,
 });
 
@@ -39,7 +37,7 @@ describe('textos do feed', () => {
     expect(feedStats(item())).toEqual({ km: '5,02 km', time: '28:10', pace: '5:37 /km' });
     expect(feedStats(item({ meters: 0, movingSeconds: 0 })).pace).toBe('--:-- /km');
     expect(highlightLabel({ kind: 'zone_conquered', name: 'Jardim Goiás' })).toBe('Conquistou Jardim Goiás');
-    expect(highlightLabel({ kind: 'raid_damage', km: 2.1 })).toBe('−2,1 km no chefão');
+    expect(highlightLabel({ kind: 'raid_damage', km: 2.1, damage: 70 })).toBe('−2,1 km no chefão');
     expect(highlightLabel({ kind: 'pr', distance: '5 km' })).toBe('Recorde: 5 km');
     expect(feedItemLabel(item(), '2026-10-23')).toBe('ana.demo, Ontem, 5,02 km, 28:10, ritmo 5:37 /km, Conquistou Jardim Goiás, rota escondida, demonstração');
     expect(feedItemLabel(item({ you: true, isDemo: false, routeHidden: false }), '2026-10-22')).toBe('Você, Hoje, 5,02 km, 28:10, ritmo 5:37 /km, Conquistou Jardim Goiás');
@@ -49,24 +47,24 @@ describe('textos do feed', () => {
 describe('reação otimista', () => {
   it('põe, troca e tira', () => {
     const put = toggleReaction(item(), 'bora');
-    expect(put).toEqual({ reactions: { bora: 4, fogo: 1, raio: 0 }, myReaction: 'bora' });
+    expect(put).toEqual({ kudos: { bora: 4, fogo: 1, raio: 0 }, myReaction: 'bora' });
     const swap = toggleReaction({ ...item(), ...put }, 'raio');
-    expect(swap).toEqual({ reactions: { bora: 3, fogo: 1, raio: 1 }, myReaction: 'raio' });
+    expect(swap).toEqual({ kudos: { bora: 3, fogo: 1, raio: 1 }, myReaction: 'raio' });
     const off = toggleReaction({ ...item(), ...swap }, 'raio');
-    expect(off).toEqual({ reactions: { bora: 3, fogo: 1, raio: 0 }, myReaction: null });
+    expect(off).toEqual({ kudos: { bora: 3, fogo: 1, raio: 0 }, myReaction: null });
   });
 
   it('propriedade (500 sequências): no máximo 1 reação minha; total muda só por ±1; nunca negativo', () => {
     forAll(
       (r) => ({ start: { bora: r.int(0, 5), fogo: r.int(0, 5), raio: r.int(0, 5) }, taps: Array.from({ length: r.int(1, 20) }, () => r.pick(FEED_REACTIONS)) }),
       ({ start, taps }) => {
-        let state: { reactions: Record<FeedReaction, number>; myReaction: FeedReaction | null } = { reactions: start, myReaction: null };
+        let state: { kudos: Record<FeedReaction, number>; myReaction: FeedReaction | null } = { kudos: start, myReaction: null };
         const base = totalReactions(start);
         for (const t of taps) {
           state = toggleReaction(state, t);
-          const total = totalReactions(state.reactions);
+          const total = totalReactions(state.kudos);
           expect(total - base).toBe(state.myReaction ? 1 : 0);
-          for (const k of FEED_REACTIONS) expect(state.reactions[k]).toBeGreaterThanOrEqual(0);
+          for (const k of FEED_REACTIONS) expect(state.kudos[k]).toBeGreaterThanOrEqual(0);
         }
       },
       500,

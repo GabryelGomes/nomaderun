@@ -7,7 +7,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { isFeedUnavailable, listCrewFeed, reactToFeedItem, type FeedCrew, type FeedItem, type FeedReaction } from '@/services/api/feed-repo';
+import { deleteFeedItem, isFeedUnavailable, listCrewFeed, reactToFeedItem, type FeedCrew, type FeedItem, type FeedReaction } from '@/services/api/feed-repo';
 
 import { toggleReaction } from './feed-model';
 
@@ -43,12 +43,12 @@ export function useCrewFeed(opts: { pageSize?: number } = {}) {
       }));
       return;
     }
-    cursor.current = res.data.nextBefore;
+    cursor.current = res.data.next;
     setState({
       status: res.data.crew ? 'ready' : 'noCrew',
       crew: res.data.crew,
       items: res.data.items,
-      hasMore: res.data.nextBefore !== null,
+      hasMore: res.data.next !== null,
       loadingMore: false,
       error: null,
     });
@@ -73,10 +73,10 @@ export function useCrewFeed(opts: { pageSize?: number } = {}) {
       setState((s) => ({ ...s, loadingMore: false, error: res.error.message }));
       return;
     }
-    cursor.current = res.data.nextBefore;
+    cursor.current = res.data.next;
     setState((s) => {
       const seen = new Set(s.items.map((i) => i.id));
-      return { ...s, items: [...s.items, ...res.data.items.filter((i) => !seen.has(i.id))], hasMore: res.data.nextBefore !== null, loadingMore: false };
+      return { ...s, items: [...s.items, ...res.data.items.filter((i) => !seen.has(i.id))], hasMore: res.data.next !== null, loadingMore: false };
     });
   }, [pageSize]);
 
@@ -90,14 +90,25 @@ export function useCrewFeed(opts: { pageSize?: number } = {}) {
     const before = current.current.items.find((i) => i.id === itemId);
     if (!before || before.you) return; // ninguém reage a si mesmo (KUDOS_SELF)
     const optimistic = toggleReaction(before, reaction);
-    const patch = (fields: Pick<FeedItem, 'reactions' | 'myReaction'>, error: string | null) =>
+    const patch = (fields: Pick<FeedItem, 'kudos' | 'myReaction'>, error: string | null) =>
       setState((s) => ({ ...s, error, items: s.items.map((i) => (i.id === itemId ? { ...i, ...fields } : i)) }));
     patch(optimistic, null);
     const res = await reactToFeedItem(itemId, optimistic.myReaction);
     if (!alive.current) return;
-    if (res.ok) patch({ reactions: res.data.reactions, myReaction: res.data.myReaction }, null);
-    else patch({ reactions: before.reactions, myReaction: before.myReaction }, res.error.message);
+    if (res.ok) patch({ kudos: res.data.kudos, myReaction: res.data.myReaction }, null);
+    else patch({ kudos: before.kudos, myReaction: before.myReaction }, res.error.message);
   }, []);
 
-  return { ...state, reload: load, loadMore, react };
+  /** Tira a própria corrida do feed (some da lista na hora; volta se o servidor recusar). */
+  const remove = useCallback(async (itemId: string) => {
+    const before = current.current.items;
+    const item = before.find((i) => i.id === itemId);
+    if (!item?.you) return;
+    setState((s) => ({ ...s, items: s.items.filter((i) => i.id !== itemId) }));
+    const res = await deleteFeedItem(itemId);
+    if (!alive.current) return;
+    if (!res.ok || !res.data) setState((s) => ({ ...s, items: before, error: res.ok ? 'Não deu para tirar do feed.' : res.error.message }));
+  }, []);
+
+  return { ...state, reload: load, loadMore, react, remove };
 }

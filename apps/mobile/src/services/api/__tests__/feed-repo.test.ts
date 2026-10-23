@@ -10,8 +10,12 @@ import {
   FEED_UNAVAILABLE,
   isFeedUnavailable,
   isServerClippedRoute,
+  deleteFeedItem,
+  getFeedSettings,
   listCrewFeed,
+  listFeedItemKudos,
   reactToFeedItem,
+  setFeedSettings,
   toFeedItem,
   toFeedPage,
 } from '../feed-repo';
@@ -85,53 +89,53 @@ describe('ServerClippedRoute (rota do feed, cortada no servidor)', () => {
   });
 });
 
-describe('itens e páginas do feed', () => {
-  it('converte o payload, sem confiar no formato', () => {
+describe('itens e páginas do feed (contrato v2 — onda 2)', () => {
+  it('converte o F do servidor, sem confiar no formato', () => {
     const item = toFeedItem({
       id: 'f1',
-      kind: 'zone_captured',
-      activityId: 'a1',
-      actor: { username: 'ana.demo', faction: 'striders', avatarUrl: null },
+      day: '2026-10-22',
       you: false,
-      localDate: '2026-10-22',
+      author: { username: 'ana.demo', faction: 'striders', avatarUrl: null },
       meters: 5020,
       movingSeconds: 1690,
+      avgPace: 337,
       route: null,
       routeHidden: false,
-      highlights: [{ kind: 'zone_conquered', name: 'Jardim Goiás' }, { kind: 'raid_damage', km: 2.1 }, { kind: 'pr', distance: '5 km' }, { kind: 'pr', distance: '10 km' }, { kind: 'x' }],
-      reactions: { bora: 3, fogo: -1 },
+      highlights: [{ kind: 'zone_conquered', name: 'Jardim Goiás' }, { kind: 'raid_damage', damage: 70, km: 2.1 }, { kind: 'pr', distance: '5 km' }, { kind: 'pr', distance: '10 km' }, { kind: 'x' }],
+      kudos: { bora: 3, fogo: -1 },
       myReaction: 'bora',
       isDemo: true,
-      createdAt: '2026-10-22T10:00:00Z',
     });
-    expect(item.kind).toBe('zone_captured');
-    expect(item.actor).toEqual({ username: 'ana.demo', faction: 'striders', avatarUrl: null });
+    expect(item.author).toEqual({ username: 'ana.demo', faction: 'striders', avatarUrl: null });
+    expect(item.day).toBe('2026-10-22');
+    expect(item.avgPace).toBe(337);
     expect(item.routeHidden).toBe(true); // sem rota → "sem mapa"
     expect(item.highlights).toHaveLength(3);
-    expect(item.reactions).toEqual({ bora: 3, fogo: 0, raio: 0 });
+    expect(item.highlights[1]).toEqual({ kind: 'raid_damage', damage: 70, km: 2.1 });
+    expect(item.kudos).toEqual({ bora: 3, fogo: 0, raio: 0 });
     expect(item.myReaction).toBe('bora');
 
-    const odd = toFeedItem({ id: 'f2', kind: 'nope', actor: 'x', localDate: '22/10', myReaction: 'aplauso', actorFaction: 'roxo' });
-    expect(odd.kind).toBe('run');
-    expect(odd.actor.username).toBe('corredor');
-    expect(odd.localDate).toBe('');
+    const odd = toFeedItem({ id: 'f2', author: 'x', day: '22/10', myReaction: 'aplauso', avgPace: -1 });
+    expect(odd.author.username).toBe('corredor');
+    expect(odd.day).toBe('');
+    expect(odd.avgPace).toBeNull();
     expect(odd.myReaction).toBeNull();
   });
 
-  it('página: crew nula = fora de crew; itens sem id são descartados', () => {
-    expect(toFeedPage(null)).toEqual({ crew: null, items: [], nextBefore: null });
-    const p = toFeedPage({ crew: { id: 'c', name: 'Flamboyant Runners', tag: 'FLR', faction: 'striders' }, items: [{ id: '' }, { id: 'ok' }], nextBefore: '2026-10-20T00:00:00Z' });
+  it('página: crew nula = fora de crew; itens sem id são descartados; cursor = id do último', () => {
+    expect(toFeedPage(null)).toEqual({ crew: null, items: [], next: null });
+    const p = toFeedPage({ crew: { id: 'c', name: 'Flamboyant Runners', tag: 'FLR', faction: 'striders' }, items: [{ id: '' }, { id: 'ok' }], next: 'ok' });
     expect(p.crew?.tag).toBe('FLR');
     expect(p.items.map((i) => i.id)).toEqual(['ok']);
-    expect(p.nextBefore).toBe('2026-10-20T00:00:00Z');
+    expect(p.next).toBe('ok');
   });
 });
 
 describe('RPCs do feed e do compartilhamento', () => {
-  it('crew_feed com cursor e tamanho de página', async () => {
-    mockRpc.mockResolvedValueOnce({ data: { crew: null, items: [], nextBefore: null }, error: null });
-    const r = await listCrewFeed({ before: '2026-10-20T00:00:00Z' });
-    expect(mockRpc).toHaveBeenCalledWith('crew_feed', { p_before: '2026-10-20T00:00:00Z', p_limit: 20 });
+  it('crew_feed com p_limit e p_before (id)', async () => {
+    mockRpc.mockResolvedValueOnce({ data: { crew: null, items: [], next: null }, error: null });
+    const r = await listCrewFeed({ before: 'item-9' });
+    expect(mockRpc).toHaveBeenCalledWith('crew_feed', { p_limit: 20, p_before: 'item-9' });
     expect(r.ok).toBe(true);
   });
 
@@ -149,19 +153,40 @@ describe('RPCs do feed e do compartilhamento', () => {
     }
   });
 
-  it('reagir: põe, troca ou tira; erro do servidor chega com o código', async () => {
-    mockRpc.mockResolvedValueOnce({ data: { itemId: 'f1', reactions: { bora: 4 }, myReaction: 'bora' }, error: null });
+  it('reagir devolve o F atualizado; erro do servidor chega com o código', async () => {
+    mockRpc.mockResolvedValueOnce({ data: { id: 'f1', kudos: { bora: 4 }, myReaction: 'bora' }, error: null });
     const r = await reactToFeedItem('f1', 'bora');
     expect(mockRpc).toHaveBeenCalledWith('react_feed_item', { p_item: 'f1', p_reaction: 'bora' });
-    expect(r.ok && r.data).toEqual({ itemId: 'f1', reactions: { bora: 4, fogo: 0, raio: 0 }, myReaction: 'bora' });
+    expect(r.ok && r.data.kudos).toEqual({ bora: 4, fogo: 0, raio: 0 });
+    expect(r.ok && r.data.myReaction).toBe('bora');
 
     mockRpc.mockResolvedValueOnce({ data: null, error: { code: 'P0001', message: 'KUDOS_LIMIT: limite de reações do dia atingido' } });
     const limited = await reactToFeedItem('f1', 'fogo');
     expect(!limited.ok && limited.error.detail).toBe('KUDOS_LIMIT');
 
-    mockRpc.mockResolvedValueOnce({ data: { itemId: 'f1', reactions: { bora: 3 }, myReaction: null }, error: null });
-    await reactToFeedItem('f1', null);
+    mockRpc.mockResolvedValueOnce({ data: { kudos: { bora: 3 }, myReaction: null }, error: null });
+    const off = await reactToFeedItem('f1', null);
     expect(mockRpc).toHaveBeenLastCalledWith('react_feed_item', { p_item: 'f1', p_reaction: null });
+    expect(off.ok && off.data.id).toBe('f1');
+  });
+
+  it('quem reagiu, tirar do feed e as preferências', async () => {
+    mockRpc.mockResolvedValueOnce({ data: [{ username: 'bia.demo', faction: 'striders', avatarUrl: null, reaction: 'bora' }, { username: 'x', reaction: 'aplauso' }], error: null });
+    const who = await listFeedItemKudos('f1');
+    expect(mockRpc).toHaveBeenLastCalledWith('feed_item_kudos', { p_item: 'f1' });
+    expect(who.ok && who.data).toEqual([{ username: 'bia.demo', faction: 'striders', avatarUrl: null, reaction: 'bora' }]);
+
+    mockRpc.mockResolvedValueOnce({ data: true, error: null });
+    expect(await deleteFeedItem('f1')).toEqual({ ok: true, data: true });
+    expect(mockRpc).toHaveBeenLastCalledWith('delete_feed_item', { p_item: 'f1' });
+
+    mockRpc.mockResolvedValueOnce({ data: {}, error: null });
+    expect(await getFeedSettings()).toEqual({ ok: true, data: { shareRunsToFeed: true, feedShowMap: true } }); // ausente = ligado
+    expect(mockRpc).toHaveBeenLastCalledWith('my_feed_settings');
+
+    mockRpc.mockResolvedValueOnce({ data: { shareRunsToFeed: true, feedShowMap: false }, error: null });
+    expect(await setFeedSettings({ feedShowMap: false })).toEqual({ ok: true, data: { shareRunsToFeed: true, feedShowMap: false } });
+    expect(mockRpc).toHaveBeenLastCalledWith('set_feed_settings', { p_share_runs: null, p_show_map: false });
   });
 
   it('record_share: conta as missões; servidor antigo não é erro', async () => {

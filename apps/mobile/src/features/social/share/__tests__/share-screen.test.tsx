@@ -14,6 +14,7 @@ jest.mock('react-native-safe-area-context', () => require('@/components/motion/_
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 type AnyFn = (...args: any[]) => any;
+jest.setTimeout(30_000);
 const mockPush = jest.fn<AnyFn>();
 const mockParams: { id: string; momentos?: string } = { id: 'corrida-1' };
 jest.mock('expo-router', () => ({

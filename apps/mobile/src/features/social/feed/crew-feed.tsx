@@ -125,7 +125,7 @@ export function CrewFeed({ faction, onJoinCrew, onCreateCrew, embedded = true, p
     );
   }
 
-  const renderItem = (item: FeedItem) => <CrewFeedCard key={item.id} item={item} today={today} onReact={(id, r) => void feed.react(id, r)} />;
+  const renderItem = (item: FeedItem) => <CrewFeedCard key={item.id} item={item} today={today} onReact={(id, r) => void feed.react(id, r)} onRemove={(id) => void feed.remove(id)} />;
   const more = feed.hasMore ? (
     <Button testID={`${testID}-mais`} label={feed.loadingMore ? 'Carregando…' : CREW_FEED_TEXT.more} kind="secondary" busy={feed.loadingMore} disabled={feed.loadingMore} onPress={() => void feed.loadMore()} />
   ) : null;

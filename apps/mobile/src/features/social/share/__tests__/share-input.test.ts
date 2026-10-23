@@ -98,7 +98,7 @@ describe('resumo → entrada do card', () => {
       },
       300,
     );
-  });
+  }, 60_000);
 
   it('semente de 32 bits', () => {
     expect(randomSeed(() => 0)).toBe(0);

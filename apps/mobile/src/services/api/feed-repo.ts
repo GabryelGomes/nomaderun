@@ -1,10 +1,12 @@
 /**
- * Feed da crew com reações prontas (RF-014, D-79; E8, T7.2.5). Só RPCs, sem tabela direta:
- *  - `crew_feed(p_before, p_limit)` → página do feed da crew (só a crew vê; rota já cortada no servidor);
- *  - `react_feed_item(p_item, p_reaction)` → põe, troca ou tira (`null`) a reação da pessoa.
+ * Feed da crew com reações prontas (RF-014, D-79; E8, T7.2.5). Só RPCs (`feed_items` não é lida direto):
+ *  - `crew_feed(p_limit, p_before)` → página do feed da crew (só a crew vê; rota já cortada no servidor);
+ *  - `react_feed_item(p_item, p_reaction)` → põe, troca ou tira (`null`) a reação; devolve o item;
+ *  - `feed_item_kudos(p_item)` → quem reagiu; `delete_feed_item(p_item)` → tira a própria corrida;
+ *  - `my_feed_settings()` / `set_feed_settings(p_share_runs, p_show_map)`.
  *
- * Contrato proposto para a E9 em `docs/melhoria/relatorios/E8-onda2.md` (§5). Servidor antigo (`PGRST202`)
- * ou flag `feed` desligada (`FEATURE_DISABLED`) viram "indisponível" (`FEED_UNAVAILABLE`).
+ * Contrato: `docs/API_CONTRATO.md`, "Contrato v2 — onda 2" (E9). Servidor antigo (`PGRST202`) ou flag
+ * `feed` desligada (`FEATURE_DISABLED`) viram "indisponível" (`FEED_UNAVAILABLE`).
  *
  * A rota do item chega como polyline (precisão 4) já cortada pelo `clipRouteForSharing` na Edge Function.
  * O decodificador daqui produz `ServerClippedRoute`: um tipo próprio, só para o mini-mapa do feed. Ele não
@@ -144,29 +146,28 @@ export function decodeServerRoute(value: unknown): ServerClippedRoute | null {
 // Itens do feed
 // -----------------------------------------------------------------------------------------------
 
-export type FeedHighlight = { kind: 'zone_conquered'; name: string } | { kind: 'raid_damage'; km: number } | { kind: 'pr'; distance: string };
+export type FeedHighlight = { kind: 'zone_conquered'; name: string } | { kind: 'raid_damage'; km: number; damage: number } | { kind: 'pr'; distance: string };
 
-export type FeedItemKind = 'run' | 'zone_captured' | 'medal' | 'raid_defeated' | 'league_promoted' | 'level_up';
-
+/** Item `F` do contrato (`crew_feed`, `react_feed_item`). */
 export type FeedItem = {
   id: string;
-  kind: FeedItemKind;
-  activityId: string | null;
-  actor: { username: string; faction: FactionId | null; avatarUrl: string | null };
-  /** O item é da própria pessoa (não dá para reagir a si mesmo: `KUDOS_SELF`). */
+  author: { username: string; faction: FactionId | null; avatarUrl: string | null };
+  /** O item é da própria pessoa (não dá para reagir a si mesmo: `KUDOS_SELF`; pode tirar do feed). */
   you: boolean;
   /** Data local da corrida, `AAAA-MM-DD`. O feed nunca traz a hora. */
-  localDate: string;
+  day: string;
   meters: number;
   movingSeconds: number;
+  /** Ritmo médio (s/km) quando o servidor manda; senão o app calcula. */
+  avgPace: number | null;
   /** `null` = sem mapa (a pessoa desligou, ou o corte não deixou nada). */
   route: ServerClippedRoute | null;
+  /** Parte da rota foi escondida (ou não há rota). */
   routeHidden: boolean;
   highlights: FeedHighlight[];
-  reactions: Record<FeedReaction, number>;
+  kudos: Record<FeedReaction, number>;
   myReaction: FeedReaction | null;
   isDemo: boolean;
-  createdAt: string;
 };
 
 export type FeedCrew = { id: string; name: string; tag: string; faction: FactionId | null };
@@ -175,84 +176,132 @@ export type FeedPage = {
   /** `null` = a pessoa não está em crew (estado vazio "Entre numa crew"). */
   crew: FeedCrew | null;
   items: FeedItem[];
-  /** Cursor da próxima página (`p_before`), ou `null` no fim. */
-  nextBefore: string | null;
+  /** Cursor da próxima página (`p_before` = id do último item), ou `null` no fim. */
+  next: string | null;
 };
 
 type Row = Record<string, unknown>;
 
 const FACTIONS: readonly FactionId[] = ['striders', 'coyotes', 'owls', 'volt'];
-const KINDS: readonly FeedItemKind[] = ['run', 'zone_captured', 'medal', 'raid_defeated', 'league_promoted', 'level_up'];
 const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
 const str = (v: unknown) => (typeof v === 'string' ? v : '');
+const obj = (v: unknown): Row => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Row) : {});
 const faction = (v: unknown): FactionId | null => (FACTIONS.includes(v as FactionId) ? (v as FactionId) : null);
 export const isFeedReaction = (v: unknown): v is FeedReaction => FEED_REACTIONS.includes(v as FeedReaction);
 
 function toHighlight(v: unknown): FeedHighlight | null {
-  if (!v || typeof v !== 'object') return null;
-  const h = v as Row;
+  const h = obj(v);
   if (h.kind === 'zone_conquered' && str(h.name)) return { kind: 'zone_conquered', name: str(h.name) };
-  if (h.kind === 'raid_damage' && num(h.km) > 0) return { kind: 'raid_damage', km: num(h.km) };
+  if (h.kind === 'raid_damage' && num(h.km) > 0) return { kind: 'raid_damage', km: num(h.km), damage: num(h.damage) };
   if (h.kind === 'pr' && str(h.distance)) return { kind: 'pr', distance: str(h.distance) };
   return null;
 }
 
-export function toReactions(v: unknown): Record<FeedReaction, number> {
-  const r = (v && typeof v === 'object' ? v : {}) as Row;
+export function toKudos(v: unknown): Record<FeedReaction, number> {
+  const r = obj(v);
   return { bora: Math.max(0, num(r.bora)), fogo: Math.max(0, num(r.fogo)), raio: Math.max(0, num(r.raio)) };
 }
 
+/** Converte o `F` do servidor sem confiar no formato (campo ausente ou estranho vira o neutro). */
 export function toFeedItem(row: Row): FeedItem {
-  const actor = (row.actor && typeof row.actor === 'object' ? row.actor : {}) as Row;
+  const author = obj(row.author);
   const route = decodeServerRoute(row.route);
+  const pace = num(row.avgPace);
   return {
     id: str(row.id),
-    kind: KINDS.includes(row.kind as FeedItemKind) ? (row.kind as FeedItemKind) : 'run',
-    activityId: str(row.activityId) || null,
-    actor: { username: str(actor.username) || 'corredor', faction: faction(actor.faction), avatarUrl: str(actor.avatarUrl) || null },
+    author: { username: str(author.username) || 'corredor', faction: faction(author.faction), avatarUrl: str(author.avatarUrl) || null },
     you: row.you === true,
-    localDate: /^\d{4}-\d{2}-\d{2}$/.test(str(row.localDate)) ? str(row.localDate) : '',
+    day: /^\d{4}-\d{2}-\d{2}$/.test(str(row.day)) ? str(row.day) : '',
     meters: num(row.meters),
     movingSeconds: num(row.movingSeconds),
+    avgPace: pace > 0 ? pace : null,
     route,
     routeHidden: row.routeHidden === true || route === null,
     highlights: (Array.isArray(row.highlights) ? row.highlights : []).map(toHighlight).filter((h): h is FeedHighlight => h !== null).slice(0, 3),
-    reactions: toReactions(row.reactions),
+    kudos: toKudos(row.kudos),
     myReaction: isFeedReaction(row.myReaction) ? row.myReaction : null,
     isDemo: row.isDemo === true,
-    createdAt: str(row.createdAt),
   };
 }
 
 export function toFeedPage(data: unknown): FeedPage {
-  const d = (data && typeof data === 'object' ? data : {}) as Row;
-  const c = d.crew && typeof d.crew === 'object' ? (d.crew as Row) : null;
+  const d = obj(data);
+  const c = d.crew && typeof d.crew === 'object' ? obj(d.crew) : null;
   return {
     crew: c ? { id: str(c.id), name: str(c.name), tag: str(c.tag), faction: faction(c.faction) } : null,
     items: (Array.isArray(d.items) ? (d.items as Row[]) : []).map(toFeedItem).filter((i) => i.id),
-    nextBefore: str(d.nextBefore) || null,
+    next: str(d.next) || null,
   };
 }
 
-/** Uma página do feed da crew, da mais recente para a mais antiga. */
+/** Uma página do feed da crew, da mais recente para a mais antiga. `before` = id do último item já carregado. */
 export async function listCrewFeed(opts: { before?: string | null; limit?: number } = {}): Promise<Result<FeedPage>> {
   const res = await attempt(async () => {
-    const { data, error } = await requireSupabase().rpc('crew_feed', { p_before: opts.before ?? null, p_limit: opts.limit ?? FEED_PAGE_SIZE });
+    const { data, error } = await requireSupabase().rpc('crew_feed', { p_limit: opts.limit ?? FEED_PAGE_SIZE, p_before: opts.before ?? null });
     if (error) throw error;
     return toFeedPage(data);
   });
   return asUnavailable(res);
 }
 
-export type ReactionResult = { itemId: string; reactions: Record<FeedReaction, number>; myReaction: FeedReaction | null };
-
-/** Põe, troca ou tira (`reaction = null`) a reação da pessoa num item. Erros: `KUDOS_SELF`, `KUDOS_LIMIT`, `NOT_FOUND`. */
-export async function reactToFeedItem(itemId: string, reaction: FeedReaction | null): Promise<Result<ReactionResult>> {
+/** Põe, troca ou tira (`reaction = null`) a reação. Devolve o item atualizado. Erros: `KUDOS_SELF`, `KUDOS_LIMIT`, `NOT_FOUND`. */
+export async function reactToFeedItem(itemId: string, reaction: FeedReaction | null): Promise<Result<FeedItem>> {
   const res = await attempt(async () => {
     const { data, error } = await requireSupabase().rpc('react_feed_item', { p_item: itemId, p_reaction: reaction });
     if (error) throw error;
-    const d = (data ?? {}) as Row;
-    return { itemId: str(d.itemId) || itemId, reactions: toReactions(d.reactions), myReaction: isFeedReaction(d.myReaction) ? d.myReaction : null };
+    const item = toFeedItem(obj(data));
+    return item.id ? item : { ...item, id: itemId };
+  });
+  return asUnavailable(res);
+}
+
+export type FeedKudo = { username: string; faction: FactionId | null; avatarUrl: string | null; reaction: FeedReaction };
+
+/** Quem reagiu a um item (só nomes da crew). */
+export async function listFeedItemKudos(itemId: string): Promise<Result<FeedKudo[]>> {
+  const res = await attempt(async () => {
+    const { data, error } = await requireSupabase().rpc('feed_item_kudos', { p_item: itemId });
+    if (error) throw error;
+    return (Array.isArray(data) ? (data as Row[]) : [])
+      .filter((k) => isFeedReaction(k.reaction))
+      .map((k) => ({ username: str(k.username) || 'corredor', faction: faction(k.faction), avatarUrl: str(k.avatarUrl) || null, reaction: k.reaction as FeedReaction }));
+  });
+  return asUnavailable(res);
+}
+
+/** Tira a própria corrida do feed (`true` quando apagou). */
+export async function deleteFeedItem(itemId: string): Promise<Result<boolean>> {
+  const res = await attempt(async () => {
+    const { data, error } = await requireSupabase().rpc('delete_feed_item', { p_item: itemId });
+    if (error) throw error;
+    return data === true;
+  });
+  return asUnavailable(res);
+}
+
+/** "Mostrar minhas corridas para a crew" e "Mostrar o mapa das minhas corridas" (padrão: ligados). */
+export type FeedSettings = { shareRunsToFeed: boolean; feedShowMap: boolean };
+
+const toSettings = (v: unknown): FeedSettings => {
+  const d = obj(v);
+  return { shareRunsToFeed: d.shareRunsToFeed !== false, feedShowMap: d.feedShowMap !== false };
+};
+
+export async function getFeedSettings(): Promise<Result<FeedSettings>> {
+  const res = await attempt(async () => {
+    const { data, error } = await requireSupabase().rpc('my_feed_settings');
+    if (error) throw error;
+    return toSettings(data);
+  });
+  return asUnavailable(res);
+}
+
+/** Muda só o que vier (`undefined` = não muda). Desligar "mostrar corridas" apaga os itens; desligar o mapa tira as rotas já publicadas. */
+export async function setFeedSettings(patch: Partial<FeedSettings>): Promise<Result<FeedSettings>> {
+  const res = await attempt(async () => {
+    const { data, error } = await requireSupabase().rpc('set_feed_settings', { p_share_runs: patch.shareRunsToFeed ?? null, p_show_map: patch.feedShowMap ?? null });
+    if (error) throw error;
+    return toSettings(data);
   });
   return asUnavailable(res);
 }

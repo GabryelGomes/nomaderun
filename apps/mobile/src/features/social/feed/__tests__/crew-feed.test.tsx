@@ -26,6 +26,8 @@ import { CrewFeed } from '../crew-feed';
 /* eslint-enable import/first */
 
 const NOW = Date.parse('2026-10-23T12:00:00Z');
+// O mundo de demonstração e 6 cards com SVG: com a máquina dividida entre as equipes, passa de 5 s.
+jest.setTimeout(30_000);
 const realFetch = globalThis.fetch;
 beforeAll(() => {
   globalThis.fetch = (() => Promise.reject(new Error('rede proibida'))) as typeof fetch;
@@ -78,6 +80,27 @@ describe('<CrewFeed> no modo demonstração', () => {
     const n = (s: string) => Number(/(\d+)$/.exec(s)?.[1] ?? 0);
     expect(n(after)).toBe(n(before) + 1);
     expect(byId(r, `feed-${mateId}-bora`)[0].props.accessibilityState).toEqual({ selected: true });
+  });
+
+  it('"Tirar do feed" no próprio item e "quem reagiu" sob demanda', async () => {
+    setDemoClient(createDemoClient({ clock: () => NOW }));
+    const r = await mount(<CrewFeed faction="striders" />);
+    const remove = r.root.findAll((n) => typeof n.props.testID === 'string' && /^feed-.+-tirar$/.test(n.props.testID) && typeof n.type !== 'string');
+    expect(remove.length).toBeGreaterThan(0);
+    const id = String(remove[0].props.testID).replace(/^feed-/, '').replace(/-tirar$/, '');
+    const who = byId(r, `feed-${id}-quem`)[0];
+    await act(async () => {
+      who.props.onPress();
+      await new Promise((res) => setTimeout(res, 0));
+    });
+    expect(byId(r, `feed-${id}-quem-lista`).length).toBeGreaterThan(0);
+    await act(async () => {
+      remove[0].props.onPress();
+      await new Promise((res) => setTimeout(res, 0));
+    });
+    expect(byId(r, `feed-item-${id}`)).toHaveLength(0);
+    // Itens de colegas não têm "Tirar do feed".
+    expect(byId(r, 'feed-feed-demo-colega-1-tirar')).toHaveLength(0);
   });
 
   it('sem crew: arte + "Entrar com código" / "Criar crew"', async () => {
