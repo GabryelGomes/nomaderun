@@ -6,7 +6,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import type { ReactElement } from 'react';
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from 'react-test-renderer';
-import Svg from 'react-native-svg';
+import Svg, { G } from 'react-native-svg';
 
 jest.mock('react-native-reanimated', () => ({
   __esModule: true,
@@ -23,7 +23,25 @@ jest.mock('react-native-reanimated', () => ({
 }));
 
 /* eslint-disable import/first */
-import { ART, LeaderBust, LEADER_NAMES, LEADER_POSES, MascotRunner } from '..';
+import {
+  ART,
+  Boss,
+  bossSlot,
+  BossSvgArt,
+  Chest,
+  CHEST_LAYERS,
+  LeaderBust,
+  LEADER_NAMES,
+  LEADER_POSES,
+  Logo,
+  LOGO_VARIANTS,
+  LogoSvgArt,
+  MascotRunner,
+  mascotSlot,
+  MascotSvgArt,
+  VILLAIN,
+} from '..';
+import { neon } from '@/theme/neon';
 import { leaderNodes } from '../leader/leader-art';
 import { countPrims, expand, type Prim } from '../neon/core';
 import { runnerNodes } from '../team/runner-art';
@@ -108,5 +126,81 @@ describe('runner — mascotes em corrida', () => {
       .filter(Boolean)
       .flatMap((s: object) => Object.keys(s));
     expect(animatedStyles.filter((k) => !['position', 'left', 'right', 'top', 'bottom', 'pointerEvents', 'transformOrigin', 'transform', 'opacity'].includes(k))).toEqual([]);
+  });
+});
+
+describe('logo — símbolo, logotipo e horizontal', () => {
+  it('3 variantes renderizam como imagem "NOMADE RUN", com tamanho, cores da marca e sem texto no SVG', () => {
+    for (const variant of LOGO_VARIANTS) {
+      const r = render(<Logo variant={variant} size={200} testID={`logo-${variant}`} />);
+      expect(svgOf(r).props.width).toBe(200);
+      expect(frame(r).props.accessibilityLabel).toBe('NOMADE RUN');
+      expect(frame(r).props.accessibilityRole).toBe('image');
+      expect(frame(r).props.testID).toBe(`logo-${variant}`);
+      expect(strokes(r, ART.orange)).toBeGreaterThan(0);
+      expect(r.root.findAll((n: ReactTestInstance) => String(n.type) === 'Text' || n.props?.children === 'NOMADE RUN').length).toBe(0);
+    }
+    const sym = render(<Logo size={96} />);
+    for (const c of Object.values(ART.team)) expect(strokes(sym, c)).toBeGreaterThan(0); // as 4 cores dos times no anel
+    const mono = render(<Logo variant="horizontal" size={240} mono="#FFFFFF" decorative />);
+    expect(frame(mono).props['aria-hidden']).toBe(true);
+    expect(strokes(mono, ART.orange)).toBe(0);
+    expect(strokes(mono, '#FFFFFF')).toBeGreaterThan(0);
+  });
+});
+
+describe('partes para a E5 — baú em camadas e silhueta do chefão', () => {
+  it('cada camada do baú desenha só a sua parte, decorativa, na caixa inteira', () => {
+    const sizes = new Set<number>();
+    for (const rarity of ['comum', 'raro', 'lendario'] as const) {
+      const counts = CHEST_LAYERS.map((layer) => {
+        const r = render(<Chest rarity={rarity} layer={layer} size={120} />);
+        expect(svgOf(r).props.width).toBe(120);
+        expect(frame(r).props['aria-hidden']).toBe(true);
+        return r.root.findAll((n: ReactTestInstance) => n.props?.stroke !== undefined).length;
+      });
+      const full = render(<Chest rarity={rarity} size={120} />).root.findAll((n: ReactTestInstance) => n.props?.stroke !== undefined).length;
+      expect(counts[0] + counts[1]).toBe(full); // corpo + tampa = o baú fechado inteiro
+      counts.forEach((c) => sizes.add(c));
+    }
+    expect(sizes.size).toBeGreaterThan(3);
+    expect(frame(render(<Chest rarity="raro" layer="item" accessibilityLabel="Prêmio do baú" />)).props.accessibilityLabel).toBe('Prêmio do baú');
+  });
+
+  it('a silhueta do chefão é a mesma arte numa cor só, sem o chão, e decorativa', () => {
+    const r = render(<Boss id="paredao" state="golpe" silhouette size={140} />);
+    expect(svgOf(r).props.width).toBe(140);
+    expect(frame(r).props['aria-hidden']).toBe(true);
+    const colors = new Set(r.root.findAll((n: ReactTestInstance) => typeof n.props?.stroke === 'string' && n.props.stroke !== 'none').map((n) => n.props.stroke));
+    expect([...colors]).toEqual([ART.white]);
+    const tinted = render(<Boss id="mormaco" silhouette="#FFEEDD" animated parts={{ corpo: { opacity: 1 } }} />);
+    expect(r.root.findAllByType(Svg).length).toBe(1);
+    expect(tinted.root.findAllByType(Svg).length).toBe(2); // sem a camada do chão: raios + corpo
+    expect(strokes(tinted, '#FFEEDD')).toBeGreaterThan(0);
+    expect(strokes(tinted, VILLAIN)).toBe(0);
+    expect(VILLAIN).toBe(neon.villain); // o violeta vem do token
+  });
+});
+
+describe('dentro de um SVG maior — contrato { cx, cy, size } da E8', () => {
+  it('mascote, chefão e logo viram <G> encaixados na caixa, sem View e sem Image', () => {
+    const box = { cx: 540, cy: 900, size: 440 };
+    const r = render(
+      <Svg width={1080} height={1920} viewBox="0 0 1080 1920">
+        <MascotSvgArt team="owls" pose="vitoria" box={box} />
+        <BossSvgArt id="soneca" state="derrotado" box={{ cx: 540, cy: 600, size: 480 }} />
+        <BossSvgArt id="soneca" state="golpe" box={{ cx: 540, cy: 600, size: 480 }} silhouette="#FFFFFF" />
+        <LogoSvgArt variant="horizontal" box={{ cx: 540, cy: 1700, size: 640 }} />
+        {mascotSlot('volt')({ cx: 200, cy: 200, size: 120 })}
+        {bossSlot('fuligem')({ cx: 880, cy: 200, size: 120 })}
+      </Svg>,
+    );
+    const groups = r.root.findAll((n: ReactTestInstance) => n.type === G && typeof n.props.transform === 'string' && n.props.transform.startsWith('translate('));
+    expect(groups.length).toBe(6);
+    // Mascote 200 × 220 no quadrado de 440: escala 2, centrado em (540, 900).
+    expect(groups[0].props.transform).toBe('translate(340 680) scale(2)');
+    expect(r.root.findAll((n: ReactTestInstance) => ['View', 'Image'].includes(String(n.type))).length).toBe(0);
+    expect(strokes(r, ART.team.owls)).toBeGreaterThan(0);
+    expect(strokes(r, ART.team.volt)).toBeGreaterThan(0);
   });
 });

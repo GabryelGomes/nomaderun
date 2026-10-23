@@ -553,3 +553,10 @@ export function bossNodes(id: BossId, state: BossState, dano: BossDamage, color:
   const body = [...p.raios, ...p.corpo];
   return [...p.back, ...(p.pose ? [pivot(body, p.pose)] : body)];
 }
+
+/** Só o corpo (raios + corpo, já na pose do estado), sem chão, impacto nem fumaça: a base da silhueta. */
+export function bossBodyNodes(id: BossId, state: BossState, dano: BossDamage, color: string): ArtNode[] {
+  const p = bossParts(id, state, dano, color);
+  const body = [...p.raios, ...p.corpo];
+  return p.pose ? [pivot(body, p.pose)] : body;
+}

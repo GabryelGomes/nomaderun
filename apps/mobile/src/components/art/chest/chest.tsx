@@ -3,9 +3,9 @@ import Animated from 'react-native-reanimated';
 
 import { expand, pivot, resolveQuality, usesPrism, type ArtNode, type QualityProp } from '../neon/core';
 import { ArtFrame, ArtLayer, originOf, StaticArt, useGradId, type ArtA11y, type ArtBox, type ArtPartStyle } from '../neon/render';
-import { CHEST_BOX, CHEST_LABELS, CHEST_PIVOTS, chestNodes, chestParts, type ChestRarity, type ChestState } from './chest-art';
+import { CHEST_BOX, CHEST_LABELS, CHEST_PIVOTS, chestLayerNodes, chestNodes, chestParts, type ChestLayer, type ChestRarity, type ChestState } from './chest-art';
 
-export type ChestPart = keyof typeof CHEST_PIVOTS;
+export type ChestPart = 'tampa' | 'corpo';
 
 export type ChestProps = ArtA11y & {
   rarity: ChestRarity;
@@ -19,6 +19,12 @@ export type ChestProps = ArtA11y & {
    * para o tremor). Com `parts`, o baú vira 4 camadas: fundo, corpo, tampa e frente.
    */
   parts?: Partial<Record<ChestPart, ArtPartStyle>>;
+  /**
+   * Só uma camada, na caixa inteira (as camadas empilhadas se alinham sozinhas): `corpo` (fundo, corpo,
+   * cadeado e chão), `tampa` (pivô na dobradiça) ou `item` (o prêmio que sobe, pivô no centro). Para os
+   * slots `chest`, `lid` e `item` do `ChestOpening` (E5). Decorativa, a menos que receba `accessibilityLabel`.
+   */
+  layer?: ChestLayer;
   decorative?: boolean;
 };
 
@@ -27,25 +33,29 @@ export function chestLabel(rarity: ChestRarity, state: ChestState): string {
 }
 
 /** Baú do dia em 3 raridades e 3 estados. Informativo por padrão ("Baú raro, fechado"). */
-export function Chest({ rarity, state = 'fechado', size = 120, color, quality, parts, decorative, accessibilityLabel, ...rest }: ChestProps) {
+export function Chest({ rarity, state = 'fechado', size = 120, color, quality, parts, layer, decorative, accessibilityLabel, ...rest }: ChestProps) {
   const q = resolveQuality(quality, size);
   const box: ArtBox = { ...CHEST_BOX, width: size };
   const gradId = useGradId('bau');
-  const a11y: ArtA11y = { ...rest, accessibilityLabel: decorative ? undefined : (accessibilityLabel ?? chestLabel(rarity, state)) };
+  const a11y: ArtA11y = { ...rest, accessibilityLabel: decorative ? undefined : (accessibilityLabel ?? (layer ? undefined : chestLabel(rarity, state))) };
+  if (layer) {
+    const nodes = chestLayerNodes(rarity, state, layer, color);
+    return <StaticArt box={box} prims={expand(nodes, q, gradId)} gradId={usesPrism(nodes) ? gradId : undefined} {...a11y} />;
+  }
   if (!parts) {
     const nodes = chestNodes(rarity, state, color);
     return <StaticArt box={box} prims={expand(nodes, q, gradId)} gradId={usesPrism(nodes) ? gradId : undefined} {...a11y} />;
   }
   const p = chestParts(rarity, state, color);
   // Cada camada é um Svg próprio: o gradiente "prisma" precisa de um id por camada.
-  const layer = (nodes: ArtNode[], suffix: string) => {
+  const layerOf = (nodes: ArtNode[], suffix: string) => {
     const id = gradId + suffix;
     return { prims: expand(p.pose ? [pivot(nodes, p.pose)] : nodes, q, id), gradId: usesPrism(nodes) ? id : undefined };
   };
-  const fundo = layer(p.fundo, 'f');
-  const corpo = layer(p.corpo, 'c');
-  const tampa = layer(p.tampa, 't');
-  const frente = layer(p.frente, 'x');
+  const fundo = layerOf(p.fundo, 'f');
+  const corpo = layerOf(p.corpo, 'c');
+  const tampa = layerOf(p.tampa, 't');
+  const frente = layerOf(p.frente, 'x');
   const P = CHEST_PIVOTS;
   return (
     <ArtFrame box={box} {...a11y}>

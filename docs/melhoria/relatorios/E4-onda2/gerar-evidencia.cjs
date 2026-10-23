@@ -50,14 +50,14 @@ function piece(nodes, box, width, { quality, label, overlay = '', opacity = 1, b
 function stack(layers, box, width, label, bg) {
   const h = Math.round((width * box.vbH) / box.vbW);
   const inner = layers
-    .map(({ nodes, opacity = 1, transform = 'none', quality, recolor }) => {
+    .map(({ nodes, opacity = 1, transform = 'none', origin = '50% 50%', quality, recolor }) => {
       const q = resolveQuality(quality, width);
       const id = `prisma${++gid}`;
       const defs = usesPrism(nodes) ? prismDefsMarkup(id) : '';
       let prims = expand(nodes, q, id);
       if (recolor) prims = recolorPrims(prims, recolor);
       const svg = svgMarkup(box.vbW, box.vbH, defs + primsToMarkup(prims), width, opacity);
-      return `<div style="position:absolute;inset:0;transform:${transform}">${svg}</div>`;
+      return `<div style="position:absolute;inset:0;transform:${transform};transform-origin:${origin}">${svg}</div>`;
     })
     .join('');
   return { label, html: `<div class="art" style="width:${width}px;height:${h}px${bg ? `;background:${bg}` : ''}">${inner}</div>` };
@@ -149,6 +149,88 @@ family('corrida-qualidade', 'Mascotes em corrida · tamanho de card (170 pt), co
   out.push({ ...s, label: `72 pt (auto = leve)` });
   return out;
 });
+
+// ---------------------------------------------------------------- logo
+family('logo', 'Logo oficial · símbolo (240, 96, 48 e 24 pt), logotipo, horizontal e a versão monocromática', 4, () => {
+  const lg = art('logo/logo-art.ts');
+  const out = [];
+  for (const w of [240, 96, 48, 24]) out.push(piece(lg.logoNodes('simbolo'), lg.LOGO_BOX.simbolo, w, { label: `símbolo · ${w} pt` }));
+  out.push(piece(lg.logoNodes('logotipo'), lg.LOGO_BOX.logotipo, 400, { label: 'logotipo · 400 pt' }));
+  out.push(piece(lg.logoNodes('logotipo'), lg.LOGO_BOX.logotipo, 180, { label: 'logotipo · 180 pt' }));
+  out.push(piece(lg.logoNodes('simbolo', '#FFFFFF'), lg.LOGO_BOX.simbolo, 96, { label: 'monocromático', quality: 'plano' }));
+  out.push(piece(lg.logoNodes('logotipo', '#FFFFFF'), lg.LOGO_BOX.logotipo, 180, { label: 'logotipo monocromático', quality: 'plano' }));
+  return out;
+}, 440);
+
+family('logo-horizontal', 'Logo oficial · horizontal (símbolo + logotipo) em 640 e 320 pt', 1, () => {
+  const lg = art('logo/logo-art.ts');
+  return [piece(lg.logoNodes('horizontal'), lg.LOGO_BOX.horizontal, 640, { label: 'horizontal · 640 pt' }), piece(lg.logoNodes('horizontal'), lg.LOGO_BOX.horizontal, 320, { label: 'horizontal · 320 pt' })];
+}, 700);
+
+// ---------------------------------------------------------------- partes para a E5
+family('partes', 'Partes para a E5 · baú em 3 camadas (corpo, tampa, item) e montado · chefão + silhueta do clarão · mascote do TeamConfirm', 4, () => {
+  const c = art('chest/chest-art.ts');
+  const b = art('boss/boss-art.ts');
+  const t = art('team/mascot-art.ts');
+  const r = art('team/runner-art.ts');
+  const out = [];
+  const pct = (box, p) => `${(p.x / box.vbW) * 100}% ${(p.y / box.vbH) * 100}%`;
+  for (const rar of ['raro', 'lendario']) {
+    for (const layer of c.CHEST_LAYERS) out.push(piece(c.chestLayerNodes(rar, 'fechado', layer), c.CHEST_BOX, 180, { label: `baú ${c.CHEST_LABELS[rar]} · layer="${layer}"` }));
+    out.push(
+      stack(
+        [
+          { nodes: c.chestLayerNodes(rar, 'fechado', 'corpo') },
+          { nodes: c.chestLayerNodes(rar, 'fechado', 'tampa'), transform: 'rotate(-28deg)', origin: pct(c.CHEST_BOX, c.CHEST_PIVOTS.tampa) },
+          { nodes: c.chestLayerNodes(rar, 'fechado', 'item'), transform: 'translateY(-6%) scale(0.9)', origin: pct(c.CHEST_BOX, c.CHEST_PIVOTS.item) },
+        ],
+        c.CHEST_BOX,
+        180,
+        'montado (tampa a -28°, item subindo)',
+      ),
+    );
+  }
+  for (const [id, st] of [
+    ['paredao', 'golpe'],
+    ['mormaco', 'parado'],
+  ]) {
+    out.push(piece(b.bossNodes(id, st, 1, ART.villain), b.BOSS_BOX, 180, { label: `${b.BOSS_NAMES[id]} · ${st}` }));
+    out.push(piece(b.bossBodyNodes(id, st, 1, ART.villain), b.BOSS_BOX, 180, { label: 'silhouette (clarão)', recolor: '#FFFFFF' }));
+  }
+  out.push(stack([{ nodes: b.bossNodes('soneca', 'golpe', 2, ART.villain) }, { nodes: b.bossBodyNodes('soneca', 'golpe', 2, ART.villain), recolor: '#FFFFFF', opacity: 0.55 }], b.BOSS_BOX, 180, 'golpe + clarão a 55%'));
+  out.push(piece(t.mascotNodes('volt', 'vitoria', ART.team.volt), t.MASCOT_BOX, 180, { label: 'TeamConfirm · Mascot pose="vitoria"' }));
+  out.push(piece(r.runnerNodes('striders', ART.team.striders), r.RUNNER_BOX, 180, { label: 'ou MascotRunner' }));
+  return out;
+});
+
+// ---------------------------------------------------------------- contrato { cx, cy, size } da E8
+family('cartao', 'Contrato { cx, cy, size } da E8 · a arte desenhada dentro do SVG do card (1080 × 1920, reduzido), sem Image', 3, () => {
+  const core = art('neon/core.ts');
+  const t = art('team/mascot-art.ts');
+  const b = art('boss/boss-art.ts');
+  const lg = art('logo/logo-art.ts');
+  const { primsToMarkup } = art('neon/markup.ts');
+  const inSvg = (nodes, vb, box, recolor) => {
+    const { scale, x, y } = core.fitTransform(vb, box);
+    let prims = expand(nodes, resolveQuality('auto', box.size));
+    if (recolor) prims = recolorPrims(prims, recolor);
+    return `<g transform="translate(${x} ${y}) scale(${scale})">${primsToMarkup(prims)}</g>`;
+  };
+  const frame = (box) => `<rect x="${box.cx - box.size / 2}" y="${box.cy - box.size / 2}" width="${box.size}" height="${box.size}" fill="none" stroke="#FF6A13" stroke-opacity="0.5" stroke-width="3" stroke-dasharray="14 12"/><circle cx="${box.cx}" cy="${box.cy}" r="8" fill="#FF6A13"/>`;
+  const card = (body, label) => ({
+    label,
+    html: `<div class="art" style="width:300px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="300" height="533"><rect width="1080" height="1920" fill="${ART.bg}"/>${body}</svg></div>`,
+  });
+  const logo = (cy) => inSvg(lg.logoNodes('horizontal'), lg.LOGO_BOX.horizontal, { cx: 540, cy, size: 640 });
+  const mBox = { cx: 540, cy: 860, size: 640 };
+  const bBox = { cx: 540, cy: 820, size: 700 };
+  const sBox = { cx: 540, cy: 960, size: 300 };
+  return [
+    card(frame(mBox) + inSvg(t.mascotNodes('owls', 'vitoria', ART.team.owls), t.MASCOT_BOX, mBox) + logo(1640), 'mascote (vitória) em { cx: 540, cy: 860, size: 640 }'),
+    card(frame(bBox) + inSvg(b.bossNodes('mormaco', 'derrotado', 0, ART.villain), b.BOSS_BOX, bBox) + logo(1640), 'chefão (derrotado) em { cx: 540, cy: 820, size: 700 }'),
+    card(frame(sBox) + inSvg(t.mascotNodes('coyotes', 'parado', ART.team.coyotes), t.MASCOT_BOX, sBox) + logo(1640) + inSvg(lg.logoNodes('simbolo'), lg.LOGO_BOX.simbolo, { cx: 120, cy: 120, size: 140 }), 'mascote pequeno + logo (símbolo e horizontal)'),
+  ];
+}, 340);
 
 function page(name) {
   const f = FAMILIES[name];
