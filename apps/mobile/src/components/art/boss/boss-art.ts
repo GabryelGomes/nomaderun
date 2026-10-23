@@ -454,8 +454,15 @@ function reiBuzina(k: Ctx): BossParts {
     neon([fur ? 'M56 106 L 108 126' : 'M58 112 L 108 124', m(fur ? 'M56 106 L 108 126' : 'M58 112 L 108 124')], body, 5),
     ...(down ? [] : damage(k.dano, crack(['M92 72 L 108 84 L 100 94', 'M108 84 L 122 80'], crackC), [...crack(['M186 144 L 170 160 L 182 172 L 170 188', 'M170 160 L 158 156'], crackC), chip(204, 186, 6, 25, body)])),
     ...eyes,
+    ...(k.dano >= 2 && !down && !hit ? [plain(['M72 124 L 84 134 L 78 146', 'M84 134 L 96 132'], ART.dark.villain, 2.6)] : []),
     ...grille,
-    ...(down ? [] : hit ? [pivot(crown([[92, 22, 22], [120, 10, 28]]), { x: 120, y: 60, rotate: -8 }), pivot(crown([[148, 22, 22]]), { x: 148, y: 40, rotate: 34, tx: 30, ty: -18 })] : crown([[92, 22, 22], [120, 10, 28], [148, 22, 22]])),
+    ...(down
+      ? []
+      : hit
+        ? [pivot(crown([[92, 22, 22], [120, 10, 28]]), { x: 120, y: 60, rotate: -8 }), pivot(crown([[148, 22, 22]]), { x: 148, y: 40, rotate: 34, tx: 30, ty: -18 })]
+        : k.dano >= 2
+          ? [...crown([[92, 22, 22], [120, 10, 28]]), pivot(crown([[148, 22, 22]]), { x: 152, y: 58, rotate: 28 })]
+          : crown([[92, 22, 22], [120, 10, 28], [148, 22, 22]])),
   ];
   if (down) {
     return {
@@ -506,10 +513,25 @@ function fuligem(k: Ctx): BossParts {
   const crackC = fur ? HOT : ART.ink;
   const drawCloud = down ? pivot([neon(cloud, body, 4, { fill: true, tint: 0.12 })], { x: 120, y: 120, scale: 0.72, ty: 30 }) : neon(cloud, body, 4, { fill: true, tint: fur ? 0.2 : 0.12, glow: fur ? 1.4 : 1 });
   const corpo: ArtNode[] = [
-    ...(down ? [] : [neon([pipe, m(pipe)], ART.ink2, 3.2, { fill: true, tint: 0.06, glow: 0.6 }), neon([rim, m(rim)], pipeC, 3.6, { glow: fur ? 1.2 : 0.5 })]),
+    ...(down
+      ? []
+      : k.dano >= 2
+        ? [
+            pivot([neon(pipe, ART.ink2, 3.2, { fill: true, tint: 0.06, glow: 0.6 }), neon(rim, pipeC, 3.6, { glow: fur ? 1.2 : 0.5 })], { x: 60, y: 150, rotate: -28, ty: 6 }),
+            neon(m(pipe), ART.ink2, 3.2, { fill: true, tint: 0.06, glow: 0.6 }),
+            neon(m(rim), pipeC, 3.6, { glow: fur ? 1.2 : 0.5 }),
+            spark(40, 150, 6, ART.orange),
+          ]
+        : [neon([pipe, m(pipe)], ART.ink2, 3.2, { fill: true, tint: 0.06, glow: 0.6 }), neon([rim, m(rim)], pipeC, 3.6, { glow: fur ? 1.2 : 0.5 })]),
     drawCloud,
     ...(down ? [] : [neon(['M84 96 Q 100 80 120 92', 'M120 92 Q 140 78 160 94', 'M70 132 Q 90 146 108 140'], ART.ink2, 2, { glow: 0.3, hot: 0, opacity: 0.55 })]),
-    ...(down ? [] : damage(k.dano, crack(['M172 74 L 156 92 L 170 102 L 160 116'], crackC), [...crack(['M54 110 L 74 120 L 62 134 L 74 146'], crackC), puff(204, 72, 6, 0.5)])),
+    ...(down
+      ? []
+      : damage(k.dano, crack(['M172 74 L 156 92 L 170 102 L 160 116'], crackC), [
+          ...crack(['M54 110 L 74 120 L 62 134 L 74 146'], crackC),
+          plain('M150 48 L 158 62 L 150 70 L 162 78', ART.bg, 7),
+          puff(204, 72, 6, 0.5),
+        ])),
     ...face,
     ...(down ? [] : [neon(['M100 168 Q 98 180 102 188', 'M140 166 Q 144 178 140 186'], ART.ink2, 2.4, { hot: 0, opacity: 0.6 })]),
   ];

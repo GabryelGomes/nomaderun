@@ -118,10 +118,21 @@ function tail(team: FactionId, c: string): ArtNode[] {
 /** Braço (ou asa, no Breu). `front` = o braço da frente, por cima do corpo. */
 function arm(team: FactionId, c: string, front: boolean): ArtNode[] {
   if (team === 'owls') {
-    // Asas varridas para trás, afinando até a ponta, com 2 penas marcadas na borda de fuga.
-    const pts = front ? curve([150, 112], [128, 138], [96, 148], 6) : curve([130, 110], [110, 112], [90, 92], 6);
-    const feathers = front ? ['M122 141 L 114 152', 'M110 145 L 102 155'] : ['M108 108 L 98 112', 'M100 102 L 90 104'];
-    return [neon(limb(pts, taper(6, front ? 18 : 15, 3)), c, W, { fill: true, tint: front ? 0.14 : 0.08, hot: front ? 0.5 : 0 }), neon(feathers, c, 2, { glow: 0.5, hot: 0, opacity: 0.8 })];
+    // Asas no lugar dos braços, no mesmo balanço da passada: afinam até a ponta das penas, com 2 penas
+    // marcadas embaixo do "antebraço" (sem cruzar o peito).
+    const pts: P[] = front
+      ? [
+          [146, 112],
+          [160, 134],
+          [184, 116],
+        ]
+      : [
+          [130, 110],
+          [108, 118],
+          [96, 142],
+        ];
+    const feathers = front ? ['M164 134 L 166 144', 'M172 128 L 178 136'] : ['M106 124 L 98 128', 'M102 132 L 94 138'];
+    return [neon(limb(pts, [13, 11, 3]), c, W, { fill: true, tint: front ? 0.14 : 0.08, hot: front ? 0.5 : 0 }), neon(feathers, c, 2, { glow: 0.5, hot: 0, opacity: 0.85 })];
   }
   const pts = front ? ARM_F : ARM_B;
   const end = pts[pts.length - 1];

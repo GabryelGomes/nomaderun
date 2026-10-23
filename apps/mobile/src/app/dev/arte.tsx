@@ -1,23 +1,35 @@
 /**
- * T7.1.11 (E4) — galeria do sistema de arte, só para desenvolvimento (revisão e capturas do QA).
+ * T7.1.11 e T7.2.8 (E4) — galeria do sistema de arte, só para desenvolvimento (revisão e capturas do QA).
+ * Onda 2: logo, líderes, mascotes em corrida, partes para a E5 e a arte dentro do SVG do card (E8).
  * Visível em `__DEV__` ou na web; num build de produção nativo, redireciona para o início.
  */
 import { Redirect } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
+import Svg from 'react-native-svg';
 
 import {
   Boss,
+  BossSvgArt,
   BOSS_IDS,
   BOSS_NAMES,
   BOSS_STATES,
   Chest,
+  CHEST_LAYERS,
   CHEST_RARITIES,
   CHEST_STATES,
   EMPTY_KINDS,
   EMPTY_LABELS,
   EmptyArt,
+  LEADER_NAMES,
+  LEADER_POSES,
+  LeaderBust,
+  Logo,
+  LOGO_VARIANTS,
+  LogoSvgArt,
   Mascot,
+  MascotRunner,
+  MascotSvgArt,
   MASCOT_NAMES,
   MASCOT_POSES,
   Medal,
@@ -44,6 +56,8 @@ import { factions, radius, space } from '@/theme/tokens';
 
 const TEAMS: readonly FactionId[] = ['striders', 'volt', 'owls', 'coyotes'];
 const POSE_LABELS = { parado: 'parado', vitoria: 'vitória', derrota: 'derrota', dormindo: 'dormindo' } as const;
+const LOGO_LABELS = { simbolo: 'símbolo', logotipo: 'logotipo', horizontal: 'horizontal' } as const;
+const LAYER_LABELS = { corpo: 'corpo', tampa: 'tampa', item: 'item' } as const;
 type MedalView = '1' | '2' | '3' | 'bloqueada';
 
 export default function ArtGalleryRoute() {
@@ -117,11 +131,49 @@ function ArtGallery() {
         chipLabel={(l) => `Animação: ${l}`}
         options={[
           ['parado', 'Estático'],
-          ['vivo', 'Respirar e piscar'],
+          ['vivo', 'Vivo (respirar, piscar, falar, correr)'],
         ]}
         value={motion}
         onChange={setMotion}
       />
+
+      <Section title="Logo oficial" note="Símbolo, logotipo e horizontal (paths, sem texto no SVG). Ícones em PNG em assets/art.">
+        {LOGO_VARIANTS.map((v) => (
+          <Cell key={v} label={LOGO_LABELS[v]}>
+            <Logo variant={v} size={v === 'simbolo' ? 120 : 260} quality={quality} testID={`dev-arte-logo-${v}`} />
+          </Cell>
+        ))}
+        <Cell label="monocromático">
+          <Logo size={72} mono={neon.ink} decorative />
+        </Cell>
+        <Cell label="48 e 24 pt">
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+            <Logo size={48} quality={quality} decorative />
+            <Logo size={24} quality={quality} decorative />
+          </View>
+        </Cell>
+      </Section>
+
+      <Section title="Líderes · parado e falando" note="Com a animação ligada, o parado respira e pisca; o falando abre a boca e acena.">
+        {TEAMS.flatMap((t) =>
+          LEADER_POSES.map((pose) => (
+            <Cell key={`${t}-${pose}`} label={`${LEADER_NAMES[t]} · ${pose}`}>
+              <LeaderBust team={t} pose={pose} size={140} quality={quality} animated={animated} />
+            </Cell>
+          )),
+        )}
+      </Section>
+
+      <Section title="Mascotes em corrida · escolha de time" note="Com os 4 juntos, use a qualidade leve; com a animação, o corpo quica e o rastro desliza.">
+        {TEAMS.map((t) => (
+          <Cell key={t} label={MASCOT_NAMES[t]}>
+            <MascotRunner team={t} size={170} quality={quality === 'auto' ? 'leve' : quality} animated={animated} />
+          </Cell>
+        ))}
+        <Cell label={`herói · ${MASCOT_NAMES[team]}`}>
+          <MascotRunner team={team} size={300} quality={quality} animated={animated} />
+        </Cell>
+      </Section>
 
       <Section title="Mascotes · 4 poses" note={`${MASCOT_NAMES[team]} (${factions[team].name}). Troque o time acima.`}>
         {MASCOT_POSES.map((pose) => (
@@ -185,6 +237,29 @@ function ArtGallery() {
             </Cell>
           )),
         )}
+      </Section>
+
+      <Section title="Partes para a E5" note="Baú em camadas (layer) e a silhueta do chefão para o clarão do golpe.">
+        {CHEST_LAYERS.map((l) => (
+          <Cell key={l} label={`baú · ${LAYER_LABELS[l]}`}>
+            <Chest rarity="lendario" layer={l} size={100} quality={quality} />
+          </Cell>
+        ))}
+        <Cell label="chefão · silhueta">
+          <Boss id="paredao" state="golpe" silhouette size={110} quality={quality} />
+        </Cell>
+      </Section>
+
+      <Section title="Dentro do SVG do card (E8)" note="Contrato { cx, cy, size }: a arte vira um G dentro do SVG maior, sem Image.">
+        <Cell label="card 1080 × 1920 (reduzido)">
+          <View aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            <Svg width={162} height={288} viewBox="0 0 1080 1920">
+              <MascotSvgArt team={team} pose="vitoria" box={{ cx: 540, cy: 620, size: 600 }} />
+              <BossSvgArt id="mormaco" state="derrotado" box={{ cx: 540, cy: 1240, size: 520 }} />
+              <LogoSvgArt variant="horizontal" box={{ cx: 540, cy: 1720, size: 640 }} />
+            </Svg>
+          </View>
+        </Cell>
       </Section>
 
       <ChipRow
