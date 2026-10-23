@@ -8,6 +8,7 @@ import { FACTION_IDS } from '@/domain/types';
 import { seedChests } from '@/demo/demo-data';
 
 import { DemoPgError, iso, msOf, raise, type ChestRow, type DemoDb, type Row } from './db';
+import { DEMO_GAME_V2_RPC_HANDLERS } from './game-v2';
 
 type RpcHandler = (db: DemoDb, userId: string | null, args: Row) => unknown;
 
@@ -144,6 +145,9 @@ export const DEMO_RPC_HANDLERS: Record<string, RpcHandler> = {
     if (scope === 'faction') throw new DemoPgError('P0001', 'VALIDATION: escopo inválido para facções');
     return db.rankingFactions(period(args.p_period), scope, valueOf(args.p_value));
   },
+
+  // E3 (T7.2.3): raid_current, league_current e zone_paint_near.
+  ...DEMO_GAME_V2_RPC_HANDLERS,
 };
 
 /** Nomes das RPCs que o servidor de demonstração atende (o teste de contrato confere contra os repositórios). */

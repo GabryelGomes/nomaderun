@@ -5,7 +5,7 @@ import { cellToParent, latLngToCell } from 'h3-js';
 
 import type { ActivityValidation } from './anti-cheat';
 import { ZONE_RES } from './grid';
-import type { ZoneEvent } from './territory';
+import type { ZoneEvent, ZoneGoal } from './territory';
 import { FACTION_IDS, type FactionId, type GeoPoint, type LatLng } from './types';
 
 /**
@@ -296,6 +296,43 @@ export function conquestGap(counts: PaintCounts, faction: FactionId, currentOwne
 /** "≈ X m" para um número de trechos. */
 export const paintGapMeters = (cells: number) => Math.max(0, cells) * PAINT_CELL_METERS;
 
+export type PaintZoneGap = {
+  goal: ZoneGoal;
+  /** Trechos NOVOS a pintar (estimativa honesta: virar trecho rival só adianta). */
+  cells: number;
+  /** "Faltam X m" (≈ cells × 40 m). */
+  meters: number;
+  /** Na defesa, a outra saída: virar de volta este número de trechos do rival (0 fora da defesa). */
+  retakes: number;
+};
+
+/**
+ * HUD "faltam X m" da regra v2 (pedido da E6), para conquistar ou defender a zona.
+ * - Zona de outro time ou neutra: `conquestGap` trechos novos.
+ * - Zona sua sob ataque: trechos novos até o rival mais forte ficar abaixo de 50% dos seus
+ *   (PAINT_ATTACK_RATIO), ou virar de volta PAINT_DEFENSE_RETAKES trechos (o que vier antes) — a mesma regra
+ *   de `applyPaint` e de `createLiveTracker`.
+ * - Zona sua sem ataque: manter (0). Zona bloqueada: nada a fazer.
+ */
+export function paintZoneGap(
+  counts: PaintCounts,
+  faction: FactionId,
+  owner: FactionId | null,
+  opts: { underAttack?: boolean; retaken?: number; blocked?: boolean } = {},
+): PaintZoneGap {
+  const gap = (goal: ZoneGoal, cells: number, retakes = 0): PaintZoneGap => ({ goal, cells, meters: paintGapMeters(cells), retakes });
+  if (opts.blocked) return gap('bloqueada', 0);
+  if (owner !== faction) return gap('conquistar', conquestGap(counts, faction, owner));
+  if (!opts.underAttack) return gap('manter', 0);
+  let rival = 0;
+  for (const f of FACTION_IDS) if (f !== faction) rival = Math.max(rival, counts[f]);
+  const retakes = Math.max(0, PAINT_DEFENSE_RETAKES - Math.max(0, Math.floor(opts.retaken ?? 0)));
+  // Defendida quando o rival fica abaixo de 50% dos seus trechos: meus + n > rival ÷ 0,5.
+  const cells = rival > 0 ? Math.max(0, Math.floor(rival / PAINT_ATTACK_RATIO) - counts[faction] + 1) : 0;
+  if (cells === 0 || retakes === 0) return gap('manter', 0);
+  return gap('defender', cells, retakes);
+}
+
 /** Ataque ainda vale em `now` (expira 24 h depois da última virada do rival). Corrige a E-03 na v2. */
 export const paintAttackActive = (zone: ZonePaint, now: number) =>
   zone.attack !== null && now - zone.attack.lastAt <= PAINT_ATTACK_WINDOW_MS;
@@ -402,10 +439,15 @@ export function applyPaint(world: PaintWorld, input: PaintRunInput): PaintRunRes
     if (kind === 'virado' && owner === faction) z.retaken++;
   }
 
-  // Trechos de cada zona tocada (mundo + o que a corrida mudou).
+  // Trechos de cada zona tocada (mundo + o que a corrida mudou), agrupados uma vez só.
   const zoneCells = new Map<string, Map<string, PaintCell>>();
-  for (const id of touchedZones) zoneCells.set(id, new Map());
+  const zoneOverlay = new Map<string, PaintCell[]>();
+  for (const id of touchedZones) {
+    zoneCells.set(id, new Map());
+    zoneOverlay.set(id, []);
+  }
   for (const c of Object.values(world.cells)) zoneCells.get(c.zoneId)?.set(c.cell, c);
+  for (const v of overlay.values()) zoneOverlay.get(v.zoneId)?.push(v);
 
   const zones: PaintZoneChange[] = [];
   const events: ZoneEvent[] = [];
@@ -415,15 +457,21 @@ export function applyPaint(world: PaintWorld, input: PaintRunInput): PaintRunRes
     const zone = zoneOf(zoneId);
     const cellsBefore = zoneCells.get(zoneId)!;
     const countsBefore = zoneCounts(zone, cellsBefore.values(), now);
-    const cellsAfter = new Map(cellsBefore);
-    for (const [c, v] of overlay) if (v.zoneId === zoneId) cellsAfter.set(c, v);
-    let countsAfter = zoneCounts(zone, cellsAfter.values(), now);
+    // Placar depois = o de antes ajustado só pelos trechos que a corrida mudou (= zoneCounts dos trechos depois).
+    let countsAfter: PaintCounts = { ...countsBefore };
+    for (const v of zoneOverlay.get(zoneId)!) {
+      const prev = cellsBefore.get(v.cell);
+      if (prev && effectiveLayers(prev, now) > 0) countsAfter[prev.faction]--;
+      if (effectiveLayers(v, now) > 0) countsAfter[v.faction]++;
+    }
     const stats = perZone.get(zoneId)!;
 
     const ownerBefore = zone.owner;
     let ownerAfter = zoneOwnerByCells(countsAfter, ownerBefore);
 
     if (ownerAfter === faction && ownerBefore !== faction && options.reinforceOnConquest) {
+      const cellsAfter = new Map(cellsBefore);
+      for (const v of zoneOverlay.get(zoneId)!) cellsAfter.set(v.cell, v);
       for (const [c, v] of cellsAfter) {
         if (v.faction !== faction) continue;
         const live = fadeCell(v, now);
@@ -439,7 +487,12 @@ export function applyPaint(world: PaintWorld, input: PaintRunInput): PaintRunRes
     // Herança: some quando vence e quando a zona muda de dono.
     const liveInherit = zone.inherited && now < zone.inherited.until ? zone.inherited : null;
     const inherited = liveInherit && ownerAfter === liveInherit.faction ? liveInherit : null;
-    if (inherited !== zone.inherited) countsAfter = zoneCounts({ ...zone, inherited }, cellsAfter.values(), now);
+    if (inherited !== zone.inherited) {
+      // Mesmo resultado de recontar com a herança nova: tira a antiga e põe a que ficou.
+      countsAfter = { ...countsAfter };
+      if (zone.inherited) countsAfter[zone.inherited.faction] -= inheritedCells(zone, now);
+      if (inherited) countsAfter[inherited.faction] += inheritedCells({ ...zone, inherited }, now);
+    }
 
     // Ataque (E-03 na v2: expira sozinho em 24 h).
     let attack = paintAttackActive(zone, now) ? zone.attack : null;

@@ -11,7 +11,7 @@ import { FACTION_IDS, type FactionId } from '../../../../../apps/mobile/src/doma
 
 import { AQUECIMENTO_DIAS, montarAgenda, TOTAL_DIAS, VIRADAS_TEMPORADA, type Cenario, type Corredor, type Corrida, type Perfil } from './agentes';
 import { AQUI, mapaBairro271, mapaFlamboyant, type Grafo } from './base';
-import { RegraAtual, RegraBarra, RegraPintura, type Regra } from './regras';
+import { RegraAtual, RegraBarra, RegraPintura, RegraPinturaReal, type Regra } from './regras';
 
 const rapido = process.argv.includes('--rapido');
 
@@ -21,7 +21,8 @@ export const REGRAS: Fabrica[] = [
   { id: 'A0', criar: (k) => new RegraAtual(k, { decaimento: false }) },
   { id: 'B', criar: (k) => new RegraBarra(k) },
   { id: 'B300', criar: (k) => new RegraBarra(k, { CAP: 300, MIN: 60, NOVO: 1.5 }) },
-  { id: 'C', criar: (k) => new RegraPintura(k, { miolo: false, azarao: false, desbotar: true }) },
+  { id: 'C', criar: (k) => new RegraPinturaReal(k) },
+  { id: 'C-F1', criar: (k) => new RegraPintura(k, { miolo: false, azarao: false, desbotar: true }) },
   { id: 'C+p', criar: (k) => new RegraPintura(k, { miolo: false, azarao: false, desbotar: true, protecaoH: 24 }) },
   { id: 'C0', criar: (k) => new RegraPintura(k, { miolo: false, azarao: false, desbotar: false }) },
   { id: 'D', criar: (k) => new RegraPintura(k, { miolo: true, azarao: false, desbotar: true }) },
