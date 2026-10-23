@@ -519,7 +519,8 @@ begin
                        with ordinality t(e, ord) order by ord limit 6) h), '[]'::jsonb),
               case when coalesce(v_settings.feed_show_map, true) and jsonb_typeof(p -> 'feed' -> 'route') = 'array'
                    then array(select jsonb_array_elements_text(p -> 'feed' -> 'route')) end,
-              not (coalesce(v_settings.feed_show_map, true) and jsonb_typeof(p -> 'feed' -> 'route') = 'array'),
+              case when coalesce(v_settings.feed_show_map, true) and jsonb_typeof(p -> 'feed' -> 'route') = 'array'
+                   then coalesce((p -> 'feed' ->> 'routeHidden')::boolean, true) else true end,
               pr.is_demo)
       on conflict (activity_id) do nothing
       returning id into v_item;
