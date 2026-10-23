@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>NOMADE RUN — Wireframes v2 (E6)</title>
+<style>
+  :root {
+    --bg: #070708; --surface: #111215; --sunken: #1A1B20; --line: #24252B;
+    --text: #F3F1ED; --muted: #A8A6A1; --orange: #FF6A13; --ink: #140A04;
+    --striders: #2FA8FF; --volt: #19E6A8; --owls: #FF2D55; --coyotes: #FFD60A;
+    --note: #E040FB;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #2a2c31; font-family: Inter, system-ui, sans-serif; color: var(--text); padding: 32px; }
+  h1.page { color: #fff; font-size: 28px; margin-bottom: 6px; }
+  p.page { color: #c9c7c2; margin-bottom: 24px; font-size: 14px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 36px; }
+  .frame { width: 390px; }
+  .cap { color: #fff; font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .sub { color: #c9c7c2; font-size: 12px; margin-bottom: 10px; min-height: 30px; }
+  .phone { position: relative; width: 390px; height: 844px; background: var(--bg); border-radius: 44px; overflow: hidden; border: 3px solid #3b3e45; }
+  .status { position: absolute; top: 0; left: 0; right: 0; height: 44px; display: flex; justify-content: space-between; padding: 14px 28px 0; font-size: 13px; font-weight: 600; z-index: 30; }
+  .abs { position: absolute; }
+  .pad { padding: 0 16px; }
+  .col { display: flex; flex-direction: column; }
+  .row { display: flex; align-items: center; }
+  .gap4 { gap: 4px; } .gap8 { gap: 8px; } .gap12 { gap: 12px; } .gap16 { gap: 16px; } .gap24 { gap: 24px; }
+  .muted { color: var(--muted); }
+  .t-hero { font-size: 72px; font-weight: 800; letter-spacing: -2px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .t-big { font-size: 40px; font-weight: 800; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .t-num { font-size: 28px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .t-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1; }
+  .t-h { font-size: 18px; font-weight: 700; }
+  .t-b { font-size: 15px; }
+  .t-s { font-size: 13px; }
+  .t-xs { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; font-weight: 700; }
+  .unit { font-size: 14px; font-weight: 600; color: var(--muted); margin-left: 2px; letter-spacing: 0; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 14px; }
+  .glass { background: rgba(17,18,21,0.92); border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 4px 18px rgba(0,0,0,.45); }
+  .btn { height: 60px; border-radius: 999px; background: var(--orange); color: var(--ink); font-weight: 800; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.5px; box-shadow: 0 0 24px rgba(255,106,19,.55); }
+  .btn.xl { height: 68px; font-size: 22px; letter-spacing: 3px; }
+  .btn.sm { height: 44px; font-size: 15px; box-shadow: none; padding: 0 18px; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); box-shadow: none; font-weight: 600; }
+  .link { color: #FF7A2A; font-weight: 600; font-size: 14px; text-align: center; }
+  .chip { height: 36px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .chip.on { border-color: var(--orange); background: #2A1609; color: #FF7A2A; }
+  .tag-demo { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 6px; background: #2b2412; color: #FFD60A; font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+  .art { border: 2px dashed var(--c, var(--striders)); border-radius: 20px; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--c, var(--striders)); font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; padding: 8px; background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--c, var(--striders)) 22%, transparent), transparent 70%); }
+  .art.round { border-radius: 50%; }
+  .note { position: absolute; z-index: 40; background: rgba(224,64,251,.14); border: 1px dashed var(--note); color: #F3B6FF; font-size: 10px; font-weight: 700; padding: 3px 6px; border-radius: 6px; max-width: 200px; line-height: 1.3; }
+  .tabs { position: absolute; bottom: 0; left: 0; right: 0; height: 84px; background: #0B0C0E; border-top: 1px solid var(--line); display: flex; justify-content: space-around; padding-top: 10px; z-index: 20; }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); width: 64px; }
+  .tab.on { color: var(--orange); }
+  .tab .run { width: 54px; height: 54px; border-radius: 50%; background: var(--orange); margin-top: -22px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 22px rgba(255,106,19,.6); }
+  .bar { height: 10px; border-radius: 999px; background: var(--sunken); overflow: hidden; }
+  .bar > i { display: block; height: 100%; border-radius: 999px; background: var(--orange); box-shadow: 0 0 10px rgba(255,106,19,.6); }
+  .badge { width: 34px; height: 34px; border-radius: 50%; border: 4px solid var(--c, var(--striders)); display: flex; align-items: center; justify-content: center; flex: none; }
+  .badge::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--striders)); }
+  .shape { width: 30px; height: 30px; flex: none; }
+  svg.i { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .ibtn { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(17,18,21,.92); border: 1px solid var(--line); position: relative; }
+  .dot { position: absolute; top: 2px; right: 2px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--orange); color: var(--ink); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .ring { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; background: conic-gradient(var(--orange) calc(var(--p) * 1%), var(--sunken) 0); position: relative; }
+  .ring::before { content: ''; position: absolute; inset: 6px; border-radius: 50%; background: var(--surface); }
+  .ring span { position: relative; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--surface); border-top-left-radius: 28px; border-top-right-radius: 28px; border-top: 1px solid var(--line); padding: 10px 16px 28px; }
+  .grab { width: 40px; height: 5px; border-radius: 3px; background: #3a3b42; margin: 0 auto 12px; }
+  .stat .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; margin-bottom: 4px; }
+  .mini-map { width: 96px; height: 96px; border-radius: 16px; overflow: hidden; flex: none; }
+  .dim { position: absolute; inset: 0; background: rgba(0,0,0,.55); }
+</style>
+</head>
+<body>
+<!-- Biblioteca de desenhos reutilizados: mapa (regiões suavizadas, nunca hexágonos), ícones e formas dos times. -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <symbol id="mapa" viewBox="0 0 390 700">
+      <rect width="390" height="700" fill="#0B0D10"/>
+      <g stroke="#1B1E25" stroke-width="7" fill="none">
+        <path d="M-10 120 L400 60"/><path d="M-10 300 L400 250"/><path d="M-10 520 L400 470"/><path d="M60 -10 L120 720"/><path d="M250 -10 L300 720"/><path d="M-10 640 L400 700"/><path d="M0 0 L390 700"/>
+      </g>
+      <g stroke="#14171C" stroke-width="3" fill="none">
+        <path d="M-10 200 L400 160"/><path d="M-10 410 L400 360"/><path d="M180 -10 L210 720"/><path d="M330 -10 L370 720"/>
+      </g>
+      <path d="M-20 150 C 80 120, 190 200, 210 330 C 225 430, 120 470, -20 520 Z" fill="rgba(47,168,255,.18)" stroke="#2FA8FF" stroke-width="3" filter="url(#glow)"/>
+      <path d="M410 80 C 300 120, 250 230, 300 330 C 340 400, 410 390, 410 390 Z" fill="rgba(255,214,10,.13)" stroke="#FFD60A" stroke-width="3" filter="url(#glow)"/>
+      <path d="M-20 -20 L410 -20 L410 40 C 300 110, 140 30, -20 90 Z" fill="rgba(25,230,168,.12)" stroke="#19E6A8" stroke-width="3" filter="url(#glow)"/>
+      <path d="M60 720 C 80 600, 200 560, 300 590 C 360 610, 410 600, 410 600 L410 720 Z" fill="rgba(255,45,85,.12)" stroke="#FF2D55" stroke-width="3" filter="url(#glow)"/>
+      <circle cx="232" cy="300" r="34" fill="none" stroke="#FFD60A" stroke-width="3" stroke-dasharray="7 6"/>
+    </symbol>
+    <symbol id="rota" viewBox="0 0 390 700">
+      <path d="M150 210 L172 205 C 180 260, 200 300, 230 330 L 250 390 L 280 420 L 238 470 L 200 430 C 170 380, 150 330, 145 270 Z" fill="rgba(47,168,255,.10)" stroke="#2FA8FF" stroke-width="5" filter="url(#glow)" stroke-linejoin="round"/>
+      <circle cx="250" cy="390" r="8" fill="#fff" stroke="#FF6A13" stroke-width="4"/>
+    </symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></symbol>
+    <symbol id="i-arena" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3M15 12h.01M18 13h.01"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="currentColor"/></symbol>
+    <symbol id="i-club" viewBox="0 0 24 24"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M2 20c0-3 3-5 6-5s6 2 6 5M12 20c0-3 2-5 4-5 3 0 6 2 6 5"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3 2 8l10 5 10-5z"/><path d="M2 13l10 5 10-5"/></symbol>
+    <symbol id="i-fire" viewBox="0 0 24 24"><path d="M12 3c1 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-4 2-7 2 1 3 3 3 5 1-2 1-6 1-9z"/></symbol>
+    <symbol id="i-chest" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="11" rx="2"/><path d="M3 9a9 5 0 0 1 18 0M11 13h2v3h-2z"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3v13M7 8l5-5 5 5"/><path d="M5 13v7h14v-7"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 4 8 8 9 4-1 8-4 8-9V6z"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9a4 4 0 0 1 0 6"/></symbol>
+    <symbol id="i-ghost" viewBox="0 0 24 24"><path d="M5 21V10a7 7 0 0 1 14 0v11l-3-2-2 2-2-2-2 2-2-2z"/><path d="M9.5 10h.01M14.5 10h.01"/></symbol>
+    <symbol id="i-run" viewBox="0 0 24 24"><circle cx="14" cy="4" r="2"/><path d="M10 21l2-6-3-3 2-5 4 3 3 1M6 12l3-5"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
+    <symbol id="i-fog" viewBox="0 0 24 24"><path d="M3 9h14M6 13h15M3 17h12"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4a4 4 0 0 0 4 4M16 6h4a4 4 0 0 1-4 4M12 13v4M8 21h8"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+    <symbol id="sh-circle" viewBox="0 0 30 30"><circle cx="15" cy="15" r="11" fill="none" stroke="#2FA8FF" stroke-width="4"/><circle cx="15" cy="15" r="4" fill="#2FA8FF"/></symbol>
+    <symbol id="sh-tri" viewBox="0 0 30 30"><path d="M15 4 27 26H3z" fill="none" stroke="#19E6A8" stroke-width="4" stroke-linejoin="round"/></symbol>
+    <symbol id="sh-dia" viewBox="0 0 30 30"><path d="M15 3 27 15 15 27 3 15z" fill="none" stroke="#FF2D55" stroke-width="4" stroke-linejoin="round"/></symbol>
+    <symbol id="sh-sq" viewBox="0 0 30 30"><rect x="5" y="5" width="20" height="20" rx="3" fill="none" stroke="#FFD60A" stroke-width="4"/></symbol>
+  </defs>
+</svg>
+
+<h1 class="page">NOMADE RUN — Reformulação v2 · wireframes da E6 (F1)</h1>
+<p class="page">Pit Lane Neon. Caixas tracejadas = arte da E4. Etiquetas rosa = motion da E5. Barra de abas na opção recomendada (B): Mapa · Arena · Correr · Clube · Você. Textos são os finais propostos.</p>
+
+<div class="grid">
+
+<!-- 00 BOAS-VINDAS -->
+<div class="frame" id="f00">
+  <div class="cap">00 · Boas-vindas (primeira abertura)</div>
+  <div class="sub">3 s · 10 palavras · ação: Começar</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <svg class="abs" style="inset:0;width:100%;height:100%" preserveAspectRatio="xMidYMid slice"><use href="#mapa"/><use href="#rota"/></svg>
+    <div class="abs" style="inset:0;background:linear-gradient(180deg,rgba(7,7,8,.2),rgba(7,7,8,.15) 40%,rgba(7,7,8,.95) 75%)"></div>
+    <div class="note" style="top:120px;right:16px">E5: rotas se desenham sozinhas em loop (já existe: NeonBackdrop)</div>
+    <div class="abs pad col gap16" style="left:0;right:0;bottom:40px">
+      <div class="row gap8"><svg class="shape"><use href="#sh-circle"/></svg><svg class="shape"><use href="#sh-tri"/></svg><svg class="shape"><use href="#sh-dia"/></svg><svg class="shape"><use href="#sh-sq"/></svg></div>
+      <div style="font-size:64px;font-weight:900;line-height:.9;letter-spacing:-2px">NOMADE<br><span style="color:var(--orange);text-shadow:0 0 18px rgba(255,106,19,.7)">RUN</span></div>
+      <div class="t-h">Corra a sua cidade. Cada rua conta.</div>
+      <div class="btn" style="margin-top:28px">Começar</div>
+      <div class="btn ghost">Já tenho conta</div>
+    </div>
+  </div>
+</div>
+
+<!-- 01 CRIAR CONTA -->
+<div class="frame" id="f01">
+  <div class="cap">01 · Criar conta (enxuta)</div>
+  <div class="sub">40 s · 4 campos (antes 5 + nome repetido no onboarding) · ação: Criar conta</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <div class="pad col gap12" style="padding-top:64px">
+      <div class="w-progress"><div class="bar" style="height:4px"><i style="width:33%"></i></div><div class="t-s muted" style="margin-top:6px">1 de 3</div></div>
+      <div class="t-title">Criar conta</div>
+      <div class="t-b muted">1 minuto e você escolhe seu time.</div>
+      <div class="btn ghost sm" style="height:52px">Continuar com Google</div>
+      <div class="col gap4"><div class="t-s muted">E-mail</div><div class="card" style="padding:14px;border-radius:14px" >voce@email.com</div></div>
+      <div class="col gap4"><div class="t-s muted">Senha</div><div class="card" style="padding:14px;border-radius:14px">••••••••</div><div class="row gap4"><div class="bar" style="flex:1;height:4px"><i style="width:100%"></i></div><div class="bar" style="flex:1;height:4px"><i style="width:100%"></i></div><div class="bar" style="flex:1;height:4px"></div></div><div class="t-s muted">Boa. Mais um símbolo e fica forte.</div></div>
+      <div class="col gap4"><div class="t-s muted">Nome de corredor</div><div class="card" style="padding:14px;border-radius:14px">maria_corre</div><div class="t-s muted">Aparece nos rankings.</div></div>
+      <div class="col gap4"><div class="t-s muted">Nascimento</div><div class="card" style="padding:14px;border-radius:14px">DD/MM/AAAA</div><div class="t-s muted">Para maiores de 16 anos.</div></div>
+      <div class="row gap8 t-s"><div style="width:24px;height:24px;border-radius:6px;border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;color:var(--orange)"><svg class="i" style="width:16px"><use href="#i-check"/></svg></div><span>Aceito os <b style="color:#FF7A2A">Termos</b> e a <b style="color:#FF7A2A">Privacidade</b></span></div>
+    </div>
+    <div class="abs pad col gap8" style="left:0;right:0;bottom:28px"><div class="btn">Criar conta</div><div class="link">Já tenho conta</div></div>
+  </div>
+</div>
+
+<!-- 02 ESCOLHA DO TIME -->
+<div class="frame" id="f02">
+  <div class="cap">02 · Escolha seu time (carrossel)</div>
+  <div class="sub">20–40 s · 22 palavras por card · ação: Entrar para o time</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <div class="abs" style="inset:0;background:radial-gradient(circle at 50% 38%,rgba(47,168,255,.28),transparent 60%)"></div>
+    <div class="pad col gap12" style="padding-top:64px;position:relative">
+      <div><div class="bar" style="height:4px"><i style="width:66%"></i></div><div class="t-s muted" style="margin-top:6px">2 de 3</div></div>
+      <div class="t-title">Escolha seu time</div>
+      <div class="t-b muted">Seu time pinta a cidade com a cor dele.</div>
+    </div>
+    <div class="abs" style="left:16px;right:16px;top:212px">
+      <div class="card col gap12" style="align-items:center;padding:18px;border-color:var(--striders);box-shadow:0 0 28px rgba(47,168,255,.35)">
+        <div class="art round" style="--c:var(--striders);width:180px;height:180px">Arte E4 · Lume<br>mascote dos Striders<br>parado (respira, pisca)</div>
+        <div class="t-title">Neon Striders</div>
+        <div class="chip" style="border-color:var(--striders)"><svg class="shape" style="width:16px;height:16px"><use href="#sh-circle"/></svg>Ritmo e precisão</div>
+        <div class="t-b" style="text-align:center">Correm no compasso e nunca perdem o ritmo.</div>
+        <div class="btn ghost sm">Ouvir a líder</div>
+      </div>
+      <div class="note" style="top:6px;right:6px">E5: card entra com mola; trocar desliza</div>
+    </div>
+    <div class="abs row gap16" style="left:0;right:0;bottom:150px;justify-content:center">
+      <svg class="shape" style="width:38px;height:38px;filter:drop-shadow(0 0 6px #2FA8FF)"><use href="#sh-circle"/></svg><svg class="shape" style="opacity:.5"><use href="#sh-tri"/></svg><svg class="shape" style="opacity:.5"><use href="#sh-dia"/></svg><svg class="shape" style="opacity:.5"><use href="#sh-sq"/></svg>
+    </div>
+    <div class="abs pad col gap8" style="left:0;right:0;bottom:24px">
+      <div class="link row gap4" style="justify-content:center"><svg class="i" style="width:18px"><use href="#i-help"/></svg>Não sei escolher</div>
+      <div class="btn">Entrar para os Neon Striders</div>
+      <div class="t-s muted" style="text-align:center">Dá para trocar 1 vez por temporada.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 03 LIDER -->
+<div class="frame" id="f03">
+  <div class="cap">03 · A líder fala (folha)</div>
+  <div class="sub">5 s · 2 frases do líder · ação: Entrar para o time</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <div class="abs" style="inset:0;background:radial-gradient(circle at 50% 30%,rgba(47,168,255,.22),transparent 60%)"></div>
+    <div class="dim"></div>
+    <div class="sheet col gap16" style="height:600px">
+      <div class="grab"></div>
+      <div class="row gap16">
+        <div class="art" style="--c:var(--striders);width:130px;height:150px">Arte E4<br>busto da líder</div>
+        <div class="col gap4"><div class="t-xs" style="color:var(--striders)">Líder dos Neon Striders</div><div class="t-title">Lia Compasso</div><div class="t-s muted">Estilo: ritmo e precisão</div></div>
+      </div>
+      <div class="card" style="border-color:var(--striders);font-size:18px;line-height:1.4">“Aqui ninguém corre no susto. A gente acha o ritmo e pinta a cidade rua por rua.”</div>
+      <div class="note" style="position:relative;max-width:none">E5: balão digita a frase (300 ms por frase); com “Reduzir movimento”, aparece inteira</div>
+      <div class="row gap8 t-s muted"><svg class="i"><use href="#i-check"/></svg>Nenhum time pontua mais que outro. A escolha é de estilo.</div>
+      <div class="col gap8" style="margin-top:auto"><div class="btn">Entrar para os Neon Striders</div><div class="link">Ver outros times</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 04 CONFIRMACAO -->
+<div class="frame" id="f04">
+  <div class="cap">04 · Confirmação épica</div>
+  <div class="sub">2,5 s · 9 palavras · ação: Bora correr</div>
+  <div class="phone" style="background:#06263F">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <div class="abs" style="inset:0;background:repeating-conic-gradient(from 0deg at 50% 36%,rgba(47,168,255,.18) 0 6deg,transparent 6deg 18deg)"></div>
+    <div class="note" style="top:60px;left:16px">E5: a cor do time inunda a tela a partir do card (600 ms) + vibração de sucesso</div>
+    <div class="abs col gap12" style="left:16px;right:16px;top:150px;align-items:center;text-align:center">
+      <div class="art round" style="--c:#fff;width:250px;height:250px;color:#fff">Arte E4 · Lume<br>pose de vitória</div>
+      <div class="t-xs" style="color:#9fd6ff;margin-top:12px">Você é</div>
+      <div style="font-size:44px;font-weight:900;letter-spacing:-1px">NEON STRIDERS</div>
+      <div class="t-b">“Ritmo certo vence qualquer distância.”<br><span class="muted">Lia Compasso</span></div>
+    </div>
+    <div class="abs pad" style="left:0;right:0;bottom:40px"><div class="btn">Bora correr</div></div>
+  </div>
+</div>
+
+<!-- 05 LOCALIZACAO -->
+<div class="frame" id="f05">
+  <div class="cap">05 · Permissão de localização</div>
+  <div class="sub">5 s · 19 palavras (antes 58) · ação: Permitir localização</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <div class="pad col gap16" style="padding-top:64px">
+      <div><div class="bar" style="height:4px"><i style="width:100%"></i></div><div class="t-s muted" style="margin-top:6px">3 de 3</div></div>
+      <div class="art" style="--c:var(--striders);height:320px">Arte E4<br>rota pintando o bairro na cor do time</div>
+      <div class="t-title">Ligue o GPS para pintar a cidade</div>
+      <div class="t-b muted">Usamos sua localização só enquanto você corre.</div>
+      <div class="row gap8 t-s"><svg class="i" style="color:var(--muted)"><use href="#i-lock"/></svg>Sua casa fica escondida dos outros.</div>
+      <div class="link row gap4" style="justify-content:flex-start"><svg class="i" style="width:18px"><use href="#i-help"/></svg>Como protegemos você</div>
+    </div>
+    <div class="abs pad" style="left:0;right:0;bottom:40px"><div class="btn"><svg class="i"><use href="#i-pin"/></svg>Permitir localização</div></div>
+    <div class="note" style="bottom:110px;left:16px">Avisos (notificações) saem daqui: pedido depois da 1ª conquista</div>
+  </div>
+</div>
+
+<!-- 06 MAPA PRIMEIRA VEZ -->
+<div class="frame" id="f06">
+  <div class="cap">06 · Mapa na 1ª vez (missão de boas-vindas)</div>
+  <div class="sub">3 s · 16 palavras · ação: Correr</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <svg class="abs" style="inset:0;width:100%;height:100%" preserveAspectRatio="xMidYMid slice"><use href="#mapa"/></svg>
+    <div class="abs glass row gap12" style="left:16px;right:16px;top:52px;padding:10px 14px;border-radius:999px">
+      <div class="badge"></div><div class="col" style="flex:1"><b>Neon Striders</b><span class="t-s muted">Goiânia</span></div>
+    </div>
+    <div class="abs glass col gap12" style="left:16px;right:16px;bottom:184px;padding:16px">
+      <div class="row gap12"><div class="art" style="--c:var(--orange);width:64px;height:64px;font-size:8px">Arte E4 mascote</div>
+        <div class="col gap4" style="flex:1"><div class="t-xs" style="color:#FF7A2A">Missão 1</div><div class="t-h">Corra 500 m e pinte sua primeira zona</div></div></div>
+      <div class="row gap4"><div class="bar" style="flex:1"><i style="width:100%"></i></div><div class="bar" style="flex:1"><i style="width:100%"></i></div><div class="bar" style="flex:1"></div></div>
+      <div class="row t-s muted" style="justify-content:space-between"><span>Conta ✓ · Time ✓ · Correr 500 m</span><span>+ baú</span></div>
+    </div>
+    <div class="abs pad" style="left:0;right:0;bottom:100px"><div class="btn xl"><svg class="i"><use href="#i-play"/></svg>CORRER</div></div>
+    <div class="note" style="bottom:170px;right:16px">E5: botão pulsa leve 2× (só na 1ª vez)</div>
+    <div class="tabs"><div class="tab on"><svg class="i"><use href="#i-map"/></svg>Mapa</div><div class="tab"><svg class="i"><use href="#i-arena"/></svg>Arena</div><div class="tab"><div class="run" style="color:var(--ink)"><svg class="i"><use href="#i-play"/></svg></div>Correr</div><div class="tab"><svg class="i"><use href="#i-club"/></svg>Clube</div><div class="tab"><svg class="i"><use href="#i-user"/></svg>Você</div></div>
+  </div>
+</div>
+
+<!-- 07 MAPA DIA COMUM -->
+<div class="frame" id="f07">
+  <div class="cap">07 · Mapa num dia comum (a volta)</div>
+  <div class="sub">3 s: meu time, minha área, o que mudou, baú, chefão · 20 palavras · ação: Correr</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <svg class="abs" style="inset:0;width:100%;height:100%" preserveAspectRatio="xMidYMid slice"><use href="#mapa"/></svg>
+    <div class="abs col gap8" style="left:16px;right:16px;top:52px">
+      <div class="glass row gap12" style="padding:10px 10px 10px 14px;border-radius:999px">
+        <div class="badge"></div><div class="col" style="flex:1"><b>Neon Striders</b><span class="t-s muted">63 zonas em Goiânia</span></div>
+        <div class="ibtn" style="width:40px;height:40px"><svg class="i"><use href="#i-bell"/></svg><div class="dot">3</div></div>
+      </div>
+      <div class="row gap8">
+        <div class="chip"><svg class="i" style="width:18px;color:var(--orange)"><use href="#i-fire"/></svg>1/2</div>
+        <div class="chip on"><svg class="i" style="width:18px"><use href="#i-chest"/></svg>Baú do dia</div>
+        <div class="chip"><svg class="i" style="width:18px;color:var(--coyotes)"><use href="#i-bolt"/></svg>Chefão 36%</div>
+      </div>
+      <div class="glass row gap8 t-s" style="padding:8px 12px;border-radius:14px;align-self:flex-start"><span style="color:var(--volt)">▲</span>Desde ontem: +2 zonas do seu time</div>
+    </div>
+    <div class="note" style="top:200px;left:16px">E5: “o que mudou” desce, fica 4 s e some (1× por dia)</div>
+    <div class="abs ibtn" style="right:16px;top:250px"><svg class="i"><use href="#i-layers"/></svg></div>
+    <div class="abs glass row gap12" style="left:16px;right:16px;bottom:184px;padding:12px 14px">
+      <div class="badge" style="--c:var(--striders);outline:3px dashed var(--owls);outline-offset:2px"></div>
+      <div class="col" style="flex:1"><b>Lago do Flamboyant sob ataque</b><span class="t-s muted">Defenda até 18h · pontos em dobro</span></div>
+      <svg class="i muted"><use href="#i-chev"/></svg>
+    </div>
+    <div class="abs pad" style="left:0;right:0;bottom:100px"><div class="btn xl"><svg class="i"><use href="#i-play"/></svg>CORRER</div></div>
+    <div class="tabs"><div class="tab on"><svg class="i"><use href="#i-map"/></svg>Mapa</div><div class="tab"><svg class="i"><use href="#i-arena"/></svg>Arena</div><div class="tab"><div class="run" style="color:var(--ink)"><svg class="i"><use href="#i-play"/></svg></div>Correr</div><div class="tab"><svg class="i"><use href="#i-club"/></svg>Clube</div><div class="tab"><svg class="i"><use href="#i-user"/></svg>Você</div></div>
+  </div>
+</div>
+
+<!-- 08 CORRER (PRE) -->
+<div class="frame" id="f08">
+  <div class="cap">08 · Correr (antes de sair)</div>
+  <div class="sub">1 toque até Começar · 18 palavras (antes 58) · ação: Começar</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <svg class="abs" style="left:0;right:0;top:0;width:100%;height:380px" preserveAspectRatio="xMidYMid slice"><use href="#mapa"/></svg>
+    <div class="abs chip" style="left:16px;top:56px;border-color:var(--volt)"><span style="width:8px;height:8px;border-radius:4px;background:var(--volt)"></span>GPS pronto</div>
+    <div class="sheet col gap16" style="top:330px">
+      <div class="grab"></div>
+      <div class="t-title">Bora?</div>
+      <div class="row gap8">
+        <div class="card col gap8" style="flex:1;align-items:center;border-color:var(--orange);box-shadow:0 0 18px rgba(255,106,19,.35)"><div class="art" style="--c:var(--orange);width:56px;height:56px;font-size:8px">Ícone E4</div><b>Livre</b><span class="t-s muted">Só correr</span></div>
+        <div class="card col gap8" style="flex:1;align-items:center"><div class="art" style="--c:#cfcfd6;width:56px;height:56px;font-size:8px">Ícone E4</div><b>Fuga</b><span class="t-s muted">Vença o fantasma</span></div>
+        <div class="card col gap8" style="flex:1;align-items:center"><div class="art" style="--c:var(--coyotes);width:56px;height:56px;font-size:8px">Ícone E4</div><b>Caça</b><span class="t-s muted">3 baús perto</span></div>
+      </div>
+      <div class="card row gap12"><svg class="i"><use href="#i-shield"/></svg><div class="col" style="flex:1"><b>Corrida Segura</b><span class="t-s muted">Ana e Leo veem onde você está</span></div><div style="width:46px;height:28px;border-radius:14px;background:var(--orange);position:relative"><i style="position:absolute;right:3px;top:3px;width:22px;height:22px;border-radius:11px;background:#fff"></i></div></div>
+      <div class="btn xl" style="margin-top:4px"><svg class="i"><use href="#i-play"/></svg>COMEÇAR</div>
+      <div class="link muted" style="color:var(--muted)">Simular corrida <span class="tag-demo">Demonstração</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 09 CORRIDA ATIVA -->
+<div class="frame" id="f09">
+  <div class="cap">09 · Corrida ativa (a cidade pinta)</div>
+  <div class="sub">leitura em 1 s · números grandes · ação: Pausar / Segurar para encerrar</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <svg class="abs" style="left:0;right:0;top:0;width:100%;height:470px" preserveAspectRatio="xMidYMid slice"><use href="#mapa"/><use href="#rota"/></svg>
+    <div class="abs glass row gap12" style="left:16px;right:16px;top:52px;padding:10px 14px">
+      <div class="ring" style="--p:72"><span>72%</span></div>
+      <div class="col" style="flex:1"><b>Jardim Goiás 3</b><span class="t-s muted">Faltam 180 m para conquistar</span></div>
+    </div>
+    <div class="note" style="top:130px;left:16px">E5: anel enche ao vivo; 25/50/75% = pulso + vibração leve</div>
+    <div class="abs glass row gap8" style="right:16px;top:200px;padding:8px 12px;border-color:var(--coyotes)"><svg class="i" style="color:var(--coyotes)"><use href="#i-chest"/></svg><b class="t-s">Baú raro a 120 m</b></div>
+    <div class="abs" style="right:16px;top:370px;width:56px;height:56px;border-radius:28px;background:#FF4D45;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px">SOS</div>
+    <div class="abs chip" style="left:16px;top:384px"><svg class="i" style="width:16px"><use href="#i-shield"/></svg>Escolta ligada</div>
+    <div class="sheet col gap12" style="top:440px;padding-top:16px">
+      <div class="t-hero" style="text-align:center;font-size:84px">24:18</div>
+      <div class="row" style="justify-content:space-around">
+        <div class="col" style="align-items:center"><span class="t-big" style="font-size:48px">4,21</span><span class="t-s muted">km</span></div>
+        <div class="col" style="align-items:center"><span class="t-big" style="font-size:48px">5:46</span><span class="t-s muted">ritmo /km</span></div>
+      </div>
+      <div class="row" style="justify-content:space-around;align-items:center;margin-top:12px">
+        <div class="ibtn" style="width:56px;height:56px"><svg class="i"><use href="#i-sound"/></svg></div>
+        <div class="col gap4" style="align-items:center"><div style="width:84px;height:84px;border-radius:42px;border:3px solid var(--orange);display:flex;align-items:center;justify-content:center"><div style="width:28px;height:28px;border-radius:6px;background:var(--orange)"></div></div><span class="t-s muted">Segure para encerrar</span></div>
+        <div class="ibtn" style="width:64px;height:64px;background:var(--orange);color:var(--ink)"><svg class="i"><use href="#i-pause"/></svg></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 10 RESUMO -->
+<div class="frame" id="f10">
+  <div class="cap">10 · Resumo (o pico)</div>
+  <div class="sub">rota → números → conquistas · 22 palavras (antes ~60) · ação: Compartilhar</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <div class="abs" style="inset:0;background:radial-gradient(circle at 50% 18%,rgba(47,168,255,.35),transparent 55%)"></div>
+    <div class="abs col gap12 pad" style="left:0;right:0;top:52px;align-items:center;text-align:center">
+      <div class="art round" style="--c:var(--striders);width:120px;height:120px">Arte E4<br>mascote vibra</div>
+      <div class="t-xs" style="color:#FF7A2A">Zona conquistada</div>
+      <div class="t-title" style="font-size:30px">Lago do Flamboyant</div>
+    </div>
+    <div class="note" style="top:60px;right:12px">E5: anel fecha + confete na cor do time (1,2 s)</div>
+    <div class="abs" style="left:16px;right:16px;top:300px;height:170px;border-radius:20px;overflow:hidden;border:1px solid var(--line)"><svg style="width:100%;height:100%" preserveAspectRatio="xMidYMid slice" viewBox="40 250 330 150"><use href="#mapa" width="390" height="700"/><use href="#rota" width="390" height="700"/></svg></div>
+    <div class="note" style="top:310px;left:24px">E5: a rota se desenha (800 ms)</div>
+    <div class="abs pad" style="left:0;right:0;top:486px;display:grid;grid-template-columns:1fr 1fr;row-gap:14px">
+      <div class="stat"><div class="lbl">Distância</div><span class="t-num">5,02</span><span class="unit">km</span></div>
+      <div class="stat"><div class="lbl">Tempo</div><span class="t-num">28:10</span></div>
+      <div class="stat"><div class="lbl">Ritmo</div><span class="t-num">5:37</span><span class="unit">/km</span></div>
+      <div class="stat"><div class="lbl">Território</div><span class="t-num" style="color:#FF7A2A">+183</span><span class="unit">pts</span></div>
+    </div>
+    <div class="abs row gap8" style="left:16px;right:16px;top:640px;flex-wrap:wrap">
+      <div class="chip"><svg class="i" style="width:16px"><use href="#i-flag"/></svg>2 zonas</div>
+      <div class="chip" style="border-color:var(--coyotes)"><svg class="i" style="width:16px"><use href="#i-chest"/></svg>Baú raro</div>
+      <div class="chip"><svg class="i" style="width:16px"><use href="#i-bolt"/></svg>5 km no chefão</div>
+      <div class="chip"><svg class="i" style="width:16px;color:var(--orange)"><use href="#i-fire"/></svg>Semana garantida</div>
+    </div>
+    <div class="abs pad col gap8" style="left:0;right:0;bottom:24px"><div class="btn"><svg class="i"><use href="#i-share"/></svg>Compartilhar</div><div class="link" style="color:var(--muted)">Concluir</div></div>
+  </div>
+</div>
+
+<!-- 11 ARENA -->
+<div class="frame" id="f11">
+  <div class="cap">11 · Arena (o que jogar hoje)</div>
+  <div class="sub">chefão ilustrado + missões + modos em cards · ~45 palavras (antes ~200) · ação: Jogar o modo</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <div class="pad row" style="padding-top:56px;justify-content:space-between"><div class="t-title">Arena</div><svg class="i muted"><use href="#i-help"/></svg></div>
+    <div class="abs" style="left:16px;right:16px;top:104px">
+      <div class="card col gap8" style="padding:0;overflow:hidden;border-color:#5b4a10">
+        <div class="art" style="--c:var(--coyotes);height:120px;border-radius:0;border-width:0 0 2px 0">Arte E4 · chefão “Mormaço de Outubro”<br>parado / levando golpe / furioso</div>
+        <div class="col gap8" style="padding:0 14px 14px">
+          <div class="row" style="justify-content:space-between"><b class="t-h">Mormaço de Outubro</b><span class="tag-demo">Demonstração</span></div>
+          <div class="bar" style="height:14px"><i style="width:36%;background:var(--coyotes);box-shadow:0 0 10px rgba(255,214,10,.6)"></i></div>
+          <div class="row t-s muted" style="justify-content:space-between"><span>36% de vida · cai em 19 h</span><b style="color:var(--text)">Seu dano: 12 km</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="abs col gap8" style="left:16px;right:16px;top:330px">
+      <div class="row" style="justify-content:space-between"><b>Missões de hoje</b><span class="link">Ver todas</span></div>
+      <div class="row gap8">
+        <div class="card col gap8" style="flex:1;align-items:center;padding:10px"><div class="ring" style="--p:60"><span>1,2</span></div><span class="t-s" style="text-align:center">Corra 2 km</span></div>
+        <div class="card col gap8" style="flex:1;align-items:center;padding:10px"><div class="ring" style="--p:0"><span>0/1</span></div><span class="t-s" style="text-align:center">1 zona nova</span></div>
+        <div class="card col gap8" style="flex:1;align-items:center;padding:10px"><div class="ring" style="--p:100"><span>✓</span></div><span class="t-s" style="text-align:center">Abra 1 baú</span></div>
+      </div>
+    </div>
+    <div class="abs" style="left:16px;right:16px;top:476px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="card col gap4"><div class="art" style="--c:#cfcfd6;height:40px;font-size:8px">Ícone E4 Fuga</div><b>Fuga</b><span class="t-s muted">Vença seu fantasma</span></div>
+      <div class="card col gap4"><div class="art" style="--c:var(--coyotes);height:40px;font-size:8px">Ícone E4 Caça</div><b>Caça</b><span class="t-s muted">3 baús perto</span></div>
+      <div class="card row gap8" style="padding:10px"><svg class="i" style="color:var(--striders)"><use href="#i-flag"/></svg><div class="col"><b class="t-s">Domínio</b><span class="t-s muted">63 zonas</span></div></div>
+      <div class="card row gap8" style="padding:10px"><svg class="i" style="color:var(--volt)"><use href="#i-fog"/></svg><div class="col"><b class="t-s">Atlas</b><span class="t-s muted">12% da cidade</span></div></div>
+    </div>
+    <div class="abs card row gap12" style="left:16px;right:16px;bottom:96px;padding:10px 14px"><svg class="i" style="color:#FF7A2A"><use href="#i-trophy"/></svg><div class="col" style="flex:1"><b class="t-s">Liga Calçada · 6º de 30</b><span class="t-s muted">Top 5 sobe no domingo</span></div><svg class="i muted"><use href="#i-chev"/></svg></div>
+    <div class="tabs"><div class="tab"><svg class="i"><use href="#i-map"/></svg>Mapa</div><div class="tab on"><svg class="i"><use href="#i-arena"/></svg>Arena</div><div class="tab"><div class="run" style="color:var(--ink)"><svg class="i"><use href="#i-play"/></svg></div>Correr</div><div class="tab"><svg class="i"><use href="#i-club"/></svg>Clube</div><div class="tab"><svg class="i"><use href="#i-user"/></svg>Você</div></div>
+  </div>
+</div>
+
+<!-- 12 ATIVIDADES -->
+<div class="frame" id="f12">
+  <div class="cap">12 · Atividades (Você › Corridas)</div>
+  <div class="sub">gráfico da semana + feed com mini-mapa · ação: Abrir corrida</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <div class="pad col gap12" style="padding-top:56px">
+      <div class="t-title">Corridas</div>
+      <div class="card col gap12">
+        <div class="row" style="justify-content:space-between;align-items:flex-end"><div><span class="t-big">12,4</span><span class="unit">km</span><div class="t-s muted">esta semana</div></div>
+          <div class="col" style="align-items:flex-end"><div class="row gap4" style="color:var(--orange)"><svg class="i"><use href="#i-fire"/></svg><b class="t-h">3</b></div><span class="t-s muted">semanas seguidas</span></div></div>
+        <div class="row gap8" style="align-items:flex-end;height:80px">
+          <div style="flex:1;height:30%;background:var(--orange);border-radius:6px"></div><div style="flex:1;height:4%;background:var(--sunken);border-radius:6px"></div><div style="flex:1;height:60%;background:var(--orange);border-radius:6px"></div><div style="flex:1;height:4%;background:var(--sunken);border-radius:6px"></div><div style="flex:1;height:4%;background:var(--sunken);border-radius:6px"></div><div style="flex:1;height:100%;background:var(--orange);border-radius:6px;box-shadow:0 0 10px rgba(255,106,19,.6)"></div><div style="flex:1;height:4%;background:var(--sunken);border-radius:6px"></div>
+        </div>
+        <div class="row t-s muted" style="justify-content:space-between"><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span><span>D</span></div>
+      </div>
+      <div class="row gap8">
+        <div class="card col" style="flex:1;padding:10px"><span class="t-s muted">5 km</span><b class="t-h">24:10</b></div>
+        <div class="card col" style="flex:1;padding:10px"><span class="t-s muted">10 km</span><b class="t-h">58:40</b></div>
+        <div class="card col" style="flex:1;padding:10px"><span class="t-s muted">Maior</span><b class="t-h">12,1 km</b></div>
+      </div>
+      <div class="card row gap12" style="padding:10px">
+        <div class="mini-map"><svg style="width:100%;height:100%" viewBox="100 180 220 300" preserveAspectRatio="xMidYMid slice"><use href="#mapa" width="390" height="700"/><use href="#rota" width="390" height="700"/></svg></div>
+        <div class="col gap4" style="flex:1"><span class="t-s muted">Hoje, 6:42 · Livre</span><b class="t-h">5,02 km</b><span class="t-s">28:10 · 5:37 /km</span><div class="row gap4"><span class="chip" style="height:24px;font-size:11px">2 zonas</span><span class="chip" style="height:24px;font-size:11px;border-color:var(--coyotes)">Baú raro</span></div></div>
+      </div>
+      <div class="card row gap12" style="padding:10px">
+        <div class="mini-map"><svg style="width:100%;height:100%" viewBox="20 120 260 360" preserveAspectRatio="xMidYMid slice"><use href="#mapa" width="390" height="700"/><use href="#rota" width="390" height="700"/></svg></div>
+        <div class="col gap4" style="flex:1"><span class="t-s muted">Quarta, 19:05 · Fuga</span><b class="t-h">3,10 km</b><span class="t-s">17:02 · 5:30 /km</span><div class="row gap4"><span class="chip" style="height:24px;font-size:11px">Venceu o fantasma</span></div></div>
+      </div>
+    </div>
+    <div class="tabs"><div class="tab"><svg class="i"><use href="#i-map"/></svg>Mapa</div><div class="tab"><svg class="i"><use href="#i-arena"/></svg>Arena</div><div class="tab"><div class="run" style="color:var(--ink)"><svg class="i"><use href="#i-play"/></svg></div>Correr</div><div class="tab"><svg class="i"><use href="#i-club"/></svg>Clube</div><div class="tab on"><svg class="i"><use href="#i-user"/></svg>Você</div></div>
+  </div>
+</div>
+
+<!-- 13 PERFIL -->
+<div class="frame" id="f13">
+  <div class="cap">13 · Você (perfil = cartão de jogador)</div>
+  <div class="sub">~35 palavras (antes ~170) · ajustes atrás da engrenagem · ação: Ver medalhas</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <div class="pad row" style="padding-top:56px;justify-content:space-between"><div class="t-title">Você</div><svg class="i"><use href="#i-gear"/></svg></div>
+    <div class="abs" style="left:16px;right:16px;top:104px">
+      <div class="card col gap12" style="border-color:var(--striders);box-shadow:0 0 24px rgba(47,168,255,.25);background:linear-gradient(160deg,#0d2236,#111215 60%)">
+        <div class="row gap16">
+          <div style="width:96px;height:96px;border-radius:50%;background:conic-gradient(var(--striders) 68%,var(--sunken) 0);display:flex;align-items:center;justify-content:center;position:relative"><div style="width:82px;height:82px;border-radius:50%;background:#1c2b3a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:26px">MC</div><div style="position:absolute;bottom:-4px;right:-4px;background:var(--striders);color:#04121f;font-weight:900;border-radius:12px;padding:2px 8px;font-size:13px">12</div></div>
+          <div class="col gap4" style="flex:1"><b class="t-h" style="font-size:22px">maria_corre</b><span class="t-s" style="color:#9fd6ff">Exploradora de bairro</span><span class="t-s muted">340 / 500 XP</span></div>
+          <div class="art" style="--c:var(--striders);width:70px;height:90px;font-size:8px">Arte E4 mascote</div>
+        </div>
+      </div>
+    </div>
+    <div class="abs row gap8" style="left:16px;right:16px;top:270px">
+      <div class="card col" style="flex:1;padding:12px"><span class="t-num">84</span><span class="t-s muted">km no total</span></div>
+      <div class="card col" style="flex:1;padding:12px"><span class="t-num">12</span><span class="t-s muted">zonas</span></div>
+      <div class="card col" style="flex:1;padding:12px"><span class="t-num">12%</span><span class="t-s muted">da cidade</span></div>
+    </div>
+    <div class="abs col gap8" style="left:16px;right:16px;top:380px">
+      <div class="row" style="justify-content:space-between"><b>Medalhas</b><span class="link">5 de 12</span></div>
+      <div class="row gap8">
+        <div class="art round" style="--c:var(--orange);width:72px;height:72px;font-size:7px">Medalha E4</div><div class="art round" style="--c:var(--volt);width:72px;height:72px;font-size:7px">Medalha E4</div><div class="art round" style="--c:var(--coyotes);width:72px;height:72px;font-size:7px">Medalha E4</div><div class="art round" style="--c:#555;width:72px;height:72px;font-size:7px;color:#777">bloqueada</div>
+      </div>
+    </div>
+    <div class="abs col gap8" style="left:16px;right:16px;top:500px">
+      <div class="card row gap12"><svg class="shape"><use href="#sh-circle"/></svg><div class="col" style="flex:1"><b>Neon Striders</b><span class="t-s muted">2º time em Goiânia</span></div><svg class="i muted"><use href="#i-chev"/></svg></div>
+      <div class="card col gap8"><div class="row" style="justify-content:space-between"><b>Temporada de outubro</b><span class="t-s muted">nível 4 de 30</span></div><div class="bar"><i style="width:30%"></i></div><span class="t-s muted">Próxima recompensa: rastro dourado</span></div>
+      <div class="card row gap12"><svg class="i"><use href="#i-run"/></svg><b style="flex:1">Minhas corridas</b><span class="t-s muted">12,4 km na semana</span><svg class="i muted"><use href="#i-chev"/></svg></div>
+    </div>
+    <div class="tabs"><div class="tab"><svg class="i"><use href="#i-map"/></svg>Mapa</div><div class="tab"><svg class="i"><use href="#i-arena"/></svg>Arena</div><div class="tab"><div class="run" style="color:var(--ink)"><svg class="i"><use href="#i-play"/></svg></div>Correr</div><div class="tab"><svg class="i"><use href="#i-club"/></svg>Clube</div><div class="tab on"><svg class="i"><use href="#i-user"/></svg>Você</div></div>
+  </div>
+</div>
+
+<!-- 14 CLUBE -->
+<div class="frame" id="f14">
+  <div class="cap">14 · Clube (pertencer e competir)</div>
+  <div class="sub">emblema da crew + aplausos + pódio · 1 linha de filtro (antes 3) · ação: Aplaudir</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <div class="pad" style="padding-top:56px"><div class="t-title">Clube</div></div>
+    <div class="abs" style="left:16px;right:16px;top:104px">
+      <div class="card col gap12">
+        <div class="row gap12"><div class="art" style="--c:var(--striders);width:64px;height:64px;font-size:8px">Emblema da crew</div><div class="col" style="flex:1"><b class="t-h">Pace Goiânia</b><span class="t-s muted">PGO · 14 corredores</span></div></div>
+        <div class="row" style="justify-content:space-between"><span class="t-s">Meta da semana</span><b class="t-s">38 de 60 km</b></div>
+        <div class="bar"><i style="width:63%"></i></div>
+        <div class="row gap8 t-s"><span style="width:8px;height:8px;border-radius:4px;background:var(--volt)"></span>3 correndo agora</div>
+      </div>
+    </div>
+    <div class="abs card row gap12" style="left:16px;right:16px;top:300px;padding:10px 14px">
+      <div style="width:36px;height:36px;border-radius:18px;background:#1c2b3a;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">AR</div>
+      <div class="col" style="flex:1"><b class="t-s">ana_run · 8,2 km</b><span class="t-s muted">conquistou Setor Sul 4</span></div>
+      <div class="btn sm" style="height:40px">Bora!</div>
+    </div>
+    <div class="abs col gap12" style="left:16px;right:16px;top:376px">
+      <div class="row" style="justify-content:space-between"><b class="t-h">Ranking</b><span class="chip">Semana ▾</span></div>
+      <div class="row gap8"><span class="chip on">Corredores</span><span class="chip">Crews</span><span class="chip">Times</span></div>
+      <div class="row gap8" style="align-items:flex-end;height:120px">
+        <div class="col gap4" style="flex:1;align-items:center"><div class="badge" style="--c:var(--owls)"></div><span class="t-s">leo.k</span><div style="width:100%;height:50px;background:var(--surface);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800">2</div></div>
+        <div class="col gap4" style="flex:1;align-items:center"><div class="badge" style="--c:var(--striders);width:42px;height:42px"></div><span class="t-s">bia</span><div style="width:100%;height:70px;background:var(--text);color:var(--bg);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px">1</div></div>
+        <div class="col gap4" style="flex:1;align-items:center"><div class="badge" style="--c:var(--volt)"></div><span class="t-s">davi</span><div style="width:100%;height:36px;background:var(--surface);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800">3</div></div>
+      </div>
+      
+      <div class="card row gap12" style="border-color:var(--orange);padding:10px 14px"><b class="t-h">6º</b><div class="badge"></div><b style="flex:1">você</b><b>410 pts</b></div>
+    </div>
+    <div class="abs card row gap12" style="left:16px;right:16px;bottom:96px;padding:10px 14px"><svg class="i"><use href="#i-trophy"/></svg><div class="col" style="flex:1"><b class="t-s">Guerra de Cidades</b><span class="t-s muted">Goiânia em 3º · subiu 1</span></div><svg class="i muted"><use href="#i-chev"/></svg></div>
+    <div class="tabs"><div class="tab"><svg class="i"><use href="#i-map"/></svg>Mapa</div><div class="tab"><svg class="i"><use href="#i-arena"/></svg>Arena</div><div class="tab"><div class="run" style="color:var(--ink)"><svg class="i"><use href="#i-play"/></svg></div>Correr</div><div class="tab on"><svg class="i"><use href="#i-club"/></svg>Clube</div><div class="tab"><svg class="i"><use href="#i-user"/></svg>Você</div></div>
+  </div>
+</div>
+
+<!-- 15 ZONA -->
+<div class="frame" id="f15">
+  <div class="cap">15 · Folha da zona</div>
+  <div class="sub">barra de 2 cores + 1 frase de regra · ação: Defender / Correr aqui</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <svg class="abs" style="inset:0;width:100%;height:100%" preserveAspectRatio="xMidYMid slice"><use href="#mapa"/></svg>
+    <div class="dim" style="background:rgba(0,0,0,.35)"></div>
+    <div class="sheet col gap16" style="top:330px">
+      <div class="grab"></div>
+      <div class="row gap12"><div class="art" style="--c:var(--striders);width:72px;height:72px;font-size:8px">Mascote do dono (E4)</div><div class="col" style="flex:1"><b class="t-title" style="font-size:24px">Lago do Flamboyant</b><span class="t-s" style="color:var(--owls)">Dos Neon Striders · sob ataque</span></div></div>
+      <div class="col gap8">
+        <div class="row t-s" style="justify-content:space-between"><b style="color:var(--striders)">Striders 1.240</b><b style="color:var(--coyotes)">812 Coyotes</b></div>
+        <div style="height:16px;border-radius:8px;overflow:hidden;display:flex"><i style="width:60%;background:var(--striders)"></i><i style="width:40%;background:var(--coyotes)"></i></div>
+      </div>
+      <div class="card row gap12"><div class="t-num">17:27</div><span class="t-s muted">para o fim da defesa</span></div>
+      <div class="t-b">Corra aqui: seus pontos valem em dobro.</div>
+      <div class="btn"><svg class="i"><use href="#i-shield"/></svg>Defender esta zona</div>
+      <div class="link" style="color:var(--muted)">Histórico e maiores corredores</div>
+    </div>
+  </div>
+</div>
+
+<!-- 16 VOLTA -->
+<div class="frame" id="f16">
+  <div class="cap">16 · Volta depois de 7+ dias</div>
+  <div class="sub">acolhe sem culpa + missão fácil · ação: Correr 1 km</div>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <svg class="abs" style="inset:0;width:100%;height:100%" preserveAspectRatio="xMidYMid slice"><use href="#mapa"/></svg>
+    <div class="dim"></div>
+    <div class="sheet col gap16" style="top:250px">
+      <div class="grab"></div>
+      <div class="art" style="--c:var(--striders);height:180px">Arte E4<br>mascote acenando</div>
+      <div class="t-title">Que bom te ver de volta!</div>
+      <div class="t-b muted">Seu time pintou 4 zonas novas enquanto você descansava.</div>
+      <div class="card row gap12"><div class="ring" style="--p:0"><span>1 km</span></div><div class="col" style="flex:1"><b>Missão de volta</b><span class="t-s muted">Corra 1 km hoje · baú garantido</span></div></div>
+      <div class="btn"><svg class="i"><use href="#i-play"/></svg>Correr 1 km</div>
+      <div class="link" style="color:var(--muted)">Agora não</div>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,647 @@
+{
+  "geradoEm": "2026-10-23T14:07:36.758Z",
+  "cobertura": {
+    "total": 26,
+    "missing": []
+  },
+  "telas": [
+    {
+      "rota": "(auth)/entrar",
+      "tipo": "conta",
+      "palavras": 26,
+      "blocos": 9,
+      "longos": 0,
+      "exemplosLongos": [],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 3,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 1,
+        "icone": 0
+      },
+      "heroi": true,
+      "meta": 80
+    },
+    {
+      "rota": "(auth)/cadastro",
+      "tipo": "conta",
+      "palavras": 123,
+      "blocos": 23,
+      "longos": 4,
+      "exemplosLongos": [
+        "features/auth/sign-up-screen.tsx:87",
+        "features/auth/sign-up-screen.tsx:100",
+        "features/auth/sign-up-screen.tsx:149"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 2,
+        "numeroGrande": 0,
+        "grafico": 1,
+        "emblema": 0,
+        "icone": 0
+      },
+      "heroi": true,
+      "meta": 80
+    },
+    {
+      "rota": "(auth)/recuperar-senha",
+      "tipo": "conta",
+      "palavras": 45,
+      "blocos": 8,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/auth/forgot-password-screen.tsx:44",
+        "features/auth/forgot-password-screen.tsx:53"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 1
+      },
+      "heroi": false,
+      "meta": 80
+    },
+    {
+      "rota": "nova-senha",
+      "tipo": "conta",
+      "palavras": 45,
+      "blocos": 9,
+      "longos": 0,
+      "exemplosLongos": [],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 1,
+        "emblema": 0,
+        "icone": 2
+      },
+      "heroi": false,
+      "meta": 80
+    },
+    {
+      "rota": "onboarding · 1 boas-vindas",
+      "tipo": "jogo",
+      "palavras": 50,
+      "blocos": 5,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/screens/onboarding-screen.tsx:168",
+        "features/screens/onboarding-screen.tsx:169"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 2,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 1,
+        "icone": 0
+      },
+      "heroi": true,
+      "meta": 45
+    },
+    {
+      "rota": "onboarding · 2 time",
+      "tipo": "jogo",
+      "palavras": 22,
+      "blocos": 2,
+      "longos": 1,
+      "exemplosLongos": [
+        "features/screens/onboarding-screen.tsx:216"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 1,
+        "icone": 1
+      },
+      "heroi": false,
+      "meta": 45
+    },
+    {
+      "rota": "onboarding · 3 localização",
+      "tipo": "jogo",
+      "palavras": 58,
+      "blocos": 3,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/screens/onboarding-screen.tsx:266",
+        "features/screens/onboarding-screen.tsx:270"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 1
+      },
+      "heroi": false,
+      "meta": 45
+    },
+    {
+      "rota": "onboarding · 4 notificações",
+      "tipo": "jogo",
+      "palavras": 57,
+      "blocos": 3,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/screens/onboarding-screen.tsx:283",
+        "features/screens/onboarding-screen.tsx:287"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 1
+      },
+      "heroi": false,
+      "meta": 45
+    },
+    {
+      "rota": "(tabs)/index · Mapa",
+      "tipo": "jogo",
+      "palavras": 36,
+      "blocos": 9,
+      "longos": 0,
+      "exemplosLongos": [],
+      "visual": {
+        "mapa": 1,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 3,
+        "icone": 4
+      },
+      "heroi": true,
+      "meta": 45
+    },
+    {
+      "rota": "corrida · preparação",
+      "tipo": "jogo",
+      "palavras": 58,
+      "blocos": 16,
+      "longos": 3,
+      "exemplosLongos": [
+        "features/screens/run-screen.tsx:41",
+        "features/screens/run-screen.tsx:41",
+        "features/screens/run-screen.tsx:41"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 3
+      },
+      "heroi": false,
+      "meta": 45
+    },
+    {
+      "rota": "corrida · GPS",
+      "tipo": "jogo",
+      "palavras": 27,
+      "blocos": 11,
+      "longos": 0,
+      "exemplosLongos": [],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 2
+      },
+      "heroi": false,
+      "meta": 45
+    },
+    {
+      "rota": "corrida · contagem",
+      "tipo": "jogo",
+      "palavras": 1,
+      "blocos": 1,
+      "longos": 0,
+      "exemplosLongos": [],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 0
+      },
+      "heroi": false,
+      "meta": 45
+    },
+    {
+      "rota": "corrida · ativa",
+      "tipo": "jogo",
+      "palavras": 145,
+      "blocos": 30,
+      "longos": 6,
+      "exemplosLongos": [
+        "features/screens/run-screen.tsx:395",
+        "features/screens/run-screen.tsx:469",
+        "features/screens/run-screen.tsx:481"
+      ],
+      "visual": {
+        "mapa": 1,
+        "ilustracao": 0,
+        "numeroGrande": 5,
+        "grafico": 1,
+        "emblema": 1,
+        "icone": 5
+      },
+      "heroi": true,
+      "meta": 90
+    },
+    {
+      "rota": "resumo",
+      "tipo": "jogo",
+      "palavras": 113,
+      "blocos": 30,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/screens/summary-screen.tsx:185",
+        "features/screens/summary-screen.tsx:207"
+      ],
+      "visual": {
+        "mapa": 1,
+        "ilustracao": 5,
+        "numeroGrande": 7,
+        "grafico": 0,
+        "emblema": 1,
+        "icone": 1
+      },
+      "heroi": true,
+      "meta": 60
+    },
+    {
+      "rota": "zona/[id]",
+      "tipo": "jogo",
+      "palavras": 135,
+      "blocos": 24,
+      "longos": 4,
+      "exemplosLongos": [
+        "features/screens/zone-sheet.tsx:84",
+        "features/screens/zone-sheet.tsx:93",
+        "features/screens/zone-sheet.tsx:155"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 2,
+        "grafico": 1,
+        "emblema": 3,
+        "icone": 0
+      },
+      "heroi": false,
+      "meta": 50
+    },
+    {
+      "rota": "(tabs)/arena",
+      "tipo": "jogo",
+      "palavras": 195,
+      "blocos": 30,
+      "longos": 10,
+      "exemplosLongos": [
+        "features/screens/arena-screen.tsx:76",
+        "features/screens/arena-screen.tsx:87",
+        "features/screens/arena-screen.tsx:133"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 2,
+        "grafico": 1,
+        "emblema": 1,
+        "icone": 2
+      },
+      "heroi": false,
+      "meta": 45
+    },
+    {
+      "rota": "(tabs)/atividades",
+      "tipo": "jogo",
+      "palavras": 66,
+      "blocos": 22,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/screens/activities-screen.tsx:93",
+        "features/screens/activities-screen.tsx:147"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 2,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 1
+      },
+      "heroi": false,
+      "meta": 45
+    },
+    {
+      "rota": "(tabs)/clube",
+      "tipo": "jogo",
+      "palavras": 108,
+      "blocos": 21,
+      "longos": 3,
+      "exemplosLongos": [
+        "features/screens/club-screen.tsx:209",
+        "features/screens/club-screen.tsx:227",
+        "features/screens/club-screen.tsx:311"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 3,
+        "grafico": 3,
+        "emblema": 2,
+        "icone": 1
+      },
+      "heroi": false,
+      "meta": 45
+    },
+    {
+      "rota": "(tabs)/clube/crew",
+      "tipo": "jogo",
+      "palavras": 109,
+      "blocos": 27,
+      "longos": 1,
+      "exemplosLongos": [
+        "features/screens/crew-screen.tsx:182"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 1,
+        "grafico": 0,
+        "emblema": 2,
+        "icone": 0
+      },
+      "heroi": false,
+      "meta": 70
+    },
+    {
+      "rota": "(tabs)/perfil",
+      "tipo": "jogo",
+      "palavras": 171,
+      "blocos": 38,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/screens/profile-screen.tsx:115",
+        "features/screens/profile-screen.tsx:141"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 3,
+        "grafico": 1,
+        "emblema": 1,
+        "icone": 4
+      },
+      "heroi": false,
+      "meta": 45
+    },
+    {
+      "rota": "(tabs)/perfil/time",
+      "tipo": "jogo",
+      "palavras": 90,
+      "blocos": 13,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/screens/faction-screen.tsx:92",
+        "features/screens/faction-screen.tsx:99"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 2,
+        "icone": 3
+      },
+      "heroi": false,
+      "meta": 60
+    },
+    {
+      "rota": "(tabs)/perfil/editar",
+      "tipo": "conta",
+      "palavras": 102,
+      "blocos": 22,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/screens/edit-profile-screen.tsx:123",
+        "features/screens/edit-profile-screen.tsx:143"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 1,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 1
+      },
+      "heroi": true,
+      "meta": 80
+    },
+    {
+      "rota": "(tabs)/perfil/conta",
+      "tipo": "conta",
+      "palavras": 73,
+      "blocos": 17,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/screens/account-screen.tsx:98",
+        "features/screens/account-screen.tsx:123"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 2
+      },
+      "heroi": false,
+      "meta": 80
+    },
+    {
+      "rota": "notificacoes",
+      "tipo": "jogo",
+      "palavras": 29,
+      "blocos": 6,
+      "longos": 0,
+      "exemplosLongos": [],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 2
+      },
+      "heroi": false,
+      "meta": 45
+    },
+    {
+      "rota": "contatos-seguranca",
+      "tipo": "conta",
+      "palavras": 56,
+      "blocos": 12,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/safety/contacts-screen.tsx:130",
+        "features/safety/contacts-screen.tsx:152"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 2
+      },
+      "heroi": false,
+      "meta": 80
+    },
+    {
+      "rota": "zonas-privacidade",
+      "tipo": "conta",
+      "palavras": 76,
+      "blocos": 15,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/screens/privacy-zones-screen.tsx:154",
+        "features/screens/privacy-zones-screen.tsx:197"
+      ],
+      "visual": {
+        "mapa": 1,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 2
+      },
+      "heroi": true,
+      "meta": 80
+    },
+    {
+      "rota": "indisponivel",
+      "tipo": "conta",
+      "palavras": 73,
+      "blocos": 10,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/auth/unavailable-screen.tsx:33",
+        "features/auth/unavailable-screen.tsx:39"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 2
+      },
+      "heroi": false,
+      "meta": 80
+    },
+    {
+      "rota": "termos / privacidade",
+      "tipo": "informativa",
+      "palavras": 519,
+      "blocos": 32,
+      "longos": 16,
+      "exemplosLongos": [
+        "features/auth/legal-screen.tsx:16",
+        "features/auth/legal-screen.tsx:16",
+        "features/auth/legal-screen.tsx:16"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 1
+      },
+      "heroi": false,
+      "meta": null
+    },
+    {
+      "rota": "moderacao (lista)",
+      "tipo": "conta",
+      "palavras": 99,
+      "blocos": 13,
+      "longos": 3,
+      "exemplosLongos": [
+        "features/moderation/moderation-list-screen.tsx:37",
+        "features/moderation/moderation-list-screen.tsx:47",
+        "features/moderation/moderation-list-screen.tsx:89"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 1,
+        "grafico": 0,
+        "emblema": 0,
+        "icone": 3
+      },
+      "heroi": false,
+      "meta": 80
+    },
+    {
+      "rota": "moderacao/[id]",
+      "tipo": "conta",
+      "palavras": 94,
+      "blocos": 30,
+      "longos": 2,
+      "exemplosLongos": [
+        "features/moderation/moderation-detail-screen.tsx:155",
+        "features/moderation/moderation-detail-screen.tsx:175"
+      ],
+      "visual": {
+        "mapa": 1,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 2,
+        "emblema": 0,
+        "icone": 2
+      },
+      "heroi": true,
+      "meta": 80
+    },
+    {
+      "rota": "moderacao/contas",
+      "tipo": "conta",
+      "palavras": 48,
+      "blocos": 17,
+      "longos": 1,
+      "exemplosLongos": [
+        "features/moderation/admin-users-screen.tsx:57"
+      ],
+      "visual": {
+        "mapa": 0,
+        "ilustracao": 0,
+        "numeroGrande": 0,
+        "grafico": 0,
+        "emblema": 1,
+        "icone": 0
+      },
+      "heroi": false,
+      "meta": 80
+    }
+  ]
+}
