@@ -6,7 +6,31 @@
 ## 0. Antes de começar
 
 - Node 22 e `npm install` na raiz (instala o CLI); Docker rodando (o CLI usa o Docker para empacotar as functions); Deno 2 para os testes (`npm i -g deno@2.5.6`).
-- Confira localmente: `npm run db:reset`, `npm run db:test:psql`, `npm run functions:test`, `npm run functions:check`, `npm run e2e`.
+- Confira localmente: `npm run db:reset`, `npm run db:test:psql`, `npm run functions:test`, `npm run functions:check`, `npm run e2e`. Sem Docker, o banco e o pgTAP rodam com `npm run db:test:local` (seção 0.1).
+
+## 0.1 Testes do banco sem Docker (`npm run db:test:local`, D-80)
+
+Obrigatório antes de cada commit em `supabase/` (Fase 7). Usa um Postgres 16 "puro" com PostGIS, pgTAP e pg_cron do apt e um **shim do Supabase** (`supabase/scripts/supabase-shim.sql`: roles `anon`/`authenticated`/`service_role`, `auth.users`, `auth.uid()`/`auth.jwt()`, `storage.buckets`/`objects`, publicação `supabase_realtime` e os privilégios padrão do `public`).
+
+```bash
+NR_INSTALL=1 npm run db:test:local   # 1ª vez, como root: instala postgresql-16-postgis-3, -pgtap e -cron pelo apt
+npm run db:test:local                # cria o cluster, aplica shim + migrations + seed, roda o pgTAP e para (≈ 10 s)
+NR_SEED=0 npm run db:test:local      # sem o seed de demonstração
+NR_KEEP=1 npm run db:test:local      # deixa o banco rodando; o script imprime o psql e o comando para parar
+```
+
+| Variável | Padrão | Para quê |
+|---|---|---|
+| `NR_WORKDIR` | `mktemp -d /tmp/nomaderun-pg.XXXXXX` (apagada no fim) | pasta do cluster; o socket fica nela (sem TCP) |
+| `NR_PORT` | `54329` | número do socket (não conflita com o `supabase start`, que usa 54322) |
+| `NR_SEED` / `NR_KEEP` / `NR_PG_PROVE` | `1` / `0` / `1` | seed, manter rodando, conferir com `pg_prove` |
+| `NR_EXTRA_SQL` / `NR_EXTRA_TESTS` | vazio | SQL e testes pgTAP extras (ex.: rascunhos) |
+| `NR_PG_BIN` | `/usr/lib/postgresql/16/bin` | binários do Postgres |
+
+- **Regra de aprovação:** igual à de `supabase/scripts/test-db.sh` (falha com `not ok`, erro de SQL ou plano diferente do executado) e, se houver `pg_prove`, a mesma lista confere pelo `pg_prove`.
+- **Como root:** o servidor roda como o usuário `postgres`. Se `NR_WORKDIR` fica atrás de uma pasta `700` (ex.: pasta de rascunho de um agente), o script faz um **bind mount** para um caminho curto em `/tmp` (o socket Unix aceita no máximo 107 caracteres) e desfaz no fim.
+- **O que não cobre:** não há PostgREST, GoTrue, Realtime nem Storage API. O pre-request (`check_request`), a RLS no canal do Realtime e o upload de avatar ficam para o `npm run e2e` com Docker. O local usa Postgres 16 e o `config.toml` usa 17: a validação final continua sendo `npm run db:reset && npm run db:test:psql`.
+- **Uma migration nova que dependa de outra parte do Supabase** (`pg_net`, `vault`, `pgsodium`) precisa de um trecho novo no shim.
 - **Domain fora de `supabase/` (D-02/D-22):** `npm run functions:bundle-check` roda o mesmo `edge-runtime bundle` que o `supabase functions deploy` usa no Docker, gera o eszip das 8 functions, confere que o domain e o h3-js estão dentro e sobe o eszip de `finish-activity` num edge-runtime limpo (só o arquivo `.eszip` montado). Resultado em 2026-10-20: **ok** — o deploy padrão (Docker) aceita o domain do app (plano A). O que não deu para testar sem conta: o upload do eszip para a API do Supabase (o proxy deste ambiente bloqueia `api.supabase.com`), que não reprocessa os imports.
 
 ## 1. Criar o projeto
