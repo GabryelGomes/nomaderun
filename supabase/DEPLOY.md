@@ -6,7 +6,31 @@
 ## 0. Antes de começar
 
 - Node 22 e `npm install` na raiz (instala o CLI); Docker rodando (o CLI usa o Docker para empacotar as functions); Deno 2 para os testes (`npm i -g deno@2.5.6`).
-- Confira localmente: `npm run db:reset`, `npm run db:test:psql`, `npm run functions:test`, `npm run functions:check`, `npm run e2e`.
+- Confira localmente: `npm run db:reset`, `npm run db:test:psql`, `npm run functions:test`, `npm run functions:check`, `npm run e2e`. Sem Docker, o banco e o pgTAP rodam com `npm run db:test:local` (seção 0.1).
+
+## 0.1 Testes do banco sem Docker (`npm run db:test:local`, D-80)
+
+Obrigatório antes de cada commit em `supabase/` (Fase 7). Usa um Postgres 16 "puro" com PostGIS, pgTAP e pg_cron do apt e um **shim do Supabase** (`supabase/scripts/supabase-shim.sql`: roles `anon`/`authenticated`/`service_role`, `auth.users`, `auth.uid()`/`auth.jwt()`, `storage.buckets`/`objects`, publicação `supabase_realtime` e os privilégios padrão do `public`).
+
+```bash
+NR_INSTALL=1 npm run db:test:local   # 1ª vez, como root: instala postgresql-16-postgis-3, -pgtap e -cron pelo apt
+npm run db:test:local                # cria o cluster, aplica shim + migrations + seed, roda o pgTAP e para (≈ 10 s)
+NR_SEED=0 npm run db:test:local      # sem o seed de demonstração
+NR_KEEP=1 npm run db:test:local      # deixa o banco rodando; o script imprime o psql e o comando para parar
+```
+
+| Variável | Padrão | Para quê |
+|---|---|---|
+| `NR_WORKDIR` | `mktemp -d /tmp/nomaderun-pg.XXXXXX` (apagada no fim) | pasta do cluster; o socket fica nela (sem TCP) |
+| `NR_PORT` | `54329` | número do socket (não conflita com o `supabase start`, que usa 54322) |
+| `NR_SEED` / `NR_KEEP` / `NR_PG_PROVE` | `1` / `0` / `1` | seed, manter rodando, conferir com `pg_prove` |
+| `NR_EXTRA_SQL` / `NR_EXTRA_TESTS` | vazio | SQL e testes pgTAP extras (ex.: rascunhos) |
+| `NR_PG_BIN` | `/usr/lib/postgresql/16/bin` | binários do Postgres |
+
+- **Regra de aprovação:** igual à de `supabase/scripts/test-db.sh` (falha com `not ok`, erro de SQL ou plano diferente do executado) e, se houver `pg_prove`, a mesma lista confere pelo `pg_prove`.
+- **Como root:** o servidor roda como o usuário `postgres`. Se `NR_WORKDIR` fica atrás de uma pasta `700` (ex.: pasta de rascunho de um agente), o script faz um **bind mount** para um caminho curto em `/tmp` (o socket Unix aceita no máximo 107 caracteres) e desfaz no fim.
+- **O que não cobre:** não há PostgREST, GoTrue, Realtime nem Storage API. O pre-request (`check_request`), a RLS no canal do Realtime e o upload de avatar ficam para o `npm run e2e` com Docker. O local usa Postgres 16 e o `config.toml` usa 17: a validação final continua sendo `npm run db:reset && npm run db:test:psql`.
+- **Uma migration nova que dependa de outra parte do Supabase** (`pg_net`, `vault`, `pgsodium`) precisa de um trecho novo no shim.
 - **Domain fora de `supabase/` (D-02/D-22):** `npm run functions:bundle-check` roda o mesmo `edge-runtime bundle` que o `supabase functions deploy` usa no Docker, gera o eszip das 8 functions, confere que o domain e o h3-js estão dentro e sobe o eszip de `finish-activity` num edge-runtime limpo (só o arquivo `.eszip` montado). Resultado em 2026-10-20: **ok** — o deploy padrão (Docker) aceita o domain do app (plano A). O que não deu para testar sem conta: o upload do eszip para a API do Supabase (o proxy deste ambiente bloqueia `api.supabase.com`), que não reprocessa os imports.
 
 ## 1. Criar o projeto
@@ -95,3 +119,12 @@ Mudou o domain? Rode `npm run domain:copy` de novo antes do próximo deploy (`np
 
 - Os 4 jobs do pg_cron (RN-004, RN-005, RN-006, RN-014) são criados pela migration; confira em **Database → Cron Jobs** (horários em UTC = Brasília + 3 h).
 - Realtime: `zones` (mapa) e `notifications` (central, P-13) estão na publicação `supabase_realtime`; a RLS vale para quem assina.
+
+## 7. Servidor v2 (Fase 7, D-80): migrations atrás de flags
+
+- **Ordem:** backup (`npx supabase db dump --linked -f backup-<data>.sql` e `--data-only`) → `npm run db:test:local` (ou `db:reset` + `db:test:psql`) → `npx supabase db push --dry-run` e `db push` → functions → EAS Update → flags, uma por vez.
+- **Migrations da onda 1** (`20261023120000` a `20261023120600`): contrato (`game_config`, `server_info`, `xp_ledger`), cosméticos e medalhas, baú do dia, Raid, Liga, missões e trilha, sequência v2. Todas aditivas; com as flags desligadas o app publicado não vê diferença. A única mudança em objeto antigo é o `CHECK` de `notifications.type`, trocado por um superconjunto na mesma instrução, e o `job_close_week`, que só muda de regra com `features.streakV2`.
+- **Jobs novos:** `nomaderun-raid-tick` (`*/10 * * * *`) e `nomaderun-close-league` (`20 6 * * 1` = segunda 03:20 BRT). Realtime ganha `raids`.
+- **Segredo do baú do dia:** a migration gera `private.server_secrets('daily_chest_hmac')` com 32 bytes aleatórios no próprio banco (nada no repositório). Para trocar: `update private.server_secrets set value = extensions.gen_random_bytes(32) where name = 'daily_chest_hmac';` (os baús já abertos não mudam).
+- **Ligar uma feature:** `update public.game_config set value = value || '{"raid": true}' where key = 'features';`. **Desligar** (volta atrás na hora): o mesmo com `false`. Ordem sugerida, depois do EAS Update: `dailyChest`, `missions`, `track`, `raid`, `league`, `streakV2`. A gravação v2 do `finish-activity` (onda 2) é que alimenta raid, liga, missões e baú com as corridas; antes dela, as telas abrem, mas só as RPCs do app mexem nos dados.
+- **Conferir depois do `db push`:** `select public.server_info();` no SQL Editor (como `authenticated`, com `set role`), `select jobname, schedule from cron.job;` e `npx supabase db advisors --linked`.
