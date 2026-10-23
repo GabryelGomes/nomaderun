@@ -1,0 +1,990 @@
+{
+  "Bairro sintético (271 zonas do seed) · times equilibrados · densidade 90": {
+    "A": {
+      "giroSemanal": 0.16697416974169743,
+      "giroMin": 0.11685116851168513,
+      "giroMax": 0.23985239852398524,
+      "zonasComDono": 1,
+      "eternas": 0.37884378843788435,
+      "longevas": 0.5153751537515375,
+      "parteMaiorTime": 0.33702337023370227,
+      "parteJogadoresMaiorTime": 0.30144927536231886,
+      "giniTimes": 0.21740467404674046,
+      "giniJogadores": 0.7490288980698189,
+      "comZona": {
+        "iniciante": 0.25641025641025644,
+        "regular": 0.8828828828828829,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.29942543596190085,
+        "regular": 0.5969503408998496,
+        "avancado": 0.9743589743589743
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.3583333333333334,
+        "regular": 1.1092342342342343,
+        "avancado": 4.983974358974359
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.13333333333333333,
+        "ate1km": 0.08333333333333333,
+        "medianaKm": 11.554947145979776,
+        "medianaCorridas": 4,
+        "nunca": 0.31666666666666665
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.3333333333333333,
+        "ate1km": 0.26666666666666666,
+        "medianaKm": 13.061888580792917,
+        "medianaCorridas": 3,
+        "nunca": 0.06666666666666667
+      },
+      "evaporaIniciante": 0.41041938287700996,
+      "iniciantesTomandoDeRival": 0.9963745119535322,
+      "retomada7d": 0.4939267483807499,
+      "custoTomarMedianaM": 8076.579159961217,
+      "custoTomarAcima3km": 0.9434194341943419,
+      "corridas": 3559
+    },
+    "C": {
+      "giroSemanal": 0.32441574415744157,
+      "giroMin": 0.2607626076260762,
+      "giroMax": 0.39237392373923735,
+      "zonasComDono": 1,
+      "eternas": 0.11316113161131612,
+      "longevas": 0.2029520295202952,
+      "parteMaiorTime": 0.34440344403444034,
+      "parteJogadoresMaiorTime": 0.30144927536231886,
+      "giniTimes": 0.18849938499384997,
+      "giniJogadores": 0.7003155248943793,
+      "comZona": {
+        "iniciante": 0.37948717948717947,
+        "regular": 0.8288288288288289,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.7662140963777139,
+        "regular": 0.9762657425544973,
+        "avancado": 1
+      },
+      "conquistasPorSemana": {
+        "iniciante": 1.4256410256410257,
+        "regular": 4.458333333333333,
+        "avancado": 19.955128205128204
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.6166666666666667,
+        "ate1km": 0.3166666666666667,
+        "medianaKm": 1.965825913398007,
+        "medianaCorridas": 1,
+        "nunca": 0
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.8000000000000002,
+        "ate1km": 0.46666666666666673,
+        "medianaKm": 1.871803811525975,
+        "medianaCorridas": 1,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.5205327764085146,
+      "iniciantesTomandoDeRival": 0.9991251093613299,
+      "retomada7d": 0.666124604520222,
+      "custoTomarMedianaM": 826.6666666666666,
+      "custoTomarAcima3km": 0.0012300123001230013,
+      "corridas": 3559
+    },
+    "C+m2": {
+      "giroSemanal": 0.31411439114391143,
+      "giroMin": 0.25092250922509224,
+      "giroMax": 0.3972939729397294,
+      "zonasComDono": 1,
+      "eternas": 0.13284132841328414,
+      "longevas": 0.21894218942189422,
+      "parteMaiorTime": 0.3419434194341944,
+      "parteJogadoresMaiorTime": 0.30144927536231886,
+      "giniTimes": 0.19403444034440342,
+      "giniJogadores": 0.6940050270067918,
+      "comZona": {
+        "iniciante": 0.38461538461538464,
+        "regular": 0.8468468468468467,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.7026646352055396,
+        "regular": 0.963216746157206,
+        "avancado": 1
+      },
+      "conquistasPorSemana": {
+        "iniciante": 1.1923076923076923,
+        "regular": 3.6159909909909906,
+        "avancado": 16.115384615384617
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.5,
+        "ate1km": 0.21666666666666667,
+        "medianaKm": 3.184080206283903,
+        "medianaCorridas": 1.5,
+        "nunca": 0
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.5333333333333333,
+        "ate1km": 0.26666666666666666,
+        "medianaKm": 5.731523253909224,
+        "medianaCorridas": 1.6666666666666667,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.4979149967947578,
+      "iniciantesTomandoDeRival": 0.9989615784008308,
+      "retomada7d": 0.646391397965267,
+      "custoTomarMedianaM": 826.6666666666666,
+      "custoTomarAcima3km": 0.0012300123001230013,
+      "corridas": 3559
+    },
+    "C+r": {
+      "giroSemanal": 0.3497847478474785,
+      "giroMin": 0.2816728167281673,
+      "giroMax": 0.4169741697416974,
+      "zonasComDono": 1,
+      "eternas": 0.08856088560885607,
+      "longevas": 0.16605166051660517,
+      "parteMaiorTime": 0.34686346863468637,
+      "parteJogadoresMaiorTime": 0.30144927536231886,
+      "giniTimes": 0.19464944649446494,
+      "giniJogadores": 0.6961417752000766,
+      "comZona": {
+        "iniciante": 0.39487179487179486,
+        "regular": 0.8648648648648649,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.6643273039248837,
+        "regular": 0.951294585002504,
+        "avancado": 1
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.9884615384615384,
+        "regular": 3.0213963963963963,
+        "avancado": 12.846153846153845
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.5166666666666667,
+        "ate1km": 0.20000000000000004,
+        "medianaKm": 2.913651386145908,
+        "medianaCorridas": 1.5,
+        "nunca": 0
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.7999999999999999,
+        "ate1km": 0.26666666666666666,
+        "medianaKm": 2.564995749491825,
+        "medianaCorridas": 1,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.4167338497705891,
+      "iniciantesTomandoDeRival": 0.9994089834515366,
+      "retomada7d": 0.6475660838527932,
+      "custoTomarMedianaM": 933.3333333333334,
+      "custoTomarAcima3km": 0,
+      "corridas": 3559
+    },
+    "C+m2+r": {
+      "giroSemanal": 0.3445571955719557,
+      "giroMin": 0.2952029520295203,
+      "giroMax": 0.40344403444034443,
+      "zonasComDono": 1,
+      "eternas": 0.10332103321033209,
+      "longevas": 0.1857318573185732,
+      "parteMaiorTime": 0.33087330873308735,
+      "parteJogadoresMaiorTime": 0.30144927536231886,
+      "giniTimes": 0.19095940959409594,
+      "giniJogadores": 0.6865927086380839,
+      "comZona": {
+        "iniciante": 0.38461538461538464,
+        "regular": 0.8558558558558559,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.5694061777457765,
+        "regular": 0.9205783450370024,
+        "avancado": 1
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.8089743589743591,
+        "regular": 2.3817567567567566,
+        "avancado": 10.221153846153847
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.45,
+        "ate1km": 0.2333333333333333,
+        "medianaKm": 3.1295069775648674,
+        "medianaCorridas": 1.6666666666666667,
+        "nunca": 0.03333333333333333
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.5333333333333333,
+        "ate1km": 0.26666666666666666,
+        "medianaKm": 3.0946061223946977,
+        "medianaCorridas": 1.3333333333333333,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.3651673052579885,
+      "iniciantesTomandoDeRival": 0.9992492492492492,
+      "retomada7d": 0.6045549637513664,
+      "custoTomarMedianaM": 920,
+      "custoTomarAcima3km": 0,
+      "corridas": 3559
+    }
+  },
+  "Bairro sintético (271 zonas do seed) · times desequilibrados · densidade 90": {
+    "A": {
+      "giroSemanal": 0.10562730627306272,
+      "giroMin": 0.05658056580565805,
+      "giroMax": 0.17343173431734318,
+      "zonasComDono": 1,
+      "eternas": 0.5498154981549815,
+      "longevas": 0.6371463714637146,
+      "parteMaiorTime": 0.5977859778597786,
+      "parteJogadoresMaiorTime": 0.455072463768116,
+      "giniTimes": 0.4793972939729397,
+      "giniJogadores": 0.7546868803262665,
+      "comZona": {
+        "iniciante": 0.23589743589743592,
+        "regular": 0.8018018018018017,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.17036052458352322,
+        "regular": 0.4702115378711123,
+        "avancado": 0.8814102564102564
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.18525641025641026,
+        "regular": 0.7961711711711712,
+        "avancado": 3.378205128205128
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.08333333333333333,
+        "ate1km": 0.03333333333333333,
+        "medianaKm": null,
+        "medianaCorridas": null,
+        "nunca": 0.6
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.3333333333333333,
+        "ate1km": 0.06666666666666667,
+        "medianaKm": 24.15772286880193,
+        "medianaCorridas": 5.333333333333333,
+        "nunca": 0.3333333333333333
+      },
+      "evaporaIniciante": 0.368581261694734,
+      "iniciantesTomandoDeRival": 0.9971751412429378,
+      "retomada7d": 0.48572874851058395,
+      "custoTomarMedianaM": 10113.312722414152,
+      "custoTomarAcima3km": 0.977859778597786,
+      "corridas": 3526.6666666666665
+    },
+    "C": {
+      "giroSemanal": 0.2250922509225092,
+      "giroMin": 0.1771217712177122,
+      "giroMax": 0.2927429274292743,
+      "zonasComDono": 1,
+      "eternas": 0.2533825338253382,
+      "longevas": 0.36162361623616235,
+      "parteMaiorTime": 0.5744157441574416,
+      "parteJogadoresMaiorTime": 0.455072463768116,
+      "giniTimes": 0.4443419434194342,
+      "giniJogadores": 0.6974923198507348,
+      "comZona": {
+        "iniciante": 0.34871794871794876,
+        "regular": 0.8198198198198199,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.5783011853104285,
+        "regular": 0.8976215037917165,
+        "avancado": 0.9967948717948718
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.8826923076923077,
+        "regular": 3.039414414414414,
+        "avancado": 13.333333333333334
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.45,
+        "ate1km": 0.25,
+        "medianaKm": 3.411359069545329,
+        "medianaCorridas": 1.6666666666666667,
+        "nunca": 0.10000000000000002
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.6666666666666666,
+        "ate1km": 0.13333333333333333,
+        "medianaKm": 3.090497861713361,
+        "medianaCorridas": 1,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.5109372761473197,
+      "iniciantesTomandoDeRival": 1,
+      "retomada7d": 0.6745125355493437,
+      "custoTomarMedianaM": 920,
+      "custoTomarAcima3km": 0,
+      "corridas": 3526.6666666666665
+    },
+    "C+m2": {
+      "giroSemanal": 0.22416974169741696,
+      "giroMin": 0.1709717097170972,
+      "giroMax": 0.2952029520295203,
+      "zonasComDono": 1,
+      "eternas": 0.26445264452644524,
+      "longevas": 0.3751537515375154,
+      "parteMaiorTime": 0.5670356703567035,
+      "parteJogadoresMaiorTime": 0.455072463768116,
+      "giniTimes": 0.43942189421894223,
+      "giniJogadores": 0.6962900303058159,
+      "comZona": {
+        "iniciante": 0.35897435897435903,
+        "regular": 0.8108108108108109,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.5027494512655567,
+        "regular": 0.8508745509809339,
+        "avancado": 0.9903846153846154
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.7038461538461539,
+        "regular": 2.421171171171171,
+        "avancado": 10.855769230769232
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.3833333333333333,
+        "ate1km": 0.20000000000000004,
+        "medianaKm": 4.485287026025783,
+        "medianaCorridas": 2,
+        "nunca": 0.11666666666666665
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.5333333333333333,
+        "ate1km": 0.06666666666666667,
+        "medianaKm": 6.038183161730335,
+        "medianaCorridas": 1.6666666666666667,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.4670941746176511,
+      "iniciantesTomandoDeRival": 1,
+      "retomada7d": 0.6446144411674503,
+      "custoTomarMedianaM": 920,
+      "custoTomarAcima3km": 0,
+      "corridas": 3526.6666666666665
+    },
+    "C+r": {
+      "giroSemanal": 0.2564575645756457,
+      "giroMin": 0.20910209102091018,
+      "giroMax": 0.32226322263222634,
+      "zonasComDono": 1,
+      "eternas": 0.21156211562115623,
+      "longevas": 0.30381303813038135,
+      "parteMaiorTime": 0.5781057810578105,
+      "parteJogadoresMaiorTime": 0.455072463768116,
+      "giniTimes": 0.4511070110701107,
+      "giniJogadores": 0.6912066703787242,
+      "comZona": {
+        "iniciante": 0.36410256410256414,
+        "regular": 0.7927927927927928,
+        "avancado": 0.9743589743589745
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.48022574615775815,
+        "regular": 0.8377745540511498,
+        "avancado": 0.9871794871794872
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.6121794871794871,
+        "regular": 2.1182432432432434,
+        "avancado": 9.205128205128206
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.3333333333333333,
+        "ate1km": 0.06666666666666667,
+        "medianaKm": 6.333603663138692,
+        "medianaCorridas": 2.8333333333333335,
+        "nunca": 0.13333333333333333
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.6,
+        "ate1km": 0.06666666666666667,
+        "medianaKm": 5.564940336585024,
+        "medianaCorridas": 1.6666666666666667,
+        "nunca": 0.06666666666666667
+      },
+      "evaporaIniciante": 0.38062424805067047,
+      "iniciantesTomandoDeRival": 1,
+      "retomada7d": 0.644372242463258,
+      "custoTomarMedianaM": 1040,
+      "custoTomarAcima3km": 0,
+      "corridas": 3526.6666666666665
+    },
+    "C+m2+r": {
+      "giroSemanal": 0.24907749077490773,
+      "giroMin": 0.20172201722017222,
+      "giroMax": 0.3136531365313653,
+      "zonasComDono": 1,
+      "eternas": 0.22755227552275525,
+      "longevas": 0.3259532595325953,
+      "parteMaiorTime": 0.5596555965559656,
+      "parteJogadoresMaiorTime": 0.455072463768116,
+      "giniTimes": 0.43696186961869626,
+      "giniJogadores": 0.6945859011019778,
+      "comZona": {
+        "iniciante": 0.36410256410256414,
+        "regular": 0.8468468468468467,
+        "avancado": 0.9487179487179488
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.4047393979221843,
+        "regular": 0.7649626968775906,
+        "avancado": 0.9839743589743589
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.4743589743589744,
+        "regular": 1.6114864864864866,
+        "avancado": 7.153846153846153
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.26666666666666666,
+        "ate1km": 0.08333333333333333,
+        "medianaKm": 9.537154520908185,
+        "medianaCorridas": 3.6666666666666665,
+        "nunca": 0.18333333333333335
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.4000000000000001,
+        "ate1km": 0.06666666666666667,
+        "medianaKm": 10.317050306385914,
+        "medianaCorridas": 2.6666666666666665,
+        "nunca": 0.20000000000000004
+      },
+      "evaporaIniciante": 0.34149757495719757,
+      "iniciantesTomandoDeRival": 1,
+      "retomada7d": 0.5986629104615827,
+      "custoTomarMedianaM": 1013.3333333333334,
+      "custoTomarAcima3km": 0,
+      "corridas": 3526.6666666666665
+    }
+  },
+  "Bairro sintético (271 zonas do seed) · times equilibrados · densidade 30": {
+    "A": {
+      "giroSemanal": 0.2117158671586716,
+      "giroMin": 0.16236162361623618,
+      "giroMax": 0.3087330873308733,
+      "zonasComDono": 0.9889298892988929,
+      "eternas": 0.25338253382533826,
+      "longevas": 0.3579335793357934,
+      "parteMaiorTime": 0.38947440442829917,
+      "parteJogadoresMaiorTime": 0.3151515151515151,
+      "giniTimes": 0.22767025633704416,
+      "giniJogadores": 0.6845850029344653,
+      "comZona": {
+        "iniciante": 0.6,
+        "regular": 0.9375,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.6285417623013531,
+        "regular": 0.9535452184294648,
+        "avancado": 0.9895833333333334
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.9595238095238096,
+        "regular": 3.8619791666666665,
+        "avancado": 12.822916666666666
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.25,
+        "ate1km": 0.08333333333333333,
+        "medianaKm": 5.676833712222053,
+        "medianaCorridas": 2.5,
+        "nunca": 0.06666666666666667
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.6666666666666666,
+        "ate1km": 0.06666666666666667,
+        "medianaKm": 4.562513051638267,
+        "medianaCorridas": 1.3333333333333333,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.4258684293493156,
+      "iniciantesTomandoDeRival": 0.8633742401119259,
+      "retomada7d": 0.5130190701757269,
+      "custoTomarMedianaM": 2884.3261916064725,
+      "custoTomarAcima3km": 0.4775839035750061,
+      "corridas": 1354
+    },
+    "C": {
+      "giroSemanal": 0.2953567035670357,
+      "giroMin": 0.23124231242312424,
+      "giroMax": 0.3677736777367773,
+      "zonasComDono": 0.991389913899139,
+      "eternas": 0.15498154981549817,
+      "longevas": 0.24846248462484624,
+      "parteMaiorTime": 0.38824002663263607,
+      "parteJogadoresMaiorTime": 0.3151515151515151,
+      "giniTimes": 0.21385405685328007,
+      "giniJogadores": 0.6102668475802805,
+      "comZona": {
+        "iniciante": 0.761904761904762,
+        "regular": 0.9583333333333334,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.7701619778346122,
+        "regular": 0.9765156256873765,
+        "avancado": 0.9791666666666666
+      },
+      "conquistasPorSemana": {
+        "iniciante": 1.355952380952381,
+        "regular": 4.4375,
+        "avancado": 14.6875
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.7666666666666666,
+        "ate1km": 0.3499999999999999,
+        "medianaKm": 1.568987735290661,
+        "medianaCorridas": 1,
+        "nunca": 0
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.8666666666666667,
+        "ate1km": 0.46666666666666673,
+        "medianaKm": 1.6712418571473737,
+        "medianaCorridas": 1,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.4286935152464791,
+      "iniciantesTomandoDeRival": 0.9512034423908458,
+      "retomada7d": 0.5616267422663945,
+      "custoTomarMedianaM": 706.6666666666666,
+      "custoTomarAcima3km": 0,
+      "corridas": 1354
+    },
+    "C+m2": {
+      "giroSemanal": 0.289360393603936,
+      "giroMin": 0.21894218942189422,
+      "giroMax": 0.3690036900369004,
+      "zonasComDono": 0.991389913899139,
+      "eternas": 0.1599015990159902,
+      "longevas": 0.25830258302583026,
+      "parteMaiorTime": 0.38452255451367695,
+      "parteJogadoresMaiorTime": 0.3151515151515151,
+      "giniTimes": 0.20702482013723209,
+      "giniJogadores": 0.6154104435578107,
+      "comZona": {
+        "iniciante": 0.7428571428571429,
+        "regular": 0.9583333333333334,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.733500921736216,
+        "regular": 0.9589142141073502,
+        "avancado": 0.9895833333333334
+      },
+      "conquistasPorSemana": {
+        "iniciante": 1.1571428571428573,
+        "regular": 3.640625,
+        "avancado": 12.208333333333334
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.7833333333333333,
+        "ate1km": 0.39999999999999997,
+        "medianaKm": 1.326149874217119,
+        "medianaCorridas": 1,
+        "nunca": 0
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.8666666666666667,
+        "ate1km": 0.26666666666666666,
+        "medianaKm": 1.9267672859129663,
+        "medianaCorridas": 1,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.37944854034461667,
+      "iniciantesTomandoDeRival": 0.9429069242653059,
+      "retomada7d": 0.5171428808437266,
+      "custoTomarMedianaM": 706.6666666666666,
+      "custoTomarAcima3km": 0,
+      "corridas": 1354
+    },
+    "C+r": {
+      "giroSemanal": 0.30304428044280446,
+      "giroMin": 0.22878228782287824,
+      "giroMax": 0.3960639606396064,
+      "zonasComDono": 0.9950799507995081,
+      "eternas": 0.14268142681426815,
+      "longevas": 0.22878228782287824,
+      "parteMaiorTime": 0.40056909449722333,
+      "parteJogadoresMaiorTime": 0.3151515151515151,
+      "giniTimes": 0.22534535774932304,
+      "giniJogadores": 0.5997092747466095,
+      "comZona": {
+        "iniciante": 0.7333333333333334,
+        "regular": 0.9583333333333334,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.6927120904103,
+        "regular": 0.9617390728644125,
+        "avancado": 0.9791666666666666
+      },
+      "conquistasPorSemana": {
+        "iniciante": 1.0404761904761903,
+        "regular": 3.2786458333333335,
+        "avancado": 10.927083333333334
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.6999999999999998,
+        "ate1km": 0.3666666666666667,
+        "medianaKm": 1.6374008177516821,
+        "medianaCorridas": 1,
+        "nunca": 0.016666666666666666
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.8666666666666667,
+        "ate1km": 0.26666666666666666,
+        "medianaKm": 1.9419612914968816,
+        "medianaCorridas": 1,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.28453971811367657,
+      "iniciantesTomandoDeRival": 0.9588706140350878,
+      "retomada7d": 0.485064598135627,
+      "custoTomarMedianaM": 773.3333333333334,
+      "custoTomarAcima3km": 0,
+      "corridas": 1354
+    },
+    "C+m2+r": {
+      "giroSemanal": 0.2964329643296433,
+      "giroMin": 0.22878228782287824,
+      "giroMax": 0.3886838868388684,
+      "zonasComDono": 0.9950799507995081,
+      "eternas": 0.15498154981549817,
+      "longevas": 0.25584255842558423,
+      "parteMaiorTime": 0.39564459130754054,
+      "parteJogadoresMaiorTime": 0.3151515151515151,
+      "giniTimes": 0.21361466795171877,
+      "giniJogadores": 0.6050451310115594,
+      "comZona": {
+        "iniciante": 0.7142857142857144,
+        "regular": 0.9791666666666666,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.6045911935937511,
+        "regular": 0.9160077652581791,
+        "avancado": 0.9791666666666666
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.8357142857142857,
+        "regular": 2.7109375,
+        "avancado": 8.71875
+      },
+      "novatoIniciante": {
+        "n": 20,
+        "naPrimeira": 0.7166666666666668,
+        "ate1km": 0.3333333333333333,
+        "medianaKm": 1.4823544370181587,
+        "medianaCorridas": 1,
+        "nunca": 0.03333333333333333
+      },
+      "novatoRegular": {
+        "n": 5,
+        "naPrimeira": 0.7333333333333334,
+        "ate1km": 0.13333333333333333,
+        "medianaKm": 3.1381727424896915,
+        "medianaCorridas": 1.3333333333333333,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.22567328620232452,
+      "iniciantesTomandoDeRival": 0.9488027030071332,
+      "retomada7d": 0.41663990514355365,
+      "custoTomarMedianaM": 773.3333333333334,
+      "custoTomarAcima3km": 0,
+      "corridas": 1354
+    }
+  },
+  "Flamboyant (ruas reais) · times equilibrados · densidade 90": {
+    "A": {
+      "giroSemanal": 0.16579861111111113,
+      "giroMin": 0.1087962962962963,
+      "giroMax": 0.23379629629629628,
+      "zonasComDono": 0.9560185185185185,
+      "eternas": 0.3634259259259259,
+      "longevas": 0.4884259259259259,
+      "parteMaiorTime": 0.4279421987773211,
+      "parteJogadoresMaiorTime": 0.3118279569892473,
+      "giniTimes": 0.32704256885235844,
+      "giniJogadores": 0.7759318325870495,
+      "comZona": {
+        "iniciante": 0.24761904761904763,
+        "regular": 0.7666666666666666,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.2521250319900489,
+        "regular": 0.5412454212454213,
+        "avancado": 0.8928571428571429
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.32261904761904764,
+        "regular": 0.96875,
+        "avancado": 3.9583333333333335
+      },
+      "novatoIniciante": {
+        "n": 11,
+        "naPrimeira": 0.12121212121212122,
+        "ate1km": 0.030303030303030304,
+        "medianaKm": 10.269939125799855,
+        "medianaCorridas": 4,
+        "nunca": 0.5151515151515151
+      },
+      "novatoRegular": {
+        "n": 3,
+        "naPrimeira": 0.1111111111111111,
+        "ate1km": 0,
+        "medianaKm": 12.78161125483714,
+        "medianaCorridas": 3,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.4321531176188443,
+      "iniciantesTomandoDeRival": 0.9414470468767014,
+      "retomada7d": 0.48616311028721754,
+      "custoTomarMedianaM": 7971.578442685753,
+      "custoTomarAcima3km": 0.8305593040135762,
+      "corridas": 1920.6666666666667
+    },
+    "C": {
+      "giroSemanal": 0.23524305555555555,
+      "giroMin": 0.17592592592592593,
+      "giroMax": 0.3194444444444445,
+      "zonasComDono": 0.9328703703703703,
+      "eternas": 0.14583333333333334,
+      "longevas": 0.28703703703703703,
+      "parteMaiorTime": 0.4183133976292795,
+      "parteJogadoresMaiorTime": 0.3118279569892473,
+      "giniTimes": 0.2878302538611674,
+      "giniJogadores": 0.731912715726668,
+      "comZona": {
+        "iniciante": 0.3142857142857143,
+        "regular": 0.8166666666666668,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.5922462073193232,
+        "regular": 0.8916650016650016,
+        "avancado": 0.9821428571428571
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.905952380952381,
+        "regular": 2.78125,
+        "avancado": 10.357142857142856
+      },
+      "novatoIniciante": {
+        "n": 11,
+        "naPrimeira": 0.42424242424242425,
+        "ate1km": 0.12121212121212122,
+        "medianaKm": 3.7432370009518485,
+        "medianaCorridas": 1.6666666666666667,
+        "nunca": 0.12121212121212122
+      },
+      "novatoRegular": {
+        "n": 3,
+        "naPrimeira": 0.5555555555555555,
+        "ate1km": 0.1111111111111111,
+        "medianaKm": 4.465572184219577,
+        "medianaCorridas": 1.3333333333333333,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.5454575271539759,
+      "iniciantesTomandoDeRival": 0.9789935170124702,
+      "retomada7d": 0.6108267688080405,
+      "custoTomarMedianaM": 746.6666666666666,
+      "custoTomarAcima3km": 0,
+      "corridas": 1920.6666666666667
+    },
+    "C+m2": {
+      "giroSemanal": 0.23148148148148148,
+      "giroMin": 0.17361111111111108,
+      "giroMax": 0.30787037037037035,
+      "zonasComDono": 0.9328703703703703,
+      "eternas": 0.1597222222222222,
+      "longevas": 0.2962962962962963,
+      "parteMaiorTime": 0.40594792512448813,
+      "parteJogadoresMaiorTime": 0.3118279569892473,
+      "giniTimes": 0.2939390013664539,
+      "giniJogadores": 0.7291911589861568,
+      "comZona": {
+        "iniciante": 0.3238095238095238,
+        "regular": 0.8166666666666668,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.5202492545574661,
+        "regular": 0.838932178932179,
+        "avancado": 0.9821428571428571
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.7559523809523809,
+        "regular": 2.3083333333333336,
+        "avancado": 8.642857142857144
+      },
+      "novatoIniciante": {
+        "n": 11,
+        "naPrimeira": 0.3636363636363636,
+        "ate1km": 0.0909090909090909,
+        "medianaKm": 7.112145105259277,
+        "medianaCorridas": 3,
+        "nunca": 0.15151515151515152
+      },
+      "novatoRegular": {
+        "n": 3,
+        "naPrimeira": 0.4444444444444444,
+        "ate1km": 0.1111111111111111,
+        "medianaKm": 7.701234607045822,
+        "medianaCorridas": 1.6666666666666667,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.5164408831008934,
+      "iniciantesTomandoDeRival": 0.9743105538786988,
+      "retomada7d": 0.5839791917724578,
+      "custoTomarMedianaM": 726.6666666666666,
+      "custoTomarAcima3km": 0,
+      "corridas": 1920.6666666666667
+    },
+    "C+r": {
+      "giroSemanal": 0.269675925925926,
+      "giroMin": 0.21064814814814814,
+      "giroMax": 0.3541666666666667,
+      "zonasComDono": 0.9328703703703703,
+      "eternas": 0.11574074074074074,
+      "longevas": 0.23379629629629628,
+      "parteMaiorTime": 0.41814671665995545,
+      "parteJogadoresMaiorTime": 0.3118279569892473,
+      "giniTimes": 0.2714110781783255,
+      "giniJogadores": 0.7186035716929634,
+      "comZona": {
+        "iniciante": 0.3333333333333333,
+        "regular": 0.8333333333333334,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.49063658709328,
+        "regular": 0.815060495060495,
+        "avancado": 0.9821428571428572
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.6821428571428573,
+        "regular": 1.9937499999999997,
+        "avancado": 7.363095238095238
+      },
+      "novatoIniciante": {
+        "n": 11,
+        "naPrimeira": 0.30303030303030304,
+        "ate1km": 0.12121212121212122,
+        "medianaKm": 7.7300243006558205,
+        "medianaCorridas": 3,
+        "nunca": 0.0909090909090909
+      },
+      "novatoRegular": {
+        "n": 3,
+        "naPrimeira": 0.6666666666666666,
+        "ate1km": 0.3333333333333333,
+        "medianaKm": 3.9923907320740675,
+        "medianaCorridas": 1.3333333333333333,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.5005475221966408,
+      "iniciantesTomandoDeRival": 0.9819285573761277,
+      "retomada7d": 0.6084118395570909,
+      "custoTomarMedianaM": 833.3333333333334,
+      "custoTomarAcima3km": 0,
+      "corridas": 1920.6666666666667
+    },
+    "C+m2+r": {
+      "giroSemanal": 0.25491898148148145,
+      "giroMin": 0.19675925925925927,
+      "giroMax": 0.34027777777777773,
+      "zonasComDono": 0.9328703703703703,
+      "eternas": 0.12962962962962962,
+      "longevas": 0.24305555555555558,
+      "parteMaiorTime": 0.42314054451317046,
+      "parteJogadoresMaiorTime": 0.3118279569892473,
+      "giniTimes": 0.27513389487766826,
+      "giniJogadores": 0.7166400850611376,
+      "comZona": {
+        "iniciante": 0.3523809523809524,
+        "regular": 0.8166666666666665,
+        "avancado": 1
+      },
+      "semanaComVitoria": {
+        "iniciante": 0.42820897387826523,
+        "regular": 0.7804539904539904,
+        "avancado": 0.9642857142857143
+      },
+      "conquistasPorSemana": {
+        "iniciante": 0.5452380952380952,
+        "regular": 1.6708333333333334,
+        "avancado": 6.136904761904762
+      },
+      "novatoIniciante": {
+        "n": 11,
+        "naPrimeira": 0.30303030303030304,
+        "ate1km": 0.0909090909090909,
+        "medianaKm": 8.34784280621799,
+        "medianaCorridas": 3.3333333333333335,
+        "nunca": 0.15151515151515152
+      },
+      "novatoRegular": {
+        "n": 3,
+        "naPrimeira": 0.5555555555555555,
+        "ate1km": 0.2222222222222222,
+        "medianaKm": 4.763049831291049,
+        "medianaCorridas": 1.3333333333333333,
+        "nunca": 0
+      },
+      "evaporaIniciante": 0.44286050649832776,
+      "iniciantesTomandoDeRival": 0.9825703948403336,
+      "retomada7d": 0.562147157070649,
+      "custoTomarMedianaM": 800,
+      "custoTomarAcima3km": 0,
+      "corridas": 1920.6666666666667
+    }
+  }
+}
