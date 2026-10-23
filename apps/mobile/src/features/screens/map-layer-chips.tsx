@@ -5,7 +5,7 @@ import { Text } from '@/components/text';
 import { cssEasings, durations } from '@/theme/motion';
 import { floating, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
-import { GLOW_ROOM } from '@/components/chip-row';
+import { CHIP_FONT_MAX, GLOW_ROOM } from '@/components/chip-row';
 
 export type Layer = 'todos' | 'meu-time' | 'explorado';
 
@@ -47,19 +47,20 @@ export function LayerChips({ value, onChange }: { value: Layer; onChange: (l: La
             <Animated.View
               style={{
                 paddingHorizontal: space[4],
-                height: 36,
+                minHeight: 36,
+                paddingVertical: space[1],
                 justifyContent: 'center',
                 borderRadius: radius.pill,
                 // Neon (D-59): ativo com contorno e brilho laranja, como os chips do resto do app.
                 backgroundColor: on ? '#2A1609' : colors.surface,
                 borderWidth: 1,
-                borderColor: on ? colors.action : colors.line,
+                borderColor: on ? colors.action : colors.lineControl,
                 boxShadow: on ? '0 0 14px rgba(255,106,19,0.45)' : floating,
                 transitionProperty: 'backgroundColor',
                 transitionDuration: durations.state,
                 transitionTimingFunction: cssEasings.swap,
               }}>
-              <Text variant="caption" color={on ? colors.accentText : colors.text} numberOfLines={1}>
+              <Text variant="caption" color={on ? colors.accentText : colors.text} numberOfLines={1} maxFontSizeMultiplier={CHIP_FONT_MAX}>
                 {label}
               </Text>
             </Animated.View>

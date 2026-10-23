@@ -15,6 +15,8 @@ export const neon = {
   orange: '#FF6A13',
   orangeText: '#FF7A2A',
   glowBg: '#2B1407',
+  /** Violeta dos vilões (chefões e Raid, D-67): só para eles, nunca para um time. 5,6:1 no fundo. */
+  villain: '#B15CFF',
   /** Brilho de texto (aproximação das 3 camadas do CSS: 18/60/120 px). */
   textGlow: { color: 'rgba(255,106,19,0.85)', radius: 22 },
   /** Brilho de botão/campo focado. */
