@@ -2,12 +2,14 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import { Mascot, Medal } from '@/components/art';
 import { Confetti } from '@/components/motion/confetti';
 import { CountUp } from '@/components/motion/count-up';
 import { haptic } from '@/components/motion/haptics';
 import { useReducedMotionSetting } from '@/components/motion/reduced-motion';
 import { SpinRays } from '@/components/motion/spin-rays';
 import { Text } from '@/components/text';
+import type { FactionId } from '@/domain/types';
 import { cssEasings, durations, springCss, springs } from '@/theme/motion';
 import { neon } from '@/theme/neon';
 import { radius, space } from '@/theme/tokens';
@@ -23,6 +25,8 @@ export type LevelUpProps = MomentBaseProps & {
   /** Título do nível (D-64: 8 títulos), ex.: "Desbravador". */
   title?: string;
   reward?: { label: string; icon?: ReactNode };
+  /** Time da pessoa: o mascote dele (arte da E4, pose "vitória") sobe atrás do número. */
+  team?: FactionId;
 };
 
 /**
@@ -30,7 +34,7 @@ export type LevelUpProps = MomentBaseProps & {
  * `stamp`, o título sobe, a recompensa entra e caem 60 confetes. "Reduzir movimento": fundo e textos com fade.
  */
 export function LevelUp(props: LevelUpProps) {
-  const { level, title, reward, testID } = props;
+  const { level, title, reward, team, testID } = props;
   const text = `Nível ${level}${title ? `: ${title}` : ''}${reward ? `. Recompensa: ${reward.label}` : ''}`;
   const reduced = useReducedMotionSetting();
   const { still, at } = useMoment('level-up', 'epic', props, text, reduced);
@@ -40,6 +44,13 @@ export function LevelUp(props: LevelUpProps) {
         style={[{ position: 'absolute', top: -40, bottom: -40, left: -40, right: -40, borderRadius: radius.lg, backgroundColor: 'rgba(7,7,8,0.88)' }, step(still, { from: { opacity: 0 }, to: { opacity: 1 } }, 200, at(L.dim), cssEasings.standard)]}
       />
       {!still ? <SpinRays color={neon.orange} size={320} delay={at(L.rays)} /> : null}
+      {team ? (
+        <View style={{ position: 'absolute', top: -24, opacity: 0.35 }}>
+          <Animated.View style={step(still, rise(40), 600, at(L.number), cssEasings.enter)}>
+            <Mascot team={team} pose="vitoria" size={180} />
+          </Animated.View>
+        </View>
+      ) : null}
       <Animated.View style={step(still, rise(10), 400, at(L.rays))}>
         <Text variant="label" color={neon.orangeText}>
           NÍVEL NOVO
@@ -75,14 +86,13 @@ export type StreakFlameProps = MomentBaseProps & {
   weeks: number;
   /** `kept`: a chama acende; `frozen`: o congelamento salvou a semana. */
   status: 'kept' | 'frozen';
-  /** Arte da chama e do gelo (E4). */
+  /** Troca a chama (padrão: a medalha "Sequência" da E4, com a chama). */
   flame?: ReactNode;
+  /** Troca o gelo do congelamento (a E4 ainda não tem arte de gelo: há um bloco provisório). */
   ice?: ReactNode;
 };
 
-function PlaceholderFlame() {
-  return <View style={{ width: 44, height: 44, borderRadius: 22, borderTopRightRadius: 4, transform: [{ rotate: '-45deg' }], backgroundColor: neon.orange, boxShadow: `0 0 22px ${neon.orange}` }} />;
-}
+/** Bloco de gelo provisório, até a E4 desenhar o congelamento. */
 function PlaceholderIce() {
   return <View style={{ width: 56, height: 56, borderRadius: 14, backgroundColor: 'rgba(160,220,255,0.55)', borderWidth: 2, borderColor: '#BFE6FF' }} />;
 }
@@ -96,7 +106,7 @@ export function StreakFlame(props: StreakFlameProps) {
   return (
     <View testID={testID} accessible accessibilityLiveRegion="polite" accessibilityLabel={text} style={{ alignItems: 'center', gap: 8 }}>
       <View style={{ width: 72, height: 72, alignItems: 'center', justifyContent: 'center' }}>
-        <Animated.View style={step(still, pop(0.6), springs.bouncy.duration, 0, springCss('bouncy'))}>{flame ?? <PlaceholderFlame />}</Animated.View>
+        <Animated.View style={step(still, pop(0.6), springs.bouncy.duration, 0, springCss('bouncy'))}>{flame ?? <Medal kind="sequencia" size={56} decorative />}</Animated.View>
         {status === 'frozen' ? (
           <Animated.View style={[{ position: 'absolute' }, step(still, { from: { opacity: 0, transform: [{ scale: 0.9 }] }, to: { opacity: 1, transform: [{ scale: 1 }] } }, springs.gentle.duration, 150, springCss('gentle'))]}>
             {ice ?? <PlaceholderIce />}

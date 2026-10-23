@@ -2,7 +2,9 @@ import { useState, type ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BOSS_IDS, BOSS_NAMES, type BossId } from '@/components/art';
 import {
+  BoraReaction,
   BossDefeated,
   BossHit,
   CelebrationSequence,
@@ -34,14 +36,16 @@ import { SpinRays } from '@/components/motion/spin-rays';
 import { TeamBadge } from '@/components/team-badge';
 import { Text } from '@/components/text';
 import type { FactionId } from '@/domain/types';
+import { useMotionPrefs } from '@/store/motion-prefs-store';
 import { HAPTIC_PATTERNS, type HapticPattern } from '@/theme/motion';
 import { neon, neonTeam } from '@/theme/neon';
 import { factions, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 /**
- * Galeria de motion (T7.1.15): cada momento e cada primitiva disparável por botão, com "Reduzir movimento"
- * forçado, troca de time e de raridade. Só em desenvolvimento (`__DEV__`) ou na web. Dados de demonstração.
+ * Galeria de motion (T7.1.15, T7.2.9): cada momento e cada primitiva disparável por botão, com a arte da E4,
+ * "Reduzir movimento" forçado, troca de time, de raridade e de chefão, e as preferências salvas "Vibração"
+ * e "Pular celebrações". Só em desenvolvimento (`__DEV__`) ou na web. Dados de demonstração.
  */
 export default function DevMotionRoute() {
   if (!__DEV__ && process.env.EXPO_OS !== 'web') return <Unavailable />;
@@ -75,6 +79,7 @@ type MomentKey =
   | 'recorde'
   | 'time'
   | 'time-troca'
+  | 'bora'
   | 'resumo'
   | 'resumo-leitor';
 
@@ -94,6 +99,7 @@ const MOMENTS: { key: MomentKey; label: string }[] = [
   { key: 'recorde', label: 'Recorde' },
   { key: 'time', label: 'Escolha de time' },
   { key: 'time-troca', label: 'Troca de time' },
+  { key: 'bora', label: '"Bora!" no feed' },
   { key: 'resumo', label: 'Resumo (fila)' },
   { key: 'resumo-leitor', label: 'Resumo (leitor de tela)' },
 ];
@@ -107,9 +113,9 @@ const HAPTIC_NAMES: Record<HapticPattern, string> = { selection: 'Seleção', ta
 /** Líderes da D-70 (nomes trocáveis); a frase é texto provisório. */
 const LEADERS: Record<FactionId, string> = { striders: 'Íris Valente', volt: 'Téo Faria', owls: 'Nara Lis', coyotes: 'Bento Rocha' };
 
-function demoEvents(faction: FactionId, rarity: ChestRarity): CelebrationEvent[] {
+function demoEvents(faction: FactionId, rarity: ChestRarity, boss: BossId): CelebrationEvent[] {
   return [
-    { id: 'golpe', kind: 'boss-hit', level: 'small', label: 'causou 8,4 km de dano no chefão', payload: { boss: 'Chefão de demonstração', damageKm: 8.4, hpBefore: 1200, hpAfter: 1104, hpMax: 3600 } },
+    { id: 'golpe', kind: 'boss-hit', level: 'small', label: 'causou 8,4 km de dano no chefão', payload: { boss: BOSS_NAMES[boss], bossId: boss, damageKm: 8.4, hpBefore: 1200, hpAfter: 1104, hpMax: 3600 } },
     { id: 'zona', kind: 'zone-captured', level: 'medium', label: 'conquistou Setor Bueno', payload: { zone: 'Setor Bueno', faction, points: 120 } },
     { id: 'bau', kind: 'chest', level: rarity === 'lendario' ? 'epic' : rarity === 'raro' ? 'medium' : 'small', label: `abriu um baú ${rarity}`, payload: { rarity, xp: 40, odds: DEMO_ODDS } },
     { id: 'nivel', kind: 'level-up', level: 'epic', label: 'chegou ao nível 7', payload: { level: 7, title: 'Desbravador' } },
@@ -157,13 +163,19 @@ function MotionGallery() {
   const [reduced, setReduced] = useState<boolean | null>(null);
   const [faction, setFaction] = useState<FactionId>('owls');
   const [rarity, setRarity] = useState<ChestRarity>('raro');
-  const [vibration, setVibration] = useState(true);
+  const [boss, setBoss] = useState<BossId>('mormaco');
+  // preferências salvas de verdade (as mesmas que a tela de ajustes da E6 vai mexer)
+  const vibration = useMotionPrefs((s) => s.haptics);
+  const setVibration = useMotionPrefs((s) => s.setHaptics);
+  const skipAll = useMotionPrefs((s) => s.skipCelebrations);
+  const setSkipAll = useMotionPrefs((s) => s.setSkipCelebrations);
+  const [bora, setBora] = useState({ active: false, count: 4 });
   const [active, setActive] = useState<{ key: MomentKey; nonce: number } | null>(null);
   const [stage, setStage] = useState({ width: 360, height: 460 });
   const [bar, setBar] = useState(0.6);
   const [fx, setFx] = useState(0);
   const play = (key: MomentKey) => setActive((a) => ({ key, nonce: (a?.nonce ?? 0) + 1 }));
-  const common = { hapticsEnabled: vibration, testID: 'galeria-motion-momento' };
+  const common = { testID: 'galeria-motion-momento' };
   const team = neonTeam[faction];
 
   const moment = (() => {
@@ -182,11 +194,11 @@ function MotionGallery() {
       case 'bau':
         return <ChestOpening {...common} rarity={rarity} xp={rarity === 'lendario' ? 120 : 40} odds={DEMO_ODDS} />;
       case 'chefao-golpe':
-        return <BossHit {...common} bossName="Chefão de demonstração" hpFrom={1200} hpTo={1104} hpMax={3600} damageLabel="−96 km" mineLabel="Sua parte: 8,4 km" />;
+        return <BossHit {...common} bossName={BOSS_NAMES[boss]} bossId={boss} hpFrom={1200} hpTo={1104} hpMax={3600} damageLabel="−96" mineLabel="Sua parte: 8,4 km" />;
       case 'chefao-derrota':
-        return <BossDefeated {...common} bossName="Chefão de demonstração" city="Goiânia" myKm={42.3} />;
+        return <BossDefeated {...common} bossName={BOSS_NAMES[boss]} bossId={boss} city="Goiânia" myKm={42.3} />;
       case 'nivel':
-        return <LevelUp {...common} level={7} title="Desbravador" reward={{ label: 'Rastro neon' }} />;
+        return <LevelUp {...common} level={7} title="Desbravador" team={faction} reward={{ label: 'Rastro neon' }} />;
       case 'sequencia':
         return <StreakFlame {...common} weeks={4} status="kept" />;
       case 'congelamento':
@@ -219,17 +231,33 @@ function MotionGallery() {
             onContinue={() => setActive(null)}
           />
         );
+      case 'bora':
+        return (
+          <View style={{ alignSelf: 'stretch', gap: space[3], padding: space[4], borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface }}>
+            <Text variant="bodyBold">Corredor de demonstração</Text>
+            <Text variant="small" muted>
+              Correu 6,2 km e pintou 14 trechos no Setor Bueno.
+            </Text>
+            <View style={{ flexDirection: 'row' }}>
+              <BoraReaction
+                testID="galeria-motion-bora-reacao"
+                active={bora.active}
+                count={bora.count}
+                onPress={() => setBora((b) => ({ active: !b.active, count: b.count + (b.active ? -1 : 1) }))}
+              />
+            </View>
+          </View>
+        );
       case 'resumo':
       case 'resumo-leitor':
         return (
           <CelebrationSequence
             testID="galeria-motion-resumo"
-            events={demoEvents(faction, rarity)}
+            events={demoEvents(faction, rarity, boss)}
             intro="Corrida de demonstração concluída: 8,42 km."
-            hapticsEnabled={vibration}
             layout="single"
             screenReader={active.key === 'resumo-leitor'}
-            renderMoment={renderCelebrationMoment()}
+            renderMoment={renderCelebrationMoment({ team: faction })}
           />
         );
     }
@@ -244,7 +272,7 @@ function MotionGallery() {
         <View style={{ gap: 4 }}>
           <Text variant="headline">Galeria de motion</Text>
           <Text variant="small" muted>
-            Dados de demonstração. Arte provisória até a E4 entregar a dela.
+            Dados de demonstração. Arte da E4 (baú, chefão, mascote e medalhas).
           </Text>
         </View>
 
@@ -253,7 +281,8 @@ function MotionGallery() {
             <Chip testID="galeria-motion-reduzido-sistema" accessibilityLabel="Movimento: sistema" active={reduced === null} onPress={() => setReduced(null)} />
             <Chip testID="galeria-motion-reduzido-sim" accessibilityLabel="Reduzido" active={reduced === true} onPress={() => setReduced(true)} />
             <Chip testID="galeria-motion-reduzido-nao" accessibilityLabel="Completo" active={reduced === false} onPress={() => setReduced(false)} />
-            <Chip testID="galeria-motion-vibracao" accessibilityLabel={vibration ? 'Vibração ligada' : 'Vibração desligada'} active={vibration} onPress={() => setVibration((v) => !v)} />
+            <Chip testID="galeria-motion-vibracao" accessibilityLabel={vibration ? 'Vibração ligada' : 'Vibração desligada'} active={vibration} onPress={() => setVibration(!vibration)} />
+            <Chip testID="galeria-motion-pular" accessibilityLabel={skipAll ? 'Pular celebrações: sim' : 'Pular celebrações: não'} active={skipAll} onPress={() => setSkipAll(!skipAll)} />
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
             {FACTIONS.map((f) => (
@@ -263,6 +292,11 @@ function MotionGallery() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
             {RARITIES.map((r) => (
               <Chip key={r} testID={`galeria-motion-raridade-${r}`} accessibilityLabel={`Baú ${r}`} active={rarity === r} onPress={() => setRarity(r)} />
+            ))}
+          </View>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
+            {BOSS_IDS.map((b) => (
+              <Chip key={b} testID={`galeria-motion-chefao-${b}`} accessibilityLabel={`Chefão ${BOSS_NAMES[b]}`} active={boss === b} onPress={() => setBoss(b)} />
             ))}
           </View>
         </Section>

@@ -65,7 +65,21 @@ function svgTag(name: string) {
   Tag.displayName = name;
   return Tag;
 }
-export const svg = { __esModule: true, default: svgTag('Svg'), Svg: svgTag('Svg'), Circle: svgTag('Circle'), Path: svgTag('Path'), Polygon: svgTag('Polygon'), Rect: svgTag('Rect'), G: svgTag('G') };
+/** Inclui as tags que a arte da E4 usa (`Ellipse` e o gradiente "prisma" do baú lendário). */
+export const svg = {
+  __esModule: true,
+  default: svgTag('Svg'),
+  Svg: svgTag('Svg'),
+  Circle: svgTag('Circle'),
+  Ellipse: svgTag('Ellipse'),
+  Path: svgTag('Path'),
+  Polygon: svgTag('Polygon'),
+  Rect: svgTag('Rect'),
+  G: svgTag('G'),
+  Defs: svgTag('Defs'),
+  LinearGradient: svgTag('LinearGradient'),
+  Stop: svgTag('Stop'),
+};
 
 export const mockHapticCalls: string[] = [];
 export const expoHaptics = {

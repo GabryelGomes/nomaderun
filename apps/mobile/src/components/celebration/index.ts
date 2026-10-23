@@ -28,3 +28,8 @@ export { BossDefeated, BossHit, type BossDefeatedProps, type BossHitProps } from
 export { LevelUp, PRStamp, RankShift, StreakFlame, type LevelUpProps, type PRStampProps, type RankRow, type RankShiftProps, type StreakFlameProps } from './progress-moments';
 export { TeamConfirm, type TeamConfirmProps } from './team-confirm';
 export { RARITY_COLORS } from './choreography';
+
+// onda 2 (T7.2.9)
+export { BoraReaction, type BoraReactionProps } from './bora';
+export { boraFeedback, BORA_TIMELINE, bossDamageFor, RARITY_PALETTES, RARITY_TEXT, resolveBossId } from './choreography';
+export * from './adapters';

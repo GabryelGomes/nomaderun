@@ -57,11 +57,13 @@ export function Confetti({ count, colors, origin, mode = 'burst', delay = 0, see
             height: p.height,
             borderRadius: p.round ? p.width / 2 : 1.5,
             backgroundColor: p.color,
+            // escondido até o atraso acabar (com 'both' o papel aparecia parado no ponto de partida)
+            opacity: 0,
             animationName: p.keyframes,
             animationDuration: p.duration,
             animationDelay: delay + p.delay,
             animationTimingFunction: 'linear',
-            animationFillMode: 'both',
+            animationFillMode: 'forwards',
           }}
         />
       ))}

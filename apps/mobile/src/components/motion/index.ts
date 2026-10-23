@@ -23,3 +23,6 @@ export { FloatingNumber, type FloatingNumberProps } from './floating-number';
 export { SpinRays, type SpinRaysProps } from './spin-rays';
 export { Shake, type ShakeProps } from './shake';
 export { clampParticles, confettiParticles, crossedMilestones, floatingStack, seededRandom, shakeOffsets } from './particles';
+
+// onda 2 (T7.2.9)
+export { isHidden, usePausedWhenHidden } from './use-paused-when-hidden';

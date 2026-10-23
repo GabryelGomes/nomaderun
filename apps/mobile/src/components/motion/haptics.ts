@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useCallback } from 'react';
 
+import { getMotionPrefs } from '@/store/motion-prefs-store';
 import { HAPTIC_MIN_GAP_MS, HAPTIC_PATTERNS, type HapticPattern } from '@/theme/motion';
 
 /**
@@ -10,7 +11,8 @@ import { HAPTIC_MIN_GAP_MS, HAPTIC_PATTERNS, type HapticPattern } from '@/theme/
  *  - Android: `performAndroidHapticsAsync` (háptica do sistema, sem permissão de vibração);
  *  - web: nada.
  * Intervalo mínimo de 150 ms entre vibrações (portão puro, testado). Respeita a preferência "Vibração"
- * (`enabled`), exceto alertas de segurança (`force`).
+ * salva (`useMotionPrefs`, T7.2.9) e a `enabled` de quem chama — as duas precisam estar ligadas —, exceto
+ * alertas de segurança (`force`).
  */
 export { HAPTIC_MIN_GAP_MS, HAPTIC_PATTERNS, type HapticPattern };
 
@@ -150,7 +152,7 @@ function single(pattern: SingleHaptic, os: string | undefined) {
 }
 
 export type HapticOptions = {
-  /** Preferência "Vibração" da pessoa (padrão ligada). */
+  /** Liga/desliga nesta chamada (padrão ligada). A preferência salva "Vibração" também precisa estar ligada. */
   enabled?: boolean;
   /** Ignora a preferência (só alertas de segurança: SOS, sinal perdido). */
   force?: boolean;
@@ -164,7 +166,7 @@ export type HapticOptions = {
  */
 export function haptic(pattern: HapticPattern, { enabled = true, force = false, os = process.env.EXPO_OS }: HapticOptions = {}): void {
   if (os !== 'ios' && os !== 'android') return;
-  if (!enabled && !force) return;
+  if (!force && !(enabled && getMotionPrefs().haptics)) return;
   for (const step of expandHaptic(pattern)) {
     if (step.offsetMs === 0) single(step.pattern, os);
     else setTimeout(() => single(step.pattern, os), step.offsetMs);

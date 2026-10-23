@@ -22,7 +22,8 @@ import { RewardToast } from './reward-toast';
 export type ZoneCapturedProps = MomentBaseProps & {
   faction: FactionId;
   zone: string;
-  points: number;
+  /** Pontos da conquista. Na corrida (previsão ao vivo) eles ainda não existem: sem `points`, não aparecem. */
+  points?: number;
   /** `run`: toast + borda acesa, sem partícula (o GPS vem primeiro). `summary`: anel, selo, faíscas e confete. */
   context: 'run' | 'summary';
   /** Arte do selo (E4); padrão: o `TeamBadge`. */
@@ -36,7 +37,7 @@ export type ZoneCapturedProps = MomentBaseProps & {
  */
 export function ZoneCaptured(props: ZoneCapturedProps) {
   const { faction, zone, points, context, badge, testID } = props;
-  const text = `Zona conquistada: ${zone}, mais ${points} pontos`;
+  const text = points === undefined ? `Zona conquistada: ${zone}` : `Zona conquistada: ${zone}, mais ${points} pontos`;
   if (context === 'run') {
     return (
       <RewardToast
@@ -49,7 +50,7 @@ export function ZoneCaptured(props: ZoneCapturedProps) {
         icon={badge ?? <TeamBadge faction={faction} size={36} />}
         title="Zona conquistada"
         subtitle={zone}
-        value={`+${points}`}
+        value={points === undefined ? undefined : `+${points}`}
         testID={testID}
       />
     );
@@ -85,9 +86,11 @@ function ZoneSummary(props: ZoneCapturedProps & { text: string }) {
         </Text>
       </Animated.View>
       <Animated.View style={[{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }, step(still, rise(12), 500, at(Z.points))]}>
-        <CountUp value={points} format={(n) => `+${formatCount(n)}`} duration={still ? 0 : 600} delay={still ? 0 : at(Z.points + 40)} variant="lead" color={neon.orangeText} accessibilityLabel={`mais ${points} pontos`} />
+        {points === undefined ? null : (
+          <CountUp value={points} format={(n) => `+${formatCount(n)}`} duration={still ? 0 : 600} delay={still ? 0 : at(Z.points + 40)} variant="lead" color={neon.orangeText} accessibilityLabel={`mais ${points} pontos`} />
+        )}
         <Text variant="lead" muted>
-          pontos em {zone}
+          {points === undefined ? zone : `pontos em ${zone}`}
         </Text>
       </Animated.View>
     </View>

@@ -7,6 +7,7 @@ import { haptic } from '@/components/motion/haptics';
 import { PressableScale } from '@/components/motion/pressable';
 import { useReducedMotionSetting } from '@/components/motion/reduced-motion';
 import { Text } from '@/components/text';
+import { useMotionPrefs } from '@/store/motion-prefs-store';
 import { easings } from '@/theme/motion';
 import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
@@ -37,8 +38,13 @@ export type CelebrationSequenceProps = {
   intro?: string;
   /** `stack`: os momentos se acumulam (resumo); `single`: só o atual fica na tela. */
   layout?: 'stack' | 'single';
-  /** Preferência "Vibração" da pessoa (padrão ligada). */
+  /** Liga/desliga a vibração aqui (padrão ligada). A preferência salva "Vibração" também vale (`haptic()`). */
   hapticsEnabled?: boolean;
+  /**
+   * "Pular celebrações": tudo direto no estado final, sem roteiro (no máximo 1 vibração de sucesso).
+   * Padrão: a preferência salva (`useMotionPrefs`). Passe `false` para tocar mesmo assim (ex.: galeria).
+   */
+  skipCelebrations?: boolean;
   /** Força o modo leitor de tela (testes e galeria). Padrão: o ajuste do sistema. */
   screenReader?: boolean;
   onStepChange?: (index: number) => void;
@@ -49,9 +55,14 @@ export type CelebrationSequenceProps = {
 
 type Run = { plan: CelebrationPlan; started: number; doneIds: readonly string[]; finished: boolean };
 
-/** Estado inicial de um roteiro: com leitor de tela, tudo já mostrado no estado final. */
+/** Sem roteiro: leitor de tela ou "Pular celebrações". */
+function unscripted(plan: CelebrationPlan): boolean {
+  return plan.mode === 'screen-reader' || plan.mode === 'skipped';
+}
+
+/** Estado inicial de um roteiro: com leitor de tela ou "Pular celebrações", tudo já no estado final. */
 function initialRun(plan: CelebrationPlan): Run {
-  const all = plan.mode === 'screen-reader';
+  const all = unscripted(plan);
   return { plan, started: all ? plan.moments.length : 0, doneIds: all ? plan.moments.map((m) => m.id) : [], finished: all || plan.moments.length === 0 };
 }
 
@@ -70,6 +81,7 @@ function countUpTo(times: readonly number[], t: number): number {
  *  - "Pular": tudo vai ao estado final (fade ≤ 200 ms), sem as vibrações pendentes (no máximo 1 sucesso);
  *  - tocar na área adianta o momento atual;
  *  - leitor de tela: nada roteirizado, tudo no estado final e **um** anúncio;
+ *  - preferência "Pular celebrações": tudo no estado final, no máximo 1 vibração de sucesso;
  *  - "Reduzir movimento": fades curtos em cascata e 1 vibração.
  */
 export function CelebrationSequence({
@@ -81,6 +93,7 @@ export function CelebrationSequence({
   intro,
   layout = 'stack',
   hapticsEnabled = true,
+  skipCelebrations,
   screenReader,
   onStepChange,
   onDone,
@@ -105,11 +118,16 @@ export function CelebrationSequence({
     };
   }, [screenReader]);
   const reader = screenReader ?? systemReader;
+  const skipPref = useMotionPrefs((s) => s.skipCelebrations);
+  const skipAll = skipCelebrations ?? skipPref;
 
-  const plan: CelebrationPlan = useMemo(() => planCelebrations(events, { reduced, screenReader: reader, startAtMs: startDelayMs, budgetMs, intro }), [events, reduced, reader, startDelayMs, budgetMs, intro]);
+  const plan: CelebrationPlan = useMemo(
+    () => planCelebrations(events, { reduced, screenReader: reader, skip: skipAll, startAtMs: startDelayMs, budgetMs, intro }),
+    [events, reduced, reader, skipAll, startDelayMs, budgetMs, intro],
+  );
   const starts = useMemo(() => plan.moments.map((m) => m.startMs), [plan]);
   const hapticTimes = useMemo(() => plan.haptics.map((h) => h.atMs), [plan]);
-  const all = plan.mode === 'screen-reader';
+  const all = unscripted(plan);
 
   const clock = useSharedValue(0);
   /** Estado do roteiro atual; volta ao início quando o plano muda (ajuste durante a renderização). */
@@ -153,6 +171,13 @@ export function CelebrationSequence({
     fired.current = 0;
     if (plan.mode === 'screen-reader') {
       if (plan.announcement) AccessibilityInfo.announceForAccessibility(plan.announcement);
+      clock.set(plan.totalMs);
+      notifyDone();
+      return;
+    }
+    if (plan.mode === 'skipped') {
+      for (const h of plan.haptics) haptic(h.pattern, { enabled: hapticsEnabled });
+      fired.current = plan.haptics.length;
       clock.set(plan.totalMs);
       notifyDone();
       return;
@@ -222,7 +247,7 @@ export function CelebrationSequence({
   return (
     <View testID={testID} style={[{ gap: space[3] }, style]}>
       {!finished && !all ? (
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', zIndex: 2 }}>
           <PressableScale
             testID={`${testID}-pular`}
             accessibilityLabel="Pular celebrações"
