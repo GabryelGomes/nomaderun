@@ -1,0 +1,49 @@
+{
+  "downloads": [
+    {
+      "name": "app-01-chefao-derrotado-stories",
+      "suggested": "nomade-stories.png",
+      "bytes": 1888165
+    },
+    {
+      "name": "app-02-nivel-novo-stories",
+      "suggested": "nomade-stories.png",
+      "bytes": 1808033
+    },
+    {
+      "name": "app-03-conquista-de-zona-stories",
+      "suggested": "nomade-stories.png",
+      "bytes": 1605123
+    },
+    {
+      "name": "app-04-corrida-stories",
+      "suggested": "nomade-stories.png",
+      "bytes": 1939984
+    },
+    {
+      "name": "app-corrida-feed",
+      "suggested": "nomade-feed.png",
+      "bytes": 1390846
+    },
+    {
+      "name": "app-chefao-derrotado-feed",
+      "suggested": "nomade-feed.png",
+      "bytes": 1363501
+    },
+    {
+      "name": "app-adesivo",
+      "suggested": "nomade-adesivo.png",
+      "bytes": 121076
+    },
+    {
+      "name": "app-corrida-sem-rota-stories",
+      "suggested": "nomade-stories.png",
+      "bytes": 2165913
+    }
+  ],
+  "errors": [],
+  "external": [],
+  "feedItems": 6,
+  "boraBefore": "Bora!, 1",
+  "boraAfter": "Bora!, 2"
+}
