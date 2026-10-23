@@ -128,7 +128,7 @@ Frase de transição para a demo: "Agora vou criar uma conta e correr uma volta 
 | **Login travado** | "Muitas tentativas seguidas…" (erro 429) | Opção B: suba o limite em Authentication → Rate Limits; vale na hora. Opção A não tem limite. |
 | **Zona não troca de cor no celular 2** | Mapa do celular 2 parado | Arraste o mapa um pouco (recarrega a área) e siga. Se o banco acabou de ser resetado, espere ~15 s (P-22). |
 | **Resumo fica provisório com internet** | "Resumo provisório" depois de religar a rede | Toque "Tentar enviar agora". Se continuar, siga para o próximo passo e volte no fim. |
-| **Simulação não mostra "Conquista garantida"** | Todas as zonas perto já foram conquistadas nos ensaios | Rode `npx supabase db reset` antes da apresentação. Na hora, a corrida ainda pontua; mostre o resumo com os pontos. |
+| **Simulação não mostra "Conquista provável"** | Todas as zonas perto já foram conquistadas nos ensaios | Rode `npx supabase db reset` antes da apresentação. Na hora, a corrida ainda pontua; mostre o resumo com os pontos. |
 | **Qualquer travamento** | — | "Vou mostrar a gravação do mesmo fluxo." Não depure na frente da banca. |
 
 ---

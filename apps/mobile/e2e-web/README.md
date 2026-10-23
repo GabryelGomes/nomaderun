@@ -18,7 +18,7 @@ npx expo export -p web --output-dir /tmp/nomade-web
 node e2e-web/demo-flow.cjs /tmp/nomade-web
 ```
 
-Cadastro (conta nova) → Neon Striders → Correr → Simulação → "Conquista garantida ao terminar" (~1 min) → segurar "Segure para encerrar" → **resumo oficial com "Zona conquistada"** → confere no servidor que a zona mudou de dono → abre a folha da zona → notificação "Zona conquistada" → **moderador de demonstração aprova a corrida em revisão** → apaga a conta de teste. Capturas em `OUT_DIR` (padrão: pasta temporária). Variáveis: `PW_CHROMIUM`, `PW_MODULE`, `API_URL`, `ANON_KEY`, `PORT`, `SIM_TIMEOUT_MS`.
+Cadastro (conta nova) → Neon Striders → Correr → Simulação (demonstração) → "Conquista provável: o servidor confirma ao terminar" (~1 min) → segurar "Segure para encerrar" → **resumo oficial com "Zona conquistada"** → confere no servidor que a zona mudou de dono → abre a folha da zona → notificação "Zona conquistada" → **moderador de demonstração aprova a corrida em revisão** → apaga a conta de teste. Capturas em `OUT_DIR` (padrão: pasta temporária). Variáveis: `PW_CHROMIUM`, `PW_MODULE`, `API_URL`, `ANON_KEY`, `PORT`, `SIM_TIMEOUT_MS`.
 
 ## Autenticação, exclusão e acessibilidade (A3, QA-03/06/12, P-39)
 

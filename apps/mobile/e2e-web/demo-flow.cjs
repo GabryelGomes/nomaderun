@@ -121,7 +121,7 @@ async function api(method, url, token, body) {
     await id('corrida-pausar').waitFor({ timeout: 20_000 });
     ok(true, 'corrida simulada começou (contagem 3-2-1)');
     const t0 = Date.now();
-    await page.getByText('Conquista garantida ao terminar').first().waitFor({ timeout: SIM_TIMEOUT });
+    await page.getByText('Conquista provável: o servidor confirma ao terminar').first().waitFor({ timeout: SIM_TIMEOUT });
     ok(true, `simulação chegou à zona neutra (${Math.round((Date.now() - t0) / 1000)} s)`);
     await page.waitForTimeout(3000);
     await shot('02-corrida');
