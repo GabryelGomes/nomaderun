@@ -61,7 +61,23 @@ export function readEnv(
 
 export const env = readEnv();
 
-export const isDemoMode = (e: AppEnv = env) => e.demo === true;
+/**
+ * Interruptor do modo demonstração em tempo de execução (T7.2.10): ligado pelo botão "Ver demonstração".
+ * Só `src/services/demo-mode.ts` (`enterDemo`/`exitDemo`) mexe nele: a troca precisa zerar fila, sync,
+ * caches e cliente junto, ou dados de um modo vazariam para o outro.
+ */
+let runtimeDemo = false;
+
+/** Uso exclusivo de `src/services/demo-mode.ts`. Telas usam `enterDemo`/`exitDemo`. */
+export function setRuntimeDemo(on: boolean) {
+  runtimeDemo = on;
+}
+
+/**
+ * Modo demonstração ativo: pelo build (`EXPO_PUBLIC_DEMO=1`) ou pelo interruptor em tempo de execução.
+ * O interruptor só vale para o `env` do app (um `AppEnv` passado à mão responde só pela própria flag).
+ */
+export const isDemoMode = (e: AppEnv = env) => e.demo === true || (e === env && runtimeDemo);
 
 /** Há "servidor": o Supabase configurado ou o servidor de demonstração. */
 export const isBackendConfigured = (e: AppEnv = env) => isDemoMode(e) || Boolean(e.supabaseUrl && e.supabaseAnonKey);
