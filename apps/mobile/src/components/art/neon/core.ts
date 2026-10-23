@@ -228,6 +228,19 @@ export function expand(nodes: ArtNode[], quality: Quality, gradId = 'prisma'): P
   return nodes.map((n) => expandNode(n, ctx));
 }
 
+/**
+ * Silhueta: troca toda cor de traço e de preenchimento por `color` (o "flash" branco do golpe, E5). As
+ * opacidades ficam, então o brilho continua em camadas; o escuro de preenchimento vira cor cheia.
+ */
+export function recolorPrims(prims: Prim[], color: string): Prim[] {
+  return prims.map((p) => {
+    const a: Record<string, string | number> = { ...p.a };
+    if (a.stroke !== undefined && a.stroke !== 'none') a.stroke = color;
+    if (a.fill !== undefined && a.fill !== 'none') a.fill = color;
+    return p.c ? { tag: p.tag, a, c: recolorPrims(p.c, color) } : { tag: p.tag, a };
+  });
+}
+
 /** Quantidade de elementos SVG (para medir o custo de cada nível de qualidade). */
 export function countPrims(prims: Prim[]): number {
   return prims.reduce((s, p) => s + 1 + (p.c ? countPrims(p.c) : 0), 0);

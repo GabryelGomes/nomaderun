@@ -98,64 +98,62 @@ const HIT_POSE: PivotOpts = { x: 120, y: 224, rotate: 6, tx: 6, ty: 2, scale: 0.
 const DOWN_POSE = { x: 120, y: 180, rotate: 14, ty: 34, scale: 0.86, opacity: 0.62 };
 
 // ---------------------------------------------------------------- Mormaço (calor)
+// Onda 2: o Mormaço deixou de ser um "sol de emoji". As lâminas são curvas e varridas para o mesmo lado
+// (um cata-vento de serra, que lê como giro mesmo parado), e o rosto virou uma máscara: uma crista em V
+// de ponta a ponta do disco, órbitas escuras e angulosas com a fenda incandescente dentro, marcas de
+// máscara nas bochechas e uma boca de serra presa entre os cortes "synthwave" do horizonte.
 function mormaco(k: Ctx): BossParts {
   const cx = 120;
   const cy = 112;
-  const R0 = 64;
+  const R0 = 60;
   const { fur, hit, down, body, V } = k;
   const accent = fur ? HOT : hit ? mix(ART.orange, ART.white, 0.55) : ART.orange;
-  const rays: string[] = [];
-  for (let i = 0; i < 12; i++) {
+  const blades: string[] = [];
+  const n = 10;
+  for (let i = 0; i < n; i++) {
     if (down && i % 2) continue;
-    const a = -90 + i * 30;
-    const R = down ? 82 : fur ? (i % 2 ? 100 : 112) : i % 2 ? 92 : 102;
-    rays.push(`M${pt(cx, cy, R0, a - 10)} L ${pt(cx, cy, R, a + (fur ? 12 : 8))} L ${pt(cx, cy, R0, a + 10)}`);
+    const a = -90 + (i * 360) / n;
+    const R = down ? 80 : fur ? (i % 2 ? 100 : 114) : i % 2 ? 92 : 106;
+    const sweep = down ? 6 : fur ? 26 : 20;
+    blades.push(`M${pt(cx, cy, R0 - 2, a - 12)} Q ${pt(cx, cy, (R0 + R) / 2 + 8, a - 2)} ${pt(cx, cy, R, a + sweep)} L ${pt(cx, cy, R0 - 2, a + 10)}`);
   }
   let face: ArtNode[];
   if (down) {
-    face = [xEyes(100, 140, 104, 7), neon('M98 132 Q 109 126 120 132 Q 131 138 142 132', body, 3)];
+    face = [xEyes(100, 140, 106, 7), neon('M96 132 Q 108 126 120 132 Q 132 138 144 132', body, 3)];
   } else if (hit) {
-    face = [squint(100, 140, 104), neon('M94 132 L 102 127 L 110 134 L 118 127 L 126 134 L 134 127 L 144 132', ART.ink, 2.6)];
+    face = [squint(100, 140, 106), neon('M92 132 L 100 127 L 108 134 L 116 127 L 124 134 L 132 127 L 140 134 L 148 129', ART.ink, 2.6)];
   } else {
-    const eye = fur ? 'M84 95 L 113 104 L 108 117 L 88 113 Z' : 'M86 98 L 112 106 L 106 113 L 90 110 Z';
-    const brow = fur ? 'M76 80 L 120 100' : 'M78 88 L 120 100';
+    const socket = fur ? 'M72 90 L 114 106 L 108 122 L 82 116 Z' : 'M74 94 L 114 107 L 108 119 L 84 114 Z';
+    const slit = fur ? 'M90 106 L 110 112 L 106 118 L 92 114 Z' : 'M92 108 L 108 112 L 105 115 L 94 113 Z';
     face = [
-      neon([brow, m(brow)], body, 5.2),
-      neon([eye, m(eye)], body, 2.6, { fill: true, tint: 0 }),
-      glowFill([eye, m(eye)], mix(ART.ink, V, 0.15), { w: 0.6, glow: 0.4, opacity: 0.95 }),
-      glowFill(
-        [
-          { tag: 'circle', cx: 104, cy: fur ? 108 : 107, r: 3 },
-          { tag: 'circle', cx: 136, cy: fur ? 108 : 107, r: 3 },
-        ],
-        V,
-        { w: 0.8, glow: 0 },
-      ),
+      // Crista em V de ponta a ponta (a máscara).
+      neon([fur ? 'M64 80 L 120 104' : 'M66 84 L 120 104', m(fur ? 'M64 80 L 120 104' : 'M66 84 L 120 104')], body, 5.4),
+      neon([socket, m(socket)], body, 2.2, { fill: ART.dark.villain, glow: 0.5, hot: 0 }),
+      glowFill([slit, m(slit)], fur ? mix(ART.ink, HOT, 0.3) : ART.ink, { w: 0.6, glow: fur ? 1.6 : 1.1 }),
+      // Marcas da máscara nas bochechas.
+      neon(['M86 120 L 92 134', m('M86 120 L 92 134'), 'M120 108 L 120 122'], accent, 2.2, { hot: 0.3, opacity: 0.8 }),
       ...(fur
         ? [
-            neon('M88 124 Q 120 172 152 124 Q 120 134 88 124 Z', body, 3, { fill: ART.dark.villain }),
-            neon(['M98 128 L 102 140 L 106 129', 'M134 129 L 138 140 L 142 128'], ART.ink, 2.2, { hot: 0.4 }),
+            neon('M86 132 L 154 132 L 146 152 L 94 152 Z', body, 2.8, { fill: ART.dark.villain }),
+            neon(['M96 133 L 101 144 L 106 133', 'M114 133 L 120 146 L 126 133', 'M134 133 L 139 144 L 144 133'], ART.ink, 2.2, { hot: 0.4 }),
           ]
-        : [
-            neon('M88 126 Q 120 148 152 126 Q 120 137 88 126 Z', body, 3, { fill: ART.dark.villain }),
-            neon('M96 129 L 101 134 L 106 131 L 111 136 L 116 132 L 121 137 L 126 132 L 131 136 L 136 131 L 141 134 L 146 129', ART.ink, 1.8, { hot: 0.4 }),
-          ]),
+        : [neon('M88 136 L 98 131 L 106 138 L 114 131 L 120 138 L 126 131 L 134 138 L 142 131 L 152 136', ART.ink, 2.2, { hot: 0.4 })]),
     ];
   }
-  const cuts = [150, 158, 165].map((y, i) => {
-    const hc = Math.sqrt(R0 * R0 - (y - cy) * (y - cy)) - 6;
-    return plain(`M${(cx - hc).toFixed(1)} ${y} L ${(cx + hc).toFixed(1)} ${y}`, ART.bg, 2.2 + i * 1.4);
+  const cuts = [148, 157, 165].map((y, i) => {
+    const hc = Math.sqrt(R0 * R0 - (y - cy) * (y - cy)) - 4;
+    return plain(`M${(cx - hc).toFixed(1)} ${y} L ${(cx + hc).toFixed(1)} ${y}`, ART.bg, 2.4 + i * 1.4);
   });
-  const crackC = fur ? HOT : ART.orange;
+  const crackC = fur ? HOT : ART.ink;
   const corpo: ArtNode[] = [
-    neon({ tag: 'circle', cx, cy, r: R0 }, accent, 4.2, { fill: true, tint: fur ? 0.22 : 0.16, glow: fur ? 1.4 : 1 }),
-    neon({ tag: 'circle', cx, cy, r: R0 - 10 }, body, 1.8, { hot: 0, opacity: 0.5, dash: '3 7' }),
+    neon({ tag: 'circle', cx, cy, r: R0 }, accent, 4.2, { fill: true, tint: fur ? 0.22 : 0.15, glow: fur ? 1.4 : 1 }),
+    neon({ tag: 'circle', cx, cy, r: R0 - 9 }, body, 1.8, { hot: 0, opacity: 0.45, dash: '3 7' }),
     ...cuts,
-    ...(down ? [] : damage(k.dano, crack(['M152 64 L 140 84 L 154 94 L 144 108', 'M140 84 L 128 82'], crackC), [...crack(['M70 90 L 86 100 L 78 114 L 88 124', 'M86 100 L 96 96'], crackC), chip(176, 54, 6, 25, accent)])),
+    ...(down ? [] : damage(k.dano, crack(['M150 66 L 140 82 L 154 92 L 146 104', 'M140 82 L 128 80'], crackC), [...crack(['M70 104 L 84 112 L 76 126 L 86 136', 'M84 112 L 92 108'], crackC), chip(178, 52, 6, 25, accent)])),
     ...face,
     ...(down ? [plain('M150 66 L 140 84 L 152 92 L 142 110', ART.bg, 4), neon('M150 66 L 140 84 L 152 92 L 142 110', body, 1.6, { glow: 0.6, hot: 0 })] : []),
   ];
-  const raios = [neon(rays, accent, 3.4, { fill: true, tint: 0.14, glow: fur ? 1.4 : 1 })];
+  const raios = [neon(blades, accent, 3.2, { fill: true, tint: 0.16, glow: fur ? 1.4 : 1 })];
   if (down) {
     return {
       back: [ground(V), neon(['M34 224 L 52 214 L 58 224', 'M176 226 L 196 220 L 194 228'], ART.orange, 2.6, { opacity: 0.6, hot: 0 }), puff(84, 30, 9, 0.5), puff(150, 20, 7, 0.4)],
@@ -166,10 +164,10 @@ function mormaco(k: Ctx): BossParts {
   }
   if (hit) return { back: [ground(V), ...impact(48, 60)], raios, corpo, pose: { x: cx, y: 180, rotate: 7, tx: 6, ty: 2, scale: 0.92 } };
   if (fur) {
-    const waves = ['M44 70 Q 36 60 44 50 Q 52 40 44 30', 'M196 70 Q 188 60 196 50 Q 204 40 196 30'];
-    return { back: [ground(V), shake(), neon(waves, HOT, 2.4, { hot: 0, opacity: 0.7 })], raios, corpo, pose: { x: cx, y: 118, scale: 0.92 } };
+    const waves = ['M40 74 Q 32 64 40 54 Q 48 44 40 34', 'M200 74 Q 192 64 200 54 Q 208 44 200 34'];
+    return { back: [ground(V), shake(), neon(waves, HOT, 2.4, { hot: 0, opacity: 0.7 })], raios, corpo, pose: { x: cx, y: 120, scale: 0.9 } };
   }
-  return { back: [ground(V)], raios, corpo };
+  return { back: [ground(V), neon(['M44 212 Q 60 206 76 212 Q 92 218 108 212', 'M132 212 Q 148 206 164 212 Q 180 218 196 212'], V, 1.8, { hot: 0, glow: 0.5, opacity: 0.5 })], raios, corpo };
 }
 
 // ---------------------------------------------------------------- Paredão (concreto)
@@ -266,106 +264,128 @@ function paredao(k: Ctx): BossParts {
 }
 
 // ---------------------------------------------------------------- Soneca (preguiça, "só amanhã")
+// Onda 2: a Soneca deixou de ser um "relógio fofo". Agora é um despertador encapuzado num cobertor que
+// arrasta no chão (a barra rasgada esconde as perninhas), com os sinos furando o capuz como chifres, os
+// ponteiros parados em 11:55 ("só mais cinco minutinhos") fazendo a ruga da testa, pálpebras pesadas de
+// tédio e um sorriso torto de canto. Os braços continuam ponteiros com garra.
+const SONECA_CLOAK =
+  'M120 46 C 154 46 178 70 184 102 C 190 134 198 174 208 214 L 194 208 L 184 222 L 170 210 L 156 224 L 140 212 L 120 226 L 100 212 L 84 224 L 70 210 L 56 222 L 46 208 L 32 214 C 42 174 50 134 56 102 C 62 70 86 46 120 46 Z';
+const SONECA_BELL = 'M58 74 A 23 23 0 0 1 98 48 Z';
+const SONECA_BELL_R = 'M182 74 A 23 23 0 0 0 142 48 Z';
+
 function soneca(k: Ctx): BossParts {
   const { fur, hit, down, body, V } = k;
   const cx = 120;
-  const cy = 132;
+  const cy = 122;
   const bellC = fur ? HOT : hit ? mix(ART.ink, ART.white, 0.5) : ART.ink;
-  const ticks: string[] = [];
-  for (let i = 0; i < 12; i++) ticks.push(`M${pt(cx, cy, 52, i * 30)} L ${pt(cx, cy, i % 3 ? 47 : 43, i * 30)}`);
-  const bell = 'M54 80 A 24 24 0 0 1 96 58 Z';
-  const bellR = 'M186 80 A 24 24 0 0 0 144 58 Z';
-  // Ponteiros-garra: os braços são ponteiros de relógio que terminam em garra (mais ameaça que na F1).
-  const armL = fur ? 'M60 118 L 34 96 L 26 70' : down ? 'M58 150 L 46 172 L 44 194' : 'M58 146 L 32 136 L 20 116';
-  const clawL = fur
-    ? ['M26 70 L 18 74', 'M26 70 L 22 62', 'M26 70 L 32 64']
-    : down
-      ? ['M44 194 L 38 200', 'M44 194 L 44 202', 'M44 194 L 50 200']
-      : ['M20 116 L 12 118', 'M20 116 L 14 108', 'M20 116 L 22 106'];
-  const legs = ['M84 184 L 72 222 L 92 222', m('M84 184 L 72 222 L 92 222')];
-  let face: ArtNode[];
-  if (down) {
-    face = [xEyes(100, 140, 128, 7), neon('M106 160 Q 120 154 134 160', body, 3)];
-  } else if (hit) {
-    face = [squint(102, 138, 128), neon('M100 160 L 108 154 L 116 162 L 124 154 L 132 162 L 140 156', ART.ink, 2.6)];
-  } else if (fur) {
-    const eye = 'M86 120 L 114 128 L 110 140 L 90 136 Z';
-    face = [
-      neon(['M80 106 L 116 122', m('M80 106 L 116 122')], body, 4.6),
-      neon([eye, m(eye)], body, 2.6, { fill: true, tint: 0 }),
-      glowFill([eye, m(eye)], mix(ART.ink, HOT, 0.25), { w: 0.6, glow: 1 }),
-      glowFill(
-        [
-          { tag: 'circle', cx: 104, cy: 131, r: 3 },
-          { tag: 'circle', cx: 136, cy: 131, r: 3 },
-        ],
-        V,
-        { w: 0.8, glow: 0 },
-      ),
-      neon('M100 152 Q 120 182 140 152 Q 120 160 100 152 Z', body, 3, { fill: ART.dark.villain }),
-      neon(['M106 155 L 110 166 L 114 157', 'M126 157 L 130 166 L 134 155'], ART.ink, 2.2, { hot: 0.4 }),
-    ];
-  } else {
-    face = [
-      neon(['M84 112 L 114 122', m('M84 112 L 114 122')], body, 4),
-      neon(['M88 128 L 112 128 Q 100 138 88 128 Z', m('M88 128 L 112 128 Q 100 138 88 128 Z')], ART.ink, 2.4, { fill: true, tint: 0 }),
-      glowFill(
-        [
-          { tag: 'circle', cx: 102, cy: 131, r: 3 },
-          { tag: 'circle', cx: 138, cy: 131, r: 3 },
-        ],
-        V,
-        { w: 0.8, glow: 0 },
-      ),
-      neon({ tag: 'ellipse', cx: 120, cy: 158, rx: 12, ry: 9 }, body, 3, { fill: ART.dark.villain }),
-    ];
-  }
   const crackC = fur ? HOT : ART.ink;
-  const bellsArt: ArtNode[] = [
-    neon([bell, bellR], bellC, 3.2, { fill: true, tint: 0.12, glow: fur ? 1.4 : 1 }),
-    glowFill(
-      [
-        { tag: 'circle', cx: 70, cy: 52, r: 3.4 },
-        { tag: 'circle', cx: 170, cy: 52, r: 3.4 },
-      ],
-      bellC,
-      { w: 1 },
-    ),
-    neon('M120 68 L 120 46 M104 46 L 136 46', bellC, 3, { hot: 0.4 }),
-  ];
-  const corpo: ArtNode[] = [
-    neon(legs, body, 3.4, { fill: true }),
-    neon([armL, m(armL)], body, 3.4, { glow: 0.9 }),
-    neon([...clawL, ...clawL.map(m)], bellC, 2.4, { hot: 0.4 }),
-    ...(down ? [] : bellsArt),
-    neon({ tag: 'circle', cx, cy, r: 64 }, body, 4.2, { fill: true, tint: fur ? 0.2 : 0.12, glow: fur ? 1.4 : 1 }),
-    neon(ticks, ART.ink, 2, { glow: 0.4, hot: 0, opacity: 0.6 }),
-    ...(down ? [] : damage(k.dano, crack(['M152 84 L 138 100 L 150 108 L 140 124', 'M138 100 L 126 98'], crackC), [...crack(['M68 136 L 86 146 L 78 160 L 90 170', 'M86 146 L 98 140'], crackC), chip(180, 170, 6, 20, body)])),
-    ...face,
-  ];
+  const ticks = (x: number, y: number, r: number): string[] => {
+    const out: string[] = [];
+    for (let i = 0; i < 12; i++) out.push(`M${pt(x, y, r, i * 30)} L ${pt(x, y, i % 3 ? r - 4 : r - 8, i * 30)}`);
+    return out;
+  };
+
   if (down) {
-    const spring = 'M168 196 L 176 188 L 184 196 L 192 188 L 200 196 L 208 188';
+    // Desmontada: o cobertor vira um monte no chão e o mostrador fica deitado por cima, de olhos em X.
+    const fx = 124;
+    const fy = 172;
+    const corpo: ArtNode[] = [
+      neon('M28 226 Q 40 200 70 196 Q 96 184 124 190 Q 160 182 184 198 Q 206 204 212 226 Z', body, 3.6, { fill: true, tint: 0.1, glow: 0.7 }),
+      neon(['M60 214 Q 80 204 100 212', 'M140 210 Q 164 202 186 214'], ART.ink2, 1.8, { glow: 0, hot: 0, opacity: 0.5 }),
+      neon({ tag: 'ellipse', cx: fx, cy: fy, rx: 42, ry: 34 }, body, 4, { fill: true, tint: 0.12, glow: 0.8 }),
+      neon(ticks(fx, fy, 30).slice(0, 12), ART.ink, 1.8, { glow: 0.3, hot: 0, opacity: 0.5 }),
+      xEyes(108, 140, 168, 6),
+      neon('M112 188 Q 124 183 136 188', body, 2.6),
+      neon([`M${fx} ${fy} L ${pt(fx, fy, 18, -150)}`], ART.ink, 2.2, { glow: 0.4, hot: 0, opacity: 0.8 }),
+    ];
     return {
       back: [
         ground(V),
-        pivot([neon(bell, bellC, 3.2, { fill: true, tint: 0.12 })], { x: 70, y: 70, rotate: -40, tx: -24, ty: 140, opacity: 0.7 }),
-        neon(spring, ART.ink2, 2.4, { hot: 0, opacity: 0.7 }),
+        pivot([neon(SONECA_BELL, bellC, 3.2, { fill: true, tint: 0.12 })], { x: 78, y: 62, rotate: -70, tx: -38, ty: 132, opacity: 0.7 }),
+        pivot([neon(SONECA_BELL_R, bellC, 3.2, { fill: true, tint: 0.12 })], { x: 162, y: 62, rotate: 30, tx: 24, ty: 120, opacity: 0.6 }),
+        neon('M150 150 L 160 140 L 168 150 L 176 140 L 184 150 L 192 140', ART.ink2, 2.4, { hot: 0, opacity: 0.7 }),
         puff(60, 40, 8, 0.45),
         puff(176, 30, 7, 0.4),
       ],
       raios: [],
-      corpo,
-      pose: DOWN_POSE,
+      corpo: [pivot(corpo, { opacity: 0.62 })],
     };
   }
+
+  // Braços-ponteiro saindo das dobras do cobertor, com garra de 3 pontas.
+  const armL = fur ? 'M58 128 L 34 104 L 28 74' : 'M56 150 L 30 140 L 18 118';
+  const clawL = fur ? ['M28 74 L 18 76', 'M28 74 L 22 64', 'M28 74 L 34 66'] : ['M18 118 L 8 120', 'M18 118 L 12 108', 'M18 118 L 22 106'];
+
+  let face: ArtNode[];
   if (hit) {
-    return { back: [ground(V), ...impact(40, 100), neon([zz(200, 70, 10)], ART.ink, 2.2, { hot: 0, opacity: 0.5 })], raios: [], corpo, pose: HIT_POSE };
+    face = [squint(102, 138, 122), neon('M100 150 L 108 144 L 116 152 L 124 144 L 132 152 L 140 146', ART.ink, 2.6)];
+  } else if (fur) {
+    const eye = 'M84 112 L 112 122 L 108 134 L 90 130 Z';
+    face = [
+      neon(['M78 100 L 116 118', m('M78 100 L 116 118')], body, 5),
+      neon([eye, m(eye)], body, 2.6, { fill: true, tint: 0 }),
+      glowFill([eye, m(eye)], mix(ART.ink, HOT, 0.3), { w: 0.6, glow: 1.2 }),
+      glowFill(
+        [
+          { tag: 'circle', cx: 104, cy: 125, r: 3 },
+          { tag: 'circle', cx: 136, cy: 125, r: 3 },
+        ],
+        V,
+        { w: 0.8, glow: 0 },
+      ),
+      neon('M94 144 Q 120 178 146 144 Q 120 154 94 144 Z', body, 3, { fill: ART.dark.villain }),
+      neon(['M101 147 L 105 159 L 109 149', 'M131 149 L 135 159 L 139 147'], ART.ink, 2.2, { hot: 0.4 }),
+    ];
+  } else {
+    // Pálpebra pesada (reta, baixa) sobre um olho em fenda que olha de lado; a direita um pouco erguida.
+    const eyeL = 'M84 120 L 110 124 Q 100 133 88 129 Z';
+    const eyeR = 'M156 118 L 130 123 Q 140 132 152 128 Z';
+    face = [
+      neon([eyeL, eyeR], ART.ink, 2.2, { fill: true, tint: 0 }),
+      glowFill(
+        [
+          { tag: 'circle', cx: 104, cy: 127.5, r: 3 },
+          { tag: 'circle', cx: 146, cy: 126, r: 3 },
+        ],
+        V,
+        { w: 0.8, glow: 0 },
+      ),
+      neon(['M80 116 L 112 122', 'M160 112 L 128 120'], body, 4.8),
+      // Sorriso torto, de canto, com um canino.
+      neon('M98 146 Q 120 156 148 138 Q 142 154 122 157 Q 104 157 98 146 Z', body, 2.8, { fill: ART.dark.villain }),
+      neon('M134 147 L 137 154 L 140 145', ART.ink, 2, { hot: 0.4 }),
+    ];
+  }
+
+  // Ponteiros parados em 11:55: o "V" sobe do centro e vira a ruga da testa.
+  const hands = hit ? [] : [neon([`M${cx} ${cy - 6} L ${pt(cx, cy, 30, -98)}`, `M${cx} ${cy - 6} L ${pt(cx, cy, 38, -124)}`], ART.ink, 2.4, { glow: 0.6, hot: 0.5, opacity: 0.85 })];
+  const corpo: ArtNode[] = [
+    neon(SONECA_CLOAK, body, 3.8, { fill: true, tint: fur ? 0.16 : 0.09, glow: fur ? 1.3 : 0.9 }),
+    // Dobras e listras do cobertor.
+    neon(['M70 150 Q 62 182 58 208', 'M170 150 Q 178 182 182 208', 'M94 182 L 100 212', 'M146 182 L 140 212'], body, 1.8, { glow: 0, hot: 0, opacity: 0.45 }),
+    neon(['M44 196 L 62 190', 'M196 196 L 178 190'], ART.ink2, 2, { glow: 0, hot: 0, opacity: 0.5, dash: '3 5' }),
+    neon([armL, m(armL)], body, 3.4, { glow: 0.9 }),
+    neon([...clawL, ...clawL.map(m)], bellC, 2.4, { hot: 0.4 }),
+    // Sinos furando o capuz (chifres) e o martelo entre eles.
+    neon([SONECA_BELL, SONECA_BELL_R], bellC, 3.2, { fill: true, tint: 0.12, glow: fur ? 1.4 : 1 }),
+    neon('M120 48 L 120 30 M106 30 L 134 30', bellC, 3, { hot: 0.4 }),
+    // Borda interna do capuz e o mostrador com aro grosso.
+    neon('M62 132 C 60 88 86 64 120 64 C 154 64 180 88 178 132', body, 2.2, { glow: 0.5, hot: 0, opacity: 0.7 }),
+    neon({ tag: 'circle', cx, cy, r: 52 }, body, 4.4, { fill: true, tint: fur ? 0.2 : 0.12, glow: fur ? 1.4 : 1 }),
+    neon(ticks(cx, cy, 46), ART.ink, 2, { glow: 0.4, hot: 0, opacity: 0.6 }),
+    ...hands,
+    ...damage(k.dano, crack(['M150 82 L 138 98 L 150 106 L 140 122', 'M138 98 L 126 96'], crackC), [...crack(['M74 124 L 90 134 L 82 148 L 92 158', 'M90 134 L 100 128'], crackC), chip(190, 168, 6, 20, body)]),
+    ...face,
+  ];
+
+  if (hit) {
+    return { back: [ground(V), ...impact(38, 100), neon([zz(204, 66, 10)], ART.ink, 2.2, { hot: 0, opacity: 0.5 })], raios: [], corpo, pose: HIT_POSE };
   }
   if (fur) {
-    const ring = ['M40 44 Q 32 56 40 68', 'M30 36 Q 20 56 30 76', m('M40 44 Q 32 56 40 68'), m('M30 36 Q 20 56 30 76')];
-    return { back: [ground(V), shake(), neon(ring, HOT, 2.4, { hot: 0.3, opacity: 0.85 }), puff(60, 200, 8, 0.5), puff(184, 196, 8, 0.5)], raios: [], corpo, pose: { x: 120, y: 228, scale: 0.94 } };
+    const ring = ['M40 40 Q 32 52 40 64', 'M30 32 Q 20 52 30 72', m('M40 40 Q 32 52 40 64'), m('M30 32 Q 20 52 30 72')];
+    return { back: [ground(V), shake(), neon(ring, HOT, 2.4, { hot: 0.3, opacity: 0.85 }), puff(30, 204, 8, 0.5), puff(212, 200, 8, 0.5)], raios: [], corpo, pose: { x: 120, y: 228, scale: 0.94 } };
   }
-  return { back: [ground(V), neon([zz(192, 70, 12), zz(208, 50, 8), zz(220, 34, 6)], ART.ink, 2.6, { hot: 0.4 })], raios: [], corpo };
+  return { back: [ground(V), neon([zz(196, 62, 12), zz(212, 42, 8), zz(224, 26, 6)], ART.ink, 2.6, { hot: 0.4 })], raios: [], corpo };
 }
 
 // ---------------------------------------------------------------- Rei Buzina (trânsito)
