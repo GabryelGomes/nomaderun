@@ -22,3 +22,5 @@ export * from '../../../apps/mobile/src/domain/regions.ts';
 export * from '../../../apps/mobile/src/domain/season.ts';
 export * from '../../../apps/mobile/src/domain/paint.ts';
 export * from '../../../apps/mobile/src/domain/live-events.ts';
+export * from '../../../apps/mobile/src/domain/raid.ts';
+export * from '../../../apps/mobile/src/domain/league.ts';

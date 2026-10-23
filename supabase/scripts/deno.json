@@ -29,6 +29,10 @@
     "../../apps/mobile/src/domain/paint": "../../apps/mobile/src/domain/paint.ts",
     "@/domain/paint": "../../apps/mobile/src/domain/paint.ts",
     "../../apps/mobile/src/domain/live-events": "../../apps/mobile/src/domain/live-events.ts",
-    "@/domain/live-events": "../../apps/mobile/src/domain/live-events.ts"
+    "@/domain/live-events": "../../apps/mobile/src/domain/live-events.ts",
+    "../../apps/mobile/src/domain/raid": "../../apps/mobile/src/domain/raid.ts",
+    "@/domain/raid": "../../apps/mobile/src/domain/raid.ts",
+    "../../apps/mobile/src/domain/league": "../../apps/mobile/src/domain/league.ts",
+    "@/domain/league": "../../apps/mobile/src/domain/league.ts"
   }
 }
