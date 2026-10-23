@@ -267,7 +267,7 @@ Erros de RPC chegam do PostgREST com `message = "CODIGO: texto em pt-BR"` (separ
 
 ### `POST /finish-activity` (e `POST /moderate-activity` → `result`): bloco opcional `extras`
 
-Depois da gravação v1 (que **não mudou**), se alguma flag v2 estiver ligada (`territory_rule = 'v2'` ou `features.raid|league|missions|dailyChest|records|feed`), a resposta ganha `extras`. App antigo ignora o campo. **Sem flag ligada, não há `extras`** (nem chamada a mais no banco). Chamar o finish de novo devolve o mesmo `extras` (gravado em `activities.v2_extras`); se a v2 tinha falhado, a repetição a aplica (idempotente). Se a v2 falhar, o finish responde a v1 sem `extras` (nunca derruba a corrida).
+Depois da gravação v1 (que **não mudou**), se alguma flag v2 estiver ligada (`territory_rule = 'v2'` ou `features.raid|league|missions|dailyChest|records|feed`), a resposta ganha `extras`. App antigo ignora o campo. **Sem flag ligada, não há `extras`** (a function só lê as flags em `server_info`; nada mais é lido nem gravado). Chamar o finish de novo devolve o mesmo `extras` (gravado em `activities.v2_extras`); se a v2 tinha falhado, a repetição a aplica (idempotente). Se a v2 falhar, o finish responde a v1 sem `extras` (nunca derruba a corrida).
 
 ```jsonc
 "extras": {
