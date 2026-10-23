@@ -5,7 +5,7 @@
  * Contrato da E3 (`docs/melhoria/relatorios/E3-contrato-v2.md` §3.3), enquanto a E9 não publica a RPC no
  * `API_CONTRATO.md`: trechos com camadas EFETIVAS, sem autor, sem hora e sem nada dentro de zonas de privacidade;
  * zonas com dono, nome, herança, bloqueio e "sob ataque"; e os trechos que a própria pessoa já pintou hoje.
- * Aceita as chaves em camelCase ou snake_case.
+ * Aceita as chaves em camelCase ou snake_case, e `cells`/`zones` como mapa (formato do servidor) ou lista.
  *
  * Servidor antigo (`PGRST202`) ou regra v1 com a RPC desligada (`FEATURE_DISABLED`) viram `{ available: false }`:
  * o HUD cai no modo atual, sem erro na tela. Equipe E3 (T7.2.3).
@@ -33,22 +33,33 @@ export type PaintNear = {
 };
 
 type Obj = Record<string, unknown>;
-const arr = (v: unknown): Obj[] => (Array.isArray(v) ? v.filter((x): x is Obj => !!x && typeof x === 'object') : []);
+const isObj = (x: unknown): x is Obj => !!x && typeof x === 'object' && !Array.isArray(x);
 const pick = (o: Obj, camel: string, snake: string) => (o[camel] !== undefined ? o[camel] : o[snake]);
+/**
+ * Entradas `[id, item]` de uma coleção que chega como mapa (`{ id: {...} }`, o formato do servidor e do
+ * `LiveSnapshot`) ou como lista (`[{ <id>: ..., ... }]`, formato antigo do contrato).
+ */
+function entries(v: unknown, idKeys: [string, string]): [string, Obj][] {
+  if (Array.isArray(v)) {
+    return v.filter(isObj).flatMap((item): [string, Obj][] => {
+      const id = pick(item, idKeys[0], idKeys[1]);
+      return typeof id === 'string' ? [[id, item]] : [];
+    });
+  }
+  return isObj(v) ? Object.entries(v).filter((e): e is [string, Obj] => isObj(e[1])) : [];
+}
 
 /** Converte a resposta da RPC no retrato do domain. Trecho sem time válido ou sem camada viva é descartado. */
 export function parsePaintNear(data: unknown, center: LatLng, radiusM: number): PaintNear {
   const body = data && typeof data === 'object' && !Array.isArray(data) ? (data as Obj) : {};
   const cells: Record<string, { faction: NonNullable<ReturnType<typeof factionOrNull>>; layers: number }> = {};
-  for (const c of arr(body.cells)) {
+  for (const [cell, c] of entries(body.cells, ['cell', 'cell'])) {
     const faction = factionOrNull(c.faction);
     const layers = Math.min(PAINT_MAX_LAYERS, Math.floor(Number(c.layers)));
-    if (typeof c.cell === 'string' && faction && layers >= 1) cells[c.cell] = { faction, layers };
+    if (faction && layers >= 1) cells[cell] = { faction, layers };
   }
   const zones: LiveSnapshot['zones'] = {};
-  for (const z of arr(body.zones)) {
-    const id = pick(z, 'zoneId', 'zone_id');
-    if (typeof id !== 'string') continue;
+  for (const [id, z] of entries(body.zones, ['zoneId', 'zone_id'])) {
     const inherited = Math.max(0, Math.floor(Number(z.inherited) || 0));
     const name = z.name;
     (zones as Record<string, LiveSnapshot['zones'][string]>)[id] = {

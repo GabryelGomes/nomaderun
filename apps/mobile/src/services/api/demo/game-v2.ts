@@ -330,19 +330,19 @@ function zonePaintNear(db: DemoDb, userId: string | null, args: Row) {
   const privacy = db.tables.privacy_zones.map((p) => ({ c: { lat: Number(p.lat), lng: Number(p.lng) }, r: Number(p.radius_m) || 200 }));
   const hidden = (cell: string) => privacy.some((p) => distanceMeters(cellCenter(cell), p.c) <= p.r);
 
-  const cells: Row[] = [];
-  const zones: Row[] = [];
+  // Mesmo formato do servidor real (`zone_paint_near`, migration 20261023120700_paint): mapas por id.
+  const cells: Record<string, Row> = {};
+  const zones: Record<string, Row> = {};
   for (const z of db.zones.values()) {
     if (distanceMeters(cellCenter(z.id), here) > radius + 200) continue;
     const attackAt = msOf(z.attack_started_at);
-    zones.push({
-      zoneId: z.id,
+    zones[z.id] = {
       owner: z.owner,
       name: z.name,
       inherited: 0,
       blocked: z.blocked,
       underAttack: !!(z.owner && z.attacker && attackAt !== null && now - attackAt <= PAINT_ATTACK_WINDOW_MS),
-    });
+    };
     if (z.blocked) continue;
     // Placar coerente com a influência: ~1 trecho a cada 10 pontos; o dono lidera com ≥ 3; zona neutra sem líder.
     const counts = Object.fromEntries(FACTION_IDS.map((f) => [f, Math.min(12, Math.round((z.influence[f] ?? 0) / 10))])) as Record<FactionId, number>;
@@ -356,11 +356,11 @@ function zonePaintNear(db: DemoDb, userId: string | null, args: Row) {
       for (let k = 0; k < counts[f] && i < pool.length; k++, i++) {
         const cell = pool[i];
         if (hidden(cell)) continue;
-        cells.push({ cell, faction: f, layers: 1 + Math.floor(raidSeededUnit(`camadas|${cell}`) * PAINT_MAX_LAYERS) });
+        cells[cell] = { faction: f, layers: 1 + Math.floor(raidSeededUnit(`camadas|${cell}`) * PAINT_MAX_LAYERS) };
       }
     }
   }
-  return { cells, zones, paintedToday: [] };
+  return { rule: 'v2', cells, zones, paintedToday: [] };
 }
 
 /** As RPCs da E3 no servidor de demonstração (o índice fica em `rpc.ts`). */

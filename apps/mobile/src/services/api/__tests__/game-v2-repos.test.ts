@@ -268,4 +268,19 @@ describe('leitura tolerante das respostas', () => {
     expect(p.paintedToday).toEqual(['a']);
     expect(parsePaintNear(undefined, DEMO_CENTER, 1000).snapshot).toEqual({ cells: {}, zones: {} });
   });
+
+  it('zone_paint_near no formato do servidor (mapas por id, migration 20261023120700_paint)', () => {
+    const p = parsePaintNear(
+      {
+        rule: 'v2',
+        cells: { a: { faction: 'owls', layers: 2 }, b: { faction: 'roxo', layers: 1 }, c: { faction: 'volt', layers: 0 } },
+        zones: { z1: { owner: 'owls', name: 'Setor 1', inherited: 3, blocked: false, underAttack: true }, z2: { owner: null, name: null } },
+      },
+      DEMO_CENTER,
+      1000,
+    );
+    expect(p.snapshot.cells).toEqual({ a: { faction: 'owls', layers: 2 } });
+    expect(p.snapshot.zones).toEqual({ z1: { owner: 'owls', name: 'Setor 1', inherited: 3, underAttack: true }, z2: { owner: null, name: null } });
+    expect(p.paintedToday).toEqual([]);
+  });
 });
