@@ -1,10 +1,14 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, IconButton } from '@/components/button';
-import { FadeUp } from '@/components/motion';
+import { AlertSlot, pickAlert, type SlotAlert } from '@/components/alert-slot';
+import { BigRunButton } from '@/components/big-run-button';
+import { IconButton } from '@/components/button';
+import { DailyStrip, type DailyItem } from '@/components/daily-strip';
+import { MissionCoachCard } from '@/components/mission-coach-card';
+import { FadeUp, ShimmerSkeleton } from '@/components/motion';
 import { tabBarClearance } from '@/components/screen';
 import { TeamBadge } from '@/components/team-badge';
 import { Icon } from '@/components/icon';
@@ -12,10 +16,10 @@ import { Text } from '@/components/text';
 import TerritoryMap from '@/components/territory-map';
 import type { MapBounds } from '@/components/territory-map.types';
 import { cellCenter } from '@/domain/grid';
-import { DEFENSE_WINDOW_MS, defenseWindowOpen } from '@/domain/territory';
 import type { LatLng } from '@/domain/types';
 import { DEMO_CENTER, DEMO_CITY, zoneName } from '@/demo/demo-data';
 import { mapZonesInBounds } from '@/features/map-data';
+import { loadHistory } from '@/features/run/run-controller';
 import { useNow } from '@/features/use-now';
 import { bboxAround } from '@/services/api/zones-repo';
 import { currentPosition } from '@/services/location/current';
@@ -29,12 +33,15 @@ import { useTheme } from '@/theme/use-theme';
 import { CounterBadge } from './game-motion';
 import { mapControlsTop } from './game-motion-math';
 import { LayerChips, type Layer } from './map-layer-chips';
+import { changesSinceYesterday, changesText, expiredAttackKey, mapAlerts, todayChips, welcomeMission, zonesUnderAttack, type MapToday } from './map-screen.model';
 
 const MAP_CENTER: LatLng = { lat: DEMO_CENTER.lat - 0.0035, lng: DEMO_CENTER.lng };
 const MAP_SPAN = 2600;
 /** Espera o mapa parar antes de pedir as zonas da área visível (RNF-009: sem rajada de pedidos). */
 const BBOX_DEBOUNCE_MS = 600;
 const INITIAL_BOUNDS: MapBounds = bboxAround(MAP_CENTER, MAP_SPAN * 0.8);
+/** "O que mudou" desce, fica 4 s e some (E5, F1 §4.1). */
+const CHANGES_VISIBLE_MS = 4000;
 
 /** Nome do servidor quando houver; senão o nome local de demonstração. */
 export function displayZoneName(id: string, serverName: string | null | undefined): string {
@@ -72,8 +79,34 @@ function useLiveZones() {
   }, []);
 }
 
-/** Home: the living map is the product (Zenly lesson); everything else floats over it. */
-export function MapScreen() {
+/** Quantas corridas a pessoa já tem (servidor + aparelho); `null` enquanto o servidor não respondeu. */
+function useRunCount(): number | null {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void loadHistory().then((res) => {
+      if (alive && res.ok) setCount(res.data.length + useGame.getState().localRuns.length);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return count;
+}
+
+export type MapScreenProps = {
+  /**
+   * Dados do dia (sequência, baú do dia, chefão e missão). Encaixe para o hook de engajamento da E7 e o da
+   * Raid; sem eles, a faixa mostra só o que o app já sabe de verdade (sequência do servidor, boas-vindas).
+   */
+  today?: MapToday | null;
+};
+
+/**
+ * Mapa (v2, T7.2.7): o mapa vivo é o herói; por cima, o que importa hoje em 3 segundos — meu time, a faixa
+ * de hoje, o que mudou, **um** alerta (ou a missão) e o CORRER a 1 toque, na zona do polegar.
+ */
+export function MapScreen({ today }: MapScreenProps = {}) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const zones = useZones((s) => s.zones);
@@ -83,12 +116,16 @@ export function MapScreen() {
   const zonesLoading = useZones((s) => s.loading);
   const hasZones = useZones((s) => Object.keys(s.zones).length > 0);
   const unread = useNotifications(selectUnreadCount);
+  const notifications = useNotifications((s) => s.items);
   const city = useSession((s) => s.profile?.city) ?? DEMO_CITY;
   const faction = useGame((s) => s.faction) ?? 'striders';
+  const streakWeeks = useGame((s) => s.streakWeeks);
   const now = useNow(60_000);
   const fog = useGame((s) => s.fog);
+  const runCount = useRunCount();
   const [layer, setLayer] = useState<Layer>('todos');
-  const [alertCollapsed, setAlertCollapsed] = useState(false);
+  const [layersOpen, setLayersOpen] = useState(false);
+  const [dismissed, setDismissed] = useState<readonly string[]>([]);
   const [bounds, setBounds] = useState<MapBounds>(INITIAL_BOUNDS);
   const requestBbox = useLiveZones();
   // Posição real do corredor (revisão nº 1, A-2): centraliza o mapa e carrega as zonas em volta.
@@ -123,23 +160,50 @@ export function MapScreen() {
     // `t` muda a cada toque na notificação: tocar de novo no mesmo alerta reabre a zona.
   }, [params.zona, params.t, focus]);
 
-  const mapZones = useMemo(() => mapZonesInBounds(zones, bounds), [zones, bounds]);
+  // "O que mudou desde ontem" (notificações do servidor das últimas 24 h): aparece 4 s ao abrir e some.
+  const changes = useMemo(() => changesSinceYesterday(notifications, now), [notifications, now]);
+  const [changesGone, setChangesGone] = useState(false);
+  const hasChanges = changes !== null;
+  useEffect(() => {
+    if (!hasChanges) return;
+    const t = setTimeout(() => setChangesGone(true), CHANGES_VISIBLE_MS);
+    return () => clearTimeout(t);
+  }, [hasChanges]);
+
+  // Regiões refeitas só quando as zonas mudam (ou um ataque vence): o ataque vencido sai do desenho (E-03).
+  const expiredKey = expiredAttackKey(zones, now);
+  const mapZones = useMemo(() => {
+    const expired = new Set(expiredKey ? expiredKey.split(',') : []);
+    return mapZonesInBounds(zones, bounds).map((z) => (expired.has(z.id) ? { ...z, attacker: null } : z));
+  }, [zones, bounds, expiredKey]);
   const explored = useMemo(() => (layer === 'explorado' ? fog.slice(-600) : undefined), [fog, layer]);
 
-  const mine = Object.values(zones).filter((z) => z.owner === faction);
-  // E-04: o ataque só vale (e a defesa só rende em dobro) dentro da janela de 24 h; depois disso não há alerta.
-  const attacked = mine.filter((z) => defenseWindowOpen(z, now));
-  const alert = attacked[0];
-  const defenseEnds = alert?.attackStartedAt != null ? new Date(alert.attackStartedAt + DEFENSE_WINDOW_MS).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+  const mine = useMemo(() => Object.values(zones).filter((z) => z.owner === faction).length, [zones, faction]);
+  const attacked = useMemo(() => zonesUnderAttack(zones, faction, now), [zones, faction, now]);
+  const mission = today?.mission ?? welcomeMission(runCount);
+  const dayToday: MapToday = { ...today, mission };
+  const chips: DailyItem[] = todayChips(dayToday, streakWeeks);
+  const candidates = mapAlerts({
+    attacked,
+    zoneName: (id) => displayZoneName(id, meta[id]?.name),
+    attackerName: (f) => (f ? factions[f].name : 'Rivais'),
+    today: dayToday,
+  }).filter((a) => !dismissed.includes(a.id));
+  const slot: SlotAlert[] = candidates.map((a) => ({
+    id: a.id,
+    kind: a.kind,
+    title: a.title,
+    body: a.body,
+    onPress: () => (a.zoneId ? router.push({ pathname: '/zona/[id]', params: { id: a.zoneId } }) : router.push('/corrida')),
+    onDismiss: () => setDismissed((d) => [...d, a.id]),
+  }));
+  const top = pickAlert(slot);
 
-  const alertName = alert ? displayZoneName(alert.id, meta[alert.id]?.name) : '';
   const statusError = !!zonesError && !hasZones && !zonesOffline && !zonesLoading;
-  // Topo: pílula de status (8 + 56) + linha de filtros (8 + 44). Os controles ficam logo abaixo, à direita,
-  // e a zona do polegar fica só com o alerta compacto e o "Correr": o mapa é o protagonista.
   const controlsTop = mapControlsTop(insets.top);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View testID="tela-mapa" style={{ flex: 1, backgroundColor: colors.background }}>
       <TerritoryMap
         zones={layer === 'explorado' ? [] : mapZones}
         myFaction={faction}
@@ -153,10 +217,9 @@ export function MapScreen() {
         onZonePress={(id) => router.push({ pathname: '/zona/[id]', params: { id } })}
       />
 
-      <View style={{ position: 'absolute', top: insets.top + space[2], left: 0, right: 0, gap: space[2] }}>
+      <View style={{ position: 'absolute', top: insets.top + space[2], left: space[4], right: space[4], gap: space[2] }}>
         <View
           style={{
-            marginHorizontal: space[4],
             flexDirection: 'row',
             alignItems: 'center',
             gap: space[3],
@@ -176,12 +239,12 @@ export function MapScreen() {
               {!hasZones && zonesLoading
                 ? 'Carregando zonas…'
                 : zonesOffline
-                  ? `Sem internet: mostrando o último mapa salvo`
+                  ? `Sem internet: último mapa salvo`
                   : zonesError && !hasZones
-                    ? 'Não foi possível carregar as zonas'
+                    ? 'Não deu para carregar as zonas'
                     : here
-                      ? `${mine.length} zonas em ${city}`
-                      : `${mine.length} zonas em ${DEMO_CITY} · demonstração`}
+                      ? `${mine} zonas em ${city}`
+                      : `${mine} zonas em ${DEMO_CITY} · demonstração`}
             </Text>
           </View>
           {statusError ? (
@@ -191,86 +254,90 @@ export function MapScreen() {
               accessibilityLabel="Tentar carregar as zonas de novo"
               hitSlop={8}
               onPress={() => void useZones.getState().loadBbox(bounds)}
-              style={{ minHeight: 36, justifyContent: 'center' }}>
+              style={{ minHeight: 44, justifyContent: 'center' }}>
               <Text variant="caption" color={colors.action}>
                 Tentar de novo
               </Text>
             </Pressable>
           ) : !hasZones && zonesLoading ? (
-            <ActivityIndicator color={colors.action} />
+            <ShimmerSkeleton shape="circle" width={20} height={20} accessibilityLabel="Carregando zonas" />
           ) : (
             <Icon name="city" size={18} color={colors.textSecondary} />
           )}
         </View>
 
-        <LayerChips value={layer} onChange={setLayer} />
+        {/* Faixa de hoje: só os chips verdadeiros (sem dado, o chip não existe). Deixa espaço à direita para o sino. */}
+        <View style={{ marginRight: 56 }}>
+          <DailyStrip items={chips} testID="mapa-hoje" />
+        </View>
+
+        {changes && !changesGone ? (
+          <FadeUp distance={-12} duration={400}>
+            <View
+              testID="mapa-mudou"
+              accessible
+              accessibilityLiveRegion="polite"
+              style={{
+                alignSelf: 'flex-start',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: space[2],
+                minHeight: 36,
+                paddingHorizontal: space[3],
+                borderRadius: radius.pill,
+                backgroundColor: colors.surface,
+                boxShadow: floating,
+              }}>
+              <Icon name={changes.gained >= changes.lost ? 'flag' : 'warning'} size={14} color={changes.gained >= changes.lost ? colors.accentText : colors.textSecondary} />
+              <Text variant="caption">{changesText(changes)}</Text>
+            </View>
+          </FadeUp>
+        ) : null}
       </View>
 
-      <View style={{ position: 'absolute', right: space[4], top: controlsTop, gap: space[3] }}>
+      <View style={{ position: 'absolute', right: space[4], top: controlsTop, gap: space[3], alignItems: 'flex-end' }}>
         <View>
           <IconButton testID="mapa-notificacoes" icon="bell" label={unread > 0 ? `Notificações, ${unread} não lidas` : 'Notificações'} onPress={() => router.push('/notificacoes')} />
           <CounterBadge unread={unread} color={colors.action} textColor={colors.onAction} />
         </View>
-        <IconButton testID="mapa-camada" icon="layers" label="Trocar camada do mapa" onPress={() => setLayer((l) => (l === 'todos' ? 'meu-time' : l === 'meu-time' ? 'explorado' : 'todos'))} />
+        <IconButton testID="mapa-camada" icon="layers" label={layersOpen ? 'Fechar camadas do mapa' : 'Camadas do mapa'} onPress={() => setLayersOpen((o) => !o)} />
+        {layersOpen ? (
+          <FadeUp distance={8} duration={200}>
+            <LayerChips
+              value={layer}
+              onChange={(l) => {
+                setLayer(l);
+                setLayersOpen(false);
+              }}
+            />
+          </FadeUp>
+        ) : null}
       </View>
 
-      {/* Acima da barra de abas flutuante do iOS (o "Correr" ficava atrás dela no iPhone 15). */}
-      <View style={{ position: 'absolute', left: space[4], right: space[4], bottom: tabBarClearance(insets.bottom), gap: space[2] }}>
-        {alert && !alertCollapsed ? (
-          // Alerta compacto (uma linha de título + uma de apoio) que entra por baixo; recolhível ao lado do "Correr".
-          <FadeUp key={alert.id} distance={24} duration={600} curve="reveal" delay={200}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.lg, borderCurve: 'continuous', boxShadow: floating }}>
-              <Pressable
-                accessibilityRole="button"
-                testID="mapa-alerta-ataque"
-                accessibilityLabel={`Alerta: ${alertName} sob ataque. Abrir zona.`}
-                onPress={() => router.push({ pathname: '/zona/[id]', params: { id: alert.id } })}
-                style={{ flex: 1, minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[2], paddingLeft: space[3] }}>
-                <TeamBadge faction={alert.owner} attack size={32} />
-                <View style={{ flex: 1 }}>
-                  <Text variant="bodyBold" numberOfLines={1}>
-                    {alertName}
-                  </Text>
-                  <Text variant="caption" muted numberOfLines={1}>
-                    Sob ataque dos {alert.attacker ? factions[alert.attacker].name : 'rivais'} · dobro até {defenseEnds}
-                  </Text>
-                </View>
-              </Pressable>
-              <Pressable
-                testID="mapa-alerta-recolher"
-                accessibilityRole="button"
-                accessibilityLabel="Recolher alerta de ataque"
-                onPress={() => setAlertCollapsed(true)}
-                style={{ width: 44, height: 56, alignItems: 'center', justifyContent: 'center' }}>
-                <Icon name="close" size={18} color={colors.textSecondary} />
-              </Pressable>
+      {/* Zona do polegar, acima da barra de abas flutuante do iOS: 1 alerta (ou a missão) e o CORRER. */}
+      <View style={{ position: 'absolute', left: space[4], right: space[4], bottom: tabBarClearance(insets.bottom), gap: space[3] }}>
+        {top?.kind === 'mission' && mission ? (
+          <FadeUp key={top.id} distance={24} duration={600} curve="reveal" delay={200}>
+            <MissionCoachCard
+              testID="mapa-missao"
+              eyebrow={mission.eyebrow}
+              title={mission.title}
+              steps={mission.steps}
+              done={mission.done}
+              reward={mission.reward}
+              demo={today?.demo}
+              onPress={() => router.push('/corrida')}
+            />
+          </FadeUp>
+        ) : top ? (
+          <FadeUp key={top.id} distance={24} duration={600} curve="reveal" delay={200}>
+            {/* O wrapper mantém o id dos fluxos Maestro ("mapa-alerta-ataque") enquanto eles não usam o do AlertSlot. */}
+            <View testID={top.kind === 'attack' ? 'mapa-alerta-ataque' : undefined}>
+              <AlertSlot alerts={[top]} testID="mapa-alerta" />
             </View>
           </FadeUp>
         ) : null}
-        <View style={{ flexDirection: 'row', gap: space[2] }}>
-          {alert && alertCollapsed ? (
-            <Pressable
-              testID="mapa-alerta-expandir"
-              accessibilityRole="button"
-              accessibilityLabel={`${alertName} sob ataque. Mostrar alerta.`}
-              onPress={() => setAlertCollapsed(false)}
-              style={{
-                width: 60,
-                height: 60,
-                borderRadius: radius.lg,
-                borderCurve: 'continuous',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: colors.surface,
-                boxShadow: floating,
-              }}>
-              <TeamBadge faction={alert.owner} attack size={32} />
-            </Pressable>
-          ) : null}
-          <View style={{ flex: 1 }}>
-            <Button testID="mapa-correr" label="Correr" icon="play" size="lg" wide onPress={() => router.push('/corrida')} />
-          </View>
-        </View>
+        <BigRunButton testID="mapa-correr" onPress={() => router.push('/corrida')} />
       </View>
     </View>
   );

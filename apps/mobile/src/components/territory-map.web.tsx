@@ -43,8 +43,8 @@ const polygon = (rings: LatLng[][], properties: Record<string, unknown>): GeoJSO
 });
 const collection = (features: GeoJSON.Feature[]): GeoJSON.FeatureCollection => ({ type: 'FeatureCollection', features });
 
-/** The same layers as the native map, as GeoJSON sources. */
-function sources(props: TerritoryMapProps) {
+/** The same layers as the native map, as GeoJSON sources (zones and static overlays; the route and points are separate). */
+function sources(props: Pick<TerritoryMapProps, 'zones' | 'myFaction' | 'onlyMine' | 'explored' | 'circles' | 'invalidPaths'>) {
   const l = mapLayers(props);
   return {
     regions: collection(l.regions.map((r) => polygon(r.rings, { color: r.color, opacity: r.opacity }))),
@@ -159,28 +159,40 @@ export default function TerritoryMap(props: TerritoryMapProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [night]);
 
+  // Regiões: só quando as zonas (ou a camada) mudam, nunca a cada ponto de GPS (a suavização é a parte cara).
+  const { zones, myFaction, onlyMine, explored, circles, invalidPaths, path, pathVersion, pathColor = palette.orange, chests, user, followUser } = props;
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map) return;
-    for (const [id, fc] of Object.entries(sources(props))) (map.getSource(id) as GeoJSONSource | undefined)?.setData(fc);
+    for (const [id, fc] of Object.entries(sources({ zones, myFaction, onlyMine, explored, circles, invalidPaths }))) (map.getSource(id) as GeoJSONSource | undefined)?.setData(fc);
+  }, [ready, zones, myFaction, onlyMine, explored, circles, invalidPaths]);
+
+  // Rastro: `path` pode ser o mesmo vetor crescendo (appendPoint, E-12); a versão diz quando redesenhar.
+  const routeVersion = pathVersion ?? path?.length ?? 0;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map) return;
     (map.getSource('path') as GeoJSONSource | undefined)?.setData({
       type: 'FeatureCollection',
-      features:
-        props.path && props.path.length > 1
-          ? [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: props.path.map((p) => [p.lng, p.lat]) } }]
-          : [],
+      features: path && path.length > 1 ? [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: path.map((p) => [p.lng, p.lat]) } }] : [],
     });
+    if (map.getLayer('path-line')) map.setPaintProperty('path-line', 'line-color', pathColor);
+  }, [ready, path, routeVersion, pathColor]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map) return;
     const points: GeoJSON.Feature[] = [
-      ...(props.chests ?? []).map((c) => ({
+      ...(chests ?? []).map((c) => ({
         type: 'Feature' as const,
         properties: { kind: 'chest', rarity: c.rarity },
         geometry: { type: 'Point' as const, coordinates: [c.position.lng, c.position.lat] },
       })),
-      ...(props.user ? [{ type: 'Feature' as const, properties: { kind: 'user' }, geometry: { type: 'Point' as const, coordinates: [props.user.lng, props.user.lat] } }] : []),
+      ...(user ? [{ type: 'Feature' as const, properties: { kind: 'user' }, geometry: { type: 'Point' as const, coordinates: [user.lng, user.lat] } }] : []),
     ];
     (map.getSource('points') as GeoJSONSource | undefined)?.setData({ type: 'FeatureCollection', features: points });
-    if (props.followUser && props.user) map.easeTo({ center: [props.user.lng, props.user.lat], duration: 400 });
-  }, [ready, props]);
+    if (followUser && user) map.easeTo({ center: [user.lng, user.lat], duration: 400 });
+  }, [ready, chests, user, followUser]);
 
   const focus = props.focus;
   useEffect(() => {

@@ -32,16 +32,7 @@ const isForbidden = (key: string) => FORBIDDEN.has(key) || /^margin/.test(key);
  * `transformOrigin`, `translateY`) ou `opacity`.
  * Na criação do teste (T7.2.10) o código antigo das telas tinha estas ocorrências; todas saem na onda 2.
  */
-const BASELINE_LAYOUT_ANIMATIONS: string[] = [
-  // GrowBar e InfluenceBar (barras que crescem): a E6b troca por `ProgressBar` (scaleX) na T7.2.7.
-  'features/screens/game-motion.tsx:width',
-  'features/screens/game-motion.tsx:width',
-  // GrowPillar (pedestal do pódio): a E6b troca por `ProgressBar`/scaleY na T7.2.7.
-  'features/screens/game-motion.tsx:height',
-  // Contagem regressiva do Correr (barra de 40×4 px, quadros `from`/`to`): a E6b troca por scaleX na T7.2.7.
-  'features/screens/run-screen.tsx:width',
-  'features/screens/run-screen.tsx:width',
-];
+const BASELINE_LAYOUT_ANIMATIONS: string[] = []; // E6b (T7.2.7): GrowBar, InfluenceBar, GrowPillar e a barra da contagem viraram transform
 
 type Kind = 'useAnimatedStyle' | 'animationName' | 'transitionProperty';
 type Hit = { file: string; line: number; kind: Kind; key: string };
