@@ -25,6 +25,10 @@ export function effortMultiplier(basePaceSecPerKm: number, paceSecPerKm: number)
   return clamp(base / paceSecPerKm, EFFORT_MIN, EFFORT_MAX);
 }
 
+/**
+ * @deprecated v1: o servidor passa semanas e a sequência vira +50% permanente (E-10). Na v2 a sequência não
+ * multiplica pontos (D-63); `scoreZoneV2` não usa este multiplicador.
+ */
 export function streakMultiplier(consecutiveDays: number): number {
   return 1 + STREAK_STEP * clamp(Math.floor(consecutiveDays), 0, STREAK_MAX_DAYS);
 }
@@ -56,6 +60,10 @@ export type ZoneScore = {
   capped: boolean;
 };
 
+/**
+ * @deprecated v1, usada pela gravação atual do servidor (sequência e fantasma multiplicam os pontos).
+ * Use `scoreZoneV2` (D-63, E-15).
+ */
 export function scoreZone(input: ZoneScoreInput): ZoneScore {
   const multipliers = {
     effort: effortMultiplier(input.basePaceSecPerKm, input.paceSecPerKm),
@@ -75,4 +83,69 @@ export function scoreZone(input: ZoneScoreInput): ZoneScore {
   const room = Math.max(0, DAILY_ZONE_CAP - (input.earnedTodayInZone ?? 0));
   const rounded = Math.round(raw);
   return { rp: Math.min(rounded, room), multipliers, capped: rounded > room };
+}
+
+/* ---------- v2: pontos sem sequência e sem fantasma (D-63, E-15) ---------- */
+
+export type ZoneScoreInputV2 = {
+  meters: number;
+  paceSecPerKm: number;
+  basePaceSecPerKm: number;
+  inPack?: boolean;
+  /** Janela de defesa da regra v1 (só enquanto o mapa ainda for por influência). */
+  defending?: boolean;
+  /** Pontos que a pessoa já fez nesta zona hoje, para o teto diário. */
+  earnedTodayInZone?: number;
+};
+
+export type ZoneScoreV2 = {
+  rp: number;
+  multipliers: { effort: number; pack: number; defense: number };
+  capped: boolean;
+};
+
+/**
+ * Pontos de uma zona na v2 (ranking, Liga e Cidade × Cidade): metros × 0,1 × esforço × grupo × defesa,
+ * arredondado, com o teto de 300 por pessoa, zona e dia. A sequência não multiplica (D-63) e o fantasma vira
+ * XP, não pontos (E-15). Nunca negativo.
+ */
+export function scoreZoneV2(input: ZoneScoreInputV2): ZoneScoreV2 {
+  const multipliers = {
+    effort: effortMultiplier(input.basePaceSecPerKm, input.paceSecPerKm),
+    pack: input.inPack ? PACK_BONUS : 1,
+    defense: input.defending ? DEFENSE_BONUS : 1,
+  };
+  const meters = Number.isFinite(input.meters) ? Math.max(0, input.meters) : 0;
+  const raw = meters * 0.1 * multipliers.effort * multipliers.pack * multipliers.defense;
+  const earned = input.earnedTodayInZone;
+  const room = Math.max(0, DAILY_ZONE_CAP - (earned !== undefined && Number.isFinite(earned) ? earned : 0));
+  const rounded = Math.round(raw);
+  return { rp: Math.min(rounded, room), multipliers, capped: rounded > room };
+}
+
+/** Pontos de uma corrida inteira na v2: soma de `scoreZoneV2` por zona (para a Liga, D-68). */
+export function scoreRunV2(input: {
+  zoneMeters: Readonly<Record<string, number>>;
+  paceSecPerKm: number;
+  basePaceSecPerKm: number;
+  packZones?: ReadonlySet<string>;
+  earnedTodayByZone?: Readonly<Record<string, number>>;
+  blockedZones?: ReadonlySet<string>;
+}): { total: number; zones: { zoneId: string; rp: number; capped: boolean }[] } {
+  const zones: { zoneId: string; rp: number; capped: boolean }[] = [];
+  let total = 0;
+  for (const [zoneId, meters] of Object.entries(input.zoneMeters)) {
+    if (input.blockedZones?.has(zoneId)) continue;
+    const s = scoreZoneV2({
+      meters,
+      paceSecPerKm: input.paceSecPerKm,
+      basePaceSecPerKm: input.basePaceSecPerKm,
+      inPack: input.packZones?.has(zoneId) ?? false,
+      earnedTodayInZone: input.earnedTodayByZone?.[zoneId] ?? 0,
+    });
+    zones.push({ zoneId, rp: s.rp, capped: s.capped });
+    total += s.rp;
+  }
+  zones.sort((a, b) => b.rp - a.rp);
+  return { total, zones };
 }
