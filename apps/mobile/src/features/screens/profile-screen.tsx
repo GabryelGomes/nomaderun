@@ -62,9 +62,7 @@ export function ProfileScreen() {
             format={(n) => `${Math.round(n).toLocaleString('pt-BR')} de ${lvl.needed.toLocaleString('pt-BR')} XP para o nível ${lvl.level + 1}.`}
             accessibilityLabel={`${lvl.intoLevel} de ${lvl.needed} XP para o nível ${lvl.level + 1}.`}
           />
-          <Text variant="small" muted>
-            Cada nível libera uma cor de rastro ou moldura.
-          </Text>
+          {/* R-4 (E10): "Cada nível libera uma cor de rastro ou moldura" prometia algo que não existe; saiu até a E7 entregar. */}
         </View>
       </Surface>
 

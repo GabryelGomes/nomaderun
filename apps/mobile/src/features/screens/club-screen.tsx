@@ -5,14 +5,15 @@ import Animated from 'react-native-reanimated';
 
 import { Button } from '@/components/button';
 import { ChipRow } from '@/components/chip-row';
-import { Icon } from '@/components/icon';
+import { EmptyState } from '@/components/empty-state';
 import { CountUp, FadeUp, PressableScale, Stagger, useParallax } from '@/components/motion';
+import { StatTile } from '@/components/stat-tile';
 import { Surface } from '@/components/surface';
 import { TeamBadge } from '@/components/team-badge';
 import { Text } from '@/components/text';
 import { CITY_MIN_ACTIVE_RUNNERS } from '@/domain/games';
 import type { FactionId } from '@/domain/types';
-import { DEMO_CREW, demoCityWar } from '@/demo/demo-data';
+import { demoCityWar } from '@/demo/demo-data';
 import { CREW_MAX_MEMBERS, getMyCrew } from '@/services/api/crews-repo';
 import { districtOf } from '@/domain/grid';
 import type { Result } from '@/services/api/errors';
@@ -22,7 +23,7 @@ import { factions, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { emptyRankingText, rankingQuery, scopesFor, type Board, type Me, type Period, type Scope } from './club-ranking';
-import { GrowBar, GrowPillar, SectionTitle, SwapFade } from './game-motion';
+import { GrowPillar, SectionTitle, SwapFade } from './game-motion';
 import { podiumOrder } from './game-motion-math';
 import { useResource } from './use-resource';
 
@@ -104,7 +105,6 @@ async function loadMyDistrict(userId: string | null): Promise<Result<{ id: strin
 
 export function ClubScreen() {
   const { colors } = useTheme();
-  const [going, setGoing] = useState(false);
   const userId = useSession((s) => s.session?.userId ?? null);
   const city = useSession((s) => s.profile?.city ?? null);
   const faction = useSession((s) => s.profile?.faction ?? null);
@@ -153,11 +153,16 @@ export function ClubScreen() {
       <Text variant="headline" numberOfLines={2}>
         {myCrew.crew.name}
       </Text>
-      <Text muted>
-        {myCrew.members.length} {myCrew.members.length === 1 ? 'corredor' : 'corredores'}.{' '}
-        {(myCrew.members.reduce((n, m) => n + m.meters, 0) / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km na temporada.
-      </Text>
-      <GrowBar value={myCrew.members.length / CREW_MAX_MEMBERS} color={colors.text} height={10} delay={200} />
+      {/* E-26: a barra "membros ÷ 30" não era meta de nada; ficam os dois números reais da crew. */}
+      <View style={{ flexDirection: 'row', gap: space[2] }}>
+        <StatTile testID="clube-crew-membros" label="Corredores" value={String(myCrew.members.length)} unit={`de ${CREW_MAX_MEMBERS}`} />
+        <StatTile
+          testID="clube-crew-km"
+          label="Na temporada"
+          value={(myCrew.members.reduce((n, m) => n + m.meters, 0) / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}
+          unit="km"
+        />
+      </View>
     </Surface>
   ) : (
     <Surface>
@@ -194,32 +199,13 @@ export function ClubScreen() {
         )}
       </Animated.View>
 
+      {/* D-76: o encontro era de demonstração ("17 confirmados" e um "Confirmar presença" que não gravava).
+          Sem encontro real no servidor, fica o estado vazio; o modo demonstração (onda 2) mostra o exemplo com selo. */}
       <FadeUp delay={120} style={{ gap: space[3] }}>
         <SectionTitle title="Próximo encontro" />
         <Surface>
-          <View style={{ flexDirection: 'row', gap: space[3], alignItems: 'center' }}>
-            <Icon name="club" size={26} color={colors.text} />
-            <View style={{ flex: 1 }}>
-              <Text variant="bodyBold">{DEMO_CREW.nextMeetup.when}</Text>
-              <Text variant="small" muted>
-                {DEMO_CREW.nextMeetup.where}
-              </Text>
-            </View>
-          </View>
-          <Text variant="small" muted>
-            {DEMO_CREW.nextMeetup.going + (going ? 1 : 0)} confirmados. Correr junto vale pontos ×1,25 para todos.
-          </Text>
-          <Button
-            testID="clube-encontro-presenca"
-            label={going ? 'Presença confirmada' : 'Confirmar presença'}
-            icon={going ? 'check' : undefined}
-            kind={going ? 'secondary' : 'primary'}
-            onPress={() => setGoing((g) => !g)}
-          />
+          <EmptyState testID="clube-encontro-vazio" icon="club" tag="Em breve" title="Nenhum encontro marcado" body="Os encontros da crew chegam numa próxima versão." compact />
         </Surface>
-        <Text variant="caption" muted>
-          Encontro de demonstração.
-        </Text>
       </FadeUp>
 
       <View style={{ gap: space[3] }}>

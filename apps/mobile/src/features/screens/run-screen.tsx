@@ -58,7 +58,9 @@ export function RunScreen() {
   const toggleEscort = useGame((s) => s.toggleEscort);
   const contacts = useGame((s) => s.contacts);
   const [mode, setMode] = useState<RunMode | null>(null);
-  const [source, setSource] = useState<RunMode>('simulacao');
+  // D-76: o GPS real é o padrão. A simulação é só uma opção explícita, marcada como demonstração
+  // (na onda 2 ela some da conta real e fica só no modo demonstração).
+  const [source, setSource] = useState<RunMode>('gps');
   const [checkingGps, setCheckingGps] = useState(false);
 
   useEffect(() => {
@@ -173,8 +175,8 @@ export function RunScreen() {
         <View style={{ flexDirection: 'row', gap: space[2] }}>
           {(
             [
-              ['simulacao', 'Simulação', 'Volta no Flamboyant em 10×'],
               ['gps', 'GPS real', 'Use na rua'],
+              ['simulacao', 'Simulação (demonstração)', 'Volta no Flamboyant em 10×'],
             ] as const
           ).map(([key, title, body]) => (
             <PressableScale
@@ -367,7 +369,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
         <View style={{ gap: space[1] }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: space[2] }}>
             <Text variant="caption" muted>
-              {mode === 'simulacao' ? 'Simulação 10×' : 'GPS'}
+              {mode === 'simulacao' ? 'Simulação (demonstração)' : 'GPS'}
               {s.run.autoPaused ? '  Pausa automática' : s.phase === 'paused' ? '  Pausada' : ''}
             </Text>
             <Text variant="caption" muted>
@@ -387,8 +389,8 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             <Text variant="bodyBold" style={{ flex: 1 }} numberOfLines={1}>
               {zoneLabel ?? 'Procurando sinal'}
             </Text>
-            <Text variant="small" tabular muted>
-              +{Math.round(runRp)} RP
+            <Text variant="small" tabular muted accessibilityLabel={`Estimativa: mais ${Math.round(runRp)} pontos`}>
+              ~+{Math.round(runRp)} pts
             </Text>
           </View>
           {owner === faction ? (
@@ -399,7 +401,8 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             <>
               <ProgressBar value={progress} color={factions[faction].color} />
               <Text variant="small" muted numberOfLines={2}>
-                {progress >= 1 ? 'Conquista garantida ao terminar' : `Faltam ${Math.ceil(target - myInfluence - runRp)} RP para conquistar`}
+                {/* E-01: a conta ao vivo é uma estimativa (ignora esforço, escudo e teto); quem decide é o servidor. */}
+                {progress >= 1 ? 'Conquista provável: o servidor confirma ao terminar' : `Faltam cerca de ${Math.ceil(target - myInfluence - runRp)} pontos para conquistar`}
               </Text>
             </>
           )}
@@ -451,10 +454,10 @@ function ActiveRun({ mode }: { mode: RunMode }) {
           accessibilityLabel="Fechar aviso"
           onPress={safety.dismissNotice}
           style={{ position: 'absolute', top: insets.top + space[2], left: space[4], right: space[4], backgroundColor: safety.notice.kind === 'escort' ? colors.surface : colors.danger, padding: space[4], borderRadius: radius.lg, gap: 2, boxShadow: floating }}>
-          <Text variant="bodyBold" color={safety.notice.kind === 'escort' ? colors.text : '#FFFFFF'}>
+          <Text variant="bodyBold" color={safety.notice.kind === 'escort' ? colors.text : colors.onDanger}>
             {safety.notice.kind === 'sos' ? 'SOS com sua localização' : safety.notice.kind === 'stop' ? 'Alerta de parada enviado' : 'Escolta: localização compartilhada'}
           </Text>
-          <Text variant="small" color={safety.notice.kind === 'escort' ? colors.text : '#FFFFFF'}>
+          <Text variant="small" color={safety.notice.kind === 'escort' ? colors.text : colors.onDanger}>
             {safety.notice.result.message} Toque para fechar.
           </Text>
         </Pressable>
@@ -522,6 +525,9 @@ export const COUNTDOWN_STEP_MS = 800;
  */
 function Countdown({ count }: { count: number }) {
   const reduced = useReducedMotion();
+  const { colors } = useTheme();
+  // D-75: texto escuro sobre o laranja (7:1); antes era branco (2,9:1).
+  const ink = colors.onAction;
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const size = Math.round(Math.min(width * 0.62, height * 0.42, 280));
@@ -531,7 +537,7 @@ function Countdown({ count }: { count: number }) {
       testID="corrida-contagem"
       accessibilityLiveRegion="assertive"
       accessibilityLabel={count > 0 ? `Começa em ${count}` : 'Vai!'}
-      style={{ position: 'absolute', inset: 0, backgroundColor: palette.orange, alignItems: 'center', justifyContent: 'center', gap: space[4], paddingTop: insets.top, paddingBottom: insets.bottom }}>
+      style={{ position: 'absolute', inset: 0, backgroundColor: colors.action, alignItems: 'center', justifyContent: 'center', gap: space[4], paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <View style={{ height: size, overflow: 'hidden', justifyContent: 'center' }} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
         <Animated.View
           key={count}
@@ -543,26 +549,26 @@ function Countdown({ count }: { count: number }) {
             animationTimingFunction: reduced ? cssEasings.standard : cssEasings.reveal,
             animationFillMode: 'both',
           }}>
-          <Text variant="hero" tabular color={palette.white} style={{ fontSize: count > 0 ? size : size * 0.45, lineHeight: size, letterSpacing: -4, textAlign: 'center' }}>
+          <Text variant="hero" tabular color={ink} style={{ fontSize: count > 0 ? size : size * 0.45, lineHeight: size, letterSpacing: -4, textAlign: 'center' }}>
             {label}
           </Text>
         </Animated.View>
       </View>
-      <Text variant="lead" color={palette.white}>
+      <Text variant="lead" color={ink}>
         Prepare-se
       </Text>
       <View style={{ flexDirection: 'row', gap: space[2] }} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
         {[3, 2, 1].map((n) => (
-          <View key={n} style={{ width: 40, height: 4, borderRadius: 2, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.35)' }}>
+          <View key={n} style={{ width: 40, height: 4, borderRadius: 2, overflow: 'hidden', backgroundColor: 'rgba(7,7,8,0.22)' }}>
             {n > count ? (
-              <View style={{ flex: 1, backgroundColor: palette.white }} />
+              <View style={{ flex: 1, backgroundColor: ink }} />
             ) : n === count ? (
               <Animated.View
                 key={count}
                 style={{
                   height: '100%',
                   width: '100%',
-                  backgroundColor: palette.white,
+                  backgroundColor: ink,
                   animationName: reduced ? { from: { opacity: 0 }, to: { opacity: 1 } } : { from: { width: '0%' }, to: { width: '100%' } },
                   animationDuration: reduced ? durations.reducedFade : COUNTDOWN_STEP_MS,
                   animationTimingFunction: 'linear',
@@ -642,7 +648,7 @@ function GpsPreflight({ onReady, onSimulate, onCancel }: { onReady: () => void; 
       footer={
         <>
           {actions}
-          <Button testID="gps-usar-simulacao" label="Usar simulação" kind="ghost" wide onPress={onSimulate} />
+          <Button testID="gps-usar-simulacao" label="Usar simulação (demonstração)" kind="ghost" wide onPress={onSimulate} />
         </>
       }>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space[3] }}>
