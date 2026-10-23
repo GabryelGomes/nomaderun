@@ -83,11 +83,41 @@ export function raidWeekWindow(now: number): { startsAt: number; endsAt: number 
 /** Segunda 19/10/2026 06:00 (Brasília): semana 0 da rotação dos chefões. */
 export const RAID_ROTATION_EPOCH = Date.UTC(2026, 9, 19, 9, 0, 0);
 
-/** Chefão da semana que começa em `startsAt`: rotação fixa pelos 5 chefões. */
-export function raidBossForWeek(startsAt: number): RaidBossId {
+/**
+ * D-84: meses (1 = janeiro) em que a Fuligem (fumaça) fica fora do rodízio — a época das queimadas.
+ * A arte (E4) pediu para o jogo não incentivar correr na fumaça.
+ */
+export const RAID_FULIGEM_OFF_MONTHS: readonly number[] = Object.freeze([8, 9]);
+
+const BRT_MS = -3 * HOUR;
+
+/** Semana do rodízio (0 = a da época) do instante: a semana de Brasília que o contém (segunda 00:00). */
+const rotationWeek = (at: number) => Math.round((weekStartBrt(at) - weekStartBrt(RAID_ROTATION_EPOCH)) / WEEK);
+
+/** Mês (1–12, Brasília) da segunda-feira que abre a semana do instante. */
+export const raidWeekMonth = (at: number) => new Date(weekStartBrt(at) - BRT_MS).getUTCMonth() + 1;
+
+/**
+ * Rodízio puro, sem a D-84: os 5 chefões em ordem fixa a partir da semana de 19/10/2026 (Soneca).
+ * Vale qualquer instante da semana (de segunda 00:00 a domingo 23:59 de Brasília), como o
+ * `private.raid_boss_for_week(week_start)` do servidor.
+ */
+export function raidRotationBossForWeek(startsAt: number): RaidBossId {
   const n = RAID_BOSS_IDS.length;
-  const week = Math.floor((startsAt - RAID_ROTATION_EPOCH) / WEEK);
+  const week = rotationWeek(startsAt);
   return RAID_BOSS_IDS[((week % n) + n) % n];
+}
+
+/**
+ * Chefão da semana do instante `startsAt`: o rodízio fixo, com a D-84 — nas semanas que começam (segunda-feira,
+ * Brasília) em agosto ou setembro, a Fuligem é pulada e entra o próximo chefão do rodízio (Mormaço). As outras
+ * semanas não mudam. Paridade com o job do servidor (E9): `private.raid_boss_for_week`.
+ */
+export function raidBossForWeek(startsAt: number): RaidBossId {
+  const boss = raidRotationBossForWeek(startsAt);
+  if (boss !== 'fuligem' || !RAID_FULIGEM_OFF_MONTHS.includes(raidWeekMonth(startsAt))) return boss;
+  const i = RAID_BOSS_IDS.indexOf(boss);
+  return RAID_BOSS_IDS[(i + 1) % RAID_BOSS_IDS.length];
 }
 
 /* ---------- vida, fator e fases ---------- */

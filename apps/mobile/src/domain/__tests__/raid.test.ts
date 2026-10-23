@@ -14,8 +14,11 @@ import {
   RAID_ROTATION_EPOCH,
   RAID_RUN_CAP_KM,
   raidAdvancePhase,
+  RAID_FULIGEM_OFF_MONTHS,
   raidBossForWeek,
   raidCritRoll,
+  raidRotationBossForWeek,
+  raidWeekMonth,
   raidDamage,
   raidDamageSince,
   raidHpFor,
@@ -60,6 +63,55 @@ describe('calendário e chefões', () => {
     expect(raidBossForWeek(MON + 7 * D)).toBe('rei-buzina');
     expect(raidBossForWeek(MON - 7 * D)).toBe('paredao');
     expect(raidBossForWeek(MON + 35 * D)).toBe('soneca');
+  });
+
+  it('a semana vale de segunda 00:00 a domingo 23:59 (Brasília), como o week_start do servidor', () => {
+    expect(raidBossForWeek(brt(2026, 10, 19, 0))).toBe('soneca');
+    expect(raidBossForWeek(brt(2026, 10, 25, 23, 59))).toBe('soneca');
+    expect(raidBossForWeek(brt(2026, 10, 26, 0))).toBe('rei-buzina');
+    expect(raidRotationBossForWeek(brt(2026, 10, 19, 0))).toBe('soneca');
+  });
+});
+
+describe('D-84: a Fuligem fica fora do rodízio em agosto e setembro', () => {
+  it('exemplos de 2027: a semana da Fuligem que começa em agosto ou setembro vira Mormaço', () => {
+    expect(RAID_FULIGEM_OFF_MONTHS).toEqual([8, 9]);
+    expect(raidRotationBossForWeek(brt(2027, 8, 9, 6))).toBe('fuligem');
+    expect(raidBossForWeek(brt(2027, 8, 9, 6))).toBe('mormaco');
+    expect(raidBossForWeek(brt(2027, 9, 13, 6))).toBe('mormaco');
+    // as vizinhas seguem o rodízio
+    expect(raidBossForWeek(brt(2027, 8, 2, 6))).toBe('rei-buzina');
+    expect(raidBossForWeek(brt(2027, 8, 16, 6))).toBe('mormaco');
+    // fora de agosto e setembro a Fuligem volta
+    expect(raidBossForWeek(MON + 14 * D)).toBe('fuligem');
+    expect(raidWeekMonth(brt(2027, 8, 9, 6))).toBe(8);
+  });
+
+  it('o mês é o da segunda-feira que abre a semana (Brasília), não o do instante', () => {
+    // semana que começa em 26/07/2027 e termina em agosto: conta como julho
+    expect(raidWeekMonth(brt(2027, 8, 1, 20))).toBe(7);
+    // semana que começa em 27/09/2027 e termina em outubro: conta como setembro
+    expect(raidWeekMonth(brt(2027, 10, 2, 12))).toBe(9);
+    // 31/07 às 23:30 de Brasília ainda é julho (01/08 02:30 em UTC)
+    expect(raidWeekMonth(brt(2027, 7, 31, 23, 30))).toBe(7);
+  });
+
+  it('propriedade: em 6 anos de semanas, nenhuma de agosto/setembro tem a Fuligem e as outras seguem o rodízio', () => {
+    let skipped = 0;
+    for (let w = -60; w < 320; w++) {
+      const at = MON + w * 7 * D + (w % 7) * D; // qualquer dia da semana
+      const month = raidWeekMonth(at);
+      const boss = raidBossForWeek(at);
+      const plain = raidRotationBossForWeek(at);
+      if (month === 8 || month === 9) {
+        expect(boss).not.toBe('fuligem');
+        if (plain === 'fuligem') {
+          expect(boss).toBe('mormaco');
+          skipped++;
+        } else expect(boss).toBe(plain);
+      } else expect(boss).toBe(plain);
+    }
+    expect(skipped).toBeGreaterThanOrEqual(10);
   });
 });
 
