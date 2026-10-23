@@ -4,7 +4,7 @@
 -- Com as flags desligadas, o contexto não carrega nada (a function nem chama a gravação v2).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(39);
+select plan(40);
 
 select ok(not has_function_privilege('authenticated', 'public.svc_v2_context(uuid, uuid, text[])', 'execute')
           and not has_function_privilege('authenticated', 'public.svc_apply_v2(jsonb)', 'execute')
@@ -126,6 +126,13 @@ select is((select count(*) from public.xp_ledger where user_id = 'e9e9e9e9-0022-
   'repetir não credita XP de novo');
 select is((public.svc_v2_context('e9e9e9e9-0022-4000-8000-00000000000a', 'e9e9e9e9-1022-4000-8000-000000000001') -> 'done' ->> 'version'), '1',
   'o contexto devolve o que já foi aplicado (a function só monta os extras)');
+select pg_temp.act(5);
+update public.activities set xp = 77 where id = 'e9e9e9e9-1022-4000-8000-000000000005';
+select is((public.svc_apply_v2(jsonb_build_object('activityId', 'e9e9e9e9-1022-4000-8000-000000000005',
+             'userId', 'e9e9e9e9-0022-4000-8000-00000000000a', 'faction', 'striders',
+             'xpLines', '[{"source": "run_distance", "amount": 50}]'::jsonb)) #>> '{engagement,runXp}')::int
+          + (select count(*)::int from public.xp_ledger where ref = 'e9e9e9e9-1022-4000-8000-000000000005'), 0,
+  'corrida que a v1 já pagou (finalizada antes de ligar o engajamento): a v2 não paga o XP de novo');
 select throws_like($$ select public.svc_apply_v2(jsonb_build_object('activityId', 'e9e9e9e9-1022-4000-8000-000000000002',
                                                                     'userId', 'e9e9e9e9-0022-4000-8000-00000000000a')) $$,
   '%NOT_SCORED%', 'corrida em revisão: a v2 espera a aprovação');
@@ -138,8 +145,10 @@ insert into public.zones (id, name, city, geom) values
     '{"type":"Polygon","coordinates":[[[-51.2173721778165,-30.036324475878015],[-51.21630560724396,-30.0350282146007],[-51.217260040920266,-30.033559365310325],[-51.21928102307092,-30.03338679177478],[-51.22034758026746,-30.034683058704122],[-51.219393168690495,-30.036151893517015],[-51.2173721778165,-30.036324475878015]]]}'), 4326));
 update public.game_config set value = '"v2"' where key = 'territory_rule';
 select pg_temp.act(3);
-insert into public.activity_zones (activity_id, zone_id, user_id, faction, meters, rp, outcome)
-values ('e9e9e9e9-1022-4000-8000-000000000003', '89a90128e3bffff', 'e9e9e9e9-0022-4000-8000-00000000000a', 'striders', 300, 40, 'influence');
+insert into public.zones (id, name, geom) values ('e9e9e9e9e9e9e22', 'Zona sem pintura', extensions.st_makeenvelope(-51.3, -30.1, -51.29, -30.09, 4326));
+insert into public.activity_zones (activity_id, zone_id, user_id, faction, meters, rp, outcome, owner_after)
+values ('e9e9e9e9-1022-4000-8000-000000000003', '89a90128e3bffff', 'e9e9e9e9-0022-4000-8000-00000000000a', 'striders', 300, 40, 'influence', null),
+       ('e9e9e9e9-1022-4000-8000-000000000003', 'e9e9e9e9e9e9e22', 'e9e9e9e9-0022-4000-8000-00000000000a', 'striders', 100, 10, 'conquered', 'striders');
 create temp table zv as select version from public.zones where id = '89a90128e3bffff';
 
 select throws_like(format($$ select public.svc_apply_v2(jsonb_build_object(
@@ -176,8 +185,10 @@ select is((select count(*)::int from public.zone_cells where zone_id = '89a90128
 select ok((select name is not null and rule_version = 2 from public.zones where id = '89a90128e0fffff'), 'zona nova criada pela pintura, com nome');
 select is((select count(*)::int from public.paint_marks where user_id = 'e9e9e9e9-0022-4000-8000-00000000000a' and day = public.br_today()), 3,
   '"já pintou hoje" registrado');
-select results_eq($$ select outcome, owner_after from public.activity_zones where activity_id = 'e9e9e9e9-1022-4000-8000-000000000003' $$,
-  $$ values ('conquered'::text, 'striders'::text) $$, 'contribuição da corrida passa a contar a conquista pela pintura');
+select results_eq($$ select outcome, owner_after from public.activity_zones where activity_id = 'e9e9e9e9-1022-4000-8000-000000000003'
+                     order by zone_id $$,
+  $$ values ('conquered'::text, 'striders'::text), ('influence', null) $$,
+  'contribuição passa a contar a conquista pela pintura; a zona que a pintura não tocou não conquista');
 select ok(exists (select 1 from public.zone_events where zone_id = '89a90128e3bffff' and type = 'captured'
                                                    and activity_id = 'e9e9e9e9-1022-4000-8000-000000000003')
           and exists (select 1 from public.notifications where user_id = 'e9e9e9e9-0022-4000-8000-00000000000a' and type = 'conquest'

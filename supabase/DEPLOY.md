@@ -128,3 +128,44 @@ Mudou o domain? Rode `npm run domain:copy` de novo antes do próximo deploy (`np
 - **Segredo do baú do dia:** a migration gera `private.server_secrets('daily_chest_hmac')` com 32 bytes aleatórios no próprio banco (nada no repositório). Para trocar: `update private.server_secrets set value = extensions.gen_random_bytes(32) where name = 'daily_chest_hmac';` (os baús já abertos não mudam).
 - **Ligar uma feature:** `update public.game_config set value = value || '{"raid": true}' where key = 'features';`. **Desligar** (volta atrás na hora): o mesmo com `false`. Ordem sugerida, depois do EAS Update: `dailyChest`, `missions`, `track`, `raid`, `league`, `streakV2`. A gravação v2 do `finish-activity` (onda 2) é que alimenta raid, liga, missões e baú com as corridas; antes dela, as telas abrem, mas só as RPCs do app mexem nos dados.
 - **Conferir depois do `db push`:** `select public.server_info();` no SQL Editor (como `authenticated`, com `set role`), `select jobname, schedule from cron.job;` e `npx supabase db advisors --linked`.
+
+## 8. Onda 2 (T7.2.1 e T7.2.2): gravação v2, pintura, feed, recordes, LGPD v2
+
+### 8.1 O que sobe
+
+| Ordem | O quê | Observação |
+|---|---|---|
+| 1 | Backup | `npx supabase db dump --linked -f backup-<data>.sql` e `--data-only` |
+| 2 | Testes locais | `npm run db:test:local` (716 pgTAP), `npx -y deno test --allow-read --config supabase/functions/deno.json supabase/functions/tests` e o `deno check` das 8 functions. Com o seed v2: `NR_EXTRA_SQL="supabase/seed_v2_demo.sql supabase/seed_v2_demo.sql" NR_EXTRA_TESTS=supabase/tests/seed/seed_v2_demo.test.sql npm run db:test:local` |
+| 3 | Migrations | `npx supabase db push --dry-run` e `db push`: `20261023120700_paint`, `…120800_records_social`, `…120900_v2_recording`, `…121000_engagement_lgpd`. Todas aditivas. Objetos antigos tocados: `private.raid_boss_for_week` (D-84) e os comandos dos jobs `nomaderun-decay-zones` e `nomaderun-fortify-zones` (mesmo nome e horário; agora só rodam com `territory_rule = 'v1'`) |
+| 4 | Functions | `npx supabase functions deploy finish-activity moderate-activity account-export` (as outras não mudaram; o `bundle-check` continua valendo). Com as flags desligadas, a resposta é a mesma de antes |
+| 5 | EAS Update | o app novo, que lê `extras` e as RPCs novas |
+| 6 | Flags, uma por vez | abaixo |
+| 7 | Seed v2 (só demonstração/apresentação) | `psql "$DB_URL" -f supabase/seed_v2_demo.sql` depois do `seed.sql`. Idempotente; não liga flag; não cria Raid nem Liga (D-76); a conta nova `parceira_demo` não tem senha |
+
+**Compatibilidade.** App antigo × servidor novo: igual a hoje enquanto as flags estiverem desligadas; com flags ligadas, só ganha o campo `extras`, que ele ignora (com `missions` ligada, o `xp` da resposta passa a ser o XP v2 da atividade; com o território v2, os `zones[].outcome` refletem a pintura). App novo × servidor antigo: `server_info` não existe (`PGRST202`) e o finish não manda `extras` → o app mostra o modo atual. Function nova × banco sem as migrations da onda 2: `svc_v2_context` não existe → a v2 falha, é registrada no log e a resposta sai sem `extras` (a v1 nunca é afetada). Por isso a ordem é migrations → functions.
+
+### 8.2 Flags (ordem sugerida, depois do EAS Update)
+
+```sql
+update public.game_config set value = value || '{"records": true}' where key = 'features';     -- recordes e parciais
+update public.game_config set value = value || '{"missions": true, "dailyChest": true, "track": true}' where key = 'features';  -- XP em linhas, missões, baú
+update public.game_config set value = value || '{"feed": true}' where key = 'features';        -- feed da crew e aplausos
+update public.game_config set value = value || '{"raid": true}' where key = 'features';        -- o job abre o chefão na segunda 06:00
+update public.game_config set value = value || '{"league": true}' where key = 'features';      -- liga semanal
+```
+Desligar é o mesmo comando com `false` (volta atrás na hora; o que já foi gravado fica).
+
+### 8.3 Virada do território (D-62), na troca de temporada
+
+1. Confirme que o app publicado já tem a pintura (EAS Update) e que `job_fade_cells` está agendado (`select jobname, schedule, command from cron.job;`).
+2. `update public.game_config set value = '"v2"' where key = 'territory_rule';` — o trigger `game_config_territory_switch` aplica a herança na mesma transação: cada zona com dono recebe 3 trechos virtuais do dono por 7 dias (`inherit_*`), `rule_version = 2`. `select public.job_territory_switch();` refaz (idempotente).
+3. Daí em diante: o `finish-activity` pinta (`zone_cells`, `paint_marks`), o `job_fade_cells` (03:00 BRT) desbota e reavalia os donos, e o decaimento/fortificar por influência deixam de rodar.
+4. **Volta atrás:** `update public.game_config set value = '"v1"' where key = 'territory_rule';`. As zonas ficam com o dono e a influência-espelho (trechos × 10) e a regra v1 continua a partir daí; os trechos ficam guardados (invisíveis na v1) para uma nova virada.
+
+### 8.4 Conferir
+
+- `select public.zone_paint_near(-16.7097, -49.2388, 1500);` (como `authenticated`): sem `painted_at`, sem autor, sem trecho em zona de privacidade.
+- Uma corrida de teste com `missions` ligada: `select v2_extras from public.activities where id = '<id>';` e `select * from public.xp_ledger where ref = '<id>';`.
+- `select public.svc_account_export_v2('<user>') ? 'xpLedger';` → `true`.
+- `npx supabase db advisors --linked` (RLS e `search_path` das funções novas).

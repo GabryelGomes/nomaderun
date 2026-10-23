@@ -356,7 +356,11 @@ begin
     for ev in select * from jsonb_array_elements(coalesce(p -> 'paint' -> 'events', '[]'::jsonb)) loop
       perform private.v2_zone_event(ev, v_act, v_user, v_faction);
     end loop;
-    -- O resumo e a tabela de contribuição passam a contar a pintura (conquistou/defendeu)
+    -- O resumo e a tabela de contribuição passam a contar a pintura (conquistou/defendeu); zona que a v1 pontuou e a
+    -- pintura não tocou fica como "influence" (na v2 a influência não decide dono)
+    update public.activity_zones set outcome = 'influence', owner_before = null, owner_after = null
+     where activity_id = v_act
+       and zone_id not in (select x ->> 'zoneId' from jsonb_array_elements(coalesce(p -> 'paint' -> 'summary' -> 'zones', '[]'::jsonb)) x);
     for z in select * from jsonb_array_elements(coalesce(p -> 'paint' -> 'summary' -> 'zones', '[]'::jsonb)) loop
       update public.activity_zones
          set outcome = case z ->> 'outcome' when 'conquistada' then 'conquered' when 'defendida' then 'defended' else 'influence' end,
@@ -366,7 +370,8 @@ begin
     if jsonb_typeof(a.result -> 'zones') = 'array' then
       update public.activities
          set result = jsonb_set(result, '{zones}', coalesce((
-               select jsonb_agg(case when s.zr is null then e
+               select jsonb_agg(case when s.zr is null
+                                     then e || jsonb_build_object('outcome', 'influence', 'ownerBefore', null, 'ownerAfter', null)
                                      else e || jsonb_build_object(
                                        'outcome', case s.zr ->> 'outcome' when 'conquistada' then 'conquered'
                                                                           when 'defendida' then 'defended' else 'influence' end,
@@ -410,7 +415,8 @@ begin
          last_activity_at = greatest(coalesce(last_activity_at, v_end), v_end)
    where id = v_user;
   if jsonb_typeof(p -> 'xpLines') = 'array' then
-    for l in select * from jsonb_array_elements(p -> 'xpLines') loop
+    -- a v1 já pagou o XP desta corrida (finalizada antes de ligar o engajamento e reenviada agora): não paga de novo
+    for l in select * from jsonb_array_elements(p -> 'xpLines') where a.xp <= 0 loop
       if l ->> 'source' in ('run_distance', 'run_complete', 'fog', 'ghost', 'hunt_chest') then
         v_amount := private.grant_xp(v_user, l ->> 'source', v_act::text, (l ->> 'amount')::integer);
         if v_amount > 0 then
@@ -444,10 +450,12 @@ begin
       v_lines := v_lines || jsonb_build_object('source', 'mission', 'amount', v_amount);
     end if;
     -- response.xp (clientes antigos) = XP da atividade na v2; o v1 não creditou nada (a function mandou xp = 0)
-    update public.activities
-       set xp = v_run_xp,
-           result = case when result is null then result else jsonb_set(result, '{xp}', to_jsonb(v_run_xp)) end
-     where id = v_act;
+    if a.xp <= 0 then
+      update public.activities
+         set xp = v_run_xp,
+             result = case when result is null then result else jsonb_set(result, '{xp}', to_jsonb(v_run_xp)) end
+       where id = v_act;
+    end if;
     select * into pr from public.profiles where id = v_user;
     v_raw := v_raw || jsonb_build_object('engagement', jsonb_build_object(
       'xpBefore', v_xp_before, 'xpAfter', pr.xp, 'runXp', v_run_xp, 'lines', v_lines,
