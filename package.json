@@ -20,7 +20,8 @@
     "domain:copy:check": "node supabase/scripts/domain-copy.mjs --check",
     "domain:copy:restore": "node supabase/scripts/domain-copy.mjs --restore",
     "deploy": "bash supabase/scripts/deploy.sh",
-    "celular": "bash scripts/dev-celular.sh"
+    "celular": "bash scripts/dev-celular.sh",
+    "publicar": "bash scripts/publicar.sh"
   },
   "devDependencies": {
     "supabase": "2.121.0"

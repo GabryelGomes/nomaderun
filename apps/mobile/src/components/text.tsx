@@ -3,6 +3,7 @@ import { Text as RNText, type TextProps } from 'react-native';
 import { fonts, type as scale } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
+export type TextVariant = Variant;
 type Variant = 'hero' | 'metric' | 'headline' | 'title' | 'lead' | 'body' | 'bodyBold' | 'small' | 'caption' | 'label';
 
 const VARIANTS: Record<Variant, { fontFamily: string; fontSize: number; lineHeight?: number; letterSpacing?: number }> = {
@@ -17,6 +18,9 @@ const VARIANTS: Record<Variant, { fontFamily: string; fontSize: number; lineHeig
   caption: { fontFamily: fonts.textMedium, fontSize: scale.caption, lineHeight: scale.caption * 1.35 },
   label: { fontFamily: fonts.textBold, fontSize: scale.caption, lineHeight: scale.caption * 1.3, letterSpacing: 0.6 },
 };
+
+/** Métricas de cada variante (usadas pelo `RevealText` para medir a máscara). */
+export const TEXT_VARIANTS: Readonly<typeof VARIANTS> = VARIANTS;
 
 export type AppTextProps = TextProps & { variant?: Variant; color?: string; muted?: boolean; tabular?: boolean };
 

@@ -1,11 +1,14 @@
 import { Link, type Href } from 'expo-router';
-import { useState, type ReactNode } from 'react';
-import { KeyboardAvoidingView, Pressable, ScrollView, TextInput, View, type TextInputProps } from 'react-native';
+import { useState, type ReactNode, type Ref } from 'react';
+import { Pressable, TextInput, View, type TextInputProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/icon';
+import { Pressable as PressableScale } from '@/components/motion';
+import { ScreenScroll, type Edge, type ScreenScrollProps } from '@/components/screen';
 import { Text } from '@/components/text';
 import { fonts, palette, radius, space } from '@/theme/tokens';
+import { neon } from '@/theme/neon';
 import { useTheme } from '@/theme/use-theme';
 
 /**
@@ -13,26 +16,46 @@ import { useTheme } from '@/theme/use-theme';
  * (52 pt, raio md, fundo surface, Inter 17), mesmos espaçamentos e tipografia.
  */
 
-/** Mesmo contêiner do onboarding: rolagem, margens de 24 pt e espaço para o teclado. */
-export function FormScaffold({ children, testID, modal }: { children: ReactNode; testID?: string; modal?: boolean }) {
+/**
+ * Contêiner das telas de conta (T6.2, D-54): `ScreenScroll` com área segura, teclado tratado (toques
+ * passam com o teclado aberto; no iOS o conteúdo sobe junto), margens de 24 pt do visual aprovado e CTA
+ * fixo opcional (`footer`), cujo espaço fica reservado no fim do conteúdo.
+ * - `modal`: tela apresentada como modal (termos, privacidade). No iOS é folha, sem área segura em cima;
+ *   no Android/web é tela cheia e precisa dela.
+ * - `nativeHeader`: tela com cabeçalho nativo (contatos, zonas de privacidade): só a área segura de baixo.
+ */
+export function FormScaffold({
+  children,
+  testID,
+  modal,
+  nativeHeader,
+  footer,
+  footerProps,
+  background,
+}: {
+  children: ReactNode;
+  testID?: string;
+  modal?: boolean;
+  nativeHeader?: boolean;
+  footer?: ReactNode;
+  footerProps?: ScreenScrollProps['footerProps'];
+  /** Fundo próprio atrás do conteúdo (ex.: `NeonBackdrop`). */
+  background?: ReactNode;
+}) {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const sheet = nativeHeader || (modal && process.env.EXPO_OS === 'ios');
+  const edges: Edge[] = sheet ? ['bottom'] : ['top', 'bottom'];
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={process.env.EXPO_OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView
-        testID={testID}
-        style={{ flex: 1, backgroundColor: colors.background }}
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingTop: (modal ? 0 : insets.top) + space[8],
-          paddingBottom: insets.bottom + space[6],
-          paddingHorizontal: space[6],
-          gap: space[6],
-        }}
-        keyboardShouldPersistTaps="handled">
-        {children}
-      </ScrollView>
-    </KeyboardAvoidingView>
+    <ScreenScroll
+      testID={testID}
+      edges={edges}
+      footer={footer}
+      footerProps={footerProps}
+      background={background}
+      gap={space[6]}
+      contentContainerStyle={{ flexGrow: 1, paddingHorizontal: space[6], paddingTop: (sheet ? 0 : insets.top) + (nativeHeader ? space[4] : space[6]) }}>
+      {children}
+    </ScreenScroll>
   );
 }
 
@@ -43,11 +66,16 @@ export type TextFieldProps = Omit<TextInputProps, 'style'> & {
   testID: string;
   /** Campo de senha com botão "mostrar". */
   secret?: boolean;
+  /** Referência do campo, para encadear o "próximo" do teclado. */
+  inputRef?: Ref<TextInput>;
+  /** Campo dentro de um card (fundo `surface`): usa o fundo da tela para continuar visível. */
+  onSurface?: boolean;
 };
 
-export function TextField({ label, error, help, testID, secret, ...input }: TextFieldProps) {
+export function TextField({ label, error, help, testID, secret, inputRef, onSurface, ...input }: TextFieldProps) {
   const { colors } = useTheme();
   const [hidden, setHidden] = useState(true);
+  const [focused, setFocused] = useState(false);
   return (
     <View style={{ gap: space[2] }}>
       <Text variant="caption" muted nativeID={`${testID}-label`}>
@@ -56,23 +84,36 @@ export function TextField({ label, error, help, testID, secret, ...input }: Text
       <View style={{ justifyContent: 'center' }}>
         <TextInput
           {...input}
+          ref={inputRef}
           testID={testID}
           accessibilityLabel={label}
           accessibilityLabelledBy={`${testID}-label`}
           accessibilityHint={error ?? undefined}
           secureTextEntry={secret ? hidden : input.secureTextEntry}
+          onFocus={(e) => {
+            setFocused(true);
+            input.onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            input.onBlur?.(e);
+          }}
           placeholderTextColor={colors.textSecondary}
           style={{
             height: 52,
             borderRadius: radius.md,
             paddingHorizontal: space[4],
             paddingRight: secret ? 56 : space[4],
-            backgroundColor: colors.surface,
+            backgroundColor: onSurface ? colors.background : colors.surface,
             color: colors.text,
             fontFamily: fonts.text,
             fontSize: 17,
-            borderWidth: error ? 1 : 0,
-            borderColor: error ? colors.danger : 'transparent',
+            // Foco com borda e brilho na cor de ação (D-58): indicador de foco visível em todos os formulários.
+            borderWidth: error || focused ? 1 : 0,
+            borderColor: error ? colors.danger : focused ? colors.action : 'transparent',
+            boxShadow: focused && !error ? neon.focusGlow : undefined,
+            // Sem o contorno padrão do navegador por cima da borda de foco (web).
+            outlineWidth: 0,
           }}
         />
         {secret ? (
@@ -155,12 +196,13 @@ export function CheckRow({
   return (
     <View style={{ gap: space[1] }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
-        <Pressable
+        <PressableScale
           testID={testID}
           accessibilityRole="checkbox"
           accessibilityState={{ checked }}
           accessibilityLabel={label}
           onPress={() => onChange(!checked)}
+          hitSlop={0}
           style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
           <View
             style={{
@@ -176,7 +218,7 @@ export function CheckRow({
             }}>
             {checked ? <Icon name="check" size={16} color={colors.onAction} /> : null}
           </View>
-        </Pressable>
+        </PressableScale>
         <View style={{ flex: 1 }}>{children}</View>
       </View>
       {error ? (
@@ -192,17 +234,18 @@ export function CheckRow({
 export function TextLink({ href, label, testID, onPress }: { href?: Href; label: string; testID: string; onPress?: () => void }) {
   const { colors } = useTheme();
   const content = (
-    <Pressable
+    <PressableScale
       testID={testID}
       accessibilityRole="link"
       accessibilityLabel={label}
       onPress={onPress}
       hitSlop={4}
-      style={{ minHeight: 44, justifyContent: 'center', alignSelf: 'center', paddingHorizontal: space[2] }}>
+      containerStyle={{ alignSelf: 'center' }}
+      style={{ minHeight: 44, justifyContent: 'center', paddingHorizontal: space[2] }}>
       <Text variant="bodyBold" color={colors.accentText}>
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
   return href ? (
     <Link href={href} asChild>

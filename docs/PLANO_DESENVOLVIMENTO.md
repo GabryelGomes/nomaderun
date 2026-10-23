@@ -90,6 +90,18 @@ Legenda de status: ⬜ a fazer · 🟨 em andamento · ✅ feito · ⛔ bloquead
 
 **Situação final:** todas as tarefas T0–T5 concluídas. O MVP está pronto para apresentação com o backend local ou no Supabase Cloud. O que falta depende de aparelho, de conta no Cloud ou de credenciais (pendências abertas no `PROGRESSO.md`).
 
+### Fase 6 — Layout mobile e motion (D-54)
+Auditoria inicial (A1, 2026-10-23, navegador em 375×667 e 390×844): `docs/ui-audit/2026-10-antes-iphone-se.png`. Achados: botão "Começar" cobre o fim da Nova corrida; filtros de período quebram em 2 linhas em Atividades; botão dentro de botão no Clube (erro de hidratação); botão solto no fim de Zonas de privacidade; card de alerta + "Correr" ocupam ~metade do mapa no iPhone SE. Problemas só do aparelho (áreas seguras, cabeçalhos nativos, folha da zona) entram na auditoria por código de cada agente.
+
+| ID | Tarefa | Dono | Depende | Status |
+|---|---|---|---|---|
+| T6.1 | Fundação: tokens de motion (`src/theme/motion.ts`), primitivas (revelar texto por palavras, entrada em cascata, contador, pressionar, transição de tela, cabeçalho com parallax), helper de layout mobile (área segura + barra fixa inferior que reserva espaço), guia `docs/DESIGN_MOBILE_MOTION.md` com o checklist da skill | A7 Design/Motion | — | ✅ |
+| T6.2 | Telas de conta e perfil: entrar, cadastro, recuperar/nova senha, onboarding, perfil, editar, conta, notificações, contatos, zonas de privacidade, termos | A3 | T6.1 | ✅ |
+| T6.3 | Telas de jogo: mapa, folha da zona, arena, clube, crew, moderação | A8 Frontend 2 | T6.1 | ✅ |
+| T6.4 | Fluxo da corrida: nova corrida, contagem 3-2-1, corrida, resumo/celebração, atividades | A4 | T6.1 | ✅ |
+| T6.5 | QA visual e de acessibilidade em 360×640, 375×667, 390×844 e 430×932; regerar imagens de referência; reduzir movimento; desempenho | A5 | T6.2–T6.4 | ✅ (`QA.md` §14; 60 fps e leitor de tela no aparelho: P-45) |
+| T6.6 | Docs e fechamento (README/guia de apresentação com os novos motions) | A1/A6 | T6.5 | ⬜ |
+
 ## 5. Pós-MVP / próximos passos
 
 Em ordem de prioridade. Os três primeiros grupos são necessários antes de qualquer piloto com corredores reais.

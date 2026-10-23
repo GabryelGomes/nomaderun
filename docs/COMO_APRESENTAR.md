@@ -11,9 +11,15 @@ Instalação e comandos básicos: [`README.md`](../README.md). Publicação na n
 | Opção | Quando usar | O que muda |
 |---|---|---|
 | **A. Backend local no notebook** | Rede da sala confiável e notebook com Docker | Celular e notebook na **mesma rede Wi-Fi**; o `.env` do app aponta para o IP do notebook (`http://<ip>:54321`). Se a rede da faculdade isolar os aparelhos entre si, use o roteador do próprio celular (ponto de acesso) para os dois |
-| **B. Supabase Cloud** | Não quer depender do notebook nem da rede local | Siga `supabase/DEPLOY.md` com `WITH_SEED=1` (contas e zonas de demonstração). O `.env` aponta para `https://<ref>.supabase.co`. Precisa de conta no Supabase (P-08) |
+| **B. Supabase Cloud** | Não quer depender do notebook nem da rede local | Siga `supabase/DEPLOY.md` com `WITH_SEED=1` (contas e zonas de demonstração). O `.env` aponta para `https://<ref>.supabase.co`. Precisa de conta no Supabase |
+| **C. App publicado + Cloud (recomendado, já configurado)** | Apresentar sem notebook, de qualquer rede (Wi-Fi ou 4G) | Backend no projeto `rbdxksunpfbaxkelnsob` do Supabase Cloud e app no EAS Update (branch `demo`, conta `deltafaria785`). Abra pelo QR do botão **Preview** do último update em expo.dev, com o Expo Go logado numa conta do projeto. Para publicar uma versão nova: `npm run publicar -- "mensagem"` (usa sempre o `apps/mobile/.env.production`, nunca o `.env` local) |
 
-As duas funcionam com o Expo Go. Escolha uma e ensaie com ela.
+A, B e C funcionam com o Expo Go. Escolha uma e ensaie com ela.
+
+**Antes de usar a nuvem (B ou C):**
+- **Senhas das contas de demonstração:** as do seed estão no README, e o repositório é público. No projeto da nuvem, troque a senha de `admin.demo` e `moderador.demo` (painel **Authentication → Users**, ou no **SQL Editor**: `update auth.users set encrypted_password = crypt('NOVA_SENHA', gen_salt('bf')) where email in ('admin.demo@nomaderun.app','moderador.demo@nomaderun.app');`). Guarde as novas senhas só com a equipe.
+- **Limite de login:** suba para **30** em **Authentication → Rate Limits → Sign-ups and sign-ins** antes do ensaio e da apresentação; volte para 3 depois.
+- **Projeto pausado:** o plano gratuito pausa o projeto depois de uma semana sem uso; abra o app uns dias antes (ou clique em **Restore** no painel).
 
 ## 2. Checklist do dia anterior
 

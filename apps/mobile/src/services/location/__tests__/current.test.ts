@@ -1,0 +1,40 @@
+import { describe, expect, it, jest } from '@jest/globals';
+
+jest.mock('expo-location', () => ({ Accuracy: { Balanced: 3 } }));
+
+/* eslint-disable import/first */
+import { currentPosition, type CurrentPositionApi } from '../current';
+/* eslint-enable import/first */
+
+const pos = (lat: number, lng: number) => ({ coords: { latitude: lat, longitude: lng } });
+
+function api(over: Partial<Record<keyof CurrentPositionApi, unknown>> = {}): CurrentPositionApi {
+  return {
+    hasServicesEnabledAsync: async () => true,
+    getForegroundPermissionsAsync: async () => ({ status: 'granted', granted: true, canAskAgain: true }),
+    requestForegroundPermissionsAsync: async () => ({ status: 'granted', granted: true, canAskAgain: true }),
+    getLastKnownPositionAsync: async () => null,
+    getCurrentPositionAsync: async () => pos(-15.8, -47.9),
+    ...over,
+  } as unknown as CurrentPositionApi;
+}
+
+describe('currentPosition — centro do mapa na posição real', () => {
+  it('usa a última posição conhecida quando existe', async () => {
+    expect(await currentPosition(api({ getLastKnownPositionAsync: async () => pos(-23.55, -46.63) }))).toEqual({ lat: -23.55, lng: -46.63 });
+  });
+
+  it('sem posição recente, pede uma nova', async () => {
+    expect(await currentPosition(api())).toEqual({ lat: -15.8, lng: -47.9 });
+  });
+
+  it('sem permissão ou com GPS desligado, devolve null (mapa de demonstração)', async () => {
+    expect(await currentPosition(api({ getForegroundPermissionsAsync: async () => ({ status: 'denied', granted: false, canAskAgain: true }) }))).toBeNull();
+    expect(await currentPosition(api({ hasServicesEnabledAsync: async () => false }))).toBeNull();
+  });
+
+  it('GPS que não responde a tempo ou falha devolve null', async () => {
+    expect(await currentPosition(api({ getCurrentPositionAsync: () => new Promise(() => undefined) }), 20)).toBeNull();
+    expect(await currentPosition(api({ getCurrentPositionAsync: async () => Promise.reject(new Error('x')) }))).toBeNull();
+  });
+});

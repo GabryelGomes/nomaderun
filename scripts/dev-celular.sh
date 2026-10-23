@@ -4,6 +4,7 @@
 # Uso (na raiz do repositório):  npm run celular
 #   IP=192.168.0.10 npm run celular   → força o IP (ex.: se a detecção errar)
 #   NO_START=1 npm run celular        → só configura, não abre o Expo
+#   OFFLINE=1 npm run celular         → Expo sem conta (só Android; o iPhone exige login)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -88,9 +89,25 @@ say ".env do app atualizado (apps/mobile/.env)"
 # 7. Teste rápido: o backend responde pelo IP da rede?
 code="$(curl -s -o /dev/null -m 5 -w '%{http_code}' "http://$LAN_IP:54321/auth/v1/health" -H "apikey: $ANON" || true)"
 if [ "$code" != "200" ]; then
-  printf '\n\033[1;31m⚠ O Supabase não respondeu em http://%s:54321 (código %s).\033[0m\n' "$LAN_IP" "$code"
-  echo "  No WSL: ative a rede espelhada (networkingMode=mirrored no %UserProfile%\\.wslconfig e 'wsl --shutdown')"
-  echo "  e libere as portas 8081 e 54321 no Firewall do Windows. Veja o README."
+  printf '\n\033[1;31m⚠ Daqui não consegui acessar http://%s:54321 (código %s).\033[0m\n' "$LAN_IP" "$code"
+  echo "  Teste no NAVEGADOR DO CELULAR: http://$LAN_IP:54321/auth/v1/health"
+  echo "  Se aparecer um texto/JSON, está tudo certo: ignore este aviso e leia o QR code."
+  if grep -qi microsoft /proc/version 2>/dev/null; then
+    WSL_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
+    if [ "$WSL_IP" != "$LAN_IP" ]; then
+      echo "  Se não abrir, o WSL está no modo NAT. No PowerShell COMO ADMINISTRADOR rode:"
+      echo "    netsh interface portproxy add v4tov4 listenport=54321 listenaddress=0.0.0.0 connectport=54321 connectaddress=$WSL_IP"
+      echo "    netsh interface portproxy add v4tov4 listenport=8081 listenaddress=0.0.0.0 connectport=8081 connectaddress=$WSL_IP"
+      echo "    New-NetFirewallRule -DisplayName \"NOMADE RUN\" -Direction Inbound -Protocol TCP -LocalPort 8081,54321 -Action Allow"
+      echo "  (o IP do WSL muda ao reiniciar o Windows; se mudar, refaça os dois netsh)"
+    else
+      echo "  Se não abrir (rede espelhada), no PowerShell COMO ADMINISTRADOR rode:"
+      echo "    Set-NetFirewallHyperVVMSetting -Name '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -DefaultInboundAction Allow"
+      echo "    New-NetFirewallRule -DisplayName \"NOMADE RUN\" -Direction Inbound -Protocol TCP -LocalPort 8081,54321 -Action Allow"
+    fi
+  else
+    echo "  Se não abrir, libere as portas 8081 e 54321 no firewall deste computador."
+  fi
 fi
 
 [ -n "${NO_START:-}" ] && { say "Configuração pronta (NO_START)."; exit 0; }
@@ -98,4 +115,9 @@ fi
 # 8. Expo com o QR code apontando para o IP da rede
 say "Abrindo o Expo — leia o QR code com o Expo Go (Android) ou a câmera (iPhone)"
 cd "$APP"
+# Expo Go no iPhone só abre projeto assinado por uma conta: rode `npx expo login` uma vez
+# com a mesma conta do Expo Go. OFFLINE=1 roda sem conta (funciona só no Android).
+if [ -n "${OFFLINE:-}" ]; then
+  REACT_NATIVE_PACKAGER_HOSTNAME="$LAN_IP" exec npx expo start --clear --offline
+fi
 REACT_NATIVE_PACKAGER_HOSTNAME="$LAN_IP" exec npx expo start --clear

@@ -1,10 +1,13 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { ChipRow } from '@/components/chip-row';
+import { CountUp, FadeUp, Pressable, staggerDelay } from '@/components/motion';
+import { ScreenScroll } from '@/components/screen';
 import { Icon } from '@/components/icon';
-import { EmptyState, SectionHeader, Stat, Surface } from '@/components/surface';
+import { EmptyState, SectionHeader, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { STREAK_RUNS_PER_WEEK } from '@/domain/games';
 import { formatDuration, formatKm, formatPace } from '@/domain/geo';
@@ -56,10 +59,10 @@ export function ActivitiesScreen() {
   const totalKm = history.reduce((s, h) => s + h.meters, 0);
 
   return (
-    <ScrollView
+    <ScreenScroll
       testID="tela-atividades"
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ padding: space[4], gap: space[6], paddingBottom: space[12] }}
+      edges={[]}
+      gap={space[6]}
       refreshControl={
         <RefreshControl
           refreshing={loading}
@@ -69,96 +72,114 @@ export function ActivitiesScreen() {
           }}
         />
       }>
-      <Surface>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
-          <Icon name="fire" size={28} color={colors.text} />
-          <View style={{ flex: 1 }}>
-            <Text variant="title">{streakWeeks} semanas seguidas</Text>
-            <Text variant="small" muted>
-              {thisWeek.length >= STREAK_RUNS_PER_WEEK
-                ? 'Semana garantida. Descanse sem culpa.'
-                : `Mais ${STREAK_RUNS_PER_WEEK - thisWeek.length} corrida${STREAK_RUNS_PER_WEEK - thisWeek.length > 1 ? 's' : ''} até domingo mantém a sequência.`}
-            </Text>
+      <FadeUp>
+        <Surface>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
+            <Icon name="fire" size={28} color={colors.text} />
+            <View style={{ flex: 1 }}>
+              <Text variant="title">{streakWeeks} semanas seguidas</Text>
+              <Text variant="small" muted>
+                {thisWeek.length >= STREAK_RUNS_PER_WEEK
+                  ? 'Semana garantida. Descanse sem culpa.'
+                  : `Mais ${STREAK_RUNS_PER_WEEK - thisWeek.length} corrida${STREAK_RUNS_PER_WEEK - thisWeek.length > 1 ? 's' : ''} até domingo mantém a sequência.`}
+              </Text>
+            </View>
           </View>
-        </View>
-        <View style={{ flexDirection: 'row', gap: space[2] }}>
-          {Array.from({ length: STREAK_RUNS_PER_WEEK }, (_, i) => (
-            <View key={i} style={{ flex: 1, height: 10, borderRadius: radius.pill, backgroundColor: i < thisWeek.length ? colors.text : colors.surfaceSunken }} />
-          ))}
-        </View>
-        <Text variant="caption" muted>
-          {freezesLeft} congelamento disponível este mês. Ele protege a sequência numa semana corrida.
-        </Text>
-      </Surface>
+          <View style={{ flexDirection: 'row', gap: space[2] }}>
+            {Array.from({ length: STREAK_RUNS_PER_WEEK }, (_, i) => (
+              <View key={i} style={{ flex: 1, height: 10, borderRadius: radius.pill, backgroundColor: i < thisWeek.length ? colors.action : colors.surfaceSunken, boxShadow: i < thisWeek.length ? '0 0 10px rgba(255,106,19,0.55)' : undefined }} />
+            ))}
+          </View>
+          <Text variant="caption" muted>
+            {freezesLeft} congelamento disponível este mês. Ele protege a sequência numa semana corrida.
+          </Text>
+        </Surface>
+      </FadeUp>
 
-      <View style={{ flexDirection: 'row', gap: space[6], paddingHorizontal: space[1] }}>
-        <Stat label="Corridas" value={String(history.length)} />
-        <Stat label="Distância total" value={formatKm(totalKm, 1)} unit="km" />
-      </View>
+      <FadeUp delay={80} style={{ flexDirection: 'row', gap: space[6], paddingHorizontal: space[1] }}>
+        <View style={{ gap: 2, minWidth: 88 }}>
+          <Text variant="caption" muted>
+            Corridas
+          </Text>
+          <CountUp testID="atividades-total-corridas" value={history.length} variant="headline" delay={200} accessibilityLabel={`${history.length} corridas`} />
+        </View>
+        <View style={{ gap: 2, minWidth: 88 }}>
+          <Text variant="caption" muted>
+            Distância total
+          </Text>
+          <CountUp
+            testID="atividades-total-km"
+            value={totalKm}
+            format={(n) => formatKm(n, 1)}
+            unit="km"
+            variant="headline"
+            delay={260}
+            accessibilityLabel={`${formatKm(totalKm, 1)} quilômetros no período`}
+          />
+        </View>
+      </FadeUp>
 
       <View style={{ gap: space[3] }}>
         <SectionHeader title="Histórico" />
-        <View style={{ flexDirection: 'row', gap: space[2], flexWrap: 'wrap' }} accessibilityRole="radiogroup" accessibilityLabel="Período">
-          {PERIODS.map((p) => {
-            const on = period === p.id;
-            return (
-              <Pressable
-                key={p.id}
-                testID={`atividades-periodo-${p.id}`}
-                accessibilityRole="radio"
-                accessibilityLabel={`Período: ${p.label}`}
-                accessibilityState={{ checked: on }}
-                onPress={() => setPeriod(p.id)}
-                style={{ paddingHorizontal: space[4], height: 40, justifyContent: 'center', borderRadius: radius.pill, backgroundColor: on ? colors.text : colors.surface }}>
-                <Text variant="bodyBold" color={on ? colors.surface : colors.text}>
-                  {p.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        {/* Filtros numa linha que rola na horizontal (não quebram mais em 2 linhas em 360 pt). */}
+        <ChipRow testID="atividades-periodo" accessibilityLabel="Período" size="md" value={period} onChange={setPeriod} chipLabel={(l) => `Período: ${l}`} options={PERIODS.map((p) => [p.id, p.label] as const)} />
         {error ? (
-          <Text testID="atividades-erro" variant="small" muted>
-            {error}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+            <Text testID="atividades-erro" variant="small" muted style={{ flex: 1 }}>
+              {error}
+            </Text>
+            <Button
+              testID="atividades-tentar"
+              label="Tentar de novo"
+              kind="ghost"
+              onPress={() => {
+                setLoading(true);
+                setNonce((n) => n + 1);
+              }}
+            />
+          </View>
         ) : null}
         {history.length === 0 ? (
-          <Surface>
-            <EmptyState
-              title={period === 'tudo' ? 'Sua primeira corrida aparece aqui' : 'Nenhuma corrida neste período'}
-              body="Grave uma corrida pelo GPS ou experimente a simulação no Parque Flamboyant."
-              action={<Button testID="atividades-correr" label="Correr" icon="play" onPress={() => router.push('/corrida')} />}
-            />
-          </Surface>
+          <FadeUp delay={120}>
+            <Surface>
+              <EmptyState
+                title={period === 'tudo' ? 'Sua primeira corrida aparece aqui' : 'Nenhuma corrida neste período'}
+                body={period === 'tudo' ? 'Grave uma corrida pelo GPS ou experimente a simulação no Parque Flamboyant.' : 'Escolha um período maior acima, grave uma corrida pelo GPS ou experimente a simulação no Parque Flamboyant.'}
+                action={<Button testID="atividades-correr" label="Correr" icon="play" onPress={() => router.push('/corrida')} />}
+              />
+            </Surface>
+          </FadeUp>
         ) : (
-          history.map((h) => (
-            <Pressable
-              key={h.id}
-              testID={`atividade-${h.id}`}
-              accessibilityRole="button"
-              accessibilityLabel={`${MISSION_LABEL[h.mission]}, ${formatKm(h.meters)} quilômetros${h.tag ? `, ${TAG_LABEL[h.tag]}` : ''}`}
-              onPress={() => router.push({ pathname: '/resumo', params: { id: h.id } })}
-              style={{ padding: space[4], borderRadius: radius.lg, backgroundColor: colors.surface, gap: space[2] }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text variant="bodyBold">{MISSION_LABEL[h.mission]}</Text>
-                <Text variant="caption" muted>
-                  {new Date(h.startedAt).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                  {h.simulated ? ', simulada' : ''}
-                  {h.tag ? `, ${TAG_LABEL[h.tag]}` : ''}
-                </Text>
-              </View>
-              <View style={{ flexDirection: 'row', gap: space[6] }}>
-                <Text tabular>{formatKm(h.meters)} km</Text>
-                <Text tabular>{formatDuration(h.movingSeconds)}</Text>
-                <Text tabular>{h.avgPace ? formatPace(h.avgPace) : '--:--'} /km</Text>
-                <Text tabular muted>
-                  +{h.rp} RP
-                </Text>
-              </View>
-            </Pressable>
+          history.map((h, index) => (
+            <FadeUp key={h.id} delay={120 + staggerDelay(index)}>
+              <Pressable
+                testID={`atividade-${h.id}`}
+                accessibilityRole="button"
+                accessibilityLabel={`${MISSION_LABEL[h.mission]}, ${formatKm(h.meters)} quilômetros${h.tag ? `, ${TAG_LABEL[h.tag]}` : ''}`}
+                hitSlop={0}
+                onPress={() => router.push({ pathname: '/resumo', params: { id: h.id } })}
+                style={{ padding: space[4], borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, gap: space[2] }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: space[2] }}>
+                  <Text variant="bodyBold">{MISSION_LABEL[h.mission]}</Text>
+                  <Text variant="caption" muted style={{ flexShrink: 1, textAlign: 'right' }}>
+                    {new Date(h.startedAt).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    {h.simulated ? ', simulada' : ''}
+                    {h.tag ? `, ${TAG_LABEL[h.tag]}` : ''}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: space[4], rowGap: space[1] }}>
+                  <Text tabular>{formatKm(h.meters)} km</Text>
+                  <Text tabular>{formatDuration(h.movingSeconds)}</Text>
+                  <Text tabular>{h.avgPace ? formatPace(h.avgPace) : '--:--'} /km</Text>
+                  <Text tabular muted>
+                    +{h.rp} RP
+                  </Text>
+                </View>
+              </Pressable>
+            </FadeUp>
           ))
         )}
       </View>
-    </ScrollView>
+    </ScreenScroll>
   );
 }

@@ -1,11 +1,14 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, Switch, View } from 'react-native';
+import { Pressable, Switch, useWindowDimensions, View } from 'react-native';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, IconButton } from '@/components/button';
+import { ChipRow } from '@/components/chip-row';
+import { FadeUp, PressableScale, RevealText, ScreenEnter, Stagger } from '@/components/motion';
+import { Screen, ScreenScroll } from '@/components/screen';
 import { TeamBadge } from '@/components/team-badge';
 import { HoldButton } from '@/components/hold-button';
 import { Icon, type IconName } from '@/components/icon';
@@ -17,7 +20,9 @@ import { formatDuration, formatKm, formatPace } from '@/domain/geo';
 import { CAPTURE_THRESHOLD, defenseWindowOpen, TAKEOVER_RATIO } from '@/domain/territory';
 import { DEMO_CENTER, zoneName } from '@/demo/demo-data';
 import { mapZonesNear } from '@/features/map-data';
+import { readableBackground } from '@/features/run/banner-color';
 import { loadSafetyContacts } from '@/features/run/run-controller';
+import { timeFontSize, TickerText } from '@/features/run/ticker-text';
 import { useGpsPreflight } from '@/features/run/use-gps-preflight';
 import { bootstrapOfflineSync } from '@/features/run/use-offline-sync';
 import { useRunSession, type RunMode } from '@/features/run/use-run-session';
@@ -28,8 +33,9 @@ import { WEAK_ACCURACY_M } from '@/services/location/signal';
 import { useGame, type MissionId } from '@/store/game-store';
 import { useSession } from '@/store/session-store';
 import { useZones } from '@/store/zones-store';
-import { CSS_EASE_OUT } from '@/theme/easing';
+import { cssEasings, durations } from '@/theme/motion';
 import { factions, floating, palette, radius, space } from '@/theme/tokens';
+import { neon } from '@/theme/neon';
 import { useTheme } from '@/theme/use-theme';
 
 const MISSIONS: { id: MissionId; title: string; body: string; icon: IconName }[] = [
@@ -38,9 +44,11 @@ const MISSIONS: { id: MissionId; title: string; body: string; icon: IconName }[]
   { id: 'caca', title: 'Caça', body: 'Baús escondidos pela cidade. Passe a 25 m para abrir.', icon: 'chest' },
 ];
 
+/** Ritmos do fantasma oferecidos na Fuga (s/km). */
+const GHOST_PACES = [300, 330, 360, 420];
+
 /** Pre-run choices: mission, signal source and Corrida Segura. Then the session starts. */
 export function RunScreen() {
-  const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const mission = useGame((s) => s.mission);
   const setMission = useGame((s) => s.setMission);
@@ -74,27 +82,46 @@ export function RunScreen() {
       />
     );
 
+  // CTA fixo na zona do polegar; o ScreenScroll reserva o espaço dele (o botão não cobre mais a Corrida Segura).
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView contentContainerStyle={{ padding: space[4], paddingTop: insets.top + space[4], gap: space[4], paddingBottom: 140 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text variant="headline" accessibilityRole="header">
-            Nova corrida
-          </Text>
-          <IconButton testID="corrida-fechar" icon="close" label="Fechar" tone="sunken" size={44} onPress={() => router.back()} />
-        </View>
+    <ScreenScroll
+      testID="tela-nova-corrida"
+      footer={
+        <Button
+          testID="corrida-comecar"
+          label="Começar"
+          icon="play"
+          size="lg"
+          wide
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            if (source === 'gps') setCheckingGps(true);
+            else setMode(source);
+          }}
+        />
+      }>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space[3] }}>
+        <RevealText testID="corrida-titulo" style={{ flex: 1 }}>
+          Nova corrida
+        </RevealText>
+        <IconButton testID="corrida-fechar" icon="close" label="Fechar" tone="sunken" size={44} onPress={() => router.back()} />
+      </View>
 
-        <Text variant="title">Missão</Text>
-        <View style={{ gap: space[2] }}>
+      <ScreenEnter delay={120} style={{ gap: space[4] }}>
+        <Text variant="title" accessibilityRole="header">
+          Missão
+        </Text>
+        <Stagger gap={space[2]} delay={80}>
           {MISSIONS.map((m) => {
             const on = mission === m.id;
             return (
-              <Pressable
+              <PressableScale
                 key={m.id}
                 testID={`corrida-missao-${m.id}`}
                 accessibilityLabel={m.title}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: on }}
+                hitSlop={0}
                 onPress={() => setMission(m.id)}
                 style={{
                   flexDirection: 'row',
@@ -105,7 +132,9 @@ export function RunScreen() {
                   borderCurve: 'continuous',
                   backgroundColor: colors.surface,
                   borderWidth: 2,
-                  borderColor: on ? colors.text : 'transparent',
+                  // Selecionado aceso em neon (D-59).
+                  borderColor: on ? colors.action : 'transparent',
+                  boxShadow: on ? neon.cardGlow : undefined,
                 }}>
                 <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: on ? colors.action : colors.surfaceSunken, alignItems: 'center', justifyContent: 'center' }}>
                   <Icon name={m.icon} size={22} color={on ? colors.onAction : colors.text} />
@@ -116,42 +145,31 @@ export function RunScreen() {
                     {m.body}
                   </Text>
                 </View>
-              </Pressable>
+              </PressableScale>
             );
           })}
-        </View>
+        </Stagger>
 
         {mission === 'fuga' ? (
-          <View style={{ gap: space[2] }}>
+          <FadeUp style={{ gap: space[2] }}>
             <Text variant="caption" muted>
               Ritmo do fantasma
             </Text>
-            <View style={{ flexDirection: 'row', gap: space[2], flexWrap: 'wrap' }}>
-              {[300, 330, 360, 420].map((p) => (
-                <Pressable
-                  key={p}
-                  testID={`corrida-fantasma-${p}`}
-                  accessibilityLabel={`Fantasma a ${formatPace(p)} por quilômetro`}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: ghostPace === p }}
-                  onPress={() => setGhostPace(p)}
-                  style={{
-                    paddingHorizontal: space[4],
-                    height: 40,
-                    justifyContent: 'center',
-                    borderRadius: radius.pill,
-                    backgroundColor: ghostPace === p ? colors.text : colors.surface,
-                  }}>
-                  <Text variant="bodyBold" tabular color={ghostPace === p ? colors.surface : colors.text}>
-                    {formatPace(p)} /km
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
+            <ChipRow
+              testID="corrida-fantasma"
+              accessibilityLabel="Ritmo do fantasma"
+              size="md"
+              tabular
+              value={String(ghostPace)}
+              onChange={(v) => setGhostPace(Number(v))}
+              options={GHOST_PACES.map((p) => ({ key: String(p), label: `${formatPace(p)} /km`, accessibilityLabel: `Fantasma a ${formatPace(p)} por quilômetro` }))}
+            />
+          </FadeUp>
         ) : null}
 
-        <Text variant="title">Sinal</Text>
+        <Text variant="title" accessibilityRole="header" style={{ marginTop: space[2] }}>
+          Sinal
+        </Text>
         <View style={{ flexDirection: 'row', gap: space[2] }}>
           {(
             [
@@ -159,31 +177,39 @@ export function RunScreen() {
               ['gps', 'GPS real', 'Use na rua'],
             ] as const
           ).map(([key, title, body]) => (
-            <Pressable
+            <PressableScale
               key={key}
               testID={`corrida-sinal-${key}`}
               accessibilityLabel={title}
               accessibilityRole="radio"
               accessibilityState={{ checked: source === key }}
+              hitSlop={0}
               onPress={() => setSource(key)}
+              containerStyle={{ flex: 1 }}
               style={{
-                flex: 1,
+                flexGrow: 1,
+                minHeight: 56,
                 padding: space[4],
                 gap: 2,
                 borderRadius: radius.lg,
+                borderCurve: 'continuous',
                 backgroundColor: colors.surface,
                 borderWidth: 2,
-                borderColor: source === key ? colors.text : 'transparent',
+                borderColor: source === key ? colors.action : 'transparent',
+                boxShadow: source === key ? neon.cardGlow : undefined,
               }}>
               <Text variant="bodyBold">{title}</Text>
               <Text variant="caption" muted>
                 {body}
               </Text>
-            </Pressable>
+            </PressableScale>
           ))}
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[4], borderRadius: radius.lg, backgroundColor: colors.surface }}>
+        <Text variant="title" accessibilityRole="header" style={{ marginTop: space[2] }}>
+          Segurança
+        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[4], borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface }}>
           <Icon name="shield" size={24} color={colors.text} />
           <View style={{ flex: 1 }}>
             <Text variant="bodyBold">Corrida Segura</Text>
@@ -198,23 +224,8 @@ export function RunScreen() {
           <Switch testID="corrida-escolta" value={escortOn} onValueChange={toggleEscort} accessibilityLabel="Corrida Segura" />
         </View>
         <Button testID="corrida-contatos" label="Contatos de segurança" icon="shield" kind="secondary" wide onPress={() => router.push('/contatos-seguranca')} />
-      </ScrollView>
-
-      <View style={{ position: 'absolute', left: space[4], right: space[4], bottom: insets.bottom + space[4] }}>
-        <Button
-          testID="corrida-comecar"
-          label="Começar"
-          icon="play"
-          size="lg"
-          wide
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            if (source === 'gps') setCheckingGps(true);
-            else setMode(source);
-          }}
-        />
-      </View>
-    </View>
+      </ScreenEnter>
+    </ScreenScroll>
   );
 }
 
@@ -269,9 +280,15 @@ function ActiveRun({ mode }: { mode: RunMode }) {
   if (s.phase === 'countdown') return <Countdown count={s.count} />;
   const zoneLabel = zoneId ? (zoneMeta[zoneId]?.name ?? zoneName(zoneId)) : null;
 
+  const timeText = formatDuration(s.elapsed);
+  const bannerOn = rival || defending;
+
+  // Layout (RNF-015, 360×640): o painel tem a altura do conteúdo e o mapa fica com o resto. Nada de
+  // reticências nos números: 3 métricas (tempo ≥ 72 pt, distância e ritmo em 48 pt); controles ≥ 56 pt
+  // na zona do polegar, acima da área segura; SOS sempre visível no mapa, abaixo do entalhe.
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ height: '44%' }}>
+    <View testID="tela-corrida" style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={{ flex: 1, minHeight: 160 }}>
         <TerritoryMap
           zones={mapZones}
           myFaction={faction}
@@ -284,7 +301,11 @@ function ActiveRun({ mode }: { mode: RunMode }) {
           interactive={false}
         />
         <Animated.View
-          accessibilityLiveRegion="polite"
+          testID="corrida-faixa-territorio"
+          // Escondida (opacidade 0) não pode ser lida pelo leitor de tela (QA-18).
+          accessibilityLiveRegion={bannerOn ? 'polite' : 'none'}
+          aria-hidden={!bannerOn}
+          pointerEvents="none"
           style={{
             position: 'absolute',
             top: insets.top + space[2],
@@ -295,62 +316,72 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             gap: space[3],
             padding: space[3],
             borderRadius: radius.lg,
-            backgroundColor: rival ? factions[owner!].color : defending ? palette.warning : colors.surface,
+            borderCurve: 'continuous',
+            backgroundColor: rival ? readableBackground(factions[owner!].color, bannerInk) : defending ? palette.warning : colors.surface,
             boxShadow: floating,
-            opacity: rival || defending ? 1 : 0,
-            transform: [{ translateY: rival || defending || reduced ? 0 : -12 }],
+            // ERS §6.2: entra de cima em ≤ 3 s (power3.out, 300 ms). Reduzir movimento: só opacidade.
+            opacity: bannerOn ? 1 : 0,
+            transform: [{ translateY: bannerOn || reduced ? 0 : -(insets.top + 72) }],
             transitionProperty: ['opacity', 'transform'],
-            transitionDuration: 220,
-            transitionTimingFunction: CSS_EASE_OUT,
+            transitionDuration: bannerOn ? durations.state : durations.quick,
+            transitionTimingFunction: bannerOn ? cssEasings.enter : cssEasings.standard,
           }}>
           <Icon name={defending ? 'shield' : 'warning'} size={24} color={bannerInk} />
           <View style={{ flex: 1 }}>
-            <Text variant="bodyBold" color={bannerInk}>
+            <Text variant="bodyBold" color={bannerInk} numberOfLines={2}>
               {defending ? 'Defendendo seu território' : rival ? `Território dos ${factions[owner!].name}` : ''}
             </Text>
             <Text variant="caption" color={bannerInk}>
-              {defending ? 'Pontos em dobro nesta zona' : 'Corra aqui para conquistar'}
+              {defending ? 'Pontos em dobro nesta zona' : rival ? 'Corra aqui para conquistar' : ''}
             </Text>
           </View>
         </Animated.View>
-        <Pressable
-          testID="corrida-escolta-alternar"
-          accessibilityRole="switch"
-          accessibilityState={{ checked: safety.escortOn }}
-          accessibilityLabel={safety.escortOn ? 'Escolta ligada. Toque para desligar' : 'Escolta desligada. Toque para ligar e compartilhar sua localização'}
-          onPress={safety.toggleEscort}
-          hitSlop={12}
-          style={{ position: 'absolute', bottom: space[6] + space[3], left: space[4], flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.surface, paddingHorizontal: space[3], height: 32, borderRadius: radius.pill, boxShadow: floating, opacity: safety.escortOn ? 1 : 0.85 }}>
-          <Icon name="shield" size={14} color={colors.text} />
-          <Text variant="caption">{safety.escortOn ? 'Escolta ligada' : 'Escolta desligada'}</Text>
-        </Pressable>
-        <View style={{ position: 'absolute', bottom: space[6] + space[3], right: space[4] }}>
+        <View style={{ position: 'absolute', bottom: space[6] + space[3], left: space[4], right: space[4], flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3] }}>
+          <Pressable
+            testID="corrida-escolta-alternar"
+            accessibilityRole="switch"
+            accessibilityState={{ checked: safety.escortOn }}
+            accessibilityLabel={safety.escortOn ? 'Escolta ligada. Toque para desligar' : 'Escolta desligada. Toque para ligar e compartilhar sua localização'}
+            onPress={safety.toggleEscort}
+            hitSlop={12}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.surface, paddingHorizontal: space[3], height: 32, borderRadius: radius.pill, boxShadow: floating, opacity: safety.escortOn ? 1 : 0.85 }}>
+            <Icon name="shield" size={14} color={colors.text} />
+            <Text variant="caption">{safety.escortOn ? 'Escolta ligada' : 'Escolta desligada'}</Text>
+          </Pressable>
           <IconButton testID="corrida-sos" icon="sos" label="SOS: avisar meus contatos" tone="danger" size={56} onPress={() => void safety.sos()} />
         </View>
       </View>
 
-      <View style={{ flex: 1, marginTop: -space[6], backgroundColor: colors.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: space[6], paddingTop: space[4], paddingBottom: insets.bottom + space[3], justifyContent: 'space-between' }}>
+      <View
+        style={{
+          marginTop: -space[6],
+          backgroundColor: colors.surface,
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+          borderCurve: 'continuous',
+          paddingHorizontal: space[4],
+          paddingTop: space[3],
+          paddingBottom: insets.bottom + space[3],
+          gap: space[3],
+        }}>
         <View style={{ gap: space[1] }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: space[2] }}>
             <Text variant="caption" muted>
               {mode === 'simulacao' ? 'Simulação 10×' : 'GPS'}
-              {s.run.autoPaused ? '  Pausa automática' : ''}
+              {s.run.autoPaused ? '  Pausa automática' : s.phase === 'paused' ? '  Pausada' : ''}
             </Text>
             <Text variant="caption" muted>
               {MISSIONS.find((m) => m.id === s.mission)?.title}
             </Text>
           </View>
-          <Text variant="hero" tabular accessibilityLabel={`Tempo ${formatDuration(s.elapsed)}`} style={{ textAlign: 'center' }}>
-            {formatDuration(s.elapsed)}
-          </Text>
+          <TickerText testID="corrida-tempo" variant="hero" animate={mode === 'gps'} value={timeText} fontSize={timeFontSize(timeText)} accessibilityLabel={`Tempo ${timeText}`} />
           <View style={{ flexDirection: 'row' }}>
-            <Metric label="km" value={formatKm(s.run.meters)} />
-            <Metric label="ritmo /km" value={formatPace(s.pace)} />
-            <Metric label="média /km" value={formatPace(s.avgPace)} />
+            <Metric animate={mode === 'gps'} testID="corrida-metrica-km" label="km" value={formatKm(s.run.meters)} a11y={`${formatKm(s.run.meters)} quilômetros`} />
+            <Metric animate={mode === 'gps'} testID="corrida-metrica-ritmo" label="ritmo /km" value={formatPace(s.pace)} a11y={`Ritmo ${formatPace(s.pace)} por quilômetro`} />
           </View>
         </View>
 
-        <View style={{ gap: space[2], padding: space[3], borderRadius: radius.md, backgroundColor: colors.surfaceSunken }}>
+        <View testID="corrida-zona" style={{ gap: space[2], paddingHorizontal: space[3], paddingVertical: space[3], borderRadius: radius.md, borderCurve: 'continuous', backgroundColor: colors.surfaceSunken }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
             <TeamBadge faction={owner} size={26} attack={!!zone?.attackStartedAt} />
             <Text variant="bodyBold" style={{ flex: 1 }} numberOfLines={1}>
@@ -367,7 +398,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
           ) : (
             <>
               <ProgressBar value={progress} color={factions[faction].color} />
-              <Text variant="small" muted>
+              <Text variant="small" muted numberOfLines={2}>
                 {progress >= 1 ? 'Conquista garantida ao terminar' : `Faltam ${Math.ceil(target - myInfluence - runRp)} RP para conquistar`}
               </Text>
             </>
@@ -388,24 +419,28 @@ function ActiveRun({ mode }: { mode: RunMode }) {
           ) : null}
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-          <IconButton
-            testID="corrida-voz"
-            icon={s.voice ? 'speaker' : 'mute'}
-            label={s.voice ? 'Silenciar o Guia' : 'Ativar o Guia'}
-            tone="sunken"
-            size={56}
-            onPress={s.toggleVoice}
-          />
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-around' }}>
+          <View style={{ width: 88, alignItems: 'center', paddingTop: 10 }}>
+            <IconButton
+              testID="corrida-voz"
+              icon={s.voice ? 'speaker' : 'mute'}
+              label={s.voice ? 'Silenciar o Guia' : 'Ativar o Guia'}
+              tone="sunken"
+              size={56}
+              onPress={s.toggleVoice}
+            />
+          </View>
           <HoldButton testID="corrida-encerrar" label="Segure para encerrar" onConfirm={finish} />
-          <IconButton
-            testID="corrida-pausar"
-            icon={s.phase === 'paused' ? 'play' : 'pause'}
-            label={s.phase === 'paused' ? 'Retomar corrida' : 'Pausar corrida'}
-            tone="action"
-            size={64}
-            onPress={s.phase === 'paused' ? s.resume : s.pause}
-          />
+          <View style={{ width: 88, alignItems: 'center', paddingTop: 6 }}>
+            <IconButton
+              testID="corrida-pausar"
+              icon={s.phase === 'paused' ? 'play' : 'pause'}
+              label={s.phase === 'paused' ? 'Retomar corrida' : 'Pausar corrida'}
+              tone="action"
+              size={64}
+              onPress={s.phase === 'paused' ? s.resume : s.pause}
+            />
+          </View>
         </View>
       </View>
 
@@ -465,13 +500,11 @@ function ActiveRun({ mode }: { mode: RunMode }) {
 
 const METRIC_PT = 48;
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value, a11y, testID, animate }: { label: string; value: string; a11y: string; testID: string; animate: boolean }) {
   return (
     <View style={{ flex: 1, alignItems: 'center' }}>
-      {/* RNF-015: métricas com pelo menos 48 pt (o token `metric` tem 40), sem encolher para caber (QA-12). */}
-      <Text variant="metric" tabular numberOfLines={1} style={{ fontSize: METRIC_PT, lineHeight: METRIC_PT * 1.05 }}>
-        {value}
-      </Text>
+      {/* RNF-015: métricas com pelo menos 48 pt e algarismos tabulares, sem encolher para caber (QA-12). */}
+      <TickerText testID={testID} value={value} fontSize={METRIC_PT} animate={animate} accessibilityLabel={a11y} />
       <Text variant="caption" muted>
         {label}
       </Text>
@@ -479,38 +512,76 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** 3-2-1: scale 0.95 → 1 with opacity, 300 ms ease-out, one light haptic per number (hook). */
+/** ERS §6.2: cada número da contagem fica 0,8 s na tela (o tempo vem de `useRunSession`). */
+export const COUNTDOWN_STEP_MS = 800;
+
+/**
+ * Contagem 3-2-1 em tela cheia (ERS §6.2): o número enorme sobe de dentro de uma máscara (expo.out) e
+ * a barrinha do número atual enche em 0,8 s; vibração leve em cada número (no hook). Reduzir movimento:
+ * o número só aparece (opacidade) e a barra fica cheia.
+ */
 function Countdown({ count }: { count: number }) {
   const reduced = useReducedMotion();
+  const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+  const size = Math.round(Math.min(width * 0.62, height * 0.42, 280));
+  const label = count > 0 ? String(count) : 'Vai!';
   return (
-    <View style={{ position: 'absolute', inset: 0, backgroundColor: palette.orange, alignItems: 'center', justifyContent: 'center', gap: space[2] }}>
-      <Animated.View
-        key={count}
-        style={{
-          animationName: reduced
-            ? { from: { opacity: 0 }, to: { opacity: 1 } }
-            : { from: { opacity: 0, transform: [{ scale: 0.95 }] }, to: { opacity: 1, transform: [{ scale: 1 }] } },
-          animationDuration: 300,
-          animationTimingFunction: CSS_EASE_OUT,
-        }}>
-        <Text variant="hero" color={palette.white} style={{ fontSize: 160, lineHeight: 160 }}>
-          {count > 0 ? count : 'Vai!'}
-        </Text>
-      </Animated.View>
-      <Text variant="lead" color="#FFFFFF">
+    <View
+      testID="corrida-contagem"
+      accessibilityLiveRegion="assertive"
+      accessibilityLabel={count > 0 ? `Começa em ${count}` : 'Vai!'}
+      style={{ position: 'absolute', inset: 0, backgroundColor: palette.orange, alignItems: 'center', justifyContent: 'center', gap: space[4], paddingTop: insets.top, paddingBottom: insets.bottom }}>
+      <View style={{ height: size, overflow: 'hidden', justifyContent: 'center' }} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+        <Animated.View
+          key={count}
+          style={{
+            animationName: reduced
+              ? { from: { opacity: 0 }, to: { opacity: 1 } }
+              : { from: { transform: [{ translateY: size }] }, to: { transform: [{ translateY: 0 }] } },
+            animationDuration: reduced ? durations.reducedFade : durations.screen,
+            animationTimingFunction: reduced ? cssEasings.standard : cssEasings.reveal,
+            animationFillMode: 'both',
+          }}>
+          <Text variant="hero" tabular color={palette.white} style={{ fontSize: count > 0 ? size : size * 0.45, lineHeight: size, letterSpacing: -4, textAlign: 'center' }}>
+            {label}
+          </Text>
+        </Animated.View>
+      </View>
+      <Text variant="lead" color={palette.white}>
         Prepare-se
       </Text>
+      <View style={{ flexDirection: 'row', gap: space[2] }} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+        {[3, 2, 1].map((n) => (
+          <View key={n} style={{ width: 40, height: 4, borderRadius: 2, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.35)' }}>
+            {n > count ? (
+              <View style={{ flex: 1, backgroundColor: palette.white }} />
+            ) : n === count ? (
+              <Animated.View
+                key={count}
+                style={{
+                  height: '100%',
+                  width: '100%',
+                  backgroundColor: palette.white,
+                  animationName: reduced ? { from: { opacity: 0 }, to: { opacity: 1 } } : { from: { width: '0%' }, to: { width: '100%' } },
+                  animationDuration: reduced ? durations.reducedFade : COUNTDOWN_STEP_MS,
+                  animationTimingFunction: 'linear',
+                  animationFillMode: 'both',
+                }}
+              />
+            ) : null}
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
-
 
 /**
  * GPS real: permissão com explicação antes do pedido, GPS desligado, negado de vez (Ajustes) e
  * sinal fraco por mais de 15 s com "iniciar mesmo assim" (UC-01 passo 2 e E3, RNF-013).
  */
 function GpsPreflight({ onReady, onSimulate, onCancel }: { onReady: () => void; onSimulate: () => void; onCancel: () => void }) {
-  const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const pf = useGpsPreflight(true);
   const ready = pf.step.kind === 'ready';
@@ -565,14 +636,20 @@ function GpsPreflight({ onReady, onSimulate, onCancel }: { onReady: () => void; 
   }
 
   return (
-    <View testID="tela-gps-verificacao" style={{ flex: 1, backgroundColor: colors.background, padding: space[6], paddingTop: insets.top + space[6], paddingBottom: insets.bottom + space[6], gap: space[4] }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text variant="headline" accessibilityRole="header">
-          GPS real
-        </Text>
+    <Screen
+      testID="tela-gps-verificacao"
+      gap={space[4]}
+      footer={
+        <>
+          {actions}
+          <Button testID="gps-usar-simulacao" label="Usar simulação" kind="ghost" wide onPress={onSimulate} />
+        </>
+      }>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space[3] }}>
+        <RevealText style={{ flex: 1 }}>GPS real</RevealText>
         <IconButton testID="gps-voltar" icon="close" label="Voltar" tone="sunken" size={44} onPress={onCancel} />
       </View>
-      <View style={{ flex: 1, justifyContent: 'center', gap: space[3] }}>
+      <FadeUp delay={120} style={{ flex: 1, justifyContent: 'center', gap: space[3] }}>
         <Icon name={step.kind === 'signal' && step.signal === 'weak' ? 'warning' : 'location'} size={40} color={colors.text} />
         <Text variant="title" testID="gps-titulo">
           {title}
@@ -580,11 +657,7 @@ function GpsPreflight({ onReady, onSimulate, onCancel }: { onReady: () => void; 
         <Text muted testID="gps-mensagem" accessibilityLiveRegion="polite">
           {body}
         </Text>
-      </View>
-      <View style={{ gap: space[3] }}>
-        {actions}
-        <Button testID="gps-usar-simulacao" label="Usar simulação" kind="ghost" wide onPress={onSimulate} />
-      </View>
-    </View>
+      </FadeUp>
+    </Screen>
   );
 }

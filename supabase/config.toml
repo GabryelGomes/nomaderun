@@ -146,8 +146,10 @@ max_catalogs = 2
 # [storage.analytics.buckets.my-warehouse]
 
 # Store vector embeddings in S3 for large and durable datasets
+# Desligado: o app não usa, e no plano gratuito do Supabase Cloud o `config push` falha com
+# "Please upgrade the project to a paid tier to enable vector buckets".
 [storage.vector]
-enabled = true
+enabled = false
 max_buckets = 10
 max_indexes = 5
 
@@ -252,9 +254,12 @@ otp_expiry = 3600
 # sender_name = "Admin"
 
 # NOMADE RUN: e-mail de recuperação de senha em português (RF-001).
-[auth.email.template.recovery]
-subject = "NOMADE RUN: redefinir senha"
-content_path = "./supabase/templates/recovery.html"
+# E-mail de recuperação em pt-BR (supabase/templates/recovery.html). Desligado por padrão: no plano
+# gratuito do Supabase Cloud, trocar o modelo exige SMTP próprio e o `config push` falha inteiro
+# ("Email template modification is not available for free tier"). Com SMTP configurado, descomente.
+# [auth.email.template.recovery]
+# subject = "NOMADE RUN: redefinir senha"
+# content_path = "./supabase/templates/recovery.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

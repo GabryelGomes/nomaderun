@@ -1,12 +1,12 @@
-import { CSS_EASE_OUT } from '@/theme/easing';
-import { motion } from '@/theme/tokens';
+import { cssEasings, durations, press } from '@/theme/motion';
 
 /** Opacidade do botão pressionado quando a escala está desligada (movimento reduzido). */
-const PRESSED_OPACITY = 0.7;
+const PRESSED_OPACITY = press.reducedOpacity;
 
 /**
- * Press feedback per expo-animation: scale 0.97 on press-in, 120 ms, strong ease-out,
- * as a Reanimated CSS transition (no shared value for a two-state toggle).
+ * Retorno ao toque (D-54): escala 0,97 em 120 ms com power2.out, como transição CSS do Reanimated
+ * (sem shared value para um estado de dois valores). Usado por Button, IconButton e `Pressable` de
+ * `@/components/motion`.
  * "Reduzir movimento" (RNF-011, QA-12): sem escala; o retorno vira só opacidade.
  */
 export function pressFeedback(pressed: boolean, reduced: boolean, baseOpacity = 1) {
@@ -14,15 +14,15 @@ export function pressFeedback(pressed: boolean, reduced: boolean, baseOpacity = 
     return {
       opacity: pressed ? baseOpacity * PRESSED_OPACITY : baseOpacity,
       transitionProperty: 'opacity' as const,
-      transitionDuration: motion.press.duration,
-      transitionTimingFunction: CSS_EASE_OUT,
+      transitionDuration: durations.press,
+      transitionTimingFunction: cssEasings.standard,
     };
   }
   return {
     opacity: baseOpacity,
-    transform: [{ scale: pressed ? motion.press.scale : 1 }],
+    transform: [{ scale: pressed ? press.scale : 1 }],
     transitionProperty: 'transform' as const,
-    transitionDuration: motion.press.duration,
-    transitionTimingFunction: CSS_EASE_OUT,
+    transitionDuration: durations.press,
+    transitionTimingFunction: cssEasings.standard,
   };
 }

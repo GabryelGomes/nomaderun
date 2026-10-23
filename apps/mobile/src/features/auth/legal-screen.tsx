@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { IconButton } from '@/components/button';
 import { Surface } from '@/components/surface';
+import { FadeUp, RevealText, Stagger } from '@/components/motion';
 import { Text } from '@/components/text';
 import { PRIVACY_VERSION, TERMS_VERSION } from '@/services/api/auth-repo';
 import { space } from '@/theme/tokens';
@@ -100,27 +101,29 @@ export function LegalScreen({ kind }: { kind: 'termos' | 'privacidade' }) {
     <FormScaffold testID={terms ? 'tela-termos' : 'tela-privacidade'} modal>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: space[3] }}>
         <View style={{ flex: 1, gap: space[2] }}>
-          <Text variant="headline" accessibilityRole="header">
-            {terms ? 'Termos de Uso' : 'Política de Privacidade'}
-          </Text>
-          <Text variant="small" muted>
-            Versão {terms ? TERMS_VERSION : PRIVACY_VERSION}
-          </Text>
+          <RevealText testID="legal-titulo">{terms ? 'Termos de Uso' : 'Política de Privacidade'}</RevealText>
+          <FadeUp delay={150}>
+            <Text variant="small" muted>
+              Versão {terms ? TERMS_VERSION : PRIVACY_VERSION}
+            </Text>
+          </FadeUp>
         </View>
         <IconButton testID="legal-fechar" icon="close" label="Fechar" tone="sunken" size={44} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
       </View>
-      {sections.map((s) => (
-        <Surface key={s.title}>
-          <Text variant="bodyBold" accessibilityRole="header">
-            {s.title}
-          </Text>
-          {s.body.map((p) => (
-            <Text key={p} muted>
-              {p}
+      <Stagger delay={200} gap={space[6]}>
+        {sections.map((s) => (
+          <Surface key={s.title}>
+            <Text variant="bodyBold" accessibilityRole="header">
+              {s.title}
             </Text>
-          ))}
-        </Surface>
-      ))}
+            {s.body.map((p) => (
+              <Text key={p} muted>
+                {p}
+              </Text>
+            ))}
+          </Surface>
+        ))}
+      </Stagger>
     </FormScaffold>
   );
 }

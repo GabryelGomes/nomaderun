@@ -14,6 +14,9 @@ export function Surface({ children, style, padded = true }: { children: ReactNod
       style={[
         {
           backgroundColor: colors.surface,
+          // Neon (D-59): superfície grafite com borda fina, como os cards da apresentação.
+          borderWidth: 1,
+          borderColor: colors.line,
           borderRadius: radius.lg,
           borderCurve: 'continuous',
           padding: padded ? space[4] : 0,

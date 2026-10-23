@@ -19,6 +19,7 @@ const ANIMATES = [
   /animationName/,
   /withTiming\(|withSpring\(|withRepeat\(/,
   /entering=\{(?!FadeIn\b)/,
+  /enterAnimation\(|useAnimatedStyle\(|pressFeedback\(/, // primitivas de motion da Fase 6 (T6.1)
 ];
 const CHECKS_REDUCED = /useReducedMotion|isReduceMotionEnabled|ReduceMotion\./;
 
@@ -39,7 +40,17 @@ describe('RNF-011 — reduzir movimento', () => {
 
   it('encontra as telas animadas (contagem, faixa de território, conquista, resumo)', () => {
     const names = animated.map((f) => f.rel);
-    expect(names).toEqual(expect.arrayContaining(['features/screens/run-screen.tsx', 'components/capture-celebration.tsx']));
+    expect(names).toEqual(
+      expect.arrayContaining([
+        'features/screens/run-screen.tsx',
+        'components/capture-celebration.tsx',
+        'components/motion/reveal-text.tsx',
+        'components/motion/fade-up.tsx',
+        'components/motion/screen-enter.tsx',
+        'components/motion/pressable.tsx',
+        'components/motion/parallax-header.tsx',
+      ]),
+    );
   });
 
   it('todo arquivo que anima posição/escala/traço respeita "Reduzir movimento" (fora a BASELINE)', () => {

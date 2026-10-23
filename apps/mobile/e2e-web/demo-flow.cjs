@@ -159,7 +159,8 @@ async function api(method, url, token, body) {
     await page.goto(`${BASE}/zona/${conquered.id}`);
     await id('tela-zona').waitFor({ timeout: 20_000 });
     await id('zona-corredores').waitFor({ timeout: 20_000 });
-    const zoneText = await id('tela-zona').innerText();
+    // T6.3/T6.4: títulos com RevealText ficam em palavras separadas (quebras no innerText): normaliza os espaços.
+    const zoneText = (await id('tela-zona').innerText()).replace(/\s+/g, ' ');
     ok(zoneText.includes(conquered.name) && /Neon Striders|Striders/.test(zoneText) && zoneText.includes(user.username), `folha da zona mostra ${conquered.name}, dono Striders e o corredor`);
     await shot('04-zona');
 

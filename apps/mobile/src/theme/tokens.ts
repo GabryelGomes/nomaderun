@@ -38,17 +38,21 @@ export const light = {
   danger: palette.danger,
 } as const;
 
+/**
+ * Tema escuro = "Pit Lane Neon" da apresentação (D-59, `docs/apresentacao/design-tokens.json`):
+ * base quase preta, superfícies grafite com borda fina, um neon só (laranja) para ação e destaque.
+ */
 export const dark = {
-  background: palette.night,
-  surface: palette.nightSurface,
-  surfaceSunken: '#26262A',
-  text: '#F2F2F4',
-  textSecondary: '#A0A0A8',
-  line: '#34343A',
-  action: '#FF6B33',
+  background: '#070708',
+  surface: '#111215',
+  surfaceSunken: '#1A1B20',
+  text: '#F3F1ED',
+  textSecondary: '#A8A6A1',
+  line: '#24252B',
+  action: '#FF6A13',
   onAction: palette.white,
-  accentText: '#FF8A5C',
-  danger: '#FF6B5E',
+  accentText: '#FF7A2A',
+  danger: '#FF4D45',
 } as const;
 
 export type ThemeColors = { [K in keyof typeof light]: string };
@@ -59,7 +63,7 @@ export type TeamShape = 'circulo' | 'triangulo' | 'losango' | 'quadrado';
 export const factions: Record<FactionId, { name: string; color: string; tint: string; onColor: string; shape: TeamShape; motto: string }> = {
   striders: { name: 'Neon Striders', color: '#0072B2', tint: '#E3EEF6', onColor: palette.white, shape: 'circulo', motto: 'Ritmo e precisão' },
   volt: { name: 'Volt Runners', color: '#009E73', tint: '#E0F2EC', onColor: palette.white, shape: 'triangulo', motto: 'Resistência sem fim' },
-  owls: { name: 'Night Owls', color: '#C0559A', tint: '#F6E6F0', onColor: palette.white, shape: 'losango', motto: 'Donos da madrugada' },
+  owls: { name: 'Night Owls', color: '#D7263D', tint: '#FADDE1', onColor: palette.white, shape: 'losango', motto: 'Donos da madrugada' },
   coyotes: { name: 'Urban Coyotes', color: '#D9B200', tint: '#FBF3D2', onColor: palette.ink, shape: 'quadrado', motto: 'Correm em matilha' },
 };
 
@@ -93,9 +97,13 @@ export const type = {
 } as const;
 
 /** The one elevation shadow, only for things floating over the map. */
-export const floating = '0 2px 12px rgba(36, 36, 40, 0.12)';
+export const floating = '0 4px 18px rgba(0, 0, 0, 0.45)';
 
-/** Motion values from the expo-animation skill tables — never approximated. */
+/**
+ * Valores de motion da fase anterior (expo-animation), mantidos por compatibilidade.
+ * Fase 6 (D-54): a fonte dos tokens novos é `@/theme/motion` (curvas, durações, staggers, distâncias).
+ * `press` é o mesmo nos dois arquivos (0,97 em 120 ms).
+ */
 export const motion = {
   press: { duration: 120, scale: 0.97 },
   small: 200,

@@ -4,11 +4,13 @@ import { ActivityIndicator, ScrollView, useWindowDimensions, View } from 'react-
 
 import { Button } from '@/components/button';
 import { Icon } from '@/components/icon';
-import { EmptyState, SectionHeader, Stat, Surface } from '@/components/surface';
+import { RevealText, Stagger } from '@/components/motion';
+import { EmptyState, Stat, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import TerritoryMap from '@/components/territory-map';
 import { SUSTAINED_KMH } from '@/domain/anti-cheat';
 import { ErrorNotice, InfoNotice, TextField } from '@/features/auth/form-ui';
+import { SectionTitle } from '@/features/screens/game-motion';
 import { useResource } from '@/features/screens/use-resource';
 import { getReviewDetail, JUSTIFICATION_MAX, moderateActivity, validateJustification, type ModerationDecision } from '@/services/api/moderation-repo';
 import { palette, radius, space } from '@/theme/tokens';
@@ -57,24 +59,26 @@ export function ModerationDetailScreen() {
         </View>
       );
     }
-    return <EmptyState title="Corrida não encontrada" body={error?.message ?? 'Ela pode ter sido excluída.'} action={<Button testID="moderacao-detalhe-tentar" label="Tentar de novo" kind="secondary" onPress={reload} />} />;
+    return (
+      <EmptyState
+        title="Corrida não encontrada"
+        body={error?.message ?? 'Ela pode ter sido excluída.'}
+        action={<Button testID="moderacao-detalhe-tentar" label="Tentar de novo" kind="secondary" onPress={reload} />}
+      />
+    );
   }
 
   const inReview = data.status === 'review' && !done;
 
   const mapBlock = (
     <Surface padded={false} style={{ overflow: 'hidden', height: wide ? 420 : 280 }}>
-      {frame ? (
-        <TerritoryMap zones={[]} center={frame.center} span={frame.spanM} path={series?.path} />
-      ) : (
-        <EmptyState title="Sem percurso" body="Esta corrida não tem pontos gravados." />
-      )}
+      {frame ? <TerritoryMap zones={[]} center={frame.center} span={frame.spanM} path={series?.path} /> : <EmptyState title="Sem percurso" body="Esta corrida não tem pontos gravados." />}
     </Surface>
   );
 
   const facts = (
     <Surface>
-      <Text variant="headline">{data.username}</Text>
+      <RevealText variant="headline">{data.username}</RevealText>
       <Text muted>
         {formatDateTime(data.startedAt)} · índice de confiança {data.trust ?? '—'}
       </Text>
@@ -88,7 +92,7 @@ export function ModerationDetailScreen() {
 
   const alerts = (
     <View style={{ gap: space[3] }}>
-      <SectionHeader title="Alertas de fraude" />
+      <SectionTitle title="Alertas de fraude" />
       <Surface>
         {data.reviewReason ? (
           <View style={{ flexDirection: 'row', gap: space[3] }}>
@@ -143,7 +147,7 @@ export function ModerationDetailScreen() {
 
   const decision = (
     <View style={{ gap: space[3] }}>
-      <SectionHeader title="Decisão" />
+      <SectionTitle title="Decisão" />
       {done ? (
         <InfoNotice
           testID="moderacao-decisao-ok"
@@ -212,24 +216,24 @@ export function ModerationDetailScreen() {
       contentContainerStyle={{ padding: space[4], gap: space[6], paddingBottom: space[12], width: '100%', maxWidth: 1200, alignSelf: 'center' }}>
       {wide ? (
         <View style={{ flexDirection: 'row', gap: space[6], alignItems: 'flex-start' }}>
-          <View style={{ flex: 3, gap: space[6] }}>
+          <Stagger style={{ flex: 3 }} gap={space[6]}>
             {mapBlock}
             {charts}
-          </View>
-          <View style={{ flex: 2, gap: space[6] }}>
+          </Stagger>
+          <Stagger style={{ flex: 2 }} gap={space[6]} delay={80}>
             {facts}
             {alerts}
             {decision}
-          </View>
+          </Stagger>
         </View>
       ) : (
-        <>
+        <Stagger gap={space[6]}>
           {facts}
           {mapBlock}
           {charts}
           {alerts}
           {decision}
-        </>
+        </Stagger>
       )}
     </ScrollView>
   );

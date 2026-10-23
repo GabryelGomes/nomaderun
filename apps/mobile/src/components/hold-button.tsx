@@ -1,9 +1,10 @@
 import * as Haptics from 'expo-haptics';
 import { Pressable, View } from 'react-native';
-import Animated, { cancelAnimation, Easing, useAnimatedProps, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { cancelAnimation, useAnimatedProps, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { durations, easings } from '@/theme/motion';
 import { motion } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
@@ -46,14 +47,15 @@ export function HoldButton({ label, onConfirm, testID }: { label: string; onConf
         accessibilityHint="Mantenha pressionado para confirmar"
         onPressIn={() => {
           progress.set(
-            withTiming(1, { duration: motion.holdToConfirm, easing: Easing.linear }, (finished) => {
+            withTiming(1, { duration: motion.holdToConfirm, easing: easings.linear }, (finished) => {
               if (finished) scheduleOnRN(confirm);
             }),
           );
         }}
         onPressOut={() => {
           cancelAnimation(progress);
-          progress.set(withTiming(0, { duration: 150 }));
+          // solta antes dos 600 ms: o anel volta rápido (power2.out), sem encerrar
+          progress.set(withTiming(0, { duration: durations.reducedFade, easing: easings.standard }));
         }}>
         <View style={{ width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center' }}>
           <Svg width={SIZE} height={SIZE} style={{ position: 'absolute', transform: [{ rotate: '-90deg' }] }}>
@@ -83,7 +85,7 @@ export function HoldButton({ label, onConfirm, testID }: { label: string; onConf
           </View>
         </View>
       </Pressable>
-      <Text variant="caption" muted>
+      <Text variant="caption" muted numberOfLines={1}>
         {label}
       </Text>
     </View>

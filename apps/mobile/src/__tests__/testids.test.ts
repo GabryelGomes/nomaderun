@@ -17,7 +17,7 @@ const ROOT = join(__dirname, '..', '..');
 const SRC = join(ROOT, 'src');
 const MAESTRO = join(ROOT, '.maestro');
 
-const INTERACTIVE = new Set(['Pressable', 'TouchableOpacity', 'TouchableHighlight', 'TouchableWithoutFeedback', 'TextInput', 'Switch', 'Button', 'IconButton', 'HoldButton']);
+const INTERACTIVE = new Set(['Pressable', 'PressableScale', 'Chip', 'TouchableOpacity', 'TouchableHighlight', 'TouchableWithoutFeedback', 'TextInput', 'Switch', 'Button', 'IconButton', 'HoldButton']);
 /** Componentes cuja prop obrigatória `label` vira o accessibilityLabel. */
 const LABEL_IS_A11Y = new Set(['Button', 'IconButton', 'HoldButton']);
 

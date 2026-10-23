@@ -1,10 +1,12 @@
 import { Stack } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import { Button } from '@/components/button';
 import { TeamBadge } from '@/components/team-badge';
-import { EmptyState, SectionHeader, Surface } from '@/components/surface';
+import { CountUp, RevealText, Stagger, useParallax } from '@/components/motion';
+import { EmptyState, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { ErrorNotice, TextField } from '@/features/auth/form-ui';
 import { CREW_MAX_MEMBERS, createCrew, getMyCrew, joinCrew, leaveCrew, normalizeCrewTag, removeCrewMember, validateCrewName, validateCrewTag, validateInviteCode } from '@/services/api/crews-repo';
@@ -12,6 +14,7 @@ import { useSession } from '@/store/session-store';
 import { factions, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
+import { SectionTitle } from './game-motion';
 import { useResource } from './use-resource';
 
 /** Gestão da crew (RF-011, RN-011): criar, entrar por código, sair, membros e ranking interno. */
@@ -29,6 +32,8 @@ export function CrewScreen() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [headerH, setHeaderH] = useState(200);
+  const parallax = useParallax(headerH, 0.3);
 
   const run = async (key: string, fn: () => Promise<{ ok: boolean; error?: { message: string } }>) => {
     setBusy(key);
@@ -63,78 +68,89 @@ export function CrewScreen() {
   };
 
   return (
-    <ScrollView
+    <Animated.ScrollView
       testID="tela-crew"
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
-      contentContainerStyle={{ padding: space[4], gap: space[6], paddingBottom: space[12] }}>
+      automaticallyAdjustKeyboardInsets
+      onScroll={parallax.onScroll}
+      scrollEventThrottle={16}
+      contentContainerStyle={{ padding: space[4], gap: space[8], paddingBottom: space[12] }}>
       <Stack.Screen options={{ title: data?.crew.name ?? 'Crew', headerLargeTitleEnabled: false }} />
       <ErrorNotice message={actionError} testID="crew-erro" />
 
       {loading && data === null && !error ? (
         <ActivityIndicator color={colors.action} />
       ) : error && data === null ? (
-        <EmptyState title={error.code === 'NETWORK' ? 'Sem internet' : 'Não foi possível carregar'} body={error.message} action={<Button testID="crew-tentar" label="Tentar de novo" kind="secondary" onPress={reload} />} />
+        <EmptyState
+          title={error.code === 'NETWORK' ? 'Sem internet' : 'Não foi possível carregar'}
+          body={error.code === 'NETWORK' ? 'Confira a conexão e toque em "Tentar de novo".' : error.message}
+          action={<Button testID="crew-tentar" label="Tentar de novo" kind="secondary" onPress={reload} />}
+        />
       ) : data ? (
         <>
-          <Surface>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
-              <TeamBadge faction={data.crew.faction} size={40} />
-              <View style={{ flex: 1 }}>
-                <Text variant="headline" testID="crew-nome">
-                  {data.crew.name}
+          <Animated.View style={parallax.headerStyle} onLayout={(e) => setHeaderH(Math.round(e.nativeEvent.layout.height))}>
+            <Surface>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
+                <TeamBadge faction={data.crew.faction} size={40} />
+                <View style={{ flex: 1 }}>
+                  <RevealText variant="headline" testID="crew-nome">
+                    {data.crew.name}
+                  </RevealText>
+                  <Text muted>
+                    [{data.crew.tag}] · {data.members.length} de {CREW_MAX_MEMBERS} corredores
+                  </Text>
+                </View>
+              </View>
+              <View style={{ padding: space[3], borderRadius: radius.md, backgroundColor: colors.surfaceSunken, gap: 2 }}>
+                <Text variant="caption" muted>
+                  Código de convite
                 </Text>
-                <Text muted>
-                  [{data.crew.tag}] · {data.members.length} de {CREW_MAX_MEMBERS} corredores
+                <Text variant="title" selectable testID="crew-codigo">
+                  {data.crew.inviteCode}
+                </Text>
+                <Text variant="small" muted>
+                  Só corredores dos {data.crew.faction ? factions[data.crew.faction].name : 'mesmo time'} podem entrar.
                 </Text>
               </View>
-            </View>
-            <View style={{ padding: space[3], borderRadius: radius.md, backgroundColor: colors.surfaceSunken, gap: 2 }}>
-              <Text variant="caption" muted>
-                Código de convite
-              </Text>
-              <Text variant="title" selectable testID="crew-codigo">
-                {data.crew.inviteCode}
-              </Text>
-              <Text variant="small" muted>
-                Só corredores dos {data.crew.faction ? factions[data.crew.faction].name : 'mesmo time'} podem entrar.
-              </Text>
-            </View>
-          </Surface>
+            </Surface>
+          </Animated.View>
 
           <View style={{ gap: space[3] }}>
-            <SectionHeader title="Ranking da crew" />
+            <SectionTitle title="Ranking da crew" />
             <Text muted>Pontos de cada membro na temporada atual.</Text>
             <Surface>
-              {data.members.map((m, i) => (
-                <View key={m.userId} testID={`crew-membro-${m.username}`} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: 4 }}>
-                  <Text variant="bodyBold" tabular style={{ width: 24 }}>
-                    {i + 1}
-                  </Text>
-                  <TeamBadge faction={m.faction} size={22} />
-                  <View style={{ flex: 1 }}>
-                    <Text variant={m.userId === userId ? 'bodyBold' : 'body'}>
-                      {m.username}
-                      {m.userId === userId ? ' (você)' : ''}
+              <Stagger delay={150} gap={space[1]}>
+                {data.members.map((m, i) => (
+                  <View key={m.userId} testID={`crew-membro-${m.username}`} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 44 }}>
+                    <Text variant="bodyBold" tabular style={{ width: 24 }}>
+                      {i + 1}
                     </Text>
-                    {m.role === 'leader' ? (
-                      <Text variant="caption" muted>
-                        Líder
+                    <TeamBadge faction={m.faction} size={22} />
+                    <View style={{ flex: 1 }}>
+                      <Text variant={m.userId === userId ? 'bodyBold' : 'body'} numberOfLines={1}>
+                        {m.username}
+                        {m.userId === userId ? ' (você)' : ''}
                       </Text>
+                      {m.role === 'leader' ? (
+                        <Text variant="caption" muted>
+                          Líder
+                        </Text>
+                      ) : null}
+                    </View>
+                    <CountUp value={m.rp} variant="body" unit="RP" delay={250} accessibilityLabel={`${m.rp.toLocaleString('pt-BR')} RP`} />
+                    {data.isLeader && m.userId !== userId ? (
+                      <Button
+                        testID={`crew-remover-${m.username}`}
+                        label="Remover"
+                        kind="ghost"
+                        disabled={busy !== null}
+                        onPress={() => run(`remover-${m.userId}`, () => removeCrewMember(data.crew.id, m.userId))}
+                      />
                     ) : null}
                   </View>
-                  <Text tabular>{m.rp.toLocaleString('pt-BR')} RP</Text>
-                  {data.isLeader && m.userId !== userId ? (
-                    <Button
-                      testID={`crew-remover-${m.username}`}
-                      label="Remover"
-                      kind="ghost"
-                      disabled={busy !== null}
-                      onPress={() => run(`remover-${m.userId}`, () => removeCrewMember(data.crew.id, m.userId))}
-                    />
-                  ) : null}
-                </View>
-              ))}
+                ))}
+              </Stagger>
             </Surface>
           </View>
 
@@ -148,7 +164,13 @@ export function CrewScreen() {
                     ? 'Você é o único membro: a crew será apagada.'
                     : 'Você pode entrar em outra crew depois.'}
               </Text>
-              <Button testID="crew-sair-confirmar" label={busy === 'sair' ? 'Saindo…' : 'Sair da crew'} kind="danger" disabled={busy !== null} onPress={() => run('sair', leaveCrew).then(() => setConfirmLeave(false))} />
+              <Button
+                testID="crew-sair-confirmar"
+                label={busy === 'sair' ? 'Saindo…' : 'Sair da crew'}
+                kind="danger"
+                disabled={busy !== null}
+                onPress={() => run('sair', leaveCrew).then(() => setConfirmLeave(false))}
+              />
               <Button testID="crew-sair-cancelar" label="Cancelar" kind="ghost" onPress={() => setConfirmLeave(false)} />
             </Surface>
           ) : (
@@ -161,7 +183,7 @@ export function CrewScreen() {
             Uma crew reúne até {CREW_MAX_MEMBERS} corredores do mesmo time{faction ? ` (${factions[faction].name})` : ''}. Você pode estar em uma crew por vez.
           </Text>
           <View style={{ gap: space[3] }}>
-            <SectionHeader title="Entrar com código" />
+            <SectionTitle title="Entrar com código" />
             <View style={{ gap: space[3] }}>
               <TextField
                 testID="crew-codigo-convite"
@@ -177,7 +199,7 @@ export function CrewScreen() {
             </View>
           </View>
           <View style={{ gap: space[3] }}>
-            <SectionHeader title="Criar uma crew" />
+            <SectionTitle title="Criar uma crew" delay={100} />
             <View style={{ gap: space[3] }}>
               <TextField testID="crew-criar-nome" label="Nome da crew" value={name} onChangeText={setName} maxLength={30} error={nameError} help="De 3 a 30 caracteres." />
               <TextField
@@ -196,6 +218,6 @@ export function CrewScreen() {
           </View>
         </>
       )}
-    </ScrollView>
+    </Animated.ScrollView>
   );
 }
