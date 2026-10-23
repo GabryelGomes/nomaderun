@@ -1,0 +1,126 @@
+/**
+ * Controlador do engajamento v2 (E7, T7.2.4): carrega e atualiza o store a partir do `engagement-repo`.
+ * Telas e hooks chamam daqui; nada aqui decide regra (o servidor e o `src/domain` decidem).
+ */
+import * as repo from '@/services/api/engagement-repo';
+import { AppError, fail, ok, type Result } from '@/services/api/errors';
+import { useEngagement, type SlotKey } from '@/store/engagement-store';
+import { useSession } from '@/store/session-store';
+
+const currentUser = () => {
+  const s = useSession.getState();
+  return s.status === 'signedIn' ? (s.session?.userId ?? null) : null;
+};
+
+/** Grava no store o resultado de uma leitura que pode estar "indisponível". */
+function store<K extends SlotKey>(key: K, res: Result<repo.Maybe<NonNullable<ReturnType<typeof useEngagement.getState>[K]['data']>>>) {
+  const s = useEngagement.getState();
+  if (!res.ok) s.setError(key, res.error);
+  else if (!res.data.available) s.setUnavailable(key, res.data.reason);
+  else s.setReady(key, res.data.data);
+}
+
+let inflight: Promise<void> | null = null;
+let again = false;
+
+/**
+ * Recarrega tudo (situação, missões, baú e trilha) em paralelo. Uma chamada durante outra marca uma nova
+ * leitura logo depois (o dado de uma corrida recém-confirmada nunca fica para trás).
+ */
+export function refreshEngagement(now: number = Date.now()): Promise<void> {
+  const userId = currentUser();
+  if (!userId) return Promise.resolve();
+  if (inflight) {
+    again = true;
+    return inflight;
+  }
+  const s = useEngagement.getState();
+  s.setUser(userId);
+  (['status', 'missions', 'chest', 'track'] as const).forEach((k) => s.setLoading(k));
+  inflight = (async () => {
+    try {
+      const [status, missions, chest, track] = await Promise.all([
+        repo.fetchEngagementStatus(userId, now),
+        repo.fetchMissions(),
+        repo.fetchDailyChest(),
+        repo.fetchTrack(),
+      ]);
+      if (useEngagement.getState().userId !== userId) return; // trocou de conta no meio
+      if (status.ok) useEngagement.getState().setReady('status', status.data);
+      else useEngagement.getState().setError('status', status.error);
+      store('missions', missions);
+      store('chest', chest);
+      store('track', track);
+      useEngagement.getState().setLoadedAt(now);
+    } finally {
+      inflight = null;
+      if (again) {
+        again = false;
+        void refreshEngagement(Date.now());
+      }
+    }
+  })();
+  return inflight;
+}
+
+const unavailable = () => new AppError('SERVER', 'Este recurso ainda não está disponível no servidor.', { detail: 'FEATURE_DISABLED' });
+
+function unwrap<T>(res: Result<repo.Maybe<T>>): Result<T> {
+  if (!res.ok) return res;
+  return res.data.available ? ok(res.data.data) : fail(unavailable());
+}
+
+/** Troca a missão do dia (1 por dia). O store reflete a troca na hora. */
+export async function rerollDailyMission(id: string): Promise<Result<repo.EngagementMission>> {
+  const res = unwrap(await repo.rerollMission(id));
+  if (res.ok) useEngagement.getState().replaceMission(res.data);
+  return res;
+}
+
+/** Abre os baús guardados (só com 1 km pontuado hoje) e recarrega a situação, o baú e a trilha. */
+export async function openStoredChests(now: number = Date.now()): Promise<Result<repo.DailyChestOpening>> {
+  const res = unwrap(await repo.openDailyChests());
+  if (res.ok) void refreshAfterReward(now);
+  return res;
+}
+
+/** Resgata um degrau da trilha e recarrega. */
+export async function claimSeasonStep(step: number, now: number = Date.now()): Promise<Result<{ step: number; alreadyClaimed: boolean; items: repo.TrackItem[] }>> {
+  const res = unwrap(await repo.claimTrackStep(step));
+  if (res.ok) void refreshAfterReward(now);
+  return res;
+}
+
+export async function startPause(weeks: number, now: number = Date.now()): Promise<Result<repo.HealthPauseInfo>> {
+  const res = unwrap(await repo.startHealthPause(weeks));
+  if (res.ok) await refreshEngagement(now);
+  return res;
+}
+
+export async function endPause(now: number = Date.now()): Promise<Result<repo.HealthPauseInfo | null>> {
+  const res = unwrap(await repo.endHealthPause());
+  if (res.ok) await refreshEngagement(now);
+  return res;
+}
+
+async function refreshAfterReward(now: number) {
+  const userId = currentUser();
+  if (!userId) return;
+  const [status, chest, track] = await Promise.all([repo.fetchEngagementStatus(userId, now), repo.fetchDailyChest(), repo.fetchTrack()]);
+  if (useEngagement.getState().userId !== userId) return;
+  if (status.ok) useEngagement.getState().setReady('status', status.data);
+  store('chest', chest);
+  store('track', track);
+}
+
+/**
+ * Corrida confirmada pelo servidor: guarda o bloco `extras.engagement` (se o servidor mandou) para o resumo e
+ * recarrega o resto. Devolve o bloco lido, ou `null` com o servidor v1.
+ */
+export function recordRunResult(official: unknown, now: number = Date.now()): repo.RunEngagement | null {
+  const block = repo.parseRunEngagement(official);
+  const id = (official as { activityId?: unknown } | null)?.activityId;
+  if (block && typeof id === 'string') useEngagement.getState().setLastRun(id, block);
+  void refreshEngagement(now);
+  return block;
+}
