@@ -27,6 +27,8 @@ export type Profile = {
   role: ProfileRole;
   status: string;
   avatarUrl: string | null;
+  /** Temporada ('YYYY-MM') da última troca de facção; a próxima troca só na temporada seguinte (RF-003). */
+  factionChangedSeason: string | null;
 };
 
 /** Campos que o próprio usuário pode alterar (o resto só o servidor muda). */
@@ -81,6 +83,7 @@ export function toProfile(row: Row): Profile {
     role,
     status: asString(row.status) ?? 'active',
     avatarUrl: asString(row.avatar_url),
+    factionChangedSeason: asString(row.faction_changed_season),
   };
 }
 

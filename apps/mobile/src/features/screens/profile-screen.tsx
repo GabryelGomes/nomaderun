@@ -134,6 +134,7 @@ export function ProfileScreen() {
           <SectionHeader title="Conta" />
           <Surface>
             <LinkRow testID="perfil-editar" title="Editar perfil" body="Nome de usuário, foto, cidade, unidade e notificações." onPress={() => router.push('/perfil/editar')} />
+            <LinkRow testID="perfil-time" title="Meu time" body="Ver seu time e trocar uma vez por temporada." onPress={() => router.push('/perfil/time' as Href)} />
             <LinkRow
               testID="perfil-notificacoes"
               title="Notificações"

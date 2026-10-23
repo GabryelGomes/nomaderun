@@ -64,7 +64,7 @@ export async function saveProfile(patch: ProfilePatch): Promise<Result<Profile>>
   return res;
 }
 
-/** Onboarding: grava a facção pelo RPC e recarrega o perfil (o guarda libera as abas). */
+/** Grava a facção pelo RPC e recarrega o perfil: no onboarding (o guarda libera as abas) e na troca em Perfil › Meu time. */
 export async function chooseFaction(faction: Parameters<typeof profileRepo.chooseFaction>[0]): Promise<Result<Profile>> {
   const res = await profileRepo.chooseFaction(faction);
   if (!res.ok) return res;
