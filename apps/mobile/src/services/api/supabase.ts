@@ -2,7 +2,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
 import { AppState, type AppStateStatus } from 'react-native';
 
-import { env, isBackendConfigured } from './env';
+import { asSupabaseClient, getDemoClient } from './demo';
+import { env, isBackendConfigured, isDemoMode } from './env';
 import { AppError } from './errors';
 import { createChunkedStorage, createWebStorage } from './secure-storage';
 
@@ -40,8 +41,13 @@ function wireAppState(c: SupabaseClient) {
   apply(AppState.currentState);
 }
 
-/** Devolve o cliente, ou `null` se `EXPO_PUBLIC_SUPABASE_URL`/`EXPO_PUBLIC_SUPABASE_ANON_KEY` faltarem. */
+/**
+ * Devolve o cliente, ou `null` se `EXPO_PUBLIC_SUPABASE_URL`/`EXPO_PUBLIC_SUPABASE_ANON_KEY` faltarem.
+ * Com `EXPO_PUBLIC_DEMO=1` (D-77) devolve o servidor de demonstração em memória: é a única costura
+ * do modo demonstração (repositórios e telas não sabem dele) e nenhum cliente real é criado.
+ */
 export function getSupabase(): SupabaseClient | null {
+  if (isDemoMode(env)) return asSupabaseClient(getDemoClient());
   if (client) return client;
   if (!isBackendConfigured(env) || !env.supabaseUrl || !env.supabaseAnonKey) return null;
   client = createClient(env.supabaseUrl, env.supabaseAnonKey, {
