@@ -259,8 +259,10 @@ export function createWorld(opts: WorldOptions): DemoWorld {
       })
     : [];
 
+  // Roteiro do moderador: 3 corridas em revisão por Índice de Confiança abaixo de 40 (RN-009), coerente com o perfil.
   const reviewRuns: DemoRun[] = opts.moderator
     ? runners.slice(0, 3).map((r, k) => {
+        r.trust = 31 + k * 3;
         const startedAt = now - (k + 1) * 5 * 3600_000;
         return {
           id: `${DEMO_ID_PREFIX}revisao-${k + 1}`,
@@ -268,7 +270,7 @@ export function createWorld(opts: WorldOptions): DemoWorld {
           mission: 'livre',
           startedAt,
           points: demoRunPoints(route, startedAt, { shift: RUN_SHIFTS[(k + 2) % RUN_SHIFTS.length] }),
-          review: { reason: k === 1 ? 'NO_PEDOMETER_LONG_RUN' : 'LOW_TRUST', flags: [] },
+          review: { reason: 'LOW_TRUST', flags: [] },
         };
       })
     : [];
