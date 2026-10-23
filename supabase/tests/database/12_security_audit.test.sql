@@ -44,7 +44,7 @@ select is(
       'chest_opens', 'chests', 'moderation_reviews', 'devices', 'seasons', 'crew_members', 'profiles',
       -- v2 (D-80): flags, livro de XP e o estado das features novas também só pelo servidor
       'game_config', 'xp_ledger', 'cosmetic_defs', 'user_cosmetics', 'user_equipped', 'medal_defs', 'user_medals',
-      'daily_chest_state', 'daily_rewards']) t
+      'daily_chest_state', 'daily_rewards', 'raid_bosses', 'raids', 'raid_hits', 'raid_weak_points', 'raid_rewards', 'raid_visits']) t
     where has_any_column_privilege('authenticated', ('public.' || t)::regclass, 'insert')),
   null, 'cliente não insere direto em tabelas escritas só pelo servidor (corridas, pontos, zonas, notificações, perfis, XP...)');
 
@@ -53,7 +53,7 @@ select is(
       'activities', 'activity_points', 'activity_zones', 'zones', 'zone_events', 'fog_cells', 'chest_opens', 'chests',
       'moderation_reviews', 'devices', 'seasons', 'crew_members',
       'game_config', 'xp_ledger', 'cosmetic_defs', 'user_cosmetics', 'user_equipped', 'medal_defs', 'user_medals',
-      'daily_chest_state', 'daily_rewards']) t
+      'daily_chest_state', 'daily_rewards', 'raid_bosses', 'raids', 'raid_hits', 'raid_weak_points', 'raid_rewards', 'raid_visits']) t
     where has_any_column_privilege('authenticated', ('public.' || t)::regclass, 'update')),
   null, 'cliente não altera tabelas escritas só pelo servidor');
 
@@ -62,7 +62,7 @@ select is(
       'activities', 'activity_points', 'activity_zones', 'zones', 'zone_events', 'notifications', 'fog_cells',
       'chest_opens', 'chests', 'moderation_reviews', 'devices', 'seasons', 'profiles',
       'game_config', 'xp_ledger', 'cosmetic_defs', 'user_cosmetics', 'user_equipped', 'medal_defs', 'user_medals',
-      'daily_chest_state', 'daily_rewards']) t
+      'daily_chest_state', 'daily_rewards', 'raid_bosses', 'raids', 'raid_hits', 'raid_weak_points', 'raid_rewards', 'raid_visits']) t
     where has_table_privilege('authenticated', ('public.' || t)::regclass, 'delete')),
   null, 'cliente não apaga corridas, zonas, notificações, perfis (exclusão de conta só pela function)');
 
@@ -92,7 +92,8 @@ select ok(
 
 select is(
   (select array_agg(tablename::text order by tablename) from pg_publication_tables where pubname = 'supabase_realtime'),
-  array['notifications', 'zones'], 'Realtime publica só zones e notifications (RLS vale na assinatura)');
+  -- v2 (D-67): raids entra de propósito; só tem números públicos (vida, fase, status), sem coluna de usuário
+  array['notifications', 'raids', 'zones'], 'Realtime publica só zones, notifications e raids (RLS vale na assinatura)');
 
 select results_eq(
   $$ select public, file_size_limit, allowed_mime_types from storage.buckets where id = 'avatars' $$,
