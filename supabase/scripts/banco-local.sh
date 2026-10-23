@@ -111,7 +111,11 @@ cleanup() {
   if [[ "$KEEP" == "1" ]]; then
     if [[ $STARTED -eq 1 ]]; then
       echo "Servidor continua rodando: $PG_BIN/psql -h $WORK -p $PORT -U postgres -d postgres"
-      echo "Para parar: $PG_BIN/pg_ctl -D $PGDATA stop${MOUNTED:+ && umount $MOUNTED}"
+      if [[ "$(id -u)" == "0" ]]; then
+        echo "Para parar: kill -INT \$(head -1 $PGDATA/postmaster.pid)${MOUNTED:+ && sleep 2 && umount $MOUNTED && rmdir $MOUNTED}"
+      else
+        echo "Para parar: $PG_BIN/pg_ctl -D $PGDATA stop"
+      fi
     fi
     return
   fi

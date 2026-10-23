@@ -1,12 +1,19 @@
--- NOMADE RUN — Fase 7, onda 1 (T7.1.23, D-67): Raid real semanal (chefão da cidade).
+-- NOMADE RUN — Fase 7, onda 1 (T7.1.23, D-67; contrato E3 §2.3 e §4.2): Raid real semanal (chefão da cidade).
 -- "Toda semana um chefão invade a cidade: cada quilômetro que você corre tira 10 de vida dele."
+-- Mesmas regras de src/domain/raid.ts (E3):
 --   * janela segunda 06:00 → domingo 21:00 (Brasília); global por enquanto (coluna city pronta);
---   * vida = max(500, 0,75 × mediana dos km semanais das 4 semanas anteriores × 10 × fator); fator 0,7–1,5
---     (+10% se caiu antes de sábado, −10% se fugiu);
---   * fases 100/67/33 % (a fase só avança); 3 pontos fracos por dia a partir da fase 2;
---   * dano calculado pelo domain (raid.ts, E3) na gravação v2 (onda 2); o servidor aplica os tetos de 21 km por corrida
---     e 30 km por dia, a idempotência por corrida e um limite de sanidade (≤ 10/km × 5);
---   * recompensas: XP = dano ÷ 2 (até 300), e, se derrotado, +200 XP, baú do chefão, medalha e cosméticos;
+--   * chefão da semana = raidBossForWeek: rodízio fixo de RAID_BOSS_IDS a partir de 19/10/2026 06:00 (Soneca);
+--   * vida = raidHpFor: max(500, 0,75 × mediana dos km semanais das 4 semanas anteriores × 10 × fator); fator =
+--     raidNextFactor (+0,1 se caiu antes de sábado, −0,1 se fugiu; 0,7–1,5);
+--   * fases = raidPhase / raidAdvancePhase: 1 (> 67 %), 2 (> 33 %), 3 (o resto); a fase só avança;
+--   * pontos fracos = raidWeakPoints: 3 zonas por dia a partir da fase 2, ordenadas por raidSeededUnit
+--     (semente "<cidade ou global>:<raid>|<dia>|<zona>");
+--   * golpe (svc_raid_hit, idempotente por atividade): o dano vem de raidDamage na gravação v2 (onda 2); o servidor
+--     confere o crítico com o mesmo sorteio (raidCritRoll: raidSeededUnit("crit:<atividade>") < 0,1), os tetos de 21 km
+--     por corrida e 30 km por dia, o limite de sanidade (10/km × crítico × ponto fraco × grupo) e, POR ÚLTIMO, o teto
+--     diário de 300 de dano (já com o crítico);
+--   * recompensas: XP = dano ÷ 2 (até 300), e, se derrotado (≥ 10 de dano), +200 XP, baú do chefão (raidRewardTier),
+--     medalha e cosméticos;
 --   * Realtime em raids (só números públicos: vida, fase, status). Cores e arte dos chefões: E4 (violeta só para vilões).
 
 -- ===========================================================================
@@ -20,9 +27,7 @@ create table public.raid_bosses (
   intro_line text not null check (char_length(intro_line) between 2 and 90),
   defeat_line text not null check (char_length(defeat_line) between 2 and 90),
   art_key text not null check (char_length(art_key) between 2 and 40),
-  months smallint[] not null default '{}',          -- meses temáticos (calendário da E4)
-  blocked_months smallint[] not null default '{}',  -- meses em que não aparece (Fuligem fora das queimadas)
-  sort smallint not null default 0,
+  sort smallint not null unique,      -- posição em RAID_BOSS_IDS (0..4): define o rodízio
   active boolean not null default true,
   is_demo boolean not null default false
 );
@@ -36,8 +41,8 @@ create table public.raids (
   ends_at timestamptz not null,
   hp_max integer not null check (hp_max > 0),
   hp integer not null check (hp >= 0),
-  phase smallint not null default 1 check (phase between 1 and 4), -- 4 = derrotado
-  factor numeric(4, 2) not null default 1 check (factor between 0.5 and 2),
+  phase smallint not null default 1 check (phase between 1 and 3),
+  factor numeric(4, 2) not null default 1 check (factor between 0.7 and 1.5),
   status text not null default 'active' check (status in ('active', 'defeated', 'escaped')),
   participants integer not null default 0 check (participants >= 0),
   defeated_at timestamptz,
@@ -51,7 +56,8 @@ create table public.raids (
 );
 create unique index raids_week_city_key on public.raids (week_start, coalesce(city, ''));
 create index raids_status_idx on public.raids (status, ends_at);
-comment on table public.raids is 'D-67: um chefão por semana e por escopo (city null = global). Sem dado pessoal: vai para o Realtime.';
+comment on table public.raids is
+  'D-67: um chefão por semana e por escopo (city null = global). Sem dado pessoal (o golpe final fica em raid_hits): vai para o Realtime.';
 create trigger raids_touch before update on public.raids for each row execute function private.touch_updated_at();
 
 create table public.raid_hits (
@@ -59,11 +65,13 @@ create table public.raid_hits (
   raid_id uuid not null references public.raids (id) on delete cascade,
   user_id uuid not null references public.profiles (id) on delete cascade,
   crew_id uuid references public.crews (id) on delete set null,  -- foto do momento, para o ranking de crews
-  day date not null,                                             -- dia de Brasília da corrida (teto diário)
-  meters integer not null check (meters >= 0),                   -- metros que contaram, depois dos tetos
+  day date not null,                                             -- dia de Brasília da corrida (tetos diários)
+  meters integer not null check (meters >= 0),                   -- metros que contaram (countedKm), depois dos tetos
   weak_meters integer not null default 0 check (weak_meters >= 0 and weak_meters <= meters),
   damage integer not null check (damage >= 0),
   crit boolean not null default false,
+  pack boolean not null default false,
+  capped boolean not null default false,
   final_blow boolean not null default false,
   created_at timestamptz not null default now()
 );
@@ -91,7 +99,7 @@ create table public.raid_rewards (
 );
 create index raid_rewards_user_idx on public.raid_rewards (user_id, granted_at desc);
 
--- "Dano da cidade desde a sua última visita" (D-67)
+-- "Dano da cidade desde a sua última visita" (D-67, raidDamageSince)
 create table public.raid_visits (
   raid_id uuid not null references public.raids (id) on delete cascade,
   user_id uuid not null references public.profiles (id) on delete cascade,
@@ -126,33 +134,59 @@ create policy raid_visits_active_account on public.raid_visits as restrictive fo
 -- Vida e fase ao vivo para o mapa e a Arena: números públicos, nenhum dado pessoal.
 alter publication supabase_realtime add table public.raids;
 
--- Elenco da E4 (ids estáveis usados pela arte e por domain/raid.ts) e calendário sugerido.
-insert into public.raid_bosses (id, name, theme, weakness, intro_line, defeat_line, art_key, months, blocked_months, sort) values
-  ('soneca', 'Soneca', 'preguiça, "só amanhã"', 'corrida antes das 8h',
-   'Só mais cinco minutinhos... a semana inteira.', 'Tá bom, tá bom... levantei.', 'chefao-soneca', '{1}', '{}', 1),
-  ('rei-buzina', 'Rei Buzina', 'trânsito, carro em cima da faixa', 'ruas de bairro',
-   'Aqui quem manda é o engarrafamento. Buzina pra mim!', 'Tá... abre o sinal.', 'chefao-rei-buzina', '{3}', '{}', 2),
-  ('fuligem', 'Fuligem', 'fumaça, poluição', 'parques e lagos',
-   'Respira fundo... se tiver coragem.', 'Ventou... e eu sumi.', 'chefao-fuligem', '{11}', '{8,9}', 3),
-  ('mormaco', 'Mormaço', 'calor, ar parado', 'sombra dos parques',
-   'Quarenta graus e ar parado. Só me vence quem corre cedo.', 'Isso é... chuva?', 'chefao-mormaco', '{9,10}', '{}', 4),
-  ('paredao', 'Paredão', 'concreto, muro, ladeira', 'quem sobe ruas novas',
-   'Cimento, muro e ladeira. Por aqui ninguém passa.', '...desmoronei.', 'chefao-paredao', '{}', '{}', 5);
+-- RAID_BOSS_IDS (mesma ordem do domain) com nome e fraqueza de RAID_BOSSES e as falas da arte da E4.
+insert into public.raid_bosses (id, name, theme, weakness, intro_line, defeat_line, art_key, sort) values
+  ('soneca', 'Soneca', 'preguiça, "só amanhã"', 'Corrida antes das 8h',
+   'Só mais cinco minutinhos... a semana inteira.', 'Tá bom, tá bom... levantei.', 'chefao-soneca', 0),
+  ('rei-buzina', 'Rei Buzina', 'trânsito, carro em cima da faixa', 'Ruas de bairro',
+   'Aqui quem manda é o engarrafamento. Buzina pra mim!', 'Tá... abre o sinal.', 'chefao-rei-buzina', 1),
+  ('fuligem', 'Fuligem', 'fumaça, poluição', 'Parques e praças',
+   'Respira fundo... se tiver coragem.', 'Ventou... e eu sumi.', 'chefao-fuligem', 2),
+  ('mormaco', 'Mormaço', 'calor, ar parado', 'Sombra das árvores',
+   'Quarenta graus e ar parado. Só me vence quem corre cedo.', 'Isso é... chuva?', 'chefao-mormaco', 3),
+  ('paredao', 'Paredão', 'concreto, muro, ladeira', 'Ruas que você nunca correu',
+   'Cimento, muro e ladeira. Por aqui ninguém passa.', '...desmoronei.', 'chefao-paredao', 4);
 
 -- ===========================================================================
--- Funções puras / auxiliares
+-- Funções puras / auxiliares (paridade com raid.ts)
 -- ===========================================================================
--- Fase pela vida restante: 1 (> 67 %), 2 (> 33 %), 3 (> 0), 4 (derrotado).
+-- Math.imul (32 bits, sem sinal) sem estourar o bigint.
+create or replace function private.imul32(p_a bigint, p_b bigint) returns bigint
+language sql immutable set search_path = '' as $$
+  select ((p_a * (p_b & 65535)) + (((p_a * (p_b >> 16)) & 65535) << 16)) & 4294967295
+$$;
+revoke all on function private.imul32(bigint, bigint) from public, anon, authenticated;
+
+-- raidSeededUnit: FNV-1a + mistura → número em [0, 1). Mesmo texto, mesmo número que o domain.
+create or replace function private.raid_seeded_unit(p_seed text) returns double precision
+language plpgsql immutable set search_path = '' as $$
+declare
+  h bigint := 2166136261;
+  i integer;
+begin
+  for i in 1 .. char_length(coalesce(p_seed, '')) loop
+    h := h # ascii(substr(p_seed, i, 1));
+    h := private.imul32(h, 16777619);
+  end loop;
+  h := h # (h >> 16);
+  h := private.imul32(h, 2246822507);  -- 0x85ebca6b
+  h := h # (h >> 13);
+  h := private.imul32(h, 3266489909);  -- 0xc2b2ae35
+  h := h # (h >> 16);
+  return h / 4294967296.0;
+end $$;
+revoke all on function private.raid_seeded_unit(text) from public, anon, authenticated;
+
+-- raidPhase: 1 (> 67 %), 2 (> 33 %), 3 (o resto).
 create or replace function private.raid_phase_of(p_hp integer, p_hp_max integer) returns smallint
 language sql immutable set search_path = '' as $$
-  select case when p_hp <= 0 then 4
-              when p_hp::numeric / p_hp_max <= 0.33 then 3
-              when p_hp::numeric / p_hp_max <= 0.67 then 2
-              else 1 end::smallint
+  select case when p_hp_max > 0 and greatest(0, least(p_hp, p_hp_max))::numeric / p_hp_max > 0.67 then 1
+              when p_hp_max > 0 and greatest(0, least(p_hp, p_hp_max))::numeric / p_hp_max > 0.33 then 2
+              else 3 end::smallint
 $$;
 revoke all on function private.raid_phase_of(integer, integer) from public, anon, authenticated;
 
--- Janela da semana que contém p_at: segunda 06:00 → domingo 21:00 (Brasília).
+-- raidWeekWindow: segunda 06:00 → domingo 21:00 (Brasília) da semana que contém p_at.
 create or replace function private.raid_window(p_at timestamptz, out week_start date, out starts_at timestamptz, out ends_at timestamptz)
 language sql stable set search_path = '' as $$
   select w, (w + time '06:00') at time zone 'America/Sao_Paulo', ((w + 6) + time '21:00') at time zone 'America/Sao_Paulo'
@@ -160,30 +194,21 @@ language sql stable set search_path = '' as $$
 $$;
 revoke all on function private.raid_window(timestamptz) from public, anon, authenticated;
 
--- Chefão da semana: o do mês temático; senão, rodízio pela semana entre os que não estão bloqueados no mês.
-create or replace function private.raid_pick_boss(p_week_start date) returns text
+-- raidBossForWeek: rodízio fixo de RAID_BOSS_IDS; semana 0 = 19/10/2026 (Soneca).
+create or replace function private.raid_boss_for_week(p_week_start date) returns text
 language sql stable security definer set search_path = '' as $$
-  select coalesce(
-    (select b.id from public.raid_bosses b
-      where b.active and not b.is_demo and extract(month from p_week_start)::smallint = any (b.months)
-      order by md5(b.id || p_week_start::text) limit 1),
-    (select b.id from public.raid_bosses b
-      where b.active and not b.is_demo and not (extract(month from p_week_start)::smallint = any (b.blocked_months))
-      order by b.sort
-      offset (extract(week from p_week_start)::integer
-              % greatest(1, (select count(*) from public.raid_bosses c where c.active and not c.is_demo
-                               and not (extract(month from p_week_start)::smallint = any (c.blocked_months)))::integer))
-      limit 1))
+  select b.id from public.raid_bosses b
+   where b.sort = ((((p_week_start - date '2026-10-19') / 7) % 5) + 5) % 5
 $$;
-revoke all on function private.raid_pick_boss(date) from public, anon, authenticated;
+revoke all on function private.raid_boss_for_week(date) from public, anon, authenticated;
 
 -- ===========================================================================
--- Golpe de uma corrida aceita (chamado pela gravação v2 do finish-activity, onda 2; idempotente por corrida).
--- p_meters: metros válidos da corrida; p_damage: dano do domain (raid.ts) para esses metros; p_weak_meters: metros em
--- ponto fraco; p_crit: crítico sorteado pelo domain (semente = id da corrida).
+-- Golpe de uma corrida aceita (applyRaidHit; chamado pela gravação v2 do finish-activity, onda 2).
+-- Idempotente por atividade: repetir devolve o mesmo golpe (repeated = true) e não tira vida de novo.
+-- p_meters: validMeters; p_damage: raidDamage(...).damage; p_weak_meters: metros em ponto fraco; p_pack: grupo na fase 3.
 -- ===========================================================================
-create or replace function private.apply_raid_hit(p_activity uuid, p_meters integer, p_damage integer, p_crit boolean,
-                                                  p_weak_meters integer default 0) returns jsonb
+create or replace function private.apply_raid_hit(p_activity uuid, p_meters integer, p_damage integer,
+                                                  p_weak_meters integer default 0, p_pack boolean default false) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
   h public.raid_hits;
@@ -192,9 +217,14 @@ declare
   v_city text;
   v_day date;
   v_day_m bigint;
+  v_day_dmg bigint;
   v_counted integer;
-  v_damage integer;
+  v_weak integer;
+  v_crit boolean;
+  v_pack boolean;
   v_ceiling numeric;
+  v_room integer;
+  v_damage integer;
   v_hp integer;
   v_phase_before smallint;
   v_first boolean;
@@ -203,8 +233,9 @@ begin
   select * into h from public.raid_hits where activity_id = p_activity;
   if h.activity_id is not null then
     select * into r from public.raids where id = h.raid_id;
-    return jsonb_build_object('raidId', r.id, 'bossId', r.boss_id, 'damage', h.damage, 'meters', h.meters, 'crit', h.crit,
-                              'finalBlow', h.final_blow, 'phase', r.phase, 'hp', r.hp, 'hpMax', r.hp_max,
+    return jsonb_build_object('raidId', r.id, 'bossId', r.boss_id, 'damage', h.damage, 'countedKm', h.meters / 1000.0,
+                              'weakKm', h.weak_meters / 1000.0, 'crit', h.crit, 'pack', h.pack, 'capped', h.capped,
+                              'finalBlow', h.final_blow, 'phaseAfter', r.phase, 'hpAfter', r.hp, 'hpMax', r.hp_max,
                               'defeated', r.status = 'defeated', 'repeated', true);
   end if;
   if not private.feature_on('raid') or coalesce(p_meters, 0) <= 0 then
@@ -225,22 +256,31 @@ begin
     return null;
   end if;
 
+  -- tetos de distância (21 km por corrida, 30 km por dia de Brasília)
   v_day := (coalesce(a.ended_at, a.finished_at) at time zone 'America/Sao_Paulo')::date;
-  select coalesce(sum(x.meters), 0) into v_day_m from public.raid_hits x where x.user_id = a.user_id and x.day = v_day;
+  select coalesce(sum(x.meters), 0), coalesce(sum(x.damage), 0) into v_day_m, v_day_dmg
+    from public.raid_hits x where x.user_id = a.user_id and x.day = v_day;
   v_counted := greatest(0, least(p_meters,
                                  (private.param_num('raid', 'runCapKm', 21) * 1000)::integer,
                                  (private.param_num('raid', 'dayCapKm', 30) * 1000)::integer - v_day_m))::integer;
-  -- dano proporcional aos metros que contaram, com teto de sanidade (10/km × multiplicador máximo)
-  v_ceiling := v_counted / 1000.0 * private.param_num('raid', 'damagePerKm', 10) * private.param_num('raid', 'maxMultiplier', 5);
-  v_damage := floor(least(greatest(coalesce(p_damage, 0), 0)::numeric * v_counted / p_meters, v_ceiling))::integer;
+  v_weak := case when r.phase >= 2 then least(greatest(coalesce(p_weak_meters, 0), 0), v_counted) else 0 end;
+  -- crítico conferido com o mesmo sorteio do domain (raidCritRoll); grupo só vale na fase 3
+  v_crit := private.raid_seeded_unit('crit:' || a.id) < private.param_num('raid', 'critChance', 0.1);
+  v_pack := r.phase = 3 and coalesce(p_pack, false);
+  v_ceiling := floor((v_counted + v_weak * (private.param_num('raid', 'weakPointMultiplier', 2) - 1)) / 1000.0
+                     * private.param_num('raid', 'damagePerKm', 10)
+                     * case when v_crit then 2 else 1 end * case when v_pack then 1.25 else 1 end + 1e-9);
+  -- teto diário de dano aplicado DEPOIS do crítico (RAID_DAILY_DAMAGE_CAP = 300)
+  v_room := greatest(0, private.param_num('raid', 'dayDamageCap', 300)::integer - v_day_dmg);
+  v_damage := least(greatest(coalesce(p_damage, 0), 0), v_ceiling, v_room)::integer;
 
   v_first := not exists (select 1 from public.raid_hits x where x.raid_id = r.id and x.user_id = a.user_id);
   v_phase_before := r.phase;
   v_hp := greatest(0, r.hp - v_damage);
   v_final := r.hp > 0 and v_hp = 0 and v_damage > 0;
-  insert into public.raid_hits (activity_id, raid_id, user_id, crew_id, day, meters, weak_meters, damage, crit, final_blow)
+  insert into public.raid_hits (activity_id, raid_id, user_id, crew_id, day, meters, weak_meters, damage, crit, pack, capped, final_blow)
   values (a.id, r.id, a.user_id, (select cm.crew_id from public.crew_members cm where cm.user_id = a.user_id), v_day,
-          v_counted, least(greatest(coalesce(p_weak_meters, 0), 0), v_counted), v_damage, coalesce(p_crit, false), v_final);
+          v_counted, v_weak, v_damage, v_crit, v_pack, v_damage < greatest(coalesce(p_damage, 0), 0) or v_counted < p_meters, v_final);
   update public.raids
      set hp = v_hp,
          phase = greatest(phase, private.raid_phase_of(v_hp, hp_max)),
@@ -250,13 +290,24 @@ begin
          participants = participants + case when v_first then 1 else 0 end
    where id = r.id
   returning * into r;
-  return jsonb_build_object('raidId', r.id, 'bossId', r.boss_id, 'damage', v_damage, 'meters', v_counted,
-                            'capped', v_counted < p_meters, 'crit', coalesce(p_crit, false), 'finalBlow', v_final,
-                            'phaseBefore', v_phase_before, 'phase', r.phase, 'hp', r.hp, 'hpMax', r.hp_max,
+  return jsonb_build_object('raidId', r.id, 'bossId', r.boss_id, 'damage', v_damage, 'crit', v_crit,
+                            'critChance', private.param_num('raid', 'critChance', 0.1),
+                            'countedKm', v_counted / 1000.0, 'weakKm', v_weak / 1000.0, 'pack', v_pack,
+                            'capped', v_damage < greatest(coalesce(p_damage, 0), 0) or v_counted < p_meters,
+                            'hpAfter', r.hp, 'hpMax', r.hp_max, 'phaseBefore', v_phase_before, 'phaseAfter', r.phase,
+                            'phaseChanged', r.phase <> v_phase_before, 'finalBlow', v_final,
                             'defeated', r.status = 'defeated', 'repeated', false);
 end $$;
-revoke all on function private.apply_raid_hit(uuid, integer, integer, boolean, integer) from public, anon, authenticated;
+revoke all on function private.apply_raid_hit(uuid, integer, integer, integer, boolean) from public, anon, authenticated;
 
+-- raid_hit para a Edge Function (service role), como pede o contrato da E3 (§4.2).
+create or replace function public.svc_raid_hit(p_activity uuid, p_meters integer, p_damage integer,
+                                               p_weak_meters integer default 0, p_pack boolean default false) returns jsonb
+language sql security definer set search_path = '' as $$
+  select private.apply_raid_hit(p_activity, p_meters, p_damage, p_weak_meters, p_pack)
+$$;
+revoke all on function public.svc_raid_hit(uuid, integer, integer, integer, boolean) from public, anon, authenticated;
+grant execute on function public.svc_raid_hit(uuid, integer, integer, integer, boolean) to service_role;
 -- ===========================================================================
 -- Tela do raid: chefão, vida, fase, prazo, pontos fracos de hoje, "Sua parte", dano desde a última visita,
 -- top 10 corredores e top 5 crews (sem ids de corrida nem de usuário).
@@ -385,7 +436,7 @@ begin
                 case when p.final_blow then 'ouro' when p.pos <= 10 then 'prata' else 'bronze' end)
         on conflict do nothing;
         if found then
-          perform private.add_bonus_chest(p.user_id, v_chest);
+          perform private.add_bonus_chest(p.user_id, v_chest, 'raid', r.id::text);
           perform private.award_medal(p.user_id, 'chefao',
                                       case when p.final_blow then 'ouro' when p.pos <= 10 then 'prata' else 'bronze' end,
                                       r.boss_id, null);
@@ -417,15 +468,14 @@ begin
     v_rewarded := v_rewarded + 1;
   end loop;
 
-  -- 3. pontos fracos do dia (a partir da fase 2), sorteados por semente do raid + dia
+  -- 3. pontos fracos do dia (a partir da fase 2): raidWeakPoints com a semente "<cidade ou global>:<raid>|<dia>|<zona>"
   for w in select * from public.raids where status = 'active' and phase >= 2
              and p_now >= ((v_day + time '06:00') at time zone 'America/Sao_Paulo') loop
-    if (select count(*) from public.raid_weak_points x where x.raid_id = w.id and x.day = v_day)
-       < private.param_num('raid', 'weakPointsPerDay', 3) then
+    if not exists (select 1 from public.raid_weak_points x where x.raid_id = w.id and x.day = v_day) then
       insert into public.raid_weak_points (raid_id, day, zone_id)
       select w.id, v_day, z.id from public.zones z
        where not z.blocked and (w.city is null or z.city = w.city)
-       order by md5(w.id::text || v_day::text || z.id)
+       order by private.raid_seeded_unit(coalesce(w.city, 'global') || ':' || w.id || '|' || v_day || '|' || z.id), z.id
        limit private.param_num('raid', 'weakPointsPerDay', 3)::integer
       on conflict do nothing;
       get diagnostics v_n = row_count;
@@ -446,7 +496,8 @@ begin
                            then private.param_num('raid', 'factorStep', 0.1)
                          when v_prev.status = 'escaped' then -private.param_num('raid', 'factorStep', 0.1)
                          else 0 end;
-      v_factor := least(private.param_num('raid', 'factorMax', 1.5), greatest(private.param_num('raid', 'factorMin', 0.7), v_factor));
+      v_factor := round(least(private.param_num('raid', 'factorMax', 1.5),
+                              greatest(private.param_num('raid', 'factorMin', 0.7), v_factor)), 2);
       -- mediana dos km semanais (corridas aceitas) das 4 semanas anteriores
       select percentile_cont(0.5) within group (order by km) into v_median from (
         select coalesce(sum(a.meters), 0) / 1000.0 as km
@@ -459,7 +510,7 @@ begin
       v_hp := greatest(private.param_num('raid', 'hpMin', 500),
                        round(private.param_num('raid', 'hpShare', 0.75) * coalesce(v_median, 0)
                              * private.param_num('raid', 'damagePerKm', 10) * v_factor))::integer;
-      v_boss := private.raid_pick_boss(w.week_start);
+      v_boss := private.raid_boss_for_week(w.week_start);
       if v_boss is not null then
         insert into public.raids (boss_id, city, week_start, starts_at, ends_at, hp_max, hp, factor)
         values (v_boss, null, w.week_start, w.starts_at, w.ends_at, v_hp, v_hp, v_factor)

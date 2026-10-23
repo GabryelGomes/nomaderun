@@ -9,7 +9,7 @@ select is(
 
 select is(
   (select count(*)::int from pg_tables where schemaname = 'public'),
-  40, '40 tabelas (15 do modelo + privacy_zones e chests da Fase 3 + 23 da v2: contrato, recompensas, baú do dia, raid, liga, missões e trilha)');
+  42, '42 tabelas (15 do modelo + privacy_zones e chests da Fase 3 + 25 da v2: contrato, recompensas, baú do dia, raid, liga, missões e trilha)');
 
 select has_extension('postgis', 'PostGIS instalado');
 select has_extension('pg_cron', 'pg_cron instalado');

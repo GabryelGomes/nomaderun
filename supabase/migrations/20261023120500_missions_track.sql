@@ -1,13 +1,16 @@
--- NOMADE RUN — Fase 7, onda 1 (T7.1.23, D-65/D-64): missões e trilha da temporada.
--- Missões:
---   * mission_defs com os MESMOS ids do catálogo da E7 (docs/melhoria/F1/engajamento/catalogo.ts → src/domain/missions.ts);
---   * 3 diárias + 3 semanais (1 leve, 1 padrão, 1 desafio: sempre 1 leve), sorteio determinístico por
---     md5(usuário + período + id); só entram as missões possíveis (crew, raid real, zona do time sob ataque);
---   * metas adaptativas (d-km, s-km, s-chefao) calculadas com os dados do próprio servidor;
---   * troca de 1 diária por dia; primeira semana com 7 passos (1 por dia, nunca expira); missão de volta (7/14/30 dias);
---   * progresso só com as métricas OFICIAIS da corrida (private.advance_missions, chamada pela gravação v2 na onda 2),
---     sem passar da meta; métricas de conjunto (zonas, bairros) contam itens distintos;
---   * resgate idempotente (claim_mission) pelo livro de XP; baú bônus e cosmético quando a missão dá.
+-- NOMADE RUN — Fase 7, onda 1 (T7.1.23, D-65/D-64; contrato E7 §1–§6): missões e trilha da temporada.
+-- Missões (regras puras em src/domain/missions.ts; o SQL guarda, trava e confere):
+--   * mission_defs com os MESMOS 29 ids e textos de MISSION_CATALOG (kind = MissionCadence: diaria, semanal, ftue, volta);
+--   * 3 diárias + 3 semanais (slot 0 leve, 1 padrão, 2 desafio: sempre 1 leve), sorteio determinístico por
+--     md5(usuário + período + id), só entre as possíveis (crew, zona do time sob ataque, raid ativo);
+--   * alvos adaptativos daily_km / weekly_km / raid_km com os números de dailyKmTarget/weeklyKmTarget/raidKmTarget;
+--   * troca de 1 diária por dia NO MESMO slot (progresso 0); primeira semana (slots 1..7, um passo por dia depois do
+--     anterior, nunca expira, versão alternativa sem raid/liga); missão de volta (7/14/30 dias, uma por ausência);
+--   * progresso ABSOLUTO calculado pelo domain (settleMission) e gravado com greatest(): nunca volta e nunca passa da
+--     meta; ao concluir, paga na hora (claimed_at = completed_at, XP pelo livro, baú bônus, cosmético);
+--     claim_mission fica como caminho idempotente;
+--   * métricas de estado (crew, liga, compartilhar, abrir o ranking) o próprio servidor confere; as de atividade chegam
+--     pela gravação v2 do finish-activity (onda 2) em private.advance_missions.
 -- Trilha da temporada (E7 §6): 24 degraus de 120 XP da temporada (soma do xp_ledger do mês, sem o XP da própria trilha);
 -- resgate idempotente por degrau (claim_track_step); medalha bronze/prata/ouro em 8/16/24.
 -- Os períodos usam sempre o relógio do servidor (Brasília).
@@ -16,103 +19,126 @@
 -- Missões
 -- ===========================================================================
 create table public.mission_defs (
-  id text primary key check (id ~ '^[a-z0-9-]{2,40}$'),
-  cadence text not null check (cadence in ('diaria', 'semanal', 'ftue', 'volta')),
+  id text primary key check (id ~ '^[a-z0-9-]{3,40}$'),
+  kind text not null check (kind in ('diaria', 'semanal', 'ftue', 'volta')),
   tier text not null check (tier in ('leve', 'padrao', 'desafio')),
-  text text not null check (char_length(text) between 3 and 40),
-  metric text not null check (metric in ('moving_seconds', 'meters', 'new_fog_cells', 'zones_painted', 'chests_opened',
-                                         'ghost_beaten', 'ghost_beaten_1km', 'zones_conquered', 'zones_defended', 'group_runs',
-                                         'runs', 'districts', 'raid_meters', 'crew_member', 'league_points', 'shares')),
-  target integer not null check (target > 0),
-  target_rule text check (target_rule in ('d-km', 's-km', 's-chefao')),
-  xp integer not null check (xp between 0 and 1000),
-  extra text check (extra is null or char_length(extra) <= 60),
-  reward_chest text check (reward_chest in ('comum', 'raro', 'lendario')),
-  reward_cosmetic text references public.cosmetic_defs (id),
-  requires text check (requires in ('crew', 'raid', 'league', 'zone_attack')),
-  fallback_text text check (fallback_text is null or char_length(fallback_text) between 3 and 40),
+  requires text check (requires in ('crew', 'zone_under_attack', 'raid')),
+  metric text not null check (metric in ('moving_seconds', 'meters', 'new_fog_cells', 'zones_painted', 'districts',
+                                         'chests_opened', 'ghost_wins', 'zones_conquered', 'zones_defended', 'crew_runs',
+                                         'runs', 'raid_damage_m', 'painted_runs', 'crew_member', 'league_points',
+                                         'ranking_opened', 'shares')),
+  target integer check (target is null or target > 0),
+  target_rule text not null default 'fixed' check (target_rule in ('fixed', 'daily_km', 'weekly_km', 'raid_km')),
+  min_meters integer check (min_meters is null or min_meters > 0),
+  reward_xp integer not null check (reward_xp between 0 and 1000),
+  title text not null check (char_length(title) between 3 and 40),
+  fallback_when text check (fallback_when in ('no_raid', 'no_league')),
   fallback_metric text,
   fallback_target integer check (fallback_target is null or fallback_target > 0),
-  step smallint,
-  sort smallint not null default 0,
+  fallback_title text check (fallback_title is null or char_length(fallback_title) between 3 and 40),
+  bonus jsonb check (bonus is null or jsonb_typeof(bonus) = 'object'),
+  step smallint,                     -- primeira semana: 1..7; volta: dias de ausência (7, 14, 30)
+  sort smallint not null default 0,  -- ordem de MISSION_CATALOG
   active boolean not null default true,
   is_demo boolean not null default false,
-  check ((fallback_text is null) = (fallback_metric is null) and (fallback_metric is null) = (fallback_target is null))
+  check ((target_rule = 'fixed') = (target is not null)),
+  check ((fallback_when is null) = (fallback_metric is null) and (fallback_metric is null) = (fallback_target is null)
+         and (fallback_target is null) = (fallback_title is null))
 );
-comment on table public.mission_defs is 'D-65: catálogo de missões (ids iguais aos de src/domain/missions.ts, E7). Textos ≤ 40 caracteres.';
+comment on table public.mission_defs is
+  'D-65: catálogo de missões = MISSION_CATALOG (src/domain/missions.ts, E7). title ≤ 40 com {x} = alvo em km.';
 
 create table public.user_missions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles (id) on delete cascade,
   def_id text not null references public.mission_defs (id),
-  cadence text not null check (cadence in ('diaria', 'semanal', 'ftue', 'volta')),
+  kind text not null check (kind in ('diaria', 'semanal', 'ftue', 'volta')),
   period_key text not null check (period_key ~ '^(\d{4}-\d{2}-\d{2}|\d{4}-W\d{2}|ftue|volta-\d{4}-\d{2}-\d{2})$'),
-  slot smallint not null check (slot between 1 and 9),
+  slot smallint not null check (slot between 0 and 7),
+  variant text not null default 'base' check (variant in ('base', 'fallback')),
   metric text not null,
   target integer not null check (target > 0),
   xp integer not null check (xp >= 0),
-  text text not null check (char_length(text) between 3 and 40),
+  title text not null check (char_length(title) between 3 and 40),
   progress integer not null default 0 check (progress >= 0),
-  seen text[] not null default '{}' check (cardinality(seen) <= 200),
+  available_from timestamptz not null,
   completed_at timestamptz,
   claimed_at timestamptz,
   rerolled_at timestamptz,
   created_at timestamptz not null default now(),
+  unique (user_id, period_key, slot),
   unique (user_id, def_id, period_key),
   check (progress <= target),
-  check (claimed_at is null or completed_at is not null),
-  check (rerolled_at is null or completed_at is null)
+  check (claimed_at is null or completed_at is not null)
 );
-create unique index user_missions_slot_key on public.user_missions (user_id, period_key, slot) where rerolled_at is null;
-create index user_missions_open_idx on public.user_missions (user_id, period_key) where completed_at is null and rerolled_at is null;
+create index user_missions_open_idx on public.user_missions (user_id, period_key) where completed_at is null;
+create index user_missions_rerolled_idx on public.user_missions (user_id, rerolled_at) where rerolled_at is not null;
+
+-- Fatos declarados pelo app que contam para missões (compartilhar o card, abrir o ranking): 1 por tipo por dia.
+create table public.engagement_marks (
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  kind text not null check (kind in ('share', 'ranking_opened')),
+  day date not null,
+  activity_id uuid references public.activities (id) on delete set null,
+  created_at timestamptz not null default now(),
+  primary key (user_id, kind, day)
+);
 
 alter table public.mission_defs enable row level security;
 alter table public.user_missions enable row level security;
-revoke all on public.mission_defs, public.user_missions from anon, authenticated;
-grant select on public.mission_defs, public.user_missions to authenticated;
+alter table public.engagement_marks enable row level security;
+revoke all on public.mission_defs, public.user_missions, public.engagement_marks from anon, authenticated;
+grant select on public.mission_defs, public.user_missions, public.engagement_marks to authenticated;
 create policy mission_defs_read on public.mission_defs for select to authenticated using (active);
 create policy user_missions_select on public.user_missions for select to authenticated using (user_id = (select auth.uid()));
+create policy engagement_marks_select on public.engagement_marks for select to authenticated using (user_id = (select auth.uid()));
 create policy user_missions_active_account on public.user_missions as restrictive for all to authenticated
   using ((select private.is_active())) with check ((select private.is_active()));
+create policy engagement_marks_active_account on public.engagement_marks as restrictive for all to authenticated
+  using ((select private.is_active())) with check ((select private.is_active()));
 
-insert into public.mission_defs (id, cadence, tier, text, metric, target, target_rule, xp, extra, reward_chest, reward_cosmetic,
-                                 requires, fallback_text, fallback_metric, fallback_target, step, sort) values
+insert into public.mission_defs (id, kind, tier, requires, metric, target, target_rule, min_meters, reward_xp, title,
+                                 fallback_when, fallback_metric, fallback_target, fallback_title, bonus, step, sort) values
   -- diárias (20/30/40 XP)
-  ('d-mover-15', 'diaria', 'leve', 'Mova-se 15 min (caminhar vale)', 'moving_seconds', 900, null, 20, null, null, null, null, null, null, null, null, 1),
-  ('d-1500m', 'diaria', 'leve', 'Caminhe ou corra 1,5 km', 'meters', 1500, null, 20, null, null, null, null, null, null, null, null, 2),
-  ('d-neblina-5', 'diaria', 'leve', 'Revele 5 trechos novos da Neblina', 'new_fog_cells', 5, null, 20, null, null, null, null, null, null, null, null, 3),
-  ('d-km', 'diaria', 'padrao', 'Corra {x} km hoje', 'meters', 2000, 'd-km', 30, null, null, null, null, null, null, null, null, 4),
-  ('d-pintar-3', 'diaria', 'padrao', 'Pinte 3 zonas com a cor do time', 'zones_painted', 3, null, 30, null, null, null, null, null, null, null, null, 5),
-  ('d-caca-2', 'diaria', 'padrao', 'Abra 2 baús na Caça', 'chests_opened', 2, null, 30, null, null, null, null, null, null, null, null, 6),
-  ('d-fantasma', 'diaria', 'padrao', 'Termine à frente do fantasma', 'ghost_beaten', 1, null, 30, null, null, null, null, null, null, null, null, 7),
-  ('d-conquistar', 'diaria', 'desafio', 'Conquiste uma zona', 'zones_conquered', 1, null, 40, null, null, null, null, null, null, null, null, 8),
-  ('d-defender', 'diaria', 'desafio', 'Defenda uma zona sob ataque', 'zones_defended', 1, null, 40, null, null, null, 'zone_attack', null, null, null, null, 9),
-  ('d-crew', 'diaria', 'desafio', 'Corra junto com alguém da crew', 'group_runs', 1, null, 40, null, null, null, 'crew', null, null, null, null, 10),
-  ('d-neblina-20', 'diaria', 'desafio', 'Revele 20 trechos novos da cidade', 'new_fog_cells', 20, null, 40, null, null, null, null, null, null, null, null, 11),
+  ('d-mover-15', 'diaria', 'leve', null, 'moving_seconds', 900, 'fixed', null, 20, 'Mova-se 15 min (caminhar vale)', null, null, null, null, null, null, 1),
+  ('d-1500m', 'diaria', 'leve', null, 'meters', 1500, 'fixed', null, 20, 'Caminhe ou corra 1,5 km', null, null, null, null, null, null, 2),
+  ('d-neblina-5', 'diaria', 'leve', null, 'new_fog_cells', 5, 'fixed', null, 20, 'Revele 5 trechos novos do Atlas', null, null, null, null, null, null, 3),
+  ('d-km', 'diaria', 'padrao', null, 'meters', null, 'daily_km', null, 30, 'Corra {x} km hoje', null, null, null, null, null, null, 4),
+  ('d-pintar-3', 'diaria', 'padrao', null, 'zones_painted', 3, 'fixed', null, 30, 'Pinte 3 zonas com a cor do time', null, null, null, null, null, null, 5),
+  ('d-caca-2', 'diaria', 'padrao', null, 'chests_opened', 2, 'fixed', null, 30, 'Abra 2 baús na Caça', null, null, null, null, null, null, 6),
+  ('d-fantasma', 'diaria', 'padrao', null, 'ghost_wins', 1, 'fixed', null, 30, 'Termine à frente do fantasma', null, null, null, null, null, null, 7),
+  ('d-conquistar', 'diaria', 'desafio', null, 'zones_conquered', 1, 'fixed', null, 40, 'Conquiste uma zona', null, null, null, null, null, null, 8),
+  ('d-defender', 'diaria', 'desafio', 'zone_under_attack', 'zones_defended', 1, 'fixed', null, 40, 'Defenda uma zona sob ataque', null, null, null, null, null, null, 9),
+  ('d-crew', 'diaria', 'desafio', 'crew', 'crew_runs', 1, 'fixed', null, 40, 'Corra junto com alguém da crew', null, null, null, null, null, null, 10),
+  ('d-neblina-20', 'diaria', 'desafio', null, 'new_fog_cells', 20, 'fixed', null, 40, 'Revele 20 trechos novos da cidade', null, null, null, null, null, null, 11),
   -- semanais (100/150/200 XP; segunda 00:00 a domingo 23:59 de Brasília)
-  ('s-2-atividades', 'semanal', 'leve', 'Faça 2 atividades na semana', 'runs', 2, null, 100, null, null, null, null, null, null, null, null, 20),
-  ('s-60-min', 'semanal', 'leve', 'Some 60 minutos de movimento', 'moving_seconds', 3600, null, 100, null, null, null, null, null, null, null, null, 21),
-  ('s-km', 'semanal', 'padrao', 'Some {x} km na semana', 'meters', 6000, 's-km', 150, null, null, null, null, null, null, null, null, 22),
-  ('s-pintar-10', 'semanal', 'padrao', 'Pinte 10 zonas diferentes', 'zones_painted', 10, null, 150, null, null, null, null, null, null, null, null, 23),
-  ('s-bairros-2', 'semanal', 'padrao', 'Corra em 2 bairros diferentes', 'districts', 2, null, 150, null, null, null, null, null, null, null, null, 24),
-  ('s-conquistar-3', 'semanal', 'desafio', 'Conquiste 3 zonas na semana', 'zones_conquered', 3, null, 200, null, null, null, null, null, null, null, null, 25),
-  ('s-chefao', 'semanal', 'desafio', 'Cause {x} km de dano no chefão', 'raid_meters', 3000, 's-chefao', 200, null, null, null, 'raid', null, null, null, null, 26),
-  ('s-crew-2', 'semanal', 'desafio', 'Corra 2 vezes com a sua crew', 'group_runs', 2, null, 200, null, null, null, 'crew', null, null, null, null, 27),
-  -- primeira semana: um passo por dia depois do anterior; nunca expira
-  ('f1-dominio', 'ftue', 'leve', 'Corra 500 m e pinte sua 1ª zona', 'zones_painted', 1, null, 100, 'baú do dia raro garantido', 'raro', null, null, null, null, null, 1, 40),
-  ('f2-caca', 'ftue', 'leve', 'Abra seu primeiro baú na Caça', 'chests_opened', 1, null, 40, null, null, null, null, null, null, null, 2, 41),
-  ('f3-fuga', 'ftue', 'leve', 'Vença o fantasma em 1 km', 'ghost_beaten_1km', 1, null, 40, null, null, null, null, null, null, null, 3, 42),
-  ('f4-raid', 'ftue', 'leve', 'Cause 1 km de dano no chefão', 'raid_meters', 1000, null, 40, null, null, null, 'raid',
-   'Revele 10 trechos da Neblina', 'new_fog_cells', 10, 4, 43),
-  ('f5-crew', 'ftue', 'leve', 'Entre numa crew ou crie a sua', 'crew_member', 1, null, 60, null, null, null, null, null, null, null, 5, 44),
-  ('f6-liga', 'ftue', 'leve', 'Some seus primeiros pontos na liga', 'league_points', 1, null, 60, null, null, null, 'league',
-   'Corra e veja o ranking do seu time', 'runs', 1, 6, 45),
-  ('f7-compartilhar', 'ftue', 'leve', 'Compartilhe o card de uma corrida', 'shares', 1, null, 60, 'moldura "Primeira Semana"', null,
-   'moldura-primeira-semana', null, null, null, null, 7, 46),
+  ('s-2-atividades', 'semanal', 'leve', null, 'runs', 2, 'fixed', null, 100, 'Faça 2 atividades na semana', null, null, null, null, null, null, 12),
+  ('s-60-min', 'semanal', 'leve', null, 'moving_seconds', 3600, 'fixed', null, 100, 'Some 60 minutos de movimento', null, null, null, null, null, null, 13),
+  ('s-km', 'semanal', 'padrao', null, 'meters', null, 'weekly_km', null, 150, 'Some {x} km na semana', null, null, null, null, null, null, 14),
+  ('s-pintar-10', 'semanal', 'padrao', null, 'zones_painted', 10, 'fixed', null, 150, 'Pinte 10 zonas diferentes', null, null, null, null, null, null, 15),
+  ('s-bairros-2', 'semanal', 'padrao', null, 'districts', 2, 'fixed', null, 150, 'Corra em 2 bairros diferentes', null, null, null, null, null, null, 16),
+  ('s-conquistar-3', 'semanal', 'desafio', null, 'zones_conquered', 3, 'fixed', null, 200, 'Conquiste 3 zonas na semana', null, null, null, null, null, null, 17),
+  ('s-chefao', 'semanal', 'desafio', 'raid', 'raid_damage_m', null, 'raid_km', null, 200, 'Cause {x} km de dano no chefão', null, null, null, null, null, null, 18),
+  ('s-crew-2', 'semanal', 'desafio', 'crew', 'crew_runs', 2, 'fixed', null, 200, 'Corra 2 vezes com a sua crew', null, null, null, null, null, null, 19),
+  -- primeira semana: um passo por dia depois do anterior; nunca expira (400 XP no total)
+  ('f1-dominio', 'ftue', 'leve', null, 'painted_runs', 1, 'fixed', 500, 100, 'Corra 500 m e pinte sua 1ª zona', null, null, null, null,
+   '{"dailyChest": "raro"}', 1, 20),
+  ('f2-caca', 'ftue', 'leve', null, 'chests_opened', 1, 'fixed', null, 40, 'Abra seu primeiro baú na Caça', null, null, null, null, null, 2, 21),
+  ('f3-fuga', 'ftue', 'leve', null, 'ghost_wins', 1, 'fixed', 1000, 40, 'Vença o fantasma em 1 km', null, null, null, null, null, 3, 22),
+  ('f4-raid', 'ftue', 'leve', null, 'raid_damage_m', 1000, 'fixed', null, 40, 'Cause 1 km de dano no chefão',
+   'no_raid', 'new_fog_cells', 10, 'Revele 10 trechos do Atlas', null, 4, 23),
+  ('f5-crew', 'ftue', 'leve', null, 'crew_member', 1, 'fixed', null, 60, 'Entre numa crew ou crie a sua', null, null, null, null, null, 5, 24),
+  ('f6-liga', 'ftue', 'leve', null, 'league_points', 1, 'fixed', null, 60, 'Some seus primeiros pontos na liga',
+   'no_league', 'ranking_opened', 1, 'Veja o ranking do seu time', null, 6, 25),
+  ('f7-compartilhar', 'ftue', 'leve', null, 'shares', 1, 'fixed', null, 60, 'Compartilhe o card de uma corrida', null, null, null, null,
+   '{"cosmetic": "moldura-primeira-semana"}', 7, 26),
   -- volta depois de 7, 14 e 30 dias sem atividade (step = dias)
-  ('v-7', 'volta', 'leve', 'Volta leve: 10 minutos já contam', 'moving_seconds', 600, null, 50, 'baú do dia raro garantido', 'raro', null, null, null, null, null, 7, 60),
-  ('v-14', 'volta', 'leve', 'Caminhe 1 km no seu ritmo', 'meters', 1000, null, 60, 'baú do dia raro garantido', 'raro', null, null, null, null, null, 14, 61),
-  ('v-30', 'volta', 'leve', 'Recomece: 10 minutos, sem pressa', 'moving_seconds', 600, null, 80, 'baú lendário garantido', 'lendario', null, null, null, null, null, 30, 62);
+  ('v-7', 'volta', 'leve', null, 'moving_seconds', 600, 'fixed', null, 50, 'Volta leve: 10 minutos já contam', null, null, null, null,
+   '{"dailyChest": "raro"}', 7, 27),
+  ('v-14', 'volta', 'leve', null, 'meters', 1000, 'fixed', null, 60, 'Caminhe 1 km no seu ritmo', null, null, null, null,
+   '{"dailyChest": "raro"}', 14, 28),
+  ('v-30', 'volta', 'leve', null, 'moving_seconds', 600, 'fixed', null, 80, 'Recomece: 10 minutos, sem pressa', null, null, null, null,
+   '{"dailyChest": "lendario", "streakRestart": true}', 30, 29);
 
 -- ---------------------------------------------------------------------------
 -- Auxiliares
@@ -124,94 +150,205 @@ language sql stable set search_path = '' as $$
 $$;
 revoke all on function private.mission_periods(timestamptz) from public, anon, authenticated;
 
--- "3,5" / "8" (km com vírgula, sem ",0")
+-- formatMissionKm: 8000 → "8", 8500 → "8,5"
 create or replace function private.km_text(p_meters integer) returns text
 language sql immutable set search_path = '' as $$
-  select replace(rtrim(rtrim(to_char(p_meters / 1000.0, 'FM99990.0'), '0'), '.'), '.', ',')
+  select replace(rtrim(rtrim(to_char(round(p_meters / 100.0) / 10.0, 'FM99990.0'), '0'), '.'), '.', ',')
 $$;
 revoke all on function private.km_text(integer) from public, anon, authenticated;
 
--- Missão possível para a pessoa agora?
+-- Missão possível para a pessoa agora? (zona do time sob ataque: na cidade natal; o servidor não guarda a posição)
 create or replace function private.mission_eligible(p_user uuid, p_requires text) returns boolean
 language sql stable security definer set search_path = '' as $$
   select case p_requires
     when 'crew' then exists (select 1 from public.crew_members cm where cm.user_id = p_user)
     when 'raid' then private.feature_on('raid') and exists (select 1 from public.raids r where r.status = 'active')
-    when 'league' then private.feature_on('league')
-    when 'zone_attack' then exists (select 1 from public.zones z join public.profiles pr on pr.id = p_user
-                                     where z.owner = pr.faction and z.attacker is not null
-                                       and (pr.city is null or z.city = pr.city))
+    when 'zone_under_attack' then exists (select 1 from public.zones z join public.profiles pr on pr.id = p_user
+                                           where z.owner = pr.faction and z.attacker is not null
+                                             and (pr.city is null or z.city = pr.city))
     else true end
 $$;
 revoke all on function private.mission_eligible(uuid, text) from public, anon, authenticated;
 
--- Meta adaptativa (E7 §5.1), em metros.
+-- Alvos adaptativos (mesmos números de dailyKmTarget / weeklyKmTarget / raidKmTarget), em metros.
 create or replace function private.mission_target(p_user uuid, p_rule text, p_default integer, p_at timestamptz) returns integer
 language plpgsql stable security definer set search_path = '' as $$
 declare
   v_week date := date_trunc('week', p_at at time zone 'America/Sao_Paulo')::date;
   v_median numeric;
   v_max numeric;
-  v_t numeric;
+  v_km numeric;
 begin
-  if p_rule = 'd-km' then
-    -- mediana das últimas 10 corridas, arredondada a 0,5 km, entre 2 e 8 km
+  if p_rule = 'daily_km' then
+    -- mediana das últimas 10 atividades (> 0 m), arredondada a 0,5 km, entre 2 e 8 km
     select percentile_cont(0.5) within group (order by m) into v_median
-      from (select a.meters as m from public.activities a where a.user_id = p_user and a.scored and a.ended_at < p_at
-             order by a.ended_at desc limit 10) x;
+      from (select a.meters as m from public.activities a
+             where a.user_id = p_user and a.scored and a.meters > 0 and coalesce(a.ended_at, a.finished_at) < p_at
+             order by coalesce(a.ended_at, a.finished_at) desc limit 10) x;
     if v_median is null then return 2000; end if;
-    return least(8000, greatest(2000, round(v_median / 500) * 500))::integer;
-  elsif p_rule in ('s-km', 's-chefao') then
-    -- 90 % da mediana semanal das últimas 4 semanas, até +10 % da maior; 6 a 40 km
-    select percentile_cont(0.5) within group (order by km), max(km) into v_median, v_max from (
-      select coalesce(sum(a.meters), 0) as km
+    return (least(8, greatest(2, round(v_median / 1000 * 2) / 2)) * 1000)::integer;
+  elsif p_rule in ('weekly_km', 'raid_km') then
+    -- 90 % da mediana das 4 semanas anteriores (semana zerada conta), até +10 % da maior; 0,5 km; 6 a 40 km
+    select percentile_cont(0.5) within group (order by m), max(m) into v_median, v_max from (
+      select coalesce(sum(a.meters), 0) as m
         from generate_series(1, 4) g
         left join public.activities a
           on a.user_id = p_user and a.scored
-         and a.ended_at >= ((v_week - 7 * g) + time '00:00') at time zone 'America/Sao_Paulo'
-         and a.ended_at < ((v_week - 7 * (g - 1)) + time '00:00') at time zone 'America/Sao_Paulo'
+         and coalesce(a.ended_at, a.finished_at) >= ((v_week - 7 * g) + time '00:00') at time zone 'America/Sao_Paulo'
+         and coalesce(a.ended_at, a.finished_at) < ((v_week - 7 * (g - 1)) + time '00:00') at time zone 'America/Sao_Paulo'
        group by g) s;
-    v_t := case when coalesce(v_max, 0) = 0 then 6000 else least(0.9 * v_median, 1.1 * v_max) end;
-    v_t := least(40000, greatest(6000, round(v_t / 1000) * 1000));
-    if p_rule = 's-chefao' then
-      -- metade da meta semanal de km, entre 3 e 15 km
-      return least(15000, greatest(3000, round(v_t / 2 / 500) * 500))::integer;
+    v_km := least(40, greatest(6, round(least(v_median * 0.9, v_max * 1.1) / 1000 * 2) / 2));
+    if p_rule = 'raid_km' then
+      -- metade do alvo semanal, 0,5 km, entre 1 e 15 km
+      return (least(15, greatest(1, round(v_km * 0.5 * 2) / 2)) * 1000)::integer;
     end if;
-    return v_t::integer;
+    return (v_km * 1000)::integer;
   end if;
   return p_default;
 end $$;
 revoke all on function private.mission_target(uuid, text, integer, timestamptz) from public, anon, authenticated;
 
--- Atribui uma missão (com meta e texto finais, ou com o substituto quando a exigência não vale agora).
-create or replace function private.assign_mission(p_user uuid, p_def text, p_period text, p_slot integer, p_at timestamptz)
-returns uuid
+-- Atribui uma missão com meta, título e versão finais (alternativa sem raid ou sem liga, como ftueAssignment).
+create or replace function private.assign_mission(p_user uuid, p_def text, p_period text, p_slot integer,
+                                                  p_from timestamptz, p_at timestamptz default now()) returns uuid
 language plpgsql security definer set search_path = '' as $$
 declare
   d public.mission_defs;
+  v_fallback boolean;
   v_target integer;
-  v_text text;
-  v_metric text;
   v_id uuid;
 begin
   select * into d from public.mission_defs where id = p_def;
-  if d.requires is not null and d.fallback_metric is not null and not private.mission_eligible(p_user, d.requires) then
-    v_metric := d.fallback_metric; v_target := d.fallback_target; v_text := d.fallback_text;
-  else
-    v_metric := d.metric;
-    v_target := case when d.target_rule is null then d.target else private.mission_target(p_user, d.target_rule, d.target, p_at) end;
-    v_text := replace(d.text, '{x}', private.km_text(v_target));
-  end if;
-  insert into public.user_missions (user_id, def_id, cadence, period_key, slot, metric, target, xp, text)
-  values (p_user, d.id, d.cadence, p_period, p_slot, v_metric, v_target, d.xp, v_text)
+  v_fallback := (d.fallback_when = 'no_raid' and not private.mission_eligible(p_user, 'raid'))
+             or (d.fallback_when = 'no_league' and not private.feature_on('league'));
+  v_target := case when v_fallback then d.fallback_target
+                   when d.target_rule = 'fixed' then d.target
+                   else private.mission_target(p_user, d.target_rule, d.target, p_at) end;
+  insert into public.user_missions (user_id, def_id, kind, period_key, slot, variant, metric, target, xp, title, available_from)
+  values (p_user, d.id, d.kind, p_period, p_slot, case when v_fallback then 'fallback' else 'base' end,
+          case when v_fallback then d.fallback_metric else d.metric end, v_target, d.reward_xp,
+          replace(case when v_fallback then d.fallback_title else d.title end, '{x}', private.km_text(v_target)), p_from)
   on conflict do nothing
   returning id into v_id;
   return v_id;
 end $$;
-revoke all on function private.assign_mission(uuid, text, text, integer, timestamptz) from public, anon, authenticated;
+revoke all on function private.assign_mission(uuid, text, text, integer, timestamptz, timestamptz) from public, anon, authenticated;
+
+create or replace function private.mission_json(um public.user_missions) returns jsonb
+language sql stable security definer set search_path = '' as $$
+  select jsonb_build_object(
+    'id', um.id, 'defId', um.def_id, 'kind', um.kind, 'tier', d.tier, 'slot', um.slot, 'variant', um.variant,
+    'title', um.title, 'metric', um.metric, 'progress', um.progress, 'target', um.target, 'xp', um.xp, 'bonus', d.bonus,
+    'periodKey', um.period_key, 'availableFrom', private.ts_to_ms(um.available_from),
+    'availableUntil', private.ts_to_ms(case um.kind
+                        when 'diaria' then ((um.period_key::date + 1) + time '00:00') at time zone 'America/Sao_Paulo'
+                        when 'semanal' then ((date_trunc('week', um.available_from at time zone 'America/Sao_Paulo')::date + 7)
+                                             + time '00:00') at time zone 'America/Sao_Paulo' end),
+    'completedAt', private.ts_to_ms(um.completed_at), 'claimedAt', private.ts_to_ms(um.claimed_at),
+    'rerolled', um.rerolled_at is not null)
+    from public.mission_defs d where d.id = um.def_id
+$$;
+revoke all on function private.mission_json(public.user_missions) from public, anon, authenticated;
+
+-- settleMission no servidor: progresso absoluto (greatest, nunca passa da meta); conclui uma vez e paga na hora
+-- (claimed_at = completed_at): XP pelo livro (mission/ftue/comeback, ref = id da atribuição), baú bônus, cosmético e
+-- "sequência recomeça com 1 semana" (v-30). Devolve a missão quando concluiu agora; senão null.
+create or replace function private.settle_mission(p_id uuid, p_progress integer, p_at timestamptz default now()) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare
+  um public.user_missions;
+  d public.mission_defs;
+begin
+  select * into um from public.user_missions where id = p_id for update;
+  if um.id is null or um.completed_at is not null then
+    return null;
+  end if;
+  update public.user_missions
+     set progress = least(target, greatest(progress, coalesce(p_progress, 0))),
+         completed_at = case when least(target, greatest(progress, coalesce(p_progress, 0))) >= target then p_at end,
+         claimed_at = case when least(target, greatest(progress, coalesce(p_progress, 0))) >= target then p_at end
+   where id = um.id
+  returning * into um;
+  if um.completed_at is null then
+    return null;
+  end if;
+  select * into d from public.mission_defs where id = um.def_id;
+  perform private.grant_xp(um.user_id, case um.kind when 'ftue' then 'ftue' when 'volta' then 'comeback' else 'mission' end,
+                           um.id::text, um.xp);
+  if d.bonus ? 'dailyChest' then
+    perform private.add_bonus_chest(um.user_id, d.bonus ->> 'dailyChest', 'mission', um.id::text);
+  end if;
+  if d.bonus ? 'cosmetic' then
+    perform private.grant_cosmetic(um.user_id, d.bonus ->> 'cosmetic', '', 'mission:' || um.id);
+  end if;
+  if coalesce((d.bonus ->> 'streakRestart')::boolean, false) then
+    update public.profiles set streak_weeks = greatest(streak_weeks, 1),
+                               best_streak_weeks = greatest(best_streak_weeks, 1) where id = um.user_id;
+  end if;
+  return private.mission_json(um);
+end $$;
+revoke all on function private.settle_mission(uuid, integer, timestamptz) from public, anon, authenticated;
+
+-- Entrada da gravação v2 (onda 2): { "<user_missions.id>": progresso absoluto do domain, ... }. Só mexe nas atribuições
+-- da própria pessoa. Devolve as concluídas agora.
+create or replace function private.advance_missions(p_user uuid, p_progress jsonb, p_at timestamptz default now()) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare
+  k text;
+  v jsonb;
+  v_done jsonb := '[]'::jsonb;
+begin
+  if p_progress is null or jsonb_typeof(p_progress) <> 'object' then
+    return v_done;
+  end if;
+  for k, v in select e.key, e.value from jsonb_each(p_progress) e
+               where e.key ~ '^[0-9a-f-]{36}$' and jsonb_typeof(e.value) = 'number' order by e.key loop
+    if exists (select 1 from public.user_missions um where um.id = k::uuid and um.user_id = p_user) then
+      v := private.settle_mission(k::uuid, floor((v #>> '{}')::numeric)::integer, p_at);
+      if v is not null then
+        v_done := v_done || v;
+      end if;
+    end if;
+  end loop;
+  return v_done;
+end $$;
+revoke all on function private.advance_missions(uuid, jsonb, timestamptz) from public, anon, authenticated;
+
+-- Métricas de estado que o próprio servidor confere (não dependem de correr): crew, pontos da liga da semana,
+-- compartilhamentos e ranking aberto dentro da janela da atribuição.
+create or replace function private.settle_state_missions(p_user uuid, p_at timestamptz default now()) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare
+  um public.user_missions;
+  v integer;
+  r jsonb;
+  v_done jsonb := '[]'::jsonb;
+begin
+  for um in select * from public.user_missions x
+             where x.user_id = p_user and x.completed_at is null
+               and x.metric in ('crew_member', 'league_points', 'shares', 'ranking_opened') loop
+    v := case um.metric
+      when 'crew_member' then (exists (select 1 from public.crew_members cm where cm.user_id = p_user))::integer
+      when 'league_points' then (exists (select 1 from public.league_members lm where lm.user_id = p_user and lm.points > 0
+                                            and lm.week_start = date_trunc('week', p_at at time zone 'America/Sao_Paulo')::date))::integer
+      when 'shares' then (select count(*) from public.engagement_marks m where m.user_id = p_user and m.kind = 'share'
+                             and m.created_at >= um.available_from)::integer
+      when 'ranking_opened' then (exists (select 1 from public.engagement_marks m where m.user_id = p_user and m.kind = 'ranking_opened'
+                                             and m.created_at >= um.available_from))::integer
+    end;
+    if v > 0 then
+      r := private.settle_mission(um.id, v, p_at);
+      if r is not null then
+        v_done := v_done || r;
+      end if;
+    end if;
+  end loop;
+  return v_done;
+end $$;
+revoke all on function private.settle_state_missions(uuid, timestamptz) from public, anon, authenticated;
 
 -- Garante as missões do momento: sorteio diário e semanal, passo da primeira semana e missão de volta.
--- p_exclude: a corrida que está sendo gravada (a gravação v2 chama antes de contar a corrida, para a missão de volta).
+-- p_exclude: a atividade que está sendo gravada (a gravação v2 chama antes de contá-la, para criar a missão de volta).
 create or replace function private.ensure_missions(p_user uuid, p_at timestamptz default now(), p_exclude uuid default null)
 returns void
 language plpgsql security definer set search_path = '' as $$
@@ -221,124 +358,74 @@ declare
   v_tier text;
   v_cad text;
   v_key text;
+  v_from timestamptz;
   v_def text;
   v_slot integer;
   v_last public.user_missions;
-  v_step smallint;
-  v_last_run date;
-  v_days integer;
+  v_ftue timestamptz;
+  v_last_run timestamptz;
 begin
   perform pg_advisory_xact_lock(hashtextextended('missions:' || p_user, 0));
-  -- diárias e semanais: 1 leve + 1 padrão + 1 desafio
+  -- diárias e semanais: slot 0 leve, 1 padrão, 2 desafio
   foreach v_cad in array array['diaria', 'semanal'] loop
     v_key := case v_cad when 'diaria' then v_keys[1] else v_keys[2] end;
-    v_slot := 0;
+    v_from := case v_cad when 'diaria' then (v_today + time '00:00') at time zone 'America/Sao_Paulo'
+                         else (date_trunc('week', p_at at time zone 'America/Sao_Paulo')::date + time '00:00')
+                              at time zone 'America/Sao_Paulo' end;
+    v_slot := -1;
     foreach v_tier in array array['leve', 'padrao', 'desafio'] loop
       v_slot := v_slot + 1;
       continue when exists (select 1 from public.user_missions um where um.user_id = p_user and um.period_key = v_key
                                                                      and um.slot = v_slot);
       select d.id into v_def from public.mission_defs d
-       where d.active and d.cadence = v_cad and d.tier = v_tier and private.mission_eligible(p_user, d.requires)
-       order by md5(p_user::text || v_key || d.id) limit 1;
+       where d.active and d.kind = v_cad and d.tier = v_tier and private.mission_eligible(p_user, d.requires)
+       order by md5(p_user::text || '|' || v_key || '|' || d.id) limit 1;
       if v_def is not null then
-        perform private.assign_mission(p_user, v_def, v_key, v_slot, p_at);
+        perform private.assign_mission(p_user, v_def, v_key, v_slot, v_from, p_at);
       end if;
     end loop;
   end loop;
 
-  -- primeira semana: só para conta nova (janela de 14 dias) ou para quem já começou; 1 passo por dia
-  select * into v_last from public.user_missions um where um.user_id = p_user and um.period_key = 'ftue' order by um.slot desc limit 1;
-  if v_last.id is null then
-    if (select pr.created_at from public.profiles pr where pr.id = p_user)
-       >= p_at - make_interval(days => private.param_num('missions', 'ftueWindowDays', 14)::integer) then
-      perform private.assign_mission(p_user, (select d.id from public.mission_defs d where d.cadence = 'ftue' and d.active
-                                               order by d.step limit 1), 'ftue', 1, p_at);
-    end if;
-  elsif v_last.completed_at is not null and (v_last.completed_at at time zone 'America/Sao_Paulo')::date < v_today then
-    select d.id, d.step into v_def, v_step from public.mission_defs d
-     where d.cadence = 'ftue' and d.active and d.step > (select x.step from public.mission_defs x where x.id = v_last.def_id)
-     order by d.step limit 1;
-    if v_def is not null then
-      perform private.assign_mission(p_user, v_def, 'ftue', v_last.slot + 1, p_at);
+  -- primeira semana (ftueSteps): passo 1 na criação; o passo k+1 abre às 00:00 do dia seguinte à conclusão do k
+  select pr.ftue_started_at into v_ftue from public.profiles pr where pr.id = p_user;
+  if v_ftue is not null then
+    select * into v_last from public.user_missions um where um.user_id = p_user and um.period_key = 'ftue'
+     order by um.slot desc limit 1;
+    if v_last.id is null then
+      perform private.assign_mission(p_user, (select d.id from public.mission_defs d where d.kind = 'ftue' and d.active
+                                               order by d.step limit 1), 'ftue', 1, v_ftue, p_at);
+    elsif v_last.completed_at is not null and (v_last.completed_at at time zone 'America/Sao_Paulo')::date < v_today then
+      select d.id into v_def from public.mission_defs d
+       where d.kind = 'ftue' and d.active and d.step > v_last.slot order by d.step limit 1;
+      if v_def is not null then
+        perform private.assign_mission(p_user, v_def, 'ftue', v_last.slot + 1,
+                                       (((v_last.completed_at at time zone 'America/Sao_Paulo')::date + 1) + time '00:00')
+                                         at time zone 'America/Sao_Paulo', p_at);
+      end if;
     end if;
   end if;
-  -- passo "entre numa crew" conclui sozinho quando a pessoa já tem crew
-  update public.user_missions um set progress = um.target, completed_at = coalesce(um.completed_at, p_at)
-   where um.user_id = p_user and um.period_key = 'ftue' and um.metric = 'crew_member' and um.completed_at is null
-     and exists (select 1 from public.crew_members cm where cm.user_id = p_user);
 
-  -- volta: 7, 14 ou 30 dias sem atividade aceita (uma por ausência)
-  select (max(a.ended_at) at time zone 'America/Sao_Paulo')::date into v_last_run
-    from public.activities a where a.user_id = p_user and a.scored and a.id is distinct from p_exclude and a.ended_at < p_at;
-  if v_last_run is not null then
-    v_days := v_today - v_last_run;
+  -- volta (comebackAssignment): 7, 14 ou 30 dias sem atividade pontuada; uma por ausência
+  select max(coalesce(a.ended_at, a.finished_at)) into v_last_run
+    from public.activities a where a.user_id = p_user and a.scored and a.id is distinct from p_exclude
+     and coalesce(a.ended_at, a.finished_at) < p_at;
+  if v_last_run is not null
+     and not exists (select 1 from public.user_missions um where um.user_id = p_user and um.kind = 'volta'
+                                                              and um.created_at > v_last_run) then
     select d.id into v_def from public.mission_defs d
-     where d.cadence = 'volta' and d.active and d.step <= v_days order by d.step desc limit 1;
+     where d.kind = 'volta' and d.active and d.step <= v_today - (v_last_run at time zone 'America/Sao_Paulo')::date
+     order by d.step desc limit 1;
     if v_def is not null then
-      perform private.assign_mission(p_user, v_def, 'volta-' || v_last_run, 1, p_at);
+      perform private.assign_mission(p_user, v_def, 'volta-' || v_today, 0, p_at, p_at);
     end if;
   end if;
+
+  perform private.settle_state_missions(p_user, p_at);
 end $$;
 revoke all on function private.ensure_missions(uuid, timestamptz, uuid) from public, anon, authenticated;
 
-create or replace function private.mission_json(um public.user_missions) returns jsonb
-language sql stable security definer set search_path = '' as $$
-  select jsonb_build_object('id', um.id, 'defId', um.def_id, 'cadence', um.cadence, 'tier', d.tier, 'slot', um.slot,
-                            'text', um.text, 'metric', um.metric, 'progress', um.progress, 'target', um.target, 'xp', um.xp,
-                            'extra', d.extra, 'periodKey', um.period_key, 'step', d.step,
-                            'completedAt', private.ts_to_ms(um.completed_at), 'claimedAt', private.ts_to_ms(um.claimed_at))
-    from public.mission_defs d where d.id = um.def_id
-$$;
-revoke all on function private.mission_json(public.user_missions) from public, anon, authenticated;
-
--- Avança o progresso com as métricas oficiais da corrida (gravação v2, onda 2). Números somam; listas (zonas, bairros)
--- contam itens distintos. Nunca passa da meta; cada missão conclui uma vez. Devolve as concluídas agora.
-create or replace function private.advance_missions(p_user uuid, p_metrics jsonb, p_at timestamptz default now()) returns jsonb
-language plpgsql security definer set search_path = '' as $$
-declare
-  v_keys text[] := private.mission_periods(p_at);
-  um public.user_missions;
-  v jsonb;
-  v_seen text[];
-  v_progress integer;
-  v_done jsonb := '[]'::jsonb;
-begin
-  if p_metrics is null or jsonb_typeof(p_metrics) <> 'object' then
-    return v_done;
-  end if;
-  for um in select * from public.user_missions x
-             where x.user_id = p_user and x.completed_at is null and x.rerolled_at is null
-               and (x.period_key = any (v_keys) or x.period_key = 'ftue' or x.period_key like 'volta-%')
-               and p_metrics ? x.metric
-             order by x.created_at for update loop
-    v := p_metrics -> um.metric;
-    if jsonb_typeof(v) = 'array' then
-      select coalesce(array_agg(distinct e), '{}') into v_seen
-        from (select unnest(um.seen) as e union select jsonb_array_elements_text(v)) x
-       where e is not null;
-      v_seen := v_seen[1:200];
-      v_progress := least(um.target, cardinality(v_seen));
-    elsif jsonb_typeof(v) = 'number' then
-      v_seen := um.seen;
-      v_progress := least(um.target, um.progress + greatest(0, floor((v #>> '{}')::numeric))::integer);
-    else
-      continue;
-    end if;
-    update public.user_missions
-       set progress = v_progress, seen = v_seen,
-           completed_at = case when v_progress >= um.target then p_at else null end
-     where id = um.id
-    returning * into um;
-    if um.completed_at is not null then
-      v_done := v_done || private.mission_json(um);
-    end if;
-  end loop;
-  return v_done;
-end $$;
-revoke all on function private.advance_missions(uuid, jsonb, timestamptz) from public, anon, authenticated;
-
 -- ---------------------------------------------------------------------------
--- RPCs do cliente
+-- RPCs do app
 -- ---------------------------------------------------------------------------
 create or replace function public.my_missions() returns jsonb
 language plpgsql security definer set search_path = '' as $$
@@ -355,15 +442,14 @@ begin
   return jsonb_build_object(
     'periods', jsonb_build_object('daily', v_keys[1], 'weekly', v_keys[2]),
     'daily', coalesce((select jsonb_agg(private.mission_json(um) order by um.slot) from public.user_missions um
-                        where um.user_id = v_uid and um.period_key = v_keys[1] and um.rerolled_at is null), '[]'::jsonb),
+                        where um.user_id = v_uid and um.period_key = v_keys[1]), '[]'::jsonb),
     'weekly', coalesce((select jsonb_agg(private.mission_json(um) order by um.slot) from public.user_missions um
-                         where um.user_id = v_uid and um.period_key = v_keys[2] and um.rerolled_at is null), '[]'::jsonb),
-    'ftue', (select jsonb_build_object('step', um.slot, 'total', private.param_num('missions', 'ftueSteps', 7),
-                                       'mission', private.mission_json(um))
-               from public.user_missions um where um.user_id = v_uid and um.period_key = 'ftue'
-              order by um.slot desc limit 1),
+                         where um.user_id = v_uid and um.period_key = v_keys[2]), '[]'::jsonb),
+    'ftue', coalesce((select jsonb_agg(private.mission_json(um) order by um.slot) from public.user_missions um
+                       where um.user_id = v_uid and um.period_key = 'ftue'), '[]'::jsonb),
+    'ftueStartedAt', (select private.ts_to_ms(pr.ftue_started_at) from public.profiles pr where pr.id = v_uid),
     'comeback', (select private.mission_json(um) from public.user_missions um
-                  where um.user_id = v_uid and um.period_key like 'volta-%' and um.claimed_at is null
+                  where um.user_id = v_uid and um.kind = 'volta' and um.completed_at is null
                   order by um.created_at desc limit 1),
     'rerollsLeft', greatest(0, private.param_num('missions', 'rerollsPerDay', 1)::integer
                                - (select count(*) from public.user_missions um where um.user_id = v_uid
@@ -372,14 +458,14 @@ end $$;
 revoke all on function public.my_missions() from public, anon;
 grant execute on function public.my_missions() to authenticated;
 
--- Troca 1 missão diária por dia, por outra do mesmo nível (autonomia, E7 §5.1).
+-- Troca 1 missão diária por dia, por outra do mesmo nível, possível e ainda não sorteada hoje; mesmo slot, progresso 0.
 create or replace function public.reroll_mission(p_id uuid) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
   v_uid uuid := (select auth.uid());
   um public.user_missions;
-  v_def text;
-  v_new uuid;
+  d public.mission_defs;
+  v_target integer;
 begin
   if v_uid is null then raise exception 'UNAUTHORIZED: faça login novamente' using errcode = 'P0001'; end if;
   perform private.require_active();
@@ -388,71 +474,61 @@ begin
   end if;
   perform pg_advisory_xact_lock(hashtextextended('missions:' || v_uid, 0));
   select * into um from public.user_missions where id = p_id and user_id = v_uid for update;
-  if um.id is null or um.rerolled_at is not null then
+  if um.id is null then
     raise exception 'NOT_FOUND: missão não encontrada' using errcode = 'P0001';
   end if;
-  if um.cadence <> 'diaria' or um.period_key <> public.br_today()::text then
-    raise exception 'MISSION_NOT_REROLLABLE: só dá para trocar uma missão de hoje' using errcode = 'P0001';
+  if um.kind <> 'diaria' or um.period_key <> public.br_today()::text then
+    raise exception 'MISSION_NOT_REROLLABLE: só dá para trocar uma missão diária de hoje' using errcode = 'P0001';
   end if;
   if um.completed_at is not null then
-    raise exception 'MISSION_NOT_REROLLABLE: missão já concluída' using errcode = 'P0001';
+    raise exception 'MISSION_COMPLETED: missão já concluída' using errcode = 'P0001';
   end if;
   if (select count(*) from public.user_missions x where x.user_id = v_uid and x.rerolled_at >= public.br_day_start())
      >= private.param_num('missions', 'rerollsPerDay', 1) then
-    raise exception 'REROLL_LIMIT: você já trocou uma missão hoje' using errcode = 'P0001';
+    raise exception 'MISSION_REROLL_LIMIT: você já trocou uma missão hoje' using errcode = 'P0001';
   end if;
-  select d.id into v_def from public.mission_defs d
-   where d.active and d.cadence = 'diaria' and d.tier = (select x.tier from public.mission_defs x where x.id = um.def_id)
-     and private.mission_eligible(v_uid, d.requires)
-     and not exists (select 1 from public.user_missions y where y.user_id = v_uid and y.period_key = um.period_key and y.def_id = d.id)
-   order by md5(v_uid::text || um.period_key || d.id || 'troca') limit 1;
-  if v_def is null then
-    raise exception 'MISSION_NO_ALTERNATIVE: não há outra missão desse nível hoje' using errcode = 'P0001';
+  select x.* into d from public.mission_defs x
+   where x.active and x.kind = 'diaria' and x.tier = (select y.tier from public.mission_defs y where y.id = um.def_id)
+     and private.mission_eligible(v_uid, x.requires)
+     and not exists (select 1 from public.user_missions z where z.user_id = v_uid and z.period_key = um.period_key and z.def_id = x.id)
+   order by md5(v_uid::text || '|' || um.period_key || '|troca|' || um.slot || '|' || x.id) limit 1;
+  if d.id is null then
+    raise exception 'MISSION_NO_OPTION: não há outra missão desse nível hoje' using errcode = 'P0001';
   end if;
-  update public.user_missions set rerolled_at = now() where id = um.id;
-  v_new := private.assign_mission(v_uid, v_def, um.period_key, um.slot, now());
-  return (select private.mission_json(x) from public.user_missions x where x.id = v_new);
+  v_target := case when d.target_rule = 'fixed' then d.target else private.mission_target(v_uid, d.target_rule, d.target, now()) end;
+  update public.user_missions
+     set def_id = d.id, metric = d.metric, target = v_target, xp = d.reward_xp, variant = 'base', progress = 0,
+         title = replace(d.title, '{x}', private.km_text(v_target)), rerolled_at = now()
+   where id = um.id
+  returning * into um;
+  return private.mission_json(um);
 end $$;
 revoke all on function public.reroll_mission(uuid) from public, anon;
 grant execute on function public.reroll_mission(uuid) to authenticated;
 
--- Resgate idempotente: XP pelo livro (fonte mission/ftue/comeback, referência = id da atribuição), baú bônus e cosmético.
+-- Resgate: idempotente. A conclusão já paga (settle_mission); aqui só devolve alreadyClaimed.
 create or replace function public.claim_mission(p_id uuid) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
   v_uid uuid := (select auth.uid());
   um public.user_missions;
-  d public.mission_defs;
 begin
   if v_uid is null then raise exception 'UNAUTHORIZED: faça login novamente' using errcode = 'P0001'; end if;
   perform private.require_active();
-  select * into um from public.user_missions where id = p_id and user_id = v_uid for update;
-  if um.id is null or um.rerolled_at is not null then
+  select * into um from public.user_missions where id = p_id and user_id = v_uid;
+  if um.id is null then
     raise exception 'NOT_FOUND: missão não encontrada' using errcode = 'P0001';
-  end if;
-  select * into d from public.mission_defs where id = um.def_id;
-  if um.claimed_at is not null then
-    return jsonb_build_object('id', um.id, 'claimed', false, 'alreadyClaimed', true, 'xp', 0, 'chest', null, 'cosmeticId', null);
   end if;
   if um.completed_at is null then
     raise exception 'MISSION_NOT_COMPLETED: missão ainda não concluída' using errcode = 'P0001';
   end if;
-  update public.user_missions set claimed_at = now() where id = um.id;
-  perform private.grant_xp(v_uid, case um.cadence when 'ftue' then 'ftue' when 'volta' then 'comeback' else 'mission' end,
-                           um.id::text, um.xp);
-  if d.reward_chest is not null then
-    perform private.add_bonus_chest(v_uid, d.reward_chest);
-  end if;
-  if d.reward_cosmetic is not null then
-    perform private.grant_cosmetic(v_uid, d.reward_cosmetic, '', 'mission:' || um.id);
-  end if;
-  return jsonb_build_object('id', um.id, 'claimed', true, 'alreadyClaimed', false, 'xp', um.xp,
-                            'chest', d.reward_chest, 'cosmeticId', d.reward_cosmetic);
+  return jsonb_build_object('id', um.id, 'claimed', false, 'alreadyClaimed', true, 'xp', um.xp,
+                            'claimedAt', private.ts_to_ms(um.claimed_at));
 end $$;
 revoke all on function public.claim_mission(uuid) from public, anon;
 grant execute on function public.claim_mission(uuid) to authenticated;
 
--- Passo 7 da primeira semana: o app avisa depois que o share sheet concluiu (declarado; só XP baixo e cosmético).
+-- Passo 7 da primeira semana: o app avisa depois que o share sheet concluiu (declarado; 1 crédito por dia).
 create or replace function public.record_share(p_activity uuid) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -463,13 +539,32 @@ begin
   if not exists (select 1 from public.activities a where a.id = p_activity and a.user_id = v_uid and a.status <> 'recording') then
     raise exception 'NOT_FOUND: corrida não encontrada' using errcode = 'P0001';
   end if;
+  insert into public.engagement_marks (user_id, kind, day, activity_id) values (v_uid, 'share', public.br_today(), p_activity)
+  on conflict do nothing;
   if not private.feature_on('missions') then
     return jsonb_build_object('completed', '[]'::jsonb);
   end if;
-  return jsonb_build_object('completed', private.advance_missions(v_uid, '{"shares": 1}'::jsonb, now()));
+  return jsonb_build_object('completed', private.settle_state_missions(v_uid, now()));
 end $$;
 revoke all on function public.record_share(uuid) from public, anon;
 grant execute on function public.record_share(uuid) to authenticated;
+
+-- Alternativa do passo 6 sem liga real: "Veja o ranking do seu time" (o app avisa ao abrir o ranking; 1 por dia).
+create or replace function public.record_ranking_opened() returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_uid uuid := (select auth.uid());
+begin
+  if v_uid is null then raise exception 'UNAUTHORIZED: faça login novamente' using errcode = 'P0001'; end if;
+  perform private.require_active();
+  insert into public.engagement_marks (user_id, kind, day) values (v_uid, 'ranking_opened', public.br_today()) on conflict do nothing;
+  if not private.feature_on('missions') then
+    return jsonb_build_object('completed', '[]'::jsonb);
+  end if;
+  return jsonb_build_object('completed', private.settle_state_missions(v_uid, now()));
+end $$;
+revoke all on function public.record_ranking_opened() from public, anon;
+grant execute on function public.record_ranking_opened() to authenticated;
 
 -- ===========================================================================
 -- Trilha da temporada (E7 §6)
@@ -534,6 +629,15 @@ language sql stable security definer set search_path = '' as $$
 $$;
 revoke all on function private.season_xp(uuid, text) from public, anon, authenticated;
 
+-- Medalha da temporada pelo degrau alcançado (seasonTrackStep: 8 bronze, 16 prata, 24 ouro). Idempotente.
+create or replace function private.award_season_medal(p_user uuid, p_season text, p_step integer) returns jsonb
+language sql security definer set search_path = '' as $$
+  select case when p_step >= 24 then private.award_medal(p_user, 'temporada', 'ouro', p_season, null)
+              when p_step >= 16 then private.award_medal(p_user, 'temporada', 'prata', p_season, null)
+              when p_step >= 8 then private.award_medal(p_user, 'temporada', 'bronze', p_season, null) end
+$$;
+revoke all on function private.award_season_medal(uuid, text, integer) from public, anon, authenticated;
+
 create or replace function public.my_track() returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -551,11 +655,13 @@ begin
   end if;
   v_xp := private.season_xp(v_uid, v_season);
   v_step := least(v_steps, v_xp / v_step_xp);
+  perform private.award_season_medal(v_uid, v_season, v_step);
   return jsonb_build_object(
     'seasonId', v_season,
     'endsAt', private.ts_to_ms(public.season_start(to_char(public.season_start(v_season) at time zone 'America/Sao_Paulo'
                                                            + interval '1 month', 'YYYY-MM'))),
     'xp', v_xp, 'step', v_step, 'stepXp', v_step_xp, 'steps', v_steps,
+    'intoStep', case when v_step < v_steps then v_xp - v_step * v_step_xp else 0 end,
     'nextStepXp', case when v_step < v_steps then (v_step + 1) * v_step_xp else null end,
     'prestigeStars', greatest(0, (v_xp - v_steps * v_step_xp) / (2 * v_step_xp)),
     'medal', (select um.tier from public.user_medals um where um.user_id = v_uid and um.medal_id = 'temporada' and um.period = v_season),
@@ -603,9 +709,9 @@ begin
                                             then v_season else '' end,
                                        'track:' || v_season || ':' || p_step);
       when 'xp' then
-        perform private.grant_xp(v_uid, 'season_step', v_season || ':' || p_step || ':' || r.n, r.amount);
+        perform private.grant_xp(v_uid, 'season_step', v_season || ':' || p_step, r.amount);
       when 'chest' then
-        perform private.add_bonus_chest(v_uid, r.rarity);
+        perform private.add_bonus_chest(v_uid, r.rarity, 'track', v_season || ':' || p_step);
       when 'freeze' then
         update public.profiles set freezes_left = least(private.param_num('track', 'maxFreezes', 2)::integer, freezes_left + 1)
          where id = v_uid and freezes_left < private.param_num('track', 'maxFreezes', 2);

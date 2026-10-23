@@ -74,13 +74,13 @@ select is(private.grant_xp('e9e9e9e9-0014-4000-8000-00000000000a', 'mission', 'm
 select is(private.grant_xp('e9e9e9e9-0014-4000-8000-00000000000a', 'mission', 'm-1', 30), 0, 'grant_xp repetido não paga de novo');
 select is(private.grant_xp('e9e9e9e9-0014-4000-8000-00000000000a', 'mission', 'm-2', -50), 0, 'grant_xp ignora valor negativo');
 select is((select xp from public.profiles where id = 'e9e9e9e9-0014-4000-8000-00000000000a'), 30, 'profiles.xp = soma do livro');
-select is((select season_id from public.xp_ledger where ref_id = 'm-1'), public.current_season_id(), 'crédito guarda a temporada');
+select is((select season_id from public.xp_ledger where ref = 'm-1'), public.current_season_id(), 'crédito guarda a temporada');
 select throws_like($$ update public.profiles set xp = 0 where id = 'e9e9e9e9-0014-4000-8000-00000000000a' $$, '%XP_DECREASE%',
   'XP nunca diminui, nem pelo servidor');
 
 select pg_temp.login('e9e9e9e9-0014-4000-8000-00000000000b');
 select is((select count(*)::int from public.xp_ledger), 0, 'cada um lê só o próprio livro');
-select throws_ok($$ insert into public.xp_ledger (user_id, source, ref_id, amount)
+select throws_ok($$ insert into public.xp_ledger (user_id, source, ref, amount)
                     values ('e9e9e9e9-0014-4000-8000-00000000000b', 'mission', 'falso', 5000) $$,
   '42501', null, 'cliente não se credita XP');
 reset role;
