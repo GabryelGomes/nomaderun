@@ -65,7 +65,7 @@ describe('PostgREST de demonstração', () => {
   });
 
   it('RPC desconhecida falha com PGRST202', async () => {
-    const r = await demo.rpc('claim_mission', {});
+    const r = await demo.rpc('exemplo_sem_par', {});
     expect(r.error && (r.error as { code: string }).code).toBe('PGRST202');
   });
 });

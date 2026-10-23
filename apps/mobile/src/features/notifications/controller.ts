@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 
+import { gameAlertMode } from '@/domain/reminders';
 import * as repo from '@/services/api/notifications-repo';
 import { useNotifications } from '@/store/notifications-store';
 import { useSession } from '@/store/session-store';
@@ -17,6 +18,8 @@ export const POLL_MS = 20_000;
 function alertIfWanted(n: repo.AppNotification) {
   if (!ALERT_TYPES.has(n.type) || n.readAt !== null) return;
   if (!prefAllows(n, useSession.getState().profile?.notificationPrefs)) return;
+  // D-69: invasão e conquista entre 22h e 7h (Brasília) ficam só na central, sem banner.
+  if (n.type !== 'moderation' && gameAlertMode(n.createdAt) === 'central') return;
   void showLocalAlert(n);
 }
 

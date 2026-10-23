@@ -10,6 +10,7 @@ import { seedChests } from '@/demo/demo-data';
 import { DemoPgError, iso, msOf, raise, type ChestRow, type DemoDb, type Row } from './db';
 import { DEMO_GAME_V2_RPC_HANDLERS } from './game-v2';
 import { DEMO_SOCIAL_RPC_HANDLERS } from './social';
+import { ENGAGEMENT_RPC_HANDLERS } from './engagement';
 
 type RpcHandler = (db: DemoDb, userId: string | null, args: Row) => unknown;
 
@@ -151,6 +152,8 @@ export const DEMO_RPC_HANDLERS: Record<string, RpcHandler> = {
   ...DEMO_GAME_V2_RPC_HANDLERS,
   // E8 (T7.2.5): feed da crew, reações e record_share.
   ...DEMO_SOCIAL_RPC_HANDLERS,
+  // Engajamento v2 (E7, T7.2.4): missões, baú do dia, trilha e pausa de saúde.
+  ...ENGAGEMENT_RPC_HANDLERS,
 };
 
 /** Nomes das RPCs que o servidor de demonstração atende (o teste de contrato confere contra os repositórios). */
