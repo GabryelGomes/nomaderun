@@ -1,7 +1,7 @@
 # Contrato da API (app ↔ Supabase)
 
 > Dono: **Backend (A2)**. O app (frontend e GPS) programa contra este contrato. Qualquer mudança aqui precisa de registro em `DECISOES_TECNICAS.md` e aviso no `PROGRESSO.md`.
-> Última revisão: 2026-10-22 (Fase 4 do A2, correções do QA — D-50: convite de crew só para membros e `public_crews`, `ghostPace` só na Fuga, `/zones` com até 2.000, `avatar_url` só do bucket, conta inativa barrada no PostgREST, limites de pontos/corridas abertas, `endedAt`, staff por `staff_profiles`, exclusão com senha, cidade no cadastro). Anterior: 2026-10-20 (Fase 3, D-39 a D-44).
+> Última revisão: 2026-10-23 (Fase 7, onda 1 da E9 — contrato v2 atrás de flags: `server_info`, `game_config`, livro de XP, baú do dia, cosméticos e medalhas, Raid, Liga, missões e trilha; seção **Contrato v2** no fim). Anterior: 2026-10-22 (Fase 4 do A2, correções do QA — D-50: convite de crew só para membros e `public_crews`, `ghostPace` só na Fuga, `/zones` com até 2.000, `avatar_url` só do bucket, conta inativa barrada no PostgREST, limites de pontos/corridas abertas, `endedAt`, staff por `staff_profiles`, exclusão com senha, cidade no cadastro). Anterior: 2026-10-20 (Fase 3, D-39 a D-44).
 
 Base das functions: `${EXPO_PUBLIC_SUPABASE_URL}/functions/v1/<nome>`. Todas exigem `Authorization: Bearer <JWT do usuário>` (o servidor confere o token no Auth a cada chamada; conta excluída ou banida recebe 401).
 Erros: HTTP 4xx/5xx com corpo `{ "error": { "code": "<CODIGO>", "message": "<texto em pt-BR>", "details"?: { ... } } }`. O campo `details` é opcional (hoje só `lastSeq`, ver ingest/finish).
@@ -152,7 +152,7 @@ LGPD (RF-002, RNF-013). Export devolve JSON (com `Content-Disposition` de anexo)
 | `devices` | ler os próprios | sem a coluna `secret` |
 | `activities`, `activity_points`, `activity_zones` | ler os próprios (staff lê todos) | escrita só pelas functions. `activities.result` guarda a resposta oficial do `finish-activity`. **RN-010:** em `activity_points` de outra pessoa (painel de moderação) não vêm os pontos dentro das zonas de privacidade do dono (o `seq` fica com buraco); o dono vê tudo |
 | `safety_contacts` | CRUD dos próprios (`name`, `phone`) | máx. 5 (`CONTACTS_LIMIT`); `phone` aceita `+`, dígitos, espaço, `()` e `-` (8–20) |
-| `notifications` | ler e marcar `read_at` nas próprias | `type` ∈ `invasion, territory_lost, conquest, moderation, mission, system`; `data` traz `zoneId`, `lat`, `lng` (abrir o mapa na zona, RF-009) ou `activityId`. **Realtime ligado (P-13):** `channel('notif').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.<uid>' }, ...)`; a RLS vale no Realtime (sem o filtro, cada um continua recebendo só as suas). A consulta periódica pode virar só fallback |
+| `notifications` | ler e marcar `read_at` nas próprias | `type` ∈ `invasion, territory_lost, conquest, moderation, mission, system` e, desde a v2 (superconjunto), `raid, league, kudos, medal, reward, engagement` (o tipo fino vai em `data.kind`; app antigo mostra o desconhecido como `system`); `data` traz `zoneId`, `lat`, `lng` (abrir o mapa na zona, RF-009) ou `activityId`. **Realtime ligado (P-13):** `channel('notif').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.<uid>' }, ...)`; a RLS vale no Realtime (sem o filtro, cada um continua recebendo só as suas). A consulta periódica pode virar só fallback |
 | `fog_cells`, `chest_opens` | ler as próprias | escrita pelo servidor no finish (neblina; `chest_opens.chest_id` = `chests.id`) |
 | `chests` | ler os próprios | baús sorteados por dia (`id, day, lat, lng, rarity, xp, opened_at, activity_id`); use `rpc('daily_chests')`, que sorteia na primeira chamada do dia. Escrita só pelo servidor |
 | `privacy_zones` | CRUD dos próprios (`label?`, `lat`, `lng`, `radius_m`) | RN-010: até 3 (`PRIVACY_ZONES_LIMIT`); `radius_m` padrão 200, de 50 a 1000; `label` de 1 a 40 caracteres ou nulo. Cadastro: `from('privacy_zones').insert({ label: 'Casa', lat, lng })`; editar: `update({ lat, lng, radius_m }).eq('id', id)`; remover: `delete().eq('id', id)`. Os pontos dentro do raio pontuam normalmente, mas não aparecem para terceiros |
@@ -199,3 +199,64 @@ Erros de RPC chegam do PostgREST com `message = "CODIGO: texto em pt-BR"` (separ
 | `job_decay_zones` | todo dia 03:00 | RN-005: influência × 0,90; < 5 vira 0; dono < 30 perde a zona |
 | `job_close_week` | segunda 00:10 | RN-014: 2+ corridas válidas na semana somam 1 à sequência; senão gasta congelamento ou zera |
 | `job_season_rollover` | dia 1, 00:15 | RN-006: abre a temporada, influência × 0,30, devolve o congelamento mensal |
+| `job_raid_tick` (v2) | a cada 10 min | D-67: fecha o chefão que fugiu (domingo 21:00), premia uma vez, sorteia os pontos fracos do dia (fase ≥ 2) e abre a semana (segunda 06:00, só com `features.raid`) |
+| `job_close_league` (v2) | segunda 03:20 | D-68: fecha os grupos da semana (idempotente), sobe/desce, notifica e reserva os grupos da semana seguinte |
+
+## Contrato v2 (Fase 7, onda 1 da E9) — tudo atrás de flags
+
+> Migrations `20261023120000_v2_contract` a `20261023120600_streak_pause`. Regras puras: `src/domain/progression.ts`, `missions.ts` (E7), `raid.ts`, `league.ts` (E3). O SQL guarda, trava e confere; a gravação v2 do `finish-activity` (onda 2) chama o domain e as funções `private.*` listadas no fim.
+
+**Compatibilidade.** Nada antigo mudou de forma ou de comportamento com as flags desligadas (padrão). O app novo chama `rpc('server_info')`: se a RPC não existir (`PGRST202`), o servidor é o antigo (contrato 1) e as telas novas mostram o estado "indisponível". Com o servidor novo, cada tela confere `features.<nome>`. RPC de feature desligada responde `FEATURE_DISABLED: …` (trate como indisponível).
+
+### `server_info()` e `game_config`
+
+`rpc('server_info')` (só logado) → `{ contract: 2, territoryRule: "v1"|"v2", features: { raid, league, missions, medals, track, dailyChest, streakV2, feed, records, telemetry }, params: { raid, league, missions, daily_chest, track }, serverTime (ms), brToday: "AAAA-MM-DD" }`. Todas as flags começam `false`. `params` traz os números públicos (chances do baú, tetos do raid, vagas da liga) para as telas mostrarem a verdade. `game_config` (tabela) é só leitura para o cliente; os autores ligam uma flag com `update game_config set value = value || '{"raid": true}' where key = 'features';`.
+
+### Tabelas novas (leitura pelo cliente; escrita só pelo servidor)
+
+| Tabela | Cliente lê | Observação |
+|---|---|---|
+| `game_config` | tudo | flags e parâmetros; nunca segredo |
+| `xp_ledger` | as próprias linhas | `source`, `ref`, `amount`, `season_id`; único por `(user_id, source, ref)`. `profiles.xp` nunca diminui (`XP_DECREASE`) |
+| `cosmetic_defs`, `medal_defs`, `mission_defs`, `raid_bosses`, `track_rewards` | catálogo (ativos) | ids estáveis (chefões = `RAID_BOSS_IDS`; missões = `MISSION_CATALOG`) |
+| `user_cosmetics`, `user_medals`, `daily_rewards`, `bonus_chests`, `user_missions`, `engagement_marks`, `track_claims`, `raid_hits`, `raid_rewards`, `raid_visits`, `league_members`, `league_entries`, `league_standings` | só as próprias | — |
+| `user_equipped` | de todos | o que a pessoa equipou é público (moldura, título, rastro) |
+| `raids`, `raid_weak_points` | tudo | `raids` está no **Realtime** (vida, fase, status; sem coluna de usuário): `channel('raid').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'raids' }, …)` |
+| `league_groups`, `league_reservations` | nada | o grupo sai pelo `league_current()` |
+
+`profiles` ganhou colunas lidas pelo dono e escritas só pelo servidor: `best_streak_weeks`, `pause_from`, `pause_until`, `pause_used_season`, `daily_chest_pity` (0..19), `lifetime_meters`, `ftue_started_at` (contas novas; as antigas ficam sem primeira semana), `last_activity_at`. Nenhuma vai para `public_profiles`.
+
+`notifications.type` aceita também `raid`, `league`, `kudos`, `medal`, `reward` e `engagement` (o tipo fino em `data.kind`: `raid_result`, `league_result`, `sequencia`…). Preferências novas em `notification_prefs` (`raid`, `league`, `streak`…): chave ausente = ligada.
+
+### RPCs novas (`authenticated`)
+
+| RPC | Parâmetros | Retorno | Erros |
+|---|---|---|---|
+| `server_info` | — | ver acima | — |
+| `xp_history` | `p_limit` (1–200, padrão 50) | `[{ source, ref, amount, seasonId, createdAt, label }]` | — |
+| `equip_cosmetic` | `p_cosmetic`, `p_variant` (`''` ou temporada `AAAA-MM` / id do chefão) | `{ slot, cosmeticId, variant }` | `COSMETIC_NOT_OWNED` |
+| `unequip_cosmetic` | `p_slot` (`trail\|frame\|effect\|title\|emblem`) | `{ slot, cosmeticId: null }` | `INVALID_SLOT` |
+| `my_daily_chest` | — | `{ stored (0..3), maxStored, bonus: [raridade mínima], pityLeft, openedToday, odds, xp, cosmeticChance, minMeters }` | `FEATURE_DISABLED` |
+| `open_daily_chests` | — | `{ prizes: [{ n, rarity, xp, cosmeticId, duplicate, guaranteed }], bonus: [...], pityLeft, odds, alreadyOpened }` | `DAILY_CHEST_LOCKED` (sem atividade pontuada de 1 km hoje), `DAILY_CHEST_REVIEW` (confiança < 40), `FEATURE_DISABLED` |
+| `my_missions` | — | `{ periods: { daily, weekly }, daily: [M], weekly: [M], ftue: [M], ftueStartedAt, comeback: M\|null, rerollsLeft }` com `M = { id, defId, kind, tier, slot, variant, title, metric, progress, target, xp, bonus, periodKey, availableFrom, availableUntil, completedAt, claimedAt, rerolled }` | `FEATURE_DISABLED` |
+| `reroll_mission` | `p_id` | `M` (mesmo `id` e `slot`, progresso 0) | `MISSION_NOT_REROLLABLE`, `MISSION_COMPLETED`, `MISSION_REROLL_LIMIT`, `MISSION_NO_OPTION`, `NOT_FOUND` |
+| `claim_mission` | `p_id` | `{ id, claimed: false, alreadyClaimed: true, xp, claimedAt }` (a conclusão já paga) | `MISSION_NOT_COMPLETED`, `NOT_FOUND` |
+| `record_share` | `p_activity` | `{ completed: [M] }` (1 por dia) | `NOT_FOUND` |
+| `record_ranking_opened` | — | `{ completed: [M] }` (alternativa do passo 6 sem liga) | — |
+| `my_track` | — | `{ seasonId, endsAt, xp, step, stepXp, steps, intoStep, nextStepXp, prestigeStars, medal, rewards: [{ step, unlocked, claimed, items }] }` | `FEATURE_DISABLED` |
+| `claim_track_step` | `p_step` (1..24) | `{ step, seasonId, alreadyClaimed, items }` | `TRACK_LOCKED`, `INVALID_STEP` |
+| `start_health_pause` | `p_weeks` (1..4) | `{ from, until, seasonId }` | `PAUSE_WEEKS`, `PAUSE_ACTIVE`, `PAUSE_USED`, `FEATURE_DISABLED` |
+| `end_health_pause` | — | `{ from, until, seasonId }` ou `null` | — |
+| `raid_current` | — | `{ raid: { id, bossId, name, theme, weakness, introLine, defeatLine, artKey, city, weekStart, startsAt, endsAt, hp, hpMax, phase (1..3), status, participants, defeatedAt, isDemo, weakPoints: [{ zoneId, name, center: [lng, lat] }] } \| null, me: { damage, meters, hits, todayMeters, rank, rewards }, sinceLastVisit: { damage, since } \| null, topRunners: [{ position, username, faction, avatarUrl, damage, you }], topCrews: [{ name, tag, faction, damage }], params }` (sem ids de corrida nem de usuário) | `FEATURE_DISABLED` |
+| `league_current` | — | `{ weekStart, closesAt, division, divisionName, joined, groupSize, smallGroup, promoteSlots, relegateSlots, members: [{ position, username, faction, avatarUrl, points, you, zone: 'promote'\|'relegate'\|null }], lastResult }` | `FEATURE_DISABLED` |
+
+### Funções do servidor para a gravação v2 (onda 2; só `service_role` / `private`)
+
+| Função | Uso |
+|---|---|
+| `svc_grant_xp(user, source, ref, amount)` / `private.grant_xp` | crédito idempotente no livro (devolve o XP creditado agora) |
+| `svc_raid_hit(activity, meters, damage, weak_meters, pack)` / `private.apply_raid_hit` | golpe idempotente por atividade (`raidDamage` → servidor confere crítico, tetos 21/30 km e 300 de dano/dia) |
+| `private.add_league_points(activity, points)` | pontos da liga, idempotente por atividade (`WEEK_CLOSED` depois de segunda 03:20) |
+| `private.ensure_missions(user, at, exclude)` + `private.advance_missions(user, { "<user_missions.id>": progresso absoluto }, at)` | sorteio/volta e progresso de `settleMission` (paga na conclusão) |
+| `private.open_daily_chests(user, activity, now)` | abre os baús do dia e os bônus |
+| `private.award_medal`, `private.grant_cosmetic`, `private.add_bonus_chest` | recompensas idempotentes |

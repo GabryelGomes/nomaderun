@@ -119,3 +119,12 @@ Mudou o domain? Rode `npm run domain:copy` de novo antes do próximo deploy (`np
 
 - Os 4 jobs do pg_cron (RN-004, RN-005, RN-006, RN-014) são criados pela migration; confira em **Database → Cron Jobs** (horários em UTC = Brasília + 3 h).
 - Realtime: `zones` (mapa) e `notifications` (central, P-13) estão na publicação `supabase_realtime`; a RLS vale para quem assina.
+
+## 7. Servidor v2 (Fase 7, D-80): migrations atrás de flags
+
+- **Ordem:** backup (`npx supabase db dump --linked -f backup-<data>.sql` e `--data-only`) → `npm run db:test:local` (ou `db:reset` + `db:test:psql`) → `npx supabase db push --dry-run` e `db push` → functions → EAS Update → flags, uma por vez.
+- **Migrations da onda 1** (`20261023120000` a `20261023120600`): contrato (`game_config`, `server_info`, `xp_ledger`), cosméticos e medalhas, baú do dia, Raid, Liga, missões e trilha, sequência v2. Todas aditivas; com as flags desligadas o app publicado não vê diferença. A única mudança em objeto antigo é o `CHECK` de `notifications.type`, trocado por um superconjunto na mesma instrução, e o `job_close_week`, que só muda de regra com `features.streakV2`.
+- **Jobs novos:** `nomaderun-raid-tick` (`*/10 * * * *`) e `nomaderun-close-league` (`20 6 * * 1` = segunda 03:20 BRT). Realtime ganha `raids`.
+- **Segredo do baú do dia:** a migration gera `private.server_secrets('daily_chest_hmac')` com 32 bytes aleatórios no próprio banco (nada no repositório). Para trocar: `update private.server_secrets set value = extensions.gen_random_bytes(32) where name = 'daily_chest_hmac';` (os baús já abertos não mudam).
+- **Ligar uma feature:** `update public.game_config set value = value || '{"raid": true}' where key = 'features';`. **Desligar** (volta atrás na hora): o mesmo com `false`. Ordem sugerida, depois do EAS Update: `dailyChest`, `missions`, `track`, `raid`, `league`, `streakV2`. A gravação v2 do `finish-activity` (onda 2) é que alimenta raid, liga, missões e baú com as corridas; antes dela, as telas abrem, mas só as RPCs do app mexem nos dados.
+- **Conferir depois do `db push`:** `select public.server_info();` no SQL Editor (como `authenticated`, com `set role`), `select jobname, schedule from cron.job;` e `npx supabase db advisors --linked`.
