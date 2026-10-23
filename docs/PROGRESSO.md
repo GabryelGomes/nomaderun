@@ -5,7 +5,7 @@
 
 ## Estado atual (resumo)
 
-- **Fase:** **5 concluída — MVP pronto para apresentação** (T0–T5 ✅ no `PLANO_DESENVOLVIMENTO.md`). **Fase 6 em andamento** (D-54): T6.1 ✅ (fundação de motion e layout, `docs/DESIGN_MOBILE_MOTION.md`); T6.2 ✅ (telas de conta e perfil, D-57); T6.3 ✅ (telas de jogo); T6.4 ✅ (fluxo da corrida, D-56); T6.5 ✅ (QA visual, motion e acessibilidade, `QA.md` §14); T6.6 liberada.
+- **Fase:** **7 em andamento — Reformulação v2** (`docs/melhoria/PLANO-MESTRE.md`): F0 ✅ prompt e agentes · F1 ✅ 10 relatórios (`docs/melhoria/F1/`) · F2 ✅ plano e decisões D-62 a D-82 · próxima: onda 1 (fundação). Fases 0–6 concluídas (MVP + visual neon).
 - **Requisitos (61):** 32 ✅ · 22 🟡 · 5 ⬜ · 2 ➖. Nenhum P0 sem fazer (P0: 16 ✅, 9 🟡). Detalhes em `REQUISITOS.md`.
 - **Testes (2026-10-21, T6.5, banco local):** app `npm test` 398 ✅ (26 de integração ignorados sem `NOMADE_IT`; integração 26/26 com o backend) · `typecheck` ok · eslint 0 · domain 99,5% ramos/100% linhas · Playwright demo 14/14, auth 17/17, imagem 4/4 (referências regeneradas na T6.5) · varredura visual de 31 telas × 8 combinações sem rolagem horizontal, sem nada fora da tela e sem erros de console. Backend (Fase 5): pgTAP 285/285 · Deno 58 ok · e2e 56/56 · segurança `STRICT=1` 89/89.
 - **Como rodar e apresentar:** `README.md` (instalação e testes), `docs/COMO_APRESENTAR.md` (checklist, roteiro de 10 min, banca, plano B), `apps/mobile/README.md`.
@@ -78,6 +78,24 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 ```
 
 ## Log
+
+### 2026-10-23 — Fase 7 (F0–F2) — Reformulação v2: prompt, agentes, descoberta e plano (Coordenador)
+- **Feito:**
+  - **F0:** prompt mestre `docs/melhoria/00-PROMPT-MELHORIA-COLOSSAL.md`; 11 agentes em `.claude/agents/` (coordenador + E1–E10); D-61 (substitui a D-15); nota da Fase 7 no `CLAUDE.md`.
+  - **F1:** 10 relatórios em `docs/melhoria/F1/` (pesquisa, skills e MCPs, jogo e território com simulação, arte com 57 SVGs, motion com protótipos, UX com régua de texto e wireframes, engajamento, social com cards, backend com banco local, qualidade com linha de base e capturas "antes"); 20 skills novas em `.claude/skills/`.
+  - **F2:** `docs/melhoria/PLANO-MESTRE.md`; decisões D-62 a D-82; Fase 7 no `PLANO_DESENVOLVIMENTO.md`.
+- **Correção:** `src/domain/season.ts` (tela Meu time) não estava registrado na ponte das functions. Os 3 testes de `domain_bridge.test.ts` falhavam; agora passam (Deno 58/58).
+- **Testes:** app `npx jest` 417 ✅ (26 de integração pulados) · typecheck ok · eslint 0 · Deno 58 ✅ · **banco local sem Docker: pgTAP 285/285 ✅** (`docs/melhoria/F1/backend/banco-local.sh`).
+- **Achados importantes da F1:**
+  - a Nova corrida começa em "Simulação" (`run-screen.tsx:61`);
+  - textos que prometem o que o jogo não faz (E-01, E-04, E-18, E-21 a E-24);
+  - texto branco no laranja a 2,87:1;
+  - 8 s de tela branca sem servidor;
+  - o decaimento roda todo dia (não toda semana).
+  Todos entram na onda 1.
+- **Pendências do dono:** A-1 (trocar as senhas das contas de demonstração no Cloud); deploy do backend v2 e flags (depois da onda 2); aprovar os nomes de mascotes e líderes (D-70); MCPs opcionais.
+- **Para o próximo:** seguir as ondas do `PLANO-MESTRE.md` §2; regras de execução no §4.
+
 
 ### 2026-10-21 — Correções da revisão nº 1 (A1 Arquiteto)
 - **Feito:** A-2 mapa centraliza na posição real (`services/location/current.ts`, testado) e, sem localização, mostra Goiânia rotulada como demonstração; A-3 `npm run publicar` (`scripts/publicar.sh`) publica no EAS Update sempre com `apps/mobile/.env.production` (recusa URL local e chave secreta), `.env.production.example`; M-1 folga de 14 pt para o brilho dos chips (`GLOW_ROOM`) nas linhas roláveis e nos filtros do mapa; docs: aviso das senhas demo só locais + como trocar na nuvem (README, COMO_APRESENTAR §1 com a opção C), RNF-010 como desvio (D-59), RNF-011 atualizado.
