@@ -398,3 +398,140 @@ Metodologia `find-skills`: o leaderboard/busca do skills.sh foi consultado via W
 - `dylantarre/animation-principles` → `presentations` (MIT): bom resumo de timing de builds (0.3–0.5s), mas não é claramente melhor que `frontend-slides`/`slides` + `motion-design`.
 - Mapas escuros/neon: nenhum skill melhor que `mapbox-cartography` + `mapbox-style-patterns` (já presentes). `mapbox-style-quality` e `mapbox-web-performance-patterns` existem no mesmo repo, mas tratam de validação/performance, não de estilo dark.
 - Sem resultado relevante: glow/neon com installs >1K, "dark map", "hover effects" dedicado, device mockup só-CSS seguro.
+
+---
+
+# Fase 7 — Reformulação v2
+
+Curadoria da **E2 — Skills e MCPs** (F1, 2026-10-23). Método `find-skills`: ranking e busca do skills.sh consultados por WebSearch (skills.sh e `npx skills find` bloqueados no proxy), download por `git clone --depth 1 --filter=blob:none` em pasta temporária própria, `SKILL.md` lido inteiro e varredura de padrões perigosos (`curl | sh`, download de binário, pedido de segredo, prompt injection). Installs = contagem all-time do skills.sh vista em agregadores (aproximada). **Destino desta fase: `.claude/skills/<nome>/`** (pasta que o Claude Code carrega); todas as pastas são novas e levam o `LICENSE` original. Relatório completo: `docs/melhoria/F1/02-skills-e-mcps.md`.
+
+## swm-rn-animations (Reanimated 4, Skia, desempenho de animação) — E5
+- **Repo:** `software-mansion-labs/skills` (Software Mansion, autores do Reanimated/Gesture Handler/SVG) — MIT (declarada no README; o repo não tem arquivo LICENSE, a pasta leva um LICENSE MIT com a atribuição). Commit `58afa0a` (2026-10-15).
+- **Raw URL:** https://raw.githubusercontent.com/software-mansion-labs/skills/main/skills/react-native-best-practices/references/animations/SKILL.md
+- **Descrição:** padrões de produção para Reanimated 4: transições/animações CSS, shared values, canvas Skia, desempenho e "Reduzir movimento". Tabela de recursos por versão (o app tem 4.5.1).
+- **Arquivos:** `references/animations.md`, `canvas-animations.md`, `animations-performance.md`. `name` trocado de `animations` para `swm-rn-animations`; nota NOMADE no topo.
+- **Relação com o que já existe:** `.agents/skills/react-native-best-practices` (mesma origem) tem só os `SKILL.md` roteadores, sem os arquivos de referência; esta pasta traz as referências e fica visível ao Claude Code. A `.claude/skills/react-native-best-practices` é outra skill (Callstack, desempenho).
+- **Instalar:** `npx skills add software-mansion-labs/skills --skill react-native-best-practices`
+- **Installs:** ~10 no skills.sh (repo novo); agregador mostra ~8,1K para o repo inteiro.
+
+## swm-rn-svg (react-native-svg) — E4
+- **Repo:** `software-mansion-labs/skills` — MIT. Mesmo commit.
+- **Raw URL:** https://raw.githubusercontent.com/software-mansion-labs/skills/main/skills/react-native-best-practices/references/svg/SKILL.md
+- **Descrição:** quando usar `react-native-svg` × `expo-image` × Skia × Lottie; carregamento, filtros, toque e desempenho; animação de path/arco com Reanimated.
+- **Arquivos:** `references/when-to-use.md`, `svg.md`, `svg-animations.md` (este vem da sub-skill de animações). `name` trocado de `svg` para `swm-rn-svg`; nota NOMADE.
+- **Instalar:** `npx skills add software-mansion-labs/skills --skill react-native-best-practices`
+- **Installs:** ver acima.
+
+## game-feel ("juice": tremor, pausa de impacto, squash & stretch, níveis de feedback) — E5, E3
+- **Repo:** `gamedev-skills/awesome-gamedev-agent-skills` — Apache-2.0. Commit `7eb1b53` (2026-10-23).
+- **Raw URL:** https://raw.githubusercontent.com/gamedev-skills/awesome-gamedev-agent-skills/main/skills/disciplines/game-feel/SKILL.md
+- **Descrição:** feedback em camadas e exagerado por pouco tempo; três níveis (pequeno/médio/grande); nunca bloquear a entrada; opção de reduzir tremor/flash. Exemplos em Godot/Unity (traduzir para Reanimated).
+- **Arquivos:** `references/feedback-recipes.md`. Nota NOMADE.
+- **Instalar:** `npx skills add gamedev-skills/awesome-gamedev-agent-skills --skill game-feel`
+- **Installs:** 813 a 3,6K (agregadores divergem).
+
+## game-balance-economy (balanceamento e economia de jogo) — E3
+- **Repo:** `lvtd-llc/skills` — MIT. Commit `a3ad087` (2026-09-11).
+- **Raw URL:** https://raw.githubusercontent.com/lvtd-llc/skills/main/skills/game-balance-economy/SKILL.md
+- **Descrição:** baseada em Schell (*The Art of Game Design*, cap. 12–13) e MDA: intenção do balanceamento, mapa de fontes/sumidouros, tabela de ajuste com faixas seguras, estratégias dominantes, "líder que dispara", telemetria.
+- **Arquivos:** `references/core/guide.md`, `workflows/tuning-pass.md`, `scripts/expected_value.py` (script local, só lê argumentos; revisado).
+- **Instalar:** `npx skills add lvtd-llc/skills --skill game-balance-economy`
+- **Installs:** ~57 (baixo; aceito por ser curto, com fontes citadas e sem comandos remotos).
+
+## game-mechanics-design (especificação de mecânica e loop central) — E3
+- **Repo:** `lvtd-llc/skills` — MIT.
+- **Raw URL:** https://raw.githubusercontent.com/lvtd-llc/skills/main/skills/game-mechanics-design/SKILL.md
+- **Descrição:** loop central, modelo de regras (estado, ações, objetivos, informação), dinâmicas previstas e indesejadas, cenários de teste determinísticos.
+- **Arquivos:** `references/core/guide.md`, `workflows/mechanic-spec.md`.
+- **Instalar:** `npx skills add lvtd-llc/skills --skill game-mechanics-design`
+- **Installs:** não encontrado (baixo).
+
+## game-responsibility-review (ética: pressão de retenção, padrões escuros, inclusão) — E7, E1, E10
+- **Repo:** `lvtd-llc/skills` — MIT.
+- **Raw URL:** https://raw.githubusercontent.com/lvtd-llc/skills/main/skills/game-responsibility-review/SKILL.md
+- **Descrição:** revisão de sequências, recompensas diárias, FOMO, recompensas variáveis, notificações, comparação social; classifica riscos (Blocker/High/Medium/Low) e define "portões" de lançamento. Base para a seção 5.4 (ética) do prompt mestre.
+- **Arquivos:** `references/core/guide.md`, `workflows/responsibility-audit.md`.
+- **Instalar:** `npx skills add lvtd-llc/skills --skill game-responsibility-review`
+- **Installs:** não encontrado (baixo).
+
+## user-onboarding-activation (primeira abertura e ativação) — E7, E6
+- **Repo:** `RefoundAI/lenny-skills` — MIT. Commit `13598cc` (2026-07-15). 1,3K estrelas.
+- **Raw URL:** https://raw.githubusercontent.com/RefoundAI/lenny-skills/main/skills/user-onboarding-activation/SKILL.md
+- **Descrição:** insights do Lenny's Podcast/Newsletter: uma ação de alto valor logo no início, sucesso nos primeiros 30 s, cada toque custa caro, métrica de ativação validada por retenção.
+- **Arquivos:** `references/guest-insights.md`, `references/artifacts.md`. Nota NOMADE.
+- **Instalar:** `npx skills add RefoundAI/lenny-skills --skill user-onboarding-activation`
+- **Installs:** ~280.
+
+## retention-engagement (retenção e hábito) — E7
+- **Repo:** `RefoundAI/lenny-skills` — MIT.
+- **Raw URL:** https://raw.githubusercontent.com/RefoundAI/lenny-skills/main/skills/retention-engagement/SKILL.md
+- **Descrição:** curva de sobrevivência por coorte, "valor acumulado", sequências (caso Duolingo), eventos de ruído × eventos de valor.
+- **Arquivos:** `references/guest-insights.md`, `references/artifacts.md`. Nota NOMADE (ética).
+- **Instalar:** `npx skills add RefoundAI/lenny-skills --skill retention-engagement`
+- **Installs:** não confirmado.
+
+## referrals-word-of-mouth (indicação, boca a boca, laços virais) — E8
+- **Repo:** `RefoundAI/lenny-skills` — MIT.
+- **Raw URL:** https://raw.githubusercontent.com/RefoundAI/lenny-skills/main/skills/referrals-word-of-mouth/SKILL.md
+- **Descrição:** tipos de viralidade, "Seis estratégias para aumentar a taxa de compartilhamento", K-factor, pontos de convite nos momentos de satisfação.
+- **Arquivos:** `references/guest-insights.md`, `references/artifacts.md`. Nota NOMADE.
+- **Instalar:** `npx skills add RefoundAI/lenny-skills --skill referrals-word-of-mouth`
+- **Installs:** não confirmado.
+
+## ux-writing (microcopy, erros, vazios, onboarding) — E6
+- **Repo:** `content-designer/ux-writing-skill` — MIT. Commit `98cacde` (2026-05-26).
+- **Raw URL:** https://raw.githubusercontent.com/content-designer/ux-writing-skill/main/SKILL.md
+- **Descrição:** quatro critérios (com propósito, conciso, conversacional, claro); padrões de botão "[Verbo] [objeto]", erro "[o que falhou]. [por quê]. [o que fazer]."; permissão "[benefício]. [permissão]."; metas de tamanho (botão 2–4 palavras, frase ≤ 14 palavras).
+- **Arquivos:** `references/content-usability-checklist.md`, `references/voice-chart-template.md`, `templates/onboarding-flow-template.md`.
+- **Instalar:** `npx skills add content-designer/ux-writing-skill`
+- **Installs:** ~1,3K (agregador).
+
+## mobile-accessibility (acessibilidade React Native/Expo) — E10, E6
+- **Repo:** `community-access/accessibility-agents` — MIT. Commit `decf6ba` (2026-09-23).
+- **Raw URL:** https://raw.githubusercontent.com/community-access/accessibility-agents/main/skills/mobile-accessibility/SKILL.md
+- **Descrição:** props de acessibilidade, papéis, alvos de toque (44 pt / 48 dp), live regions, foco programático, testes com Testing Library/Maestro; formato de relatório por severidade e critério WCAG.
+- **Arquivos:** `references/phase-1-react-native-and-expo-auditing.md`. Nota NOMADE (o contrato JSON e os "handoffs" dependem de skills do mesmo repo que não foram instaladas).
+- **Instalar:** `npx skills add community-access/accessibility-agents --skill mobile-accessibility`
+- **Installs:** não encontrado.
+
+## visual-testing (regressão visual com Playwright) — E10
+- **Repo:** `petrkindlmann/qa-skills` — MIT. Commit `6243425` (2026-10-22).
+- **Raw URL:** https://raw.githubusercontent.com/petrkindlmann/qa-skills/main/skills/visual-testing/SKILL.md
+- **Descrição:** `toHaveScreenshot` com `animations: 'disabled'`, mascarar conteúdo dinâmico (relógio, avatares), limiares por componente, baselines versionadas, artefatos no CI.
+- **Arquivos:** `references/recipes.md`.
+- **Instalar:** `npx skills add petrkindlmann/qa-skills --skill visual-testing`
+- **Installs:** baixo/desconhecido.
+
+## text-to-lottie (gerar/editar Lottie JSON) — E4, E5
+- **Repo:** `diffusionstudio/lottie` — MIT. Commit `3c72912` (2026-07-25).
+- **Raw URL:** https://raw.githubusercontent.com/diffusionstudio/lottie/main/skills/text-to-lottie/SKILL.md
+- **Descrição:** escreve Lottie JSON (SVG → animação, ícones, microinterações, estados de sucesso/erro) verificado no player Skia Skottie do próprio repo.
+- **Arquivos:** `references/player-contract.md`, `recipe-ui-microinteractions.md`, `recipe-loaders-icons.md`. Nota NOMADE: o player só roda fora do repositório do app.
+- **Instalar:** `npx skills add diffusionstudio/lottie`
+- **Installs:** ~7,7K.
+
+## impeccable-refs (deleite, onboarding, auditoria nativa) — E6, E4
+- **Repo:** `pbakaus/impeccable` — Apache-2.0. Commit `5cb95ee` (2026-10-23); ~20K estrelas (abril/2026).
+- **Raw URL:** https://raw.githubusercontent.com/pbakaus/impeccable/main/.claude/skills/impeccable/reference/delight.md (também `onboard.md` e `audit.native.md`)
+- **Descrição:** **derivada**: só 3 referências originais + `SKILL.md` escrito pela E2. A skill completa **não** foi instalada porque o lançador `scripts/impeccable` baixa um binário da internet (`curl`/`wget`).
+- **Instalar (original, não recomendado aqui):** `npx skills add pbakaus/impeccable`
+- **Installs:** não confirmado.
+
+## Promovidas de `.agents/skills` para `.claude/skills` (cópias idênticas)
+Já auditadas e registradas acima neste arquivo; copiadas para o Claude Code carregar sozinho (antes só existiam em `.agents/skills`, que o Claude Code não lê):
+- `react-native-reanimated` (E5), `expo-animation` (E5), `motion-design` (E5, E4), `emil-design-eng` (E5, E6), `gamification-loops` (E7, E3).
+- `react-native-skia` (E5, E4): `SKILL.md` + 3 referências (`decision-tree.md`, `motion-design-playbook.md`, `performance-playbook.md`); as outras duas seguem em `.agents/skills/react-native-skia/references/`.
+
+## Encontrados e não instalados (Fase 7)
+- `pbakaus/impeccable` completa (Apache-2.0): lançador baixa binário remoto → só referências (ver `impeccable-refs`).
+- `software-mansion-labs/skills` → `pulsar-haptics` (MIT): exige `react-native-pulsar`, que **não vem no Expo Go**.
+- `software-mansion-labs/skills` → sub-skill `gestures` (MIT): boa, mas cobre v2 e v3; adiada (o app usa Gesture Handler 2.32 e já tem `react-native-best-practices`). Instalar na F3 se a E5/E6 fizerem gestos complexos.
+- `gamedev-skills/awesome-gamedev-agent-skills` → `game-ui-ux` (Apache-2.0): presa a Godot/Unity (âncoras, gamepad); pouco aproveitável em RN.
+- `simota/agent-skills` → `ink` (MIT, ~80 estrelas): ícones/ilustrações SVG para **web** (CSS, `aria-*`), depende de `_common/` e manda escrever em `.agents/ink.md` e `.agents/PROJECT.md`.
+- `narumiruna/agent-skills` → `create-svg-illustrations` (MIT): feita para diagramas em slides/documentos, não mascotes.
+- `trycourier/courier-skills` → `courier` (MIT): presa ao serviço pago Courier; o app usa Expo Notifications + Supabase.
+- `rshankras/claude-code-apple-skills` → `share-card` e `game-feel` (MIT): SwiftUI/iOS nativo.
+- `heymoezy/porter` → `game-designer`: repositório sem licença.
+- `Abhishekrajpurohit/motion-dev-mcp` (MIT): MCP comunitário de motion.dev, sem commits desde 2025-08, raspa a documentação; preferir o MCP oficial do AI Kit.
+- `dicklesworthstone/meta_skill` → `creating-share-images`: Next.js `next/og` (web).
+- Rive (`@rive-app/react-native`): **não roda no Expo Go** (precisa de development build) — nenhuma skill de Rive instalada.
