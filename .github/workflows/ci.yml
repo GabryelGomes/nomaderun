@@ -1,0 +1,120 @@
+# CI do NOMADE RUN (T7.1.20, D-81). Proposta original: docs/melhoria/ci/ci.yml (E10, F1).
+# Três jobs: app (tipos, lint, Jest e cobertura do domain), web (export do modo demonstração e orçamento do
+# bundle) e functions (Deno test/check e ponte do domain). O contraste roda só como relatório: o modo
+# estrito (--strict) liga depois da D-75 (texto escuro no laranja e bordas ≥ 3:1, E6).
+# Se o GitHub recusar este arquivo por falta da permissão `workflow`, crie-o pelo site (docs/melhoria/ci/README.md).
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: App (tipos, lint, testes, cobertura do domain)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Tipos (tsc --noEmit)
+        run: npm run typecheck
+
+      - name: Lint (ESLint, binário direto)
+        run: ./node_modules/.bin/eslint src --max-warnings 0
+
+      - name: Testes (Jest)
+        # Os *.local.test.ts se pulam sozinhos sem Supabase local. Inclui o contrato e o fluxo sem rede
+        # do modo demonstração (src/__tests__/demo-*.test.ts).
+        run: npx jest --ci --maxWorkers=2
+
+      - name: Cobertura do domain (mínimo 90%, regra 16.5 do prompt mestre)
+        run: >
+          npx jest --ci --maxWorkers=2 --coverage src/domain
+          --coverageThreshold='{"./src/domain/":{"statements":90,"branches":90,"functions":90,"lines":90}}'
+
+      - name: Contraste dos tokens (relatório; --strict depois da D-75)
+        working-directory: .
+        run: node docs/melhoria/F1/qa/contraste.cjs >> "$GITHUB_STEP_SUMMARY"
+
+  web:
+    name: Export web (modo demonstração e orçamento do bundle)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: app
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Export web do modo demonstração
+        # --clear: o cache do Metro não percebe mudança de EXPO_PUBLIC_* (linha de base da E10).
+        run: npx expo export -p web --clear --output-dir dist-web
+        env:
+          EXPO_PUBLIC_DEMO: '1'
+          EXPO_OFFLINE: '1'
+
+      - name: O export está no modo demonstração
+        run: grep -q 'demonstracao@nomaderun.invalid' dist-web/_expo/static/js/web/entry-*.js
+
+      - name: Tamanho do bundle (orçamento)
+        # Linha de base 2026-10-23: entry 3.464.108 B (889.454 B gzip); com o modo demonstração, 909.056 B gzip.
+        # Orçamento: +10% sobre a linha de base.
+        run: |
+          f=$(ls dist-web/_expo/static/js/web/entry-*.js)
+          raw=$(stat -c%s "$f"); gz=$(gzip -9c "$f" | wc -c)
+          echo "entry: ${raw} B (${gz} B gzip)" | tee -a "$GITHUB_STEP_SUMMARY"
+          test "$gz" -le 980000 || { echo "::error::bundle web acima do orçamento (${gz} B gzip > 980000)"; exit 1; }
+
+  functions:
+    name: Edge Functions (Deno) e ponte do domain
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.x
+
+      - name: Testes das functions
+        run: deno test --allow-read --config supabase/functions/deno.json supabase/functions/tests
+
+      - name: Tipos das functions
+        run: deno check --config supabase/functions/deno.json supabase/functions/*/index.ts
+
+      - name: Gerador do seed (src/demo continua puro, sem React/Expo)
+        run: deno check --config supabase/scripts/deno.json supabase/scripts/gen-seed.ts
+
+      - name: Cópia do domain em dia (plano B da D-02)
+        run: node supabase/scripts/domain-copy.mjs --check
