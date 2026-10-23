@@ -1,5 +1,5 @@
 import * as Linking from 'expo-linking';
-import { useEffect } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 
 import * as authRepo from '@/services/api/auth-repo';
 import { isBackendConfigured } from '@/services/api/env';
@@ -8,8 +8,13 @@ import { readCachedProfile, writeCachedProfile } from '@/services/api/profile-ca
 import * as profileRepo from '@/services/api/profile-repo';
 import type { Profile, ProfilePatch } from '@/services/api/types';
 import { isRecoveryLink, parseAuthCallback } from '@/services/auth/deep-link';
+import { isDemoActive, onDemoSwitch } from '@/services/demo-mode';
 import { useGame } from '@/store/game-store';
+import { useNotifications } from '@/store/notifications-store';
 import { useSession } from '@/store/session-store';
+import { useZones } from '@/store/zones-store';
+
+import { useOnboardingFlow } from './onboarding-flow';
 
 /**
  * Orquestra sessão ↔ perfil ↔ jogo. Telas chamam estas funções; elas chamam os repositórios
@@ -70,6 +75,21 @@ export async function chooseFaction(faction: Parameters<typeof profileRepo.choos
   if (!res.ok) return res;
   return loadProfile();
 }
+
+/**
+ * Troca do modo demonstração (D-77, `@/services/demo-mode`): zera as stores com dados de pessoa, para nada de um
+ * modo aparecer no outro. Não usa `clearLocal()`: o `writeCachedProfile(null)` dele apagaria o cache de perfil
+ * do modo que está entrando (ao sair da demonstração, o da conta real). Stores novas da onda 2 com dados do
+ * usuário (engajamento da E7, feed da E8) entram aqui; preferências ficam.
+ */
+export function resetStoresForDemoSwitch() {
+  useGame.getState().resetForSignOut();
+  useSession.getState().reset();
+  useZones.getState().reset();
+  useNotifications.getState().reset();
+  useOnboardingFlow.getState().reset();
+}
+onDemoSwitch(resetStoresForDemoSwitch);
 
 function clearLocal() {
   useGame.getState().resetForSignOut();
@@ -156,6 +176,8 @@ export function dismissPendingLink() {
 
 /** Montado uma vez no layout raiz: restaura a sessão, escuta mudanças e links de autenticação. */
 export function useSessionBootstrap() {
+  // Na troca do modo demonstração, o efeito refaz tudo e assina o Auth do cliente do modo atual.
+  const demo = useSyncExternalStore(onDemoSwitch, isDemoActive, isDemoActive);
   useEffect(() => {
     if (!isBackendConfigured()) {
       useSession.getState().setUnconfigured();
@@ -193,7 +215,7 @@ export function useSessionBootstrap() {
       sub?.unsubscribe();
       linkSub.remove();
     };
-  }, []);
+  }, [demo]);
 
   // Sempre que entra um usuário novo, carrega o perfil dele.
   const userId = useSession((s) => s.session?.userId);

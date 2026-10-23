@@ -12,7 +12,10 @@ import { Appearance } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useScreenTransition } from '@/components/motion';
+import { useDemoActive } from '@/features/auth/demo-entry';
+import { DemoSeal } from '@/features/auth/demo-seal';
 import { LinkConfirmDialog } from '@/features/auth/link-confirm-dialog';
+import { onboardingInProgressFor, useOnboardingFlow } from '@/features/auth/onboarding-flow';
 import { resolveRouteGroup, type RouteGroup } from '@/features/auth/route-guard';
 import { useSessionBootstrap } from '@/features/auth/session-controller';
 import { canModerate } from '@/features/moderation/guard';
@@ -32,7 +35,13 @@ export default function RootLayout() {
   useUserDataBootstrap();
   // Pedido do A4 (T2.2): sincroniza a fila de corridas ao abrir, ao voltar a conexão e ao primeiro plano.
   useOfflineSync();
+  // Lembretes locais da E7 (D-69, T7.2.4): montar aqui o `useReminderPlanner()` (replaneja ao abrir, ao sincronizar
+  // e ao correr). O hook ainda não existe nesta base (onda 2 em paralelo): o coordenador liga na integração.
+  // Modo demonstração (D-77): o interruptor da E10 (`@/services/demo-mode`) zera as stores pelo ouvinte de
+  // `session-controller.ts`; aqui só o selo acompanha o modo.
   const staff = useSession((s) => canModerate(s.profile?.role));
+  const onboardingFor = useOnboardingFlow((s) => s.activeFor);
+  const demo = useDemoActive();
   const computed = useSession((s) =>
     resolveRouteGroup({
       status: s.status,
@@ -40,6 +49,8 @@ export default function RootLayout() {
       hasProfile: s.profile !== null,
       hasFaction: Boolean(s.profile?.faction),
       recovering: s.recovering,
+      // D-72: a confirmação épica e o GPS vêm depois de gravar o time, ainda no onboarding.
+      onboardingInProgress: onboardingInProgressFor(onboardingFor, s.session?.userId),
     }),
   );
   // Depois que a navegação montou, um "splash" passageiro (ex.: carregando o perfil logo após
@@ -102,6 +113,8 @@ export default function RootLayout() {
             {/* Arquivo da rota criado pelo A4 (Corrida Segura, T2.5). */}
             <Stack.Screen name="contatos-seguranca" options={{ ...pushHeader, ...push, title: 'Contatos de segurança' }} />
             <Stack.Screen name="zonas-privacidade" options={{ ...pushHeader, ...push, title: 'Zonas de privacidade' }} />
+            {/* D-73: Atividades moraram para "Você"; o endereço antigo só redireciona. */}
+            <Stack.Screen name="atividades" options={fade} />
             <Stack.Protected guard={staff}>
               <Stack.Screen name="moderacao" options={push} />
             </Stack.Protected>
@@ -122,6 +135,8 @@ export default function RootLayout() {
           <Stack.Screen name="privacidade" options={{ presentation: 'modal', ...modal }} />
         </Stack>
         <LinkConfirmDialog />
+        {/* D-77: dado de demonstração sempre identificado; o selo fica fixo por cima de tudo. */}
+        {demo ? <DemoSeal /> : null}
       </ThemeProvider>
     </GestureHandlerRootView>
   );

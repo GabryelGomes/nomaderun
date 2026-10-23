@@ -1,13 +1,15 @@
-# RF-001/RF-003/RNF-013: cadastro com 16+ e aceites separados → onboarding (nome, time, localização,
-# notificações com explicação própria) → mapa. Conta nova a cada execução.
+# RF-001/RF-003/RNF-013 e D-72 (primeira abertura): Boas-vindas → cadastro enxuto (4 campos, 1 aceite que grava
+# termos e privacidade) → "A cidade está dividida" (até 6 s) → escolha do time → confirmação épica → GPS com
+# explicação → Mapa com a missão de boas-vindas. Notificações NÃO são pedidas aqui (vêm depois da 1ª conquista).
+# Conta nova a cada execução.
 appId: ${APP_ID}
-name: Cadastro e onboarding
-tags: [auth, rf-001, rf-003]
+name: Cadastro e primeira abertura
+tags: [auth, rf-001, rf-003, d-72]
 ---
 - runFlow: subflows/abrir-app.yaml
 - evalScript: ${output.stamp = String(Date.now()).slice(-8)}
 - tapOn:
-    id: "entrar-criar-conta"
+    id: "boas-vindas-comecar"
 - extendedWaitUntil:
     visible:
       id: "tela-cadastro"
@@ -24,48 +26,49 @@ tags: [auth, rf-001, rf-003]
 - tapOn:
     id: "cadastro-nascimento"
 - inputText: "15/05/2000"
-- tapOn:
-    id: "cadastro-cidade"
-# sem acento: o inputText do Maestro no Android não digita caracteres fora do ASCII
-- inputText: "Goiania"
 - hideKeyboard
 - tapOn:
-    id: "cadastro-aceite-termos"
-- tapOn:
-    id: "cadastro-aceite-privacidade"
+    id: "cadastro-aceite"
 - tapOn:
     id: "cadastro-botao"
-# onboarding
+# "A cidade está dividida": passa sozinha em até 6 s; o botão adianta
 - extendedWaitUntil:
     visible:
-      id: "onboarding-escolher-time"
+      id: "onboarding-cidade|onboarding-times"
     timeout: 30000
-- assertVisible:
-    id: "onboarding-nome"
 - tapOn:
-    id: "onboarding-escolher-time"
+    id: "onboarding-cidade-continuar"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-times-striders"
+    timeout: 15000
 - tapOn:
-    id: "onboarding-faccao-striders"
+    id: "onboarding-times-striders"
 - tapOn:
-    id: "onboarding-faccao-continuar"
+    id: "onboarding-entrar-time"
+# confirmação épica (TeamConfirm): a cor do time inunda a tela
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-confirmacao-continuar"
+    timeout: 15000
 - tapOn:
-    id: "onboarding-localizacao-continuar"
+    id: "onboarding-confirmacao-continuar"
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-localizacao-permitir"
+    timeout: 15000
+- tapOn:
+    id: "onboarding-localizacao-permitir"
 # diálogo do sistema (Android/iOS): aceita se aparecer
 - tapOn:
     text: "(While using the app|Allow while using the app|Permitir durante o uso do app|Ao usar o app|Allow Once|Permitir)"
     optional: true
 - extendedWaitUntil:
     visible:
-      id: "onboarding-notificacoes-continuar"
-    timeout: 15000
-- tapOn:
-    id: "onboarding-notificacoes-continuar"
-- tapOn:
-    text: "(Allow|Permitir)"
-    optional: true
-- extendedWaitUntil:
-    visible:
       id: "mapa-status"
     timeout: 30000
+- assertVisible:
+    id: "mapa-missao-boas-vindas"
 - assertVisible:
     id: "mapa-camada"

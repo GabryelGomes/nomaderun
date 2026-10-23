@@ -1,7 +1,15 @@
 # Entra com a conta de demonstração do corredor (seed; `npm run db:reset` antes).
+# Boas-vindas (D-72) → "Já tenho conta" → Entrar.
 appId: ${APP_ID}
 ---
 - runFlow: abrir-app.yaml
+- runFlow:
+    when:
+      visible:
+        id: "tela-boas-vindas"
+    commands:
+      - tapOn:
+          id: "boas-vindas-entrar"
 - extendedWaitUntil:
     visible:
       id: "tela-entrar"

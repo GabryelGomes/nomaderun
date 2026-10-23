@@ -1,5 +1,6 @@
 # Abre o app do zero. No Expo Go: APP_ID=host.exp.exponent e APP_URL=exp://<ip>:8081.
 # Em development build: APP_ID=<bundle id> e APP_URL=nomaderun://
+# Sem sessão, a 1ª tela é a Boas-vindas (D-72); com sessão, o Mapa.
 appId: ${APP_ID}
 ---
 - launchApp:
@@ -8,5 +9,5 @@ appId: ${APP_ID}
 - openLink: ${APP_URL}
 - extendedWaitUntil:
     visible:
-      id: "tela-entrar|tela-cadastro|mapa-status"
+      id: "tela-boas-vindas|tela-entrar|tela-cadastro|mapa-status"
     timeout: 60000

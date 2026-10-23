@@ -15,18 +15,20 @@ import { CheckRow, ErrorNotice, FormScaffold, InfoNotice, InlineLink, StrengthMe
 import { NeonBackdrop } from './neon-backdrop';
 import { hasErrors, maskBirthdate, MIN_AGE, parseBirthdate, passwordStrength, validateSignUp, type SignUpErrors } from './validation';
 
+/** Mensagem única do aceite (uma caixa grava os dois aceites; D-72). */
+export const LEGAL_ERROR = 'Aceite os Termos e a Privacidade para continuar.';
+
 /**
- * Cadastro (RF-001): e-mail, senha (≥ 8 com feedback), nome de usuário (3–20, único),
- * data de nascimento (16+) e dois aceites separados (termos e privacidade, RNF-013).
+ * Cadastro enxuto (RF-001, D-72, wireframe `01`): 4 campos (e-mail, senha ≥ 8 com retorno, nome de usuário único,
+ * nascimento 16+) e **uma** caixa "Aceito os Termos e a Privacidade", que grava os dois aceites (o trigger do
+ * servidor continua recebendo `accepted_terms` e `accepted_privacy`). A cidade saiu: fica em "Editar perfil".
  */
 export function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [birthdate, setBirthdate] = useState('');
-  const [city, setCity] = useState('');
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+  const [accepted, setAccepted] = useState(false);
   const [errors, setErrors] = useState<SignUpErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -36,12 +38,12 @@ export function SignUpScreen() {
   const senhaRef = useRef<TextInput>(null);
   const usuarioRef = useRef<TextInput>(null);
   const nascimentoRef = useRef<TextInput>(null);
-  const cidadeRef = useRef<TextInput>(null);
   /** "Próximo" do teclado leva ao campo seguinte. */
   const next = { returnKeyType: 'next' as const, submitBehavior: 'submit' as const };
+  const legalError = errors.acceptedTerms || errors.acceptedPrivacy ? LEGAL_ERROR : undefined;
 
   const submit = async () => {
-    const form = { email, password, username, birthdate, city, acceptedTerms, acceptedPrivacy };
+    const form = { email, password, username, birthdate, acceptedTerms: accepted, acceptedPrivacy: accepted };
     const errs = validateSignUp(form);
     setErrors(errs);
     if (hasErrors(errs)) return;
@@ -59,9 +61,8 @@ export function SignUpScreen() {
       password,
       username,
       birthdate: parseBirthdate(birthdate) ?? '',
-      city,
-      acceptedTerms,
-      acceptedPrivacy,
+      acceptedTerms: accepted,
+      acceptedPrivacy: accepted,
       emailRedirectTo: Linking.createURL('/entrar'),
     });
     setBusy(false);
@@ -71,7 +72,7 @@ export function SignUpScreen() {
       return;
     }
     if (res.data.needsConfirmation) setConfirmSent(true);
-    // Com sessão, o guarda de rotas leva direto ao onboarding.
+    // Com sessão, o guarda de rotas leva direto à escolha do time.
   };
 
   if (confirmSent) {
@@ -79,11 +80,7 @@ export function SignUpScreen() {
       <FormScaffold testID="tela-cadastro-confirmar" background={<NeonBackdrop />}>
         <RevealText testID="cadastro-confirmar-titulo">Confira seu e-mail</RevealText>
         <FadeUp delay={200}>
-          <InfoNotice
-            testID="cadastro-confirmacao"
-            title="Conta criada"
-            body={`Enviamos um link de confirmação para ${email.trim()}. Abra o link neste celular e depois entre com sua senha.`}
-          />
+          <InfoNotice testID="cadastro-confirmacao" title="Conta criada" body={`Abra o link que enviamos para ${email.trim()} e depois entre.`} />
         </FadeUp>
         <Button testID="cadastro-ir-entrar" label="Ir para Entrar" size="lg" wide onPress={() => router.replace('/entrar')} />
       </FormScaffold>
@@ -91,11 +88,14 @@ export function SignUpScreen() {
   }
 
   return (
-    <FormScaffold testID="tela-cadastro" background={<NeonBackdrop />}>
-      <View style={{ gap: space[4] }}>
+    <FormScaffold
+      testID="tela-cadastro"
+      background={<NeonBackdrop />}
+      footer={<Button testID="cadastro-botao" label={busy ? 'Criando conta…' : 'Criar conta'} size="lg" wide disabled={busy} busy={busy} onPress={submit} />}>
+      <View style={{ gap: space[2] }}>
         <RevealText testID="cadastro-titulo">Criar conta</RevealText>
         <FadeUp delay={150}>
-          <Text muted>Leva um minuto. Depois você escolhe seu time e já pode correr.</Text>
+          <Text muted>1 minuto e você escolhe seu time.</Text>
         </FadeUp>
       </View>
 
@@ -128,7 +128,7 @@ export function SignUpScreen() {
           autoComplete="new-password"
           textContentType="newPassword"
           error={errors.password}
-          help={<StrengthMeter level={strength.level} label={strength.label} hint={strength.hint} />}
+          help={password ? <StrengthMeter level={strength.level} label={strength.label} hint={strength.hint} /> : undefined}
         />
         <TextField
           testID="cadastro-usuario"
@@ -144,13 +144,13 @@ export function SignUpScreen() {
           autoComplete="username"
           maxLength={20}
           error={errors.username}
-          help="De 3 a 20 caracteres: letras, números, ponto ou sublinhado. É assim que os outros corredores veem você."
+          help="Aparece nos rankings."
         />
         <TextField
           testID="cadastro-nascimento"
           inputRef={nascimentoRef}
-          {...next}
-          onSubmitEditing={() => cidadeRef.current?.focus()}
+          returnKeyType="done"
+          onSubmitEditing={submit}
           label="Data de nascimento"
           value={birthdate}
           onChangeText={(t) => setBirthdate(maskBirthdate(t))}
@@ -159,47 +159,20 @@ export function SignUpScreen() {
           autoComplete="birthdate-full"
           maxLength={10}
           error={errors.birthdate}
-          help={`O NOMADE RUN é para maiores de ${MIN_AGE} anos.`}
-        />
-        <TextField
-          testID="cadastro-cidade"
-          inputRef={cidadeRef}
-          returnKeyType="done"
-          label="Cidade natal (opcional)"
-          value={city}
-          onChangeText={setCity}
-          placeholder="Ex.: Goiânia"
-          autoComplete="off"
-          maxLength={80}
-          error={errors.city}
-          help="Conta pontos para a sua cidade no placar entre cidades. Dá para mudar depois no perfil."
+          help={`Para maiores de ${MIN_AGE} anos.`}
         />
       </FadeUp>
 
-      <View style={{ gap: space[2] }}>
-        <CheckRow testID="cadastro-aceite-termos" label="Li e aceito os Termos de Uso" checked={acceptedTerms} onChange={setAcceptedTerms} error={errors.acceptedTerms}>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 4 }}>
-            <Text>Li e aceito os</Text>
-            <InlineLink testID="cadastro-abrir-termos" label="Termos de Uso" onPress={() => router.push('/termos')} />
-          </View>
-        </CheckRow>
-        <CheckRow
-          testID="cadastro-aceite-privacidade"
-          label="Li e aceito a Política de Privacidade"
-          checked={acceptedPrivacy}
-          onChange={setAcceptedPrivacy}
-          error={errors.acceptedPrivacy}>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 4 }}>
-            <Text>Li e aceito a</Text>
-            <InlineLink testID="cadastro-abrir-privacidade" label="Política de Privacidade" onPress={() => router.push('/privacidade')} />
-          </View>
-        </CheckRow>
-      </View>
+      <CheckRow testID="cadastro-aceite" label="Aceito os Termos de Uso e a Política de Privacidade" checked={accepted} onChange={setAccepted} error={legalError}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 4 }}>
+          <Text>Aceito os</Text>
+          <InlineLink testID="cadastro-abrir-termos" label="Termos" onPress={() => router.push('/termos')} />
+          <Text>e a</Text>
+          <InlineLink testID="cadastro-abrir-privacidade" label="Privacidade" onPress={() => router.push('/privacidade')} />
+        </View>
+      </CheckRow>
 
-      <View style={{ gap: space[3] }}>
-        <Button testID="cadastro-botao" label={busy ? 'Criando conta…' : 'Criar conta'} size="lg" wide disabled={busy} onPress={submit} />
-        <TextLink testID="cadastro-ja-tenho-conta" label="Já tenho conta" onPress={() => (router.canGoBack() ? router.back() : router.replace('/entrar'))} />
-      </View>
+      <TextLink testID="cadastro-ja-tenho-conta" label="Já tenho conta" onPress={() => router.dismissTo('/entrar')} />
     </FormScaffold>
   );
 }
