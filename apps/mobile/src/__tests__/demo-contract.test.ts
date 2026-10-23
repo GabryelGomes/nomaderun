@@ -171,14 +171,14 @@ describe('contrato do modo demonstração (D-77)', () => {
       [
         "import { requireSupabase } from './supabase';",
         "import { callFunction } from './functions';",
-        "export const a = () => requireSupabase().rpc('claim_mission', { p_id: 1 });",
+        "export const a = () => requireSupabase().rpc('exemplo_sem_par', { p_id: 1 });",
         "export const b = () => requireSupabase().from('missions').select('*');",
         "export const c = () => callFunction('share-card', { method: 'POST' });",
         'export const d = (name: string) => requireSupabase().rpc(`raid_${name}`);',
       ].join('\n'),
     );
     expect(missingPairs(fake.uses)).toEqual([
-      'rpc "claim_mission" (src/services/api/missoes-repo.ts:3) não tem par no servidor de demonstração',
+      'rpc "exemplo_sem_par" (src/services/api/missoes-repo.ts:3) não tem par no servidor de demonstração',
       'table "missions" (src/services/api/missoes-repo.ts:4) não tem par no servidor de demonstração',
       'function "share-card" (src/services/api/missoes-repo.ts:5) não tem par no servidor de demonstração',
     ]);
