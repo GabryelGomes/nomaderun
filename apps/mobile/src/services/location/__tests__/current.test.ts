@@ -7,6 +7,12 @@ import { currentPosition, type CurrentPositionApi } from '../current';
 /* eslint-enable import/first */
 
 const pos = (lat: number, lng: number) => ({ coords: { latitude: lat, longitude: lng } });
+/**
+ * Prazo curto do GPS nos testes: o `currentPosition` deixa o temporizador do `Promise.race` armado até o fim
+ * do prazo (8 s por padrão) mesmo quando o GPS responde antes. Com o padrão, o worker do Jest ficava preso e
+ * era encerrado à força ("A worker process has failed to exit gracefully", T7.1.19).
+ */
+const FAST_TIMEOUT_MS = 20;
 
 function api(over: Partial<Record<keyof CurrentPositionApi, unknown>> = {}): CurrentPositionApi {
   return {
@@ -25,7 +31,7 @@ describe('currentPosition — centro do mapa na posição real', () => {
   });
 
   it('sem posição recente, pede uma nova', async () => {
-    expect(await currentPosition(api())).toEqual({ lat: -15.8, lng: -47.9 });
+    expect(await currentPosition(api(), FAST_TIMEOUT_MS)).toEqual({ lat: -15.8, lng: -47.9 });
   });
 
   it('sem permissão ou com GPS desligado, devolve null (mapa de demonstração)', async () => {
@@ -34,7 +40,7 @@ describe('currentPosition — centro do mapa na posição real', () => {
   });
 
   it('GPS que não responde a tempo ou falha devolve null', async () => {
-    expect(await currentPosition(api({ getCurrentPositionAsync: () => new Promise(() => undefined) }), 20)).toBeNull();
-    expect(await currentPosition(api({ getCurrentPositionAsync: async () => Promise.reject(new Error('x')) }))).toBeNull();
+    expect(await currentPosition(api({ getCurrentPositionAsync: () => new Promise(() => undefined) }), FAST_TIMEOUT_MS)).toBeNull();
+    expect(await currentPosition(api({ getCurrentPositionAsync: async () => Promise.reject(new Error('x')) }), FAST_TIMEOUT_MS)).toBeNull();
   });
 });
