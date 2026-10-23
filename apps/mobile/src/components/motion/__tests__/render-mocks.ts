@@ -9,11 +9,15 @@ const RN = require('react-native');
 
 type Shared<T> = { get: () => T; set: (v: T | ((p: T) => T)) => void; value: T };
 
+/** Animação "em andamento" (com `timingEnds = false`): o valor não muda. */
+const PENDING = Symbol('animação em andamento');
+
 function shared<T>(init: T): Shared<T> {
   let v = init;
   return {
     get: () => v,
     set: (n) => {
+      if ((n as unknown) === PENDING) return;
       v = typeof n === 'function' ? (n as (p: T) => T)(v) : n;
     },
     get value() {
@@ -25,8 +29,11 @@ function shared<T>(init: T): Shared<T> {
   };
 }
 
-/** Estado do mock: `reduced` simula o "Reduzir movimento" do sistema. */
-export const mockState = { reduced: false };
+/**
+ * Estado do mock: `reduced` simula o "Reduzir movimento" do sistema; `timingEnds` decide se o callback de
+ * fim do `withTiming` roda na hora (padrão) ou nunca (animação "em andamento").
+ */
+export const mockState = { reduced: false, timingEnds: true };
 
 export const reanimated = {
   __esModule: true,
@@ -37,6 +44,7 @@ export const reanimated = {
   useAnimatedProps: (fn: () => object) => fn(),
   useAnimatedReaction: () => {},
   withTiming: (v: unknown, _c?: unknown, cb?: (f: boolean) => void) => {
+    if (!mockState.timingEnds) return PENDING;
     cb?.(true);
     return v;
   },
