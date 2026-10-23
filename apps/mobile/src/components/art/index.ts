@@ -6,16 +6,26 @@
 export { resolveQuality, type Quality, type QualityProp } from './neon/core';
 export { ART, PRISM, VILLAIN, EMBER } from './neon/palette';
 export { ArtFrame, type ArtA11y } from './neon/render';
+export { InSvgArt, fitTransform, type InSvgArtProps, type SvgArtBox } from './neon/in-svg';
+export { BossSvgArt, bossSlot, LeaderSvgArt, LogoSvgArt, MascotSvgArt, mascotSlot, RunnerSvgArt, type SvgArtSlot } from './svg-art';
+
+export { Logo, type LogoProps } from './logo/logo';
+export { LOGO_BOX, LOGO_COLORS, LOGO_LABEL, LOGO_VARIANTS, type LogoVariant } from './logo/logo-art';
 
 export { Mascot, type MascotPart, type MascotProps } from './team/mascot';
 export { TeamEmblem, type TeamEmblemProps } from './team/emblem';
+export { MascotRunner, type MascotRunnerProps, type RunnerPart } from './team/mascot-runner';
+export { RUNNER_BOX, RUNNER_PIVOTS } from './team/runner-art';
 export { MASCOT_BOX, MASCOT_NAMES, MASCOT_PIVOTS, MASCOT_POSES, type MascotPose } from './team/mascot-art';
+
+export { LeaderBust, type LeaderBustProps, type LeaderPart } from './leader/leader-bust';
+export { LEADER_BOX, LEADER_NAMES, LEADER_PIVOTS, LEADER_POSES, type LeaderPose } from './leader/leader-art';
 
 export { Boss, bossLabel, type BossPart, type BossProps } from './boss/boss';
 export { BOSS_BOX, BOSS_IDS, BOSS_NAMES, BOSS_PIVOTS, BOSS_STATES, type BossDamage, type BossId, type BossState } from './boss/boss-art';
 
 export { Chest, chestLabel, type ChestPart, type ChestProps } from './chest/chest';
-export { CHEST_BOX, CHEST_PIVOTS, CHEST_RARITIES, CHEST_STATES, type ChestRarity, type ChestState } from './chest/chest-art';
+export { CHEST_BOX, CHEST_LAYERS, CHEST_PIVOTS, CHEST_RARITIES, CHEST_STATES, type ChestLayer, type ChestRarity, type ChestState } from './chest/chest-art';
 
 export { Medal, medalLabel, type MedalProps } from './medal/medal';
 export { MEDAL_BOX, MEDAL_KINDS, MEDAL_LABELS, MEDAL_PIVOTS, tierColor, type MedalKind, type MedalTier } from './medal/medal-art';

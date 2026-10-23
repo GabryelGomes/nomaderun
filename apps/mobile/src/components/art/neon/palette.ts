@@ -2,11 +2,8 @@ import type { FactionId } from '@/domain/types';
 import { neon, neonTeam } from '@/theme/neon';
 import { factions, type TeamShape } from '@/theme/tokens';
 
-/**
- * Violeta reservado aos vilões (D-67, decisão D1 da F1). Constante local até a onda 2:
- * pedido registrado para trocar pelo token `neon.villain` que a E6 cria em `theme/neon.ts`.
- */
-export const VILLAIN = '#B15CFF';
+/** Violeta reservado aos vilões (D-67): vem do token `neon.villain` (`theme/neon.ts`). */
+export const VILLAIN: string = neon.villain;
 /** Laranja em brasa do chefão furioso. */
 export const EMBER = '#FF4A1C';
 

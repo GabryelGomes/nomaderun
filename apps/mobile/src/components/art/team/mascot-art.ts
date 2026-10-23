@@ -365,6 +365,12 @@ export function mascotParts(team: FactionId, pose: MascotPose, color: string): M
   });
 }
 
+/** Só a cabeça do mascote (as 3 camadas juntas), no viewBox do busto: o corredor reaproveita em escala. */
+export function faceNodes(team: FactionId, pose: MascotPose, color: string): ArtNode[] {
+  const f = FACES[team](pose, color);
+  return [...f.base, ...f.eyes, ...f.top];
+}
+
 /** O mascote inteiro numa árvore só (versão estática, uma camada). */
 export function mascotNodes(team: FactionId, pose: MascotPose, color: string): ArtNode[] {
   const p = mascotParts(team, pose, color);

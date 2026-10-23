@@ -11,10 +11,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { expand, pivot, resolveQuality, type ArtNode, type QualityProp } from '../neon/core';
-import { VILLAIN } from '../neon/palette';
+import { expand, pivot, recolorPrims, resolveQuality, type ArtNode, type Prim, type Quality, type QualityProp } from '../neon/core';
+import { ART, VILLAIN } from '../neon/palette';
 import { ArtFrame, ArtLayer, ArtSvg, originOf, StaticArt, type ArtA11y, type ArtBox, type ArtPartStyle } from '../neon/render';
-import { BOSS_BOX, BOSS_NAMES, BOSS_PIVOTS, BOSS_STATE_LABELS, bossNodes, bossParts, type BossDamage, type BossId, type BossState } from './boss-art';
+import { BOSS_BOX, BOSS_NAMES, BOSS_PIVOTS, BOSS_STATE_LABELS, bossBodyNodes, bossNodes, bossParts, type BossDamage, type BossId, type BossState } from './boss-art';
 
 export type BossPart = keyof typeof BOSS_PIVOTS;
 
@@ -33,7 +33,17 @@ export type BossProps = ArtA11y & {
   parts?: Partial<Record<BossPart, ArtPartStyle>>;
   /** Esconde do leitor de tela (quando o texto ao lado já diz o nome e o estado). */
   decorative?: boolean;
+  /**
+   * Silhueta da mesma arte numa cor só (`true` = branco): o clarão do golpe (`bossFlash` da E5), empilhado
+   * sobre o chefão com a opacidade indo de 1 a 0. Decorativa, a menos que receba `accessibilityLabel`.
+   */
+  silhouette?: boolean | string;
 };
+
+/** Silhueta: a mesma arte numa cor só. */
+function paint(prims: Prim[], flat: string | undefined): Prim[] {
+  return flat ? recolorPrims(prims, flat) : prims;
+}
 
 /** Rótulo padrão para o leitor de tela: "Chefão Mormaço, furioso". */
 export function bossLabel(id: BossId, state: BossState): string {
@@ -44,12 +54,26 @@ export function bossLabel(id: BossId, state: BossState): string {
  * Chefão da Raid (Soneca, Rei Buzina, Fuligem, Mormaço, Paredão) em 4 estados e 3 níveis de dano.
  * Informativo por padrão (`accessibilityLabel` com nome e estado).
  */
-export function Boss({ id, state = 'parado', dano = 0, size = 160, color = VILLAIN, quality, animated = false, parts, decorative, accessibilityLabel, ...rest }: BossProps) {
+export function Boss({
+  id,
+  state = 'parado',
+  dano = 0,
+  size = 160,
+  color = VILLAIN,
+  quality,
+  animated = false,
+  parts,
+  decorative,
+  silhouette,
+  accessibilityLabel,
+  ...rest
+}: BossProps) {
   const q = resolveQuality(quality, size);
   const box: ArtBox = { ...BOSS_BOX, width: size };
-  const a11y: ArtA11y = { ...rest, accessibilityLabel: decorative ? undefined : (accessibilityLabel ?? bossLabel(id, state)) };
-  if (!animated && !parts) return <StaticArt box={box} prims={expand(bossNodes(id, state, dano, color), q)} {...a11y} />;
-  return <BossLayers id={id} state={state} dano={dano} color={color} q={q} box={box} animated={animated} parts={parts} a11y={a11y} />;
+  const flat = silhouette ? (silhouette === true ? ART.white : silhouette) : undefined;
+  const a11y: ArtA11y = { ...rest, accessibilityLabel: decorative ? undefined : (accessibilityLabel ?? (flat ? undefined : bossLabel(id, state))) };
+  if (!animated && !parts) return <StaticArt box={box} prims={paint(expand((flat ? bossBodyNodes : bossNodes)(id, state, dano, color), q), flat)} {...a11y} />;
+  return <BossLayers id={id} state={state} dano={dano} color={color} q={q} flat={flat} box={box} animated={animated} parts={parts} a11y={a11y} />;
 }
 
 function BossLayers({
@@ -58,6 +82,7 @@ function BossLayers({
   dano,
   color,
   q,
+  flat,
   box,
   animated,
   parts,
@@ -67,7 +92,8 @@ function BossLayers({
   state: BossState;
   dano: BossDamage;
   color: string;
-  q: ReturnType<typeof resolveQuality>;
+  q: Quality;
+  flat?: string;
   box: ArtBox;
   animated: boolean;
   parts?: BossProps['parts'];
@@ -97,11 +123,11 @@ function BossLayers({
   const spinStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${spin.get()}deg` }] }));
 
   const p = bossParts(id, state, dano, color);
-  const posed = (nodes: ArtNode[]) => expand(p.pose ? [pivot(nodes, p.pose)] : nodes, q);
+  const posed = (nodes: ArtNode[]) => paint(expand(p.pose ? [pivot(nodes, p.pose)] : nodes, q), flat);
   const P = BOSS_PIVOTS;
   return (
     <ArtFrame box={box} {...a11y}>
-      <ArtSvg box={box} prims={expand(p.back, q)} />
+      {flat ? null : <ArtSvg box={box} prims={expand(p.back, q)} />}
       <Animated.View style={[StyleSheet.absoluteFill, { transformOrigin: originOf(box, P.corpo.x, P.corpo.y) }, floatStyle, parts?.corpo]}>
         {p.raios.length ? <ArtLayer box={box} prims={posed(p.raios)} origin={originOf(box, P.raios.x, P.raios.y)} style={[spinStyle, parts?.raios]} /> : null}
         <ArtLayer box={box} prims={posed(p.corpo)} />

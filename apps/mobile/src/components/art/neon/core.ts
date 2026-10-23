@@ -228,6 +228,28 @@ export function expand(nodes: ArtNode[], quality: Quality, gradId = 'prisma'): P
   return nodes.map((n) => expandNode(n, ctx));
 }
 
+/**
+ * Silhueta: troca toda cor de traço e de preenchimento por `color` (o "flash" branco do golpe, E5). As
+ * opacidades ficam, então o brilho continua em camadas; o escuro de preenchimento vira cor cheia.
+ */
+export function recolorPrims(prims: Prim[], color: string): Prim[] {
+  return prims.map((p) => {
+    const a: Record<string, string | number> = { ...p.a };
+    if (a.stroke !== undefined && a.stroke !== 'none') a.stroke = color;
+    if (a.fill !== undefined && a.fill !== 'none') a.fill = color;
+    return p.c ? { tag: p.tag, a, c: recolorPrims(p.c, color) } : { tag: p.tag, a };
+  });
+}
+
+/** Caixa do card (E8): centro e lado do quadrado, nas unidades do SVG de fora. */
+export type SvgArtBox = { cx: number; cy: number; size: number };
+
+/** Transformação que leva o viewBox `vbW × vbH` para dentro do quadrado `box` (centrado, proporção mantida). */
+export function fitTransform(vb: { vbW: number; vbH: number }, box: SvgArtBox): { scale: number; x: number; y: number } {
+  const scale = box.size / Math.max(vb.vbW, vb.vbH);
+  return { scale, x: box.cx - (vb.vbW * scale) / 2, y: box.cy - (vb.vbH * scale) / 2 };
+}
+
 /** Quantidade de elementos SVG (para medir o custo de cada nível de qualidade). */
 export function countPrims(prims: Prim[]): number {
   return prims.reduce((s, p) => s + 1 + (p.c ? countPrims(p.c) : 0), 0);

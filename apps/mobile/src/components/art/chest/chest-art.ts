@@ -14,11 +14,18 @@ export const CHEST_RARITIES: readonly ChestRarity[] = ['comum', 'raro', 'lendari
 export const CHEST_STATES: readonly ChestState[] = ['fechado', 'abrindo', 'aberto'];
 export const CHEST_LABELS: Record<ChestRarity, string> = { comum: 'comum', raro: 'raro', lendario: 'lendário' };
 export const CHEST_BOX = { vbW: 160, vbH: 160 } as const;
-/** Pivôs (viewBox 160 × 160): `tampa` gira na dobradiça; `corpo` treme a partir do chão. */
+/**
+ * Pivôs (viewBox 160 × 160): `tampa` gira na dobradiça; `corpo` treme a partir do chão; `item` (o prêmio que
+ * sobe do baú, camada própria para a E5) cresce e gira em torno do próprio centro.
+ */
 export const CHEST_PIVOTS = {
   tampa: { x: 30, y: 86 },
   corpo: { x: 80, y: 148 },
+  item: { x: 80, y: 56 },
 } as const;
+/** Camadas separadas para a E5 animar a abertura (`ChestOpening`: `chest`, `lid` e `item`). */
+export type ChestLayer = 'corpo' | 'tampa' | 'item';
+export const CHEST_LAYERS: readonly ChestLayer[] = ['corpo', 'tampa', 'item'];
 
 export type ChestParts = {
   /** Raios e brilho do interior (atrás de tudo). */
@@ -125,4 +132,29 @@ export function chestNodes(rarity: ChestRarity, state: ChestState, color?: strin
   const p = chestParts(rarity, state, color);
   const all = [...p.fundo, ...p.corpo, ...p.tampa, ...p.frente];
   return p.pose ? [pivot(all, p.pose)] : all;
+}
+
+/**
+ * O prêmio que sobe do baú: estrela de 4 pontas na cor da raridade (o prisma no lendário), com anel e
+ * faíscas. Fica centrado em `CHEST_PIVOTS.item`, já na altura em que sai da boca do baú aberto.
+ */
+export function chestItemNodes(rarity: ChestRarity, color?: string): ArtNode[] {
+  const col = color ?? (rarity === 'lendario' ? PRISM : rarity === 'raro' ? ART.orange : ART.ink);
+  const { x, y } = CHEST_PIVOTS.item;
+  return [
+    neon({ tag: 'circle', cx: x, cy: y, r: 26 }, col, 2, { hot: 0, opacity: 0.55, dash: '3 6' }),
+    neon(star(x, y, 22, 7, 4, -90), col, 2.6, { fill: true, tint: 0.2, glow: 1.4 }),
+    glowFill(star(x, y, 9, 3.5, 4, -45), ART.ink, { w: 1, glow: 1.2 }),
+    spark(x - 30, y - 18, 5, ART.ink),
+    spark(x + 32, y - 10, 6, rarity === 'comum' ? ART.ink : ART.orange),
+    spark(x + 22, y + 24, 4, ART.ink),
+  ];
+}
+
+/** Nós de uma camada só (sem a pose do baú aberto: a E5 anima a partir do baú fechado). */
+export function chestLayerNodes(rarity: ChestRarity, state: ChestState, layer: ChestLayer, color?: string): ArtNode[] {
+  if (layer === 'item') return chestItemNodes(rarity, color);
+  const p = chestParts(rarity, state, color);
+  const nodes = layer === 'tampa' ? p.tampa : [...p.fundo, ...p.corpo, ...p.frente];
+  return p.pose ? [pivot(nodes, p.pose)] : nodes;
 }
