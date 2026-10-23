@@ -1,0 +1,3460 @@
+{
+  "resumo": {
+    "geradoEm": "2026-10-23T15:23:32.431Z",
+    "relogioDaDemonstracao": "2026-10-23T12:00:00.000Z",
+    "export": "/tmp/claude-0/-home-user-nomaderun/fc6c6825-489b-5478-95eb-ab2a4c07f1ba/scratchpad/e10/web-demo2",
+    "capturas": 123,
+    "refeitasNestaExecucao": 6,
+    "minutos": 0.3,
+    "bytesDestaExecucao": {
+      "before": 345060,
+      "after": 114094
+    },
+    "bytesNaPasta": 3342494,
+    "paginasComErro": [],
+    "pedidosAoServidor": 0,
+    "pedidosExternosBloqueados": [
+      "https://tiles.openfreemap.org/styles/dark"
+    ]
+  },
+  "capturas": [
+    {
+      "file": "inicio__cheio__360.png",
+      "route": "/",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/?cenario=cheio",
+      "loadMs": 10052,
+      "fcpMs": 1296,
+      "screens": [],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "mapa-camada-todos",
+            "w": 121,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-meu-time",
+            "w": 105,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-explorado",
+            "w": 108,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 35
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "inicio__cheio__390.png",
+      "route": "/",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/?cenario=cheio",
+      "loadMs": 9892,
+      "fcpMs": 1016,
+      "screens": [],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "mapa-camada-todos",
+            "w": 121,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-meu-time",
+            "w": 105,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-explorado",
+            "w": 108,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 35
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "inicio__cheio__430.png",
+      "route": "/",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/?cenario=cheio",
+      "loadMs": 9849,
+      "fcpMs": 740,
+      "screens": [],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "mapa-camada-todos",
+            "w": 121,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-meu-time",
+            "w": 105,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-explorado",
+            "w": 108,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 35
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "arena__cheio__360.png",
+      "route": "/arena",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/arena?cenario=cheio",
+      "loadMs": 2691,
+      "fcpMs": 1148,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 227
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "arena__cheio__390.png",
+      "route": "/arena",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/arena?cenario=cheio",
+      "loadMs": 2485,
+      "fcpMs": 864,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 227
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "arena__cheio__430.png",
+      "route": "/arena",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/arena?cenario=cheio",
+      "loadMs": 2653,
+      "fcpMs": 1032,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 227
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__cheio__360.png",
+      "route": "/atividades",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/atividades?cenario=cheio",
+      "loadMs": 2485,
+      "fcpMs": 856,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 117
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__cheio__390.png",
+      "route": "/atividades",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/atividades?cenario=cheio",
+      "loadMs": 2758,
+      "fcpMs": 1064,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 117
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__cheio__430.png",
+      "route": "/atividades",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/atividades?cenario=cheio",
+      "loadMs": 2788,
+      "fcpMs": 1076,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 117
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__cheio__360.png",
+      "route": "/clube",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/clube?cenario=cheio",
+      "loadMs": 2825,
+      "fcpMs": 1116,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 16,
+        "small": [
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-season",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-week",
+            "w": 80,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-geral",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-cidade",
+            "w": 98,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-time",
+            "w": 87,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-distrito",
+            "w": 130,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 290
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__cheio__390.png",
+      "route": "/clube",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/clube?cenario=cheio",
+      "loadMs": 2566,
+      "fcpMs": 860,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 16,
+        "small": [
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-season",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-week",
+            "w": 80,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-geral",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-cidade",
+            "w": 98,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-time",
+            "w": 87,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-distrito",
+            "w": 130,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 290
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__cheio__430.png",
+      "route": "/clube",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/clube?cenario=cheio",
+      "loadMs": 2649,
+      "fcpMs": 948,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 16,
+        "small": [
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-season",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-week",
+            "w": 80,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-geral",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-cidade",
+            "w": 98,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-time",
+            "w": 87,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-distrito",
+            "w": 130,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 290
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube-crew__cheio__360.png",
+      "route": "/clube/crew",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/clube/crew?cenario=cheio",
+      "loadMs": 2487,
+      "fcpMs": 792,
+      "screens": [
+        "tela-crew"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 64
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube-crew__cheio__390.png",
+      "route": "/clube/crew",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/clube/crew?cenario=cheio",
+      "loadMs": 2682,
+      "fcpMs": 1032,
+      "screens": [
+        "tela-crew"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 64
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube-crew__cheio__430.png",
+      "route": "/clube/crew",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/clube/crew?cenario=cheio",
+      "loadMs": 2564,
+      "fcpMs": 856,
+      "screens": [
+        "tela-crew"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 64
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__cheio__360.png",
+      "route": "/perfil",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/perfil?cenario=cheio",
+      "loadMs": 2500,
+      "fcpMs": 896,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 177
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__cheio__390.png",
+      "route": "/perfil",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil?cenario=cheio",
+      "loadMs": 2469,
+      "fcpMs": 820,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 177
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__cheio__430.png",
+      "route": "/perfil",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/perfil?cenario=cheio",
+      "loadMs": 2521,
+      "fcpMs": 888,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 177
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-editar__cheio__360.png",
+      "route": "/perfil/editar",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/perfil/editar?cenario=cheio",
+      "loadMs": 2851,
+      "fcpMs": 1120,
+      "screens": [
+        "tela-editar-perfil"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 104
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-editar__cheio__390.png",
+      "route": "/perfil/editar",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/editar?cenario=cheio",
+      "loadMs": 2654,
+      "fcpMs": 976,
+      "screens": [
+        "tela-editar-perfil"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 104
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-editar__cheio__430.png",
+      "route": "/perfil/editar",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/perfil/editar?cenario=cheio",
+      "loadMs": 2407,
+      "fcpMs": 780,
+      "screens": [
+        "tela-editar-perfil"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 104
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-conta__cheio__360.png",
+      "route": "/perfil/conta",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/perfil/conta?cenario=cheio",
+      "loadMs": 2703,
+      "fcpMs": 996,
+      "screens": [
+        "tela-conta"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [],
+        "unlabeled": [],
+        "words": 71
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-conta__cheio__390.png",
+      "route": "/perfil/conta",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/conta?cenario=cheio",
+      "loadMs": 2784,
+      "fcpMs": 1076,
+      "screens": [
+        "tela-conta"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [],
+        "unlabeled": [],
+        "words": 71
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-conta__cheio__430.png",
+      "route": "/perfil/conta",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/perfil/conta?cenario=cheio",
+      "loadMs": 2880,
+      "fcpMs": 1272,
+      "screens": [
+        "tela-conta"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [],
+        "unlabeled": [],
+        "words": 71
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-time__cheio__360.png",
+      "route": "/perfil/time",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/perfil/time?cenario=cheio",
+      "loadMs": 2902,
+      "fcpMs": 1016,
+      "screens": [
+        "tela-faccao"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 44
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-time__cheio__390.png",
+      "route": "/perfil/time",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/time?cenario=cheio",
+      "loadMs": 3018,
+      "fcpMs": 1372,
+      "screens": [
+        "tela-faccao"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 44
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-time__cheio__430.png",
+      "route": "/perfil/time",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/perfil/time?cenario=cheio",
+      "loadMs": 2689,
+      "fcpMs": 980,
+      "screens": [
+        "tela-faccao"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 44
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__cheio__360.png",
+      "route": "/notificacoes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/notificacoes?cenario=cheio",
+      "loadMs": 2605,
+      "fcpMs": 940,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 81
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__cheio__390.png",
+      "route": "/notificacoes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/notificacoes?cenario=cheio",
+      "loadMs": 2674,
+      "fcpMs": 1036,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 81
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__cheio__430.png",
+      "route": "/notificacoes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/notificacoes?cenario=cheio",
+      "loadMs": 2750,
+      "fcpMs": 920,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 81
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__cheio__360.png",
+      "route": "/contatos-seguranca",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/contatos-seguranca?cenario=cheio",
+      "loadMs": 3005,
+      "fcpMs": 1400,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 45
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__cheio__390.png",
+      "route": "/contatos-seguranca",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/contatos-seguranca?cenario=cheio",
+      "loadMs": 2673,
+      "fcpMs": 1040,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 45
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__cheio__430.png",
+      "route": "/contatos-seguranca",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/contatos-seguranca?cenario=cheio",
+      "loadMs": 2811,
+      "fcpMs": 1096,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 45
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "zonas-privacidade__cheio__360.png",
+      "route": "/zonas-privacidade",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/zonas-privacidade?cenario=cheio",
+      "loadMs": 2585,
+      "fcpMs": 952,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 44
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "zonas-privacidade__cheio__390.png",
+      "route": "/zonas-privacidade",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/zonas-privacidade?cenario=cheio",
+      "loadMs": 2563,
+      "fcpMs": 904,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 44
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "zonas-privacidade__cheio__430.png",
+      "route": "/zonas-privacidade",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/zonas-privacidade?cenario=cheio",
+      "loadMs": 3073,
+      "fcpMs": 1384,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 44
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "corrida__cheio__360.png",
+      "route": "/corrida",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/corrida?cenario=cheio",
+      "loadMs": 2936,
+      "fcpMs": 1236,
+      "screens": [
+        "tela-nova-corrida"
+      ],
+      "audit": {
+        "interactive": 9,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 64
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "corrida__cheio__390.png",
+      "route": "/corrida",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/corrida?cenario=cheio",
+      "loadMs": 3029,
+      "fcpMs": 1272,
+      "screens": [
+        "tela-nova-corrida"
+      ],
+      "audit": {
+        "interactive": 9,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 64
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "corrida__cheio__430.png",
+      "route": "/corrida",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/corrida?cenario=cheio",
+      "loadMs": 2760,
+      "fcpMs": 1068,
+      "screens": [
+        "tela-nova-corrida"
+      ],
+      "audit": {
+        "interactive": 9,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 64
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "resumo__cheio__360.png",
+      "route": "/resumo?id=demo-corrida-1",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/resumo?id=demo-corrida-1&cenario=cheio",
+      "loadMs": 3762,
+      "fcpMs": 1192,
+      "screens": [
+        "tela-resumo"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 98
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "resumo__cheio__390.png",
+      "route": "/resumo?id=demo-corrida-1",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/resumo?id=demo-corrida-1&cenario=cheio",
+      "loadMs": 2920,
+      "fcpMs": 1192,
+      "screens": [
+        "tela-resumo"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 98
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "resumo__cheio__430.png",
+      "route": "/resumo?id=demo-corrida-1",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/resumo?id=demo-corrida-1&cenario=cheio",
+      "loadMs": 2752,
+      "fcpMs": 948,
+      "screens": [
+        "tela-resumo"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 98
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "zona-parque__cheio__360.png",
+      "route": "/zona/89a8c0ce2c3ffff",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/zona/89a8c0ce2c3ffff?cenario=cheio",
+      "loadMs": 2841,
+      "fcpMs": 1172,
+      "screens": [
+        "tela-zona"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 82
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "zona-parque__cheio__390.png",
+      "route": "/zona/89a8c0ce2c3ffff",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/zona/89a8c0ce2c3ffff?cenario=cheio",
+      "loadMs": 2735,
+      "fcpMs": 1044,
+      "screens": [
+        "tela-zona"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 82
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "zona-parque__cheio__430.png",
+      "route": "/zona/89a8c0ce2c3ffff",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/zona/89a8c0ce2c3ffff?cenario=cheio",
+      "loadMs": 2850,
+      "fcpMs": 1212,
+      "screens": [
+        "tela-zona"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 82
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "termos__cheio__360.png",
+      "route": "/termos",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/termos?cenario=cheio",
+      "loadMs": 2953,
+      "fcpMs": 1204,
+      "screens": [
+        "tela-termos"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 234
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "termos__cheio__390.png",
+      "route": "/termos",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/termos?cenario=cheio",
+      "loadMs": 2778,
+      "fcpMs": 1068,
+      "screens": [
+        "tela-termos"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 234
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "termos__cheio__430.png",
+      "route": "/termos",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/termos?cenario=cheio",
+      "loadMs": 3052,
+      "fcpMs": 1356,
+      "screens": [
+        "tela-termos"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 234
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "privacidade__cheio__360.png",
+      "route": "/privacidade",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/privacidade?cenario=cheio",
+      "loadMs": 2846,
+      "fcpMs": 1092,
+      "screens": [
+        "tela-privacidade"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 305
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "privacidade__cheio__390.png",
+      "route": "/privacidade",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/privacidade?cenario=cheio",
+      "loadMs": 3184,
+      "fcpMs": 1488,
+      "screens": [
+        "tela-privacidade"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 305
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "privacidade__cheio__430.png",
+      "route": "/privacidade",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/privacidade?cenario=cheio",
+      "loadMs": 2881,
+      "fcpMs": 1236,
+      "screens": [
+        "tela-privacidade"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 305
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__vazio__360.png",
+      "route": "/",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/?cenario=vazio",
+      "loadMs": 9938,
+      "fcpMs": 632,
+      "screens": [],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "mapa-camada-todos",
+            "w": 121,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-meu-time",
+            "w": 105,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-explorado",
+            "w": 108,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 34
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "inicio__vazio__390.png",
+      "route": "/",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/?cenario=vazio",
+      "loadMs": 9914,
+      "fcpMs": 632,
+      "screens": [],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "mapa-camada-todos",
+            "w": 121,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-meu-time",
+            "w": 105,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-explorado",
+            "w": 108,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 34
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "inicio__vazio__430.png",
+      "route": "/",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/?cenario=vazio",
+      "loadMs": 10011,
+      "fcpMs": 880,
+      "screens": [],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "mapa-camada-todos",
+            "w": 121,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-meu-time",
+            "w": 105,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-explorado",
+            "w": 108,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 34
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "arena__vazio__360.png",
+      "route": "/arena",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/arena?cenario=vazio",
+      "loadMs": 2325,
+      "fcpMs": 680,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 245
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "arena__vazio__390.png",
+      "route": "/arena",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/arena?cenario=vazio",
+      "loadMs": 2427,
+      "fcpMs": 748,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 245
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "arena__vazio__430.png",
+      "route": "/arena",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/arena?cenario=vazio",
+      "loadMs": 2617,
+      "fcpMs": 968,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 245
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__vazio__360.png",
+      "route": "/atividades",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/atividades?cenario=vazio",
+      "loadMs": 2522,
+      "fcpMs": 804,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 65
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__vazio__390.png",
+      "route": "/atividades",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/atividades?cenario=vazio",
+      "loadMs": 2403,
+      "fcpMs": 740,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 65
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__vazio__430.png",
+      "route": "/atividades",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/atividades?cenario=vazio",
+      "loadMs": 2504,
+      "fcpMs": 792,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 65
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__vazio__360.png",
+      "route": "/clube",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/clube?cenario=vazio",
+      "loadMs": 2498,
+      "fcpMs": 708,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 16,
+        "small": [
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-season",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-week",
+            "w": 80,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-geral",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-cidade",
+            "w": 98,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-time",
+            "w": 87,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-distrito",
+            "w": 102,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 300
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__vazio__390.png",
+      "route": "/clube",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/clube?cenario=vazio",
+      "loadMs": 2427,
+      "fcpMs": 644,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 16,
+        "small": [
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-season",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-week",
+            "w": 80,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-geral",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-cidade",
+            "w": 98,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-time",
+            "w": 87,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-distrito",
+            "w": 102,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 300
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__vazio__430.png",
+      "route": "/clube",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/clube?cenario=vazio",
+      "loadMs": 2610,
+      "fcpMs": 800,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 16,
+        "small": [
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-season",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-week",
+            "w": 80,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-geral",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-cidade",
+            "w": 98,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-time",
+            "w": 87,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-distrito",
+            "w": 102,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 300
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__vazio__360.png",
+      "route": "/perfil",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/perfil?cenario=vazio",
+      "loadMs": 2233,
+      "fcpMs": 628,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 177
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__vazio__390.png",
+      "route": "/perfil",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/perfil?cenario=vazio",
+      "loadMs": 2209,
+      "fcpMs": 588,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 177
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__vazio__430.png",
+      "route": "/perfil",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/perfil?cenario=vazio",
+      "loadMs": 2327,
+      "fcpMs": 656,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 177
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__vazio__360.png",
+      "route": "/notificacoes",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/notificacoes?cenario=vazio",
+      "loadMs": 2285,
+      "fcpMs": 672,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 17
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__vazio__390.png",
+      "route": "/notificacoes",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/notificacoes?cenario=vazio",
+      "loadMs": 2243,
+      "fcpMs": 612,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 17
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__vazio__430.png",
+      "route": "/notificacoes",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/notificacoes?cenario=vazio",
+      "loadMs": 2194,
+      "fcpMs": 544,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 17
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__vazio__360.png",
+      "route": "/contatos-seguranca",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/contatos-seguranca?cenario=vazio",
+      "loadMs": 2178,
+      "fcpMs": 568,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 49
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__vazio__390.png",
+      "route": "/contatos-seguranca",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/contatos-seguranca?cenario=vazio",
+      "loadMs": 2234,
+      "fcpMs": 576,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 49
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__vazio__430.png",
+      "route": "/contatos-seguranca",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/contatos-seguranca?cenario=vazio",
+      "loadMs": 2217,
+      "fcpMs": 592,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 49
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "zonas-privacidade__vazio__360.png",
+      "route": "/zonas-privacidade",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/zonas-privacidade?cenario=vazio",
+      "loadMs": 2364,
+      "fcpMs": 712,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 51
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "zonas-privacidade__vazio__390.png",
+      "route": "/zonas-privacidade",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/zonas-privacidade?cenario=vazio",
+      "loadMs": 2277,
+      "fcpMs": 660,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 51
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "zonas-privacidade__vazio__430.png",
+      "route": "/zonas-privacidade",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/zonas-privacidade?cenario=vazio",
+      "loadMs": 2134,
+      "fcpMs": 548,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 51
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "inicio__carregando__360.png",
+      "route": "/",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 360,
+      "finalUrl": "/?cenario=lento",
+      "loadMs": 1040,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__carregando__390.png",
+      "route": "/",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 390,
+      "finalUrl": "/?cenario=lento",
+      "loadMs": 1094,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__carregando__430.png",
+      "route": "/",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 430,
+      "finalUrl": "/?cenario=lento",
+      "loadMs": 1179,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__carregando__360.png",
+      "route": "/atividades",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 360,
+      "finalUrl": "/atividades?cenario=lento",
+      "loadMs": 1092,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__carregando__390.png",
+      "route": "/atividades",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 390,
+      "finalUrl": "/atividades?cenario=lento",
+      "loadMs": 1165,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__carregando__430.png",
+      "route": "/atividades",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 430,
+      "finalUrl": "/atividades?cenario=lento",
+      "loadMs": 1069,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__carregando__360.png",
+      "route": "/notificacoes",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 360,
+      "finalUrl": "/notificacoes?cenario=lento",
+      "loadMs": 1016,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__carregando__390.png",
+      "route": "/notificacoes",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 390,
+      "finalUrl": "/notificacoes?cenario=lento",
+      "loadMs": 1046,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__carregando__430.png",
+      "route": "/notificacoes",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 430,
+      "finalUrl": "/notificacoes?cenario=lento",
+      "loadMs": 1037,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__erro__360.png",
+      "route": "/",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 360,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2323,
+      "fcpMs": 728,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__erro__390.png",
+      "route": "/",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 390,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2408,
+      "fcpMs": 776,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__erro__430.png",
+      "route": "/",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 430,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2389,
+      "fcpMs": 772,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__erro__360.png",
+      "route": "/atividades",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 360,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2508,
+      "fcpMs": 888,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__erro__390.png",
+      "route": "/atividades",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 390,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2479,
+      "fcpMs": 864,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__erro__430.png",
+      "route": "/atividades",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 430,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2506,
+      "fcpMs": 876,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__erro__360.png",
+      "route": "/notificacoes",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 360,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2438,
+      "fcpMs": 836,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__erro__390.png",
+      "route": "/notificacoes",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 390,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2346,
+      "fcpMs": 736,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__erro__430.png",
+      "route": "/notificacoes",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 430,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2328,
+      "fcpMs": 716,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__offline__360.png",
+      "route": "/",
+      "state": "offline",
+      "scenario": "offline",
+      "width": 360,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2332,
+      "fcpMs": 716,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__offline__390.png",
+      "route": "/",
+      "state": "offline",
+      "scenario": "offline",
+      "width": 390,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2296,
+      "fcpMs": 716,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__offline__430.png",
+      "route": "/",
+      "state": "offline",
+      "scenario": "offline",
+      "width": 430,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2425,
+      "fcpMs": 792,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__offline__360.png",
+      "route": "/atividades",
+      "state": "offline",
+      "scenario": "offline",
+      "width": 360,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2331,
+      "fcpMs": 736,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__offline__390.png",
+      "route": "/atividades",
+      "state": "offline",
+      "scenario": "offline",
+      "width": 390,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2375,
+      "fcpMs": 796,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__offline__430.png",
+      "route": "/atividades",
+      "state": "offline",
+      "scenario": "offline",
+      "width": 430,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2393,
+      "fcpMs": 780,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__sob-ataque__360.png",
+      "route": "/",
+      "state": "sob-ataque",
+      "scenario": "sob-ataque",
+      "width": 360,
+      "finalUrl": "/?cenario=sob-ataque",
+      "loadMs": 15355,
+      "fcpMs": 752,
+      "screens": [],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "mapa-camada-todos",
+            "w": 121,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-meu-time",
+            "w": 105,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-explorado",
+            "w": 108,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 35
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "inicio__sob-ataque__390.png",
+      "route": "/",
+      "state": "sob-ataque",
+      "scenario": "sob-ataque",
+      "width": 390,
+      "finalUrl": "/?cenario=sob-ataque",
+      "loadMs": 15361,
+      "fcpMs": 764,
+      "screens": [],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "mapa-camada-todos",
+            "w": 121,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-meu-time",
+            "w": 105,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-explorado",
+            "w": 108,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 35
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "inicio__sob-ataque__430.png",
+      "route": "/",
+      "state": "sob-ataque",
+      "scenario": "sob-ataque",
+      "width": 430,
+      "finalUrl": "/?cenario=sob-ataque",
+      "loadMs": 15396,
+      "fcpMs": 944,
+      "screens": [],
+      "audit": {
+        "interactive": 14,
+        "small": [
+          {
+            "id": "mapa-camada-todos",
+            "w": 121,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-meu-time",
+            "w": 105,
+            "h": 36
+          },
+          {
+            "id": "mapa-camada-explorado",
+            "w": 108,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 35
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "notificacoes__sob-ataque__360.png",
+      "route": "/notificacoes",
+      "state": "sob-ataque",
+      "scenario": "sob-ataque",
+      "width": 360,
+      "finalUrl": "/notificacoes?cenario=sob-ataque",
+      "loadMs": 8073,
+      "fcpMs": 956,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 103
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__sob-ataque__390.png",
+      "route": "/notificacoes",
+      "state": "sob-ataque",
+      "scenario": "sob-ataque",
+      "width": 390,
+      "finalUrl": "/notificacoes?cenario=sob-ataque",
+      "loadMs": 8237,
+      "fcpMs": 1068,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 103
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__sob-ataque__430.png",
+      "route": "/notificacoes",
+      "state": "sob-ataque",
+      "scenario": "sob-ataque",
+      "width": 430,
+      "finalUrl": "/notificacoes?cenario=sob-ataque",
+      "loadMs": 8024,
+      "fcpMs": 876,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 103
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "onboarding__sem-time__360.png",
+      "route": "/onboarding",
+      "state": "sem-time",
+      "scenario": "sem-time",
+      "width": 360,
+      "finalUrl": "/onboarding?cenario=sem-time",
+      "loadMs": 2261,
+      "fcpMs": 564,
+      "screens": [
+        "tela-onboarding"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 50
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "onboarding__sem-time__390.png",
+      "route": "/onboarding",
+      "state": "sem-time",
+      "scenario": "sem-time",
+      "width": 390,
+      "finalUrl": "/onboarding?cenario=sem-time",
+      "loadMs": 2304,
+      "fcpMs": 672,
+      "screens": [
+        "tela-onboarding"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 50
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "onboarding__sem-time__430.png",
+      "route": "/onboarding",
+      "state": "sem-time",
+      "scenario": "sem-time",
+      "width": 430,
+      "finalUrl": "/onboarding?cenario=sem-time",
+      "loadMs": 2338,
+      "fcpMs": 616,
+      "screens": [
+        "tela-onboarding"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 50
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "entrar__primeira-abertura__360.png",
+      "route": "/entrar",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 360,
+      "finalUrl": "/entrar?cenario=primeira-abertura",
+      "loadMs": 2209,
+      "fcpMs": 552,
+      "screens": [
+        "tela-entrar"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "entrar__primeira-abertura__390.png",
+      "route": "/entrar",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 390,
+      "finalUrl": "/entrar?cenario=primeira-abertura",
+      "loadMs": 2253,
+      "fcpMs": 544,
+      "screens": [
+        "tela-entrar"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "entrar__primeira-abertura__430.png",
+      "route": "/entrar",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 430,
+      "finalUrl": "/entrar?cenario=primeira-abertura",
+      "loadMs": 2273,
+      "fcpMs": 576,
+      "screens": [
+        "tela-entrar"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "cadastro__primeira-abertura__360.png",
+      "route": "/cadastro",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 360,
+      "finalUrl": "/cadastro?cenario=primeira-abertura",
+      "loadMs": 2289,
+      "fcpMs": 636,
+      "screens": [
+        "tela-cadastro"
+      ],
+      "audit": {
+        "interactive": 12,
+        "small": [
+          {
+            "id": "cadastro-abrir-termos",
+            "w": 117,
+            "h": 20
+          },
+          {
+            "id": "cadastro-abrir-privacidade",
+            "w": 180,
+            "h": 43
+          }
+        ],
+        "unlabeled": [],
+        "words": 92
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "cadastro__primeira-abertura__390.png",
+      "route": "/cadastro",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 390,
+      "finalUrl": "/cadastro?cenario=primeira-abertura",
+      "loadMs": 2465,
+      "fcpMs": 660,
+      "screens": [
+        "tela-cadastro"
+      ],
+      "audit": {
+        "interactive": 12,
+        "small": [
+          {
+            "id": "cadastro-abrir-termos",
+            "w": 117,
+            "h": 20
+          },
+          {
+            "id": "cadastro-abrir-privacidade",
+            "w": 178,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 92
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "cadastro__primeira-abertura__430.png",
+      "route": "/cadastro",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 430,
+      "finalUrl": "/cadastro?cenario=primeira-abertura",
+      "loadMs": 2438,
+      "fcpMs": 688,
+      "screens": [
+        "tela-cadastro"
+      ],
+      "audit": {
+        "interactive": 12,
+        "small": [
+          {
+            "id": "cadastro-abrir-termos",
+            "w": 117,
+            "h": 20
+          },
+          {
+            "id": "cadastro-abrir-privacidade",
+            "w": 178,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 92
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "recuperar-senha__primeira-abertura__360.png",
+      "route": "/recuperar-senha",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 360,
+      "finalUrl": "/recuperar-senha?cenario=primeira-abertura",
+      "loadMs": 2189,
+      "fcpMs": 524,
+      "screens": [
+        "tela-recuperar-senha"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "recuperar-senha__primeira-abertura__390.png",
+      "route": "/recuperar-senha",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 390,
+      "finalUrl": "/recuperar-senha?cenario=primeira-abertura",
+      "loadMs": 2261,
+      "fcpMs": 544,
+      "screens": [
+        "tela-recuperar-senha"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "recuperar-senha__primeira-abertura__430.png",
+      "route": "/recuperar-senha",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 430,
+      "finalUrl": "/recuperar-senha?cenario=primeira-abertura",
+      "loadMs": 2250,
+      "fcpMs": 560,
+      "screens": [
+        "tela-recuperar-senha"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "moderacao__moderador__360.png",
+      "route": "/moderacao",
+      "state": "moderador",
+      "scenario": "moderador",
+      "width": 360,
+      "finalUrl": "/moderacao?cenario=moderador",
+      "loadMs": 2534,
+      "fcpMs": 912,
+      "screens": [
+        "tela-moderacao"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 109
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "moderacao__moderador__390.png",
+      "route": "/moderacao",
+      "state": "moderador",
+      "scenario": "moderador",
+      "width": 390,
+      "finalUrl": "/moderacao?cenario=moderador",
+      "loadMs": 2552,
+      "fcpMs": 900,
+      "screens": [
+        "tela-moderacao"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 109
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "moderacao__moderador__430.png",
+      "route": "/moderacao",
+      "state": "moderador",
+      "scenario": "moderador",
+      "width": 430,
+      "finalUrl": "/moderacao?cenario=moderador",
+      "loadMs": 2476,
+      "fcpMs": 840,
+      "screens": [
+        "tela-moderacao"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 109
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "moderacao-detalhe__moderador__360.png",
+      "route": "/moderacao/demo-revisao-1",
+      "state": "moderador",
+      "scenario": "moderador",
+      "width": 360,
+      "finalUrl": "/moderacao/demo-revisao-1?cenario=moderador",
+      "loadMs": 2752,
+      "fcpMs": 896,
+      "screens": [
+        "tela-moderacao-detalhe"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 74
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "moderacao-detalhe__moderador__390.png",
+      "route": "/moderacao/demo-revisao-1",
+      "state": "moderador",
+      "scenario": "moderador",
+      "width": 390,
+      "finalUrl": "/moderacao/demo-revisao-1?cenario=moderador",
+      "loadMs": 2449,
+      "fcpMs": 784,
+      "screens": [
+        "tela-moderacao-detalhe"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 74
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "moderacao-detalhe__moderador__430.png",
+      "route": "/moderacao/demo-revisao-1",
+      "state": "moderador",
+      "scenario": "moderador",
+      "width": 430,
+      "finalUrl": "/moderacao/demo-revisao-1?cenario=moderador",
+      "loadMs": 2477,
+      "fcpMs": 808,
+      "screens": [
+        "tela-moderacao-detalhe"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 74
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    }
+  ]
+}
