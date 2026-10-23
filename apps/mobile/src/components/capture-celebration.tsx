@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import Animated, { type SharedValue, useAnimatedProps, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -12,6 +11,7 @@ import { useTheme } from '@/theme/use-theme';
 
 import { CHALK_INTERVAL_MS, CHALK_STROKE_MS, CHALK_STROKES, CHALK_TOTAL_MS } from './capture-celebration.math';
 import { FadeUp } from './motion/fade-up';
+import { haptic } from './motion/haptics';
 import { RevealText } from './motion/reveal-text';
 import { TeamShapeGlyph } from './team-badge';
 import { Text } from './text';
@@ -69,7 +69,7 @@ export function CaptureCelebration({ faction, zone, rp }: { faction: FactionId; 
   const f = factions[faction];
   const clock = useSharedValue(reduced ? CHALK_TOTAL_MS : 0);
   useEffect(() => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    haptic('success');
   }, []);
   useEffect(() => {
     // relógio linear da sequência; cada traço aplica a própria curva
