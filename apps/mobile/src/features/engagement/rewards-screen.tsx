@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 
 import { Chest, EmptyArt, Medal } from '@/components/art';
@@ -14,6 +14,7 @@ import { SectionHeader } from '@/components/section-header';
 import { Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import type { ChestRarity } from '@/domain/games';
+import { brtCalendar } from '@/domain/progression';
 import type { DailyChestOpening, DailyChestState, EngagementStatus, SeasonTrack, TrackStep } from '@/services/api/engagement-repo';
 import type { Slot } from '@/store/engagement-store';
 import { neon } from '@/theme/neon';
@@ -68,7 +69,7 @@ function LevelCard({ s, now, onPause }: { s: EngagementStatus; now: number; onPa
         <Text testID="recompensas-sequencia" variant="small" style={{ flex: 1 }}>
           {paused
             ? `Pausa de saúde até ${shortDate(s.streak.pause!.until)}`
-            : `${s.streak.weeks} ${s.streak.weeks === 1 ? 'semana' : 'semanas'} seguidas · ${Math.min(2, s.streak.activitiesThisWeek)}/2 nesta`}
+            : `${s.streak.weeks} ${s.streak.weeks === 1 ? 'semana' : 'semanas'} seguidas · ${s.streak.activitiesThisWeek >= 2 ? 'semana garantida' : `${s.streak.activitiesThisWeek} de 2 nesta`}`}
         </Text>
         <Button testID="recompensas-pausa" label={paused ? 'Ver pausa' : 'Pausar'} kind="ghost" icon="heart" onPress={onPause} />
       </View>
@@ -76,7 +77,7 @@ function LevelCard({ s, now, onPause }: { s: EngagementStatus; now: number; onPa
   );
 }
 
-function ChestSection({ slot, onOpened }: { slot: Slot<DailyChestState>; onOpened: (o: DailyChestOpening) => void }) {
+function ChestSection({ slot, ranToday, onOpened }: { slot: Slot<DailyChestState>; ranToday: boolean; onOpened: (o: DailyChestOpening) => void }) {
   const { colors } = useTheme();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -140,7 +141,8 @@ function ChestSection({ slot, onOpened }: { slot: Slot<DailyChestState>; onOpene
             </View>
           </View>
         )}
-        {!opening && total > 0 && !c.openedToday ? (
+        {/* Só com atividade hoje: sem ela o servidor recusaria (a corrida de 1 km já abre sozinha). */}
+        {!opening && total > 0 && !c.openedToday && ranToday ? (
           <Button testID="recompensas-bau-abrir" label={total === 1 ? 'Abrir baú' : 'Abrir baús'} icon="chest" wide disabled={busy} busy={busy} onPress={() => void open()} />
         ) : null}
         {message ? (
@@ -229,6 +231,7 @@ function StepCard({ step, current, onClaim, busy }: { step: TrackStep; current: 
 
 function TrackSection({ slot }: { slot: Slot<SeasonTrack> }) {
   const { colors } = useTheme();
+  const scroller = useRef<ScrollView>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const t = slot.data;
@@ -259,7 +262,13 @@ function TrackSection({ slot }: { slot: Slot<SeasonTrack> }) {
           : `Degrau ${t.step} de ${t.steps} · ${t.intoStep} de ${t.stepXp} XP para o próximo`}
         {pending > 0 ? ` · ${pending} para resgatar` : ''}
       </Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space[2], paddingVertical: space[1] }}>
+      <ScrollView
+        ref={scroller}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        // Abre perto do degrau atual (o próximo a alcançar fica à vista).
+        onLayout={() => scroller.current?.scrollTo({ x: Math.max(0, (t.step - 1) * 120), animated: false })}
+        contentContainerStyle={{ gap: space[2], paddingVertical: space[1] }}>
         {t.rewards.map((r) => (
           <StepCard key={r.step} step={r} current={r.step === t.step + 1} onClaim={claim} busy={busy} />
         ))}
@@ -358,7 +367,7 @@ export function RewardsScreen() {
       {status.data ? <LevelCard s={status.data} now={now} onPause={() => setPauseOpen(true)} /> : status.status === 'loading' || status.status === 'idle' ? <ShimmerSkeleton shape="card" height={150} accessibilityLabel="Carregando o nível" /> : null}
 
       <SectionHeader title="Baú do dia" testID="recompensas-bau-titulo" />
-      <ChestSection slot={chest} onOpened={() => undefined} />
+      <ChestSection slot={chest} ranToday={status.data?.lastActivityAt != null && brtCalendar.clock(status.data.lastActivityAt).dayId === brtCalendar.clock(now).dayId} onOpened={() => undefined} />
 
       <TrackSection slot={track} />
 

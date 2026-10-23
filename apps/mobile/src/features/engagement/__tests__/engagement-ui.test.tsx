@@ -143,7 +143,7 @@ describe('/missoes', () => {
     expect(r.has('missao-trocar-0')).toBe(true);
     expect(r.has('missao-trocar-1')).toBe(false); // concluída
     const text = r.text();
-    expect(text).toContain('Não curtiu uma? Troque 1 por dia.');
+    expect(text).toContain('Valem até 23h59. Não curtiu uma? Troque 1 por dia.');
     expect(text).toContain('caminhar também conta');
     r.press('missao-trocar-0');
     await act(async () => undefined);
@@ -181,14 +181,22 @@ describe('/recompensas', () => {
     expect(r.host('cosmetico-rastro-faisca').props.accessibilityLabel).toContain('É seu');
     expect(r.host('cosmetico-rastro-neon').props.accessibilityLabel).toContain('Como ganhar: Baú do dia');
 
-    r.press('recompensas-bau-abrir');
-    await act(async () => undefined);
-    expect(r.host('recompensas-bau-mensagem').props.children).toBe('Corra ou caminhe 1 km hoje para abrir.');
+    // Sem atividade hoje, não há botão (a corrida de 1 km abre sozinha).
+    expect(r.has('recompensas-bau-abrir')).toBe(false);
 
     r.press('trilha-resgatar-2');
     await act(async () => undefined);
     expect(controller.claimSeasonStep).toHaveBeenCalledWith(2);
     expect(r.host('recompensas-trilha-mensagem').props.children).toBe('Resgatado: Moldura do mês');
+  });
+
+  it('com atividade hoje e baú guardado: abrir; a recusa do servidor vira frase curta', async () => {
+    act(() => useEngagement.getState().setReady('status', { ...STATUS, lastActivityAt: NOW }));
+    const r = render(<RewardsScreen />);
+    r.press('recompensas-bau-abrir');
+    await act(async () => undefined);
+    expect(controller.openStoredChests).toHaveBeenCalled();
+    expect(r.host('recompensas-bau-mensagem').props.children).toBe('Corra ou caminhe 1 km hoje para abrir.');
   });
 
   it('tudo indisponível: um só estado "em breve"', () => {

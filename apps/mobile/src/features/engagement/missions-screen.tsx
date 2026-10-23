@@ -20,7 +20,7 @@ import { useTheme } from '@/theme/use-theme';
 
 import { rerollDailyMission } from './controller';
 import { useEngagementData } from './hooks';
-import { canReroll, deadlineLabel, ftueDoneCount, ftueRows, missionA11y, missionProgressLabel, missionRatio, pct, TIER_LABEL, unlockLabel, type FtueRow } from './model';
+import { canReroll, ftueDoneCount, ftueRows, missionA11y, missionProgressLabel, missionRatio, pct, TIER_LABEL, unlockLabel, type FtueRow } from './model';
 
 const FTUE_ICON: Record<string, ModeIconKind | null> = {
   'f1-dominio': 'dominio',
@@ -63,7 +63,7 @@ function MissionRow({ m, rerollsLeft, onReroll, busy }: { m: EngagementMission; 
           {m.title}
         </Text>
         <Text variant="caption" muted numberOfLines={1}>
-          {done ? `${TIER_LABEL[m.tier]} · Concluída` : `${TIER_LABEL[m.tier]} · ${missionProgressLabel(m)} · ${deadlineLabel(m)}`}
+          {done ? `${TIER_LABEL[m.tier]} · Concluída` : `${TIER_LABEL[m.tier]} · ${missionProgressLabel(m)}`}
         </Text>
       </View>
       <View style={{ alignItems: 'flex-end', gap: space[1] }}>
@@ -92,7 +92,7 @@ function FtueStepRow({ row, now }: { row: FtueRow; now: number }) {
         {done ? <Icon name="check" size={20} color={colors.accentText} /> : locked ? <Icon name="lock" size={18} color={colors.textSecondary} /> : icon ? <ModeIcon kind={icon} size={32} /> : <Icon name="share" size={20} color={colors.accentText} />}
       </View>
       <View style={{ flex: 1 }}>
-        <Text variant={row.status === 'open' ? 'bodyBold' : 'body'} numberOfLines={1}>
+        <Text variant={row.status === 'open' ? 'bodyBold' : 'body'} numberOfLines={2}>
           {row.title}
         </Text>
         <Text variant="caption" muted>
@@ -180,7 +180,7 @@ export function MissionsScreen() {
           <View style={{ gap: space[2] }}>
             <SectionHeader title="Hoje" testID="missoes-hoje-titulo" />
             <Text variant="caption" muted>
-              {data.rerollsLeft > 0 ? 'Não curtiu uma? Troque 1 por dia.' : 'Troca de hoje já usada.'}
+              {data.rerollsLeft > 0 ? 'Valem até 23h59. Não curtiu uma? Troque 1 por dia.' : 'Valem até 23h59. A troca de hoje já foi usada.'}
             </Text>
             {data.daily.map((m) => (
               <MissionRow key={m.id} m={m} rerollsLeft={data.rerollsLeft} onReroll={reroll} busy={busy} />
@@ -194,6 +194,9 @@ export function MissionsScreen() {
 
           <View style={{ gap: space[2] }}>
             <SectionHeader title="Esta semana" testID="missoes-semana-titulo" />
+            <Text variant="caption" muted>
+              Valem até domingo.
+            </Text>
             {data.weekly.map((m) => (
               <MissionRow key={m.id} m={m} rerollsLeft={0} onReroll={reroll} busy={busy} />
             ))}
