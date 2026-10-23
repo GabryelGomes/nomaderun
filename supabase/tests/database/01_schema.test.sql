@@ -9,7 +9,7 @@ select is(
 
 select is(
   (select count(*)::int from pg_tables where schemaname = 'public'),
-  32, '32 tabelas (15 do modelo + privacy_zones e chests da Fase 3 + 15 da v2: contrato, recompensas, baú do dia e raid)');
+  36, '36 tabelas (15 do modelo + privacy_zones e chests da Fase 3 + 19 da v2: contrato, recompensas, baú do dia, raid e liga)');
 
 select has_extension('postgis', 'PostGIS instalado');
 select has_extension('pg_cron', 'pg_cron instalado');
@@ -25,7 +25,7 @@ select ok(
 
 select is(
   (select count(*)::int from cron.job where jobname like 'nomaderun-%'),
-  5, 'jobs agendados no pg_cron: os 4 da T3.6 + o do raid (D-67)');
+  6, 'jobs agendados no pg_cron: os 4 da T3.6 + raid (D-67) e liga (D-68)');
 
 select is(
   (select schedule from cron.job where jobname = 'nomaderun-decay-zones'),
