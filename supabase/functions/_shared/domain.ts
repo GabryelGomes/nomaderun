@@ -20,3 +20,4 @@ export * from '../../../apps/mobile/src/domain/games.ts';
 export * from '../../../apps/mobile/src/domain/run-engine.ts';
 export * from '../../../apps/mobile/src/domain/regions.ts';
 export * from '../../../apps/mobile/src/domain/season.ts';
+export * from '../../../apps/mobile/src/domain/progression.ts';

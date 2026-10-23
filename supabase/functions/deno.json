@@ -7,6 +7,7 @@
     "../../apps/mobile/src/domain/geo": "../../apps/mobile/src/domain/geo.ts",
     "../../apps/mobile/src/domain/grid": "../../apps/mobile/src/domain/grid.ts",
     "../../apps/mobile/src/domain/h3-runtime": "../../apps/mobile/src/domain/h3-runtime.ts",
+    "../../apps/mobile/src/domain/progression": "../../apps/mobile/src/domain/progression.ts",
     "../../apps/mobile/src/domain/regions": "../../apps/mobile/src/domain/regions.ts",
     "../../apps/mobile/src/domain/run-engine": "../../apps/mobile/src/domain/run-engine.ts",
     "../../apps/mobile/src/domain/scoring": "../../apps/mobile/src/domain/scoring.ts",

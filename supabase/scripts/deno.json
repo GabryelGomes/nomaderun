@@ -12,6 +12,8 @@
     "@/domain/grid": "../../apps/mobile/src/domain/grid.ts",
     "../../apps/mobile/src/domain/h3-runtime": "../../apps/mobile/src/domain/h3-runtime.ts",
     "@/domain/h3-runtime": "../../apps/mobile/src/domain/h3-runtime.ts",
+    "../../apps/mobile/src/domain/progression": "../../apps/mobile/src/domain/progression.ts",
+    "@/domain/progression": "../../apps/mobile/src/domain/progression.ts",
     "../../apps/mobile/src/domain/regions": "../../apps/mobile/src/domain/regions.ts",
     "@/domain/regions": "../../apps/mobile/src/domain/regions.ts",
     "../../apps/mobile/src/domain/run-engine": "../../apps/mobile/src/domain/run-engine.ts",
