@@ -54,6 +54,11 @@ insert into auth.users (instance_id, id, aud, role, email, raw_user_meta_data) v
   ('00000000-0000-0000-0000-000000000000', 'e9e9e9e9-0017-4000-8000-00000000000c', 'authenticated', 'authenticated', 'c17c@t.com',
    '{"username": "c17_c", "birthdate": "1995-01-01", "terms_accepted": true}');
 update public.profiles set faction = 'volt' where id::text like 'e9e9e9e9-0017-%';
+-- zonas próprias do teste (os pontos fracos não dependem do seed)
+insert into public.zones (id, name, city, geom)
+select 'e9e9e9e9e9e9e0' || i, 'Zona Raid ' || i, 'Goiânia',
+       extensions.st_makeenvelope(-49.30 + i * 0.01, -16.70, -49.295 + i * 0.01, -16.695, 4326)
+  from generate_series(1, 4) i;
 insert into public.crews (name, tag, leader_id) values ('Crew Raid', 'RAIDX', 'e9e9e9e9-0017-4000-8000-00000000000a');
 insert into public.crew_members (crew_id, user_id) select id, 'e9e9e9e9-0017-4000-8000-00000000000b' from public.crews where tag = 'RAIDX';
 
