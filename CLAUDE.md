@@ -21,12 +21,21 @@ App de corrida com disputa de território (TCC). Monorepo: `apps/mobile` (Expo S
 
 ## Regras do projeto
 
-- **Visual aprovado (D-15):** não mude cores, fontes, espaçamentos ou componentes das telas existentes sem necessidade. Telas novas usam `src/theme/tokens.ts` e os componentes `Text`, `Button`, `Surface`, `TeamBadge`, `Icon`.
+- **Visual (D-61, substitui a D-15):** mudanças visuais só **dentro** do sistema Pit Lane Neon (`src/theme/tokens.ts`, `neon.ts`, componentes e ilustrações no mesmo traço). Telas novas usam os tokens e os componentes `Text`, `Button`, `Surface`, `TeamBadge`, `Icon` (e os de `components/art`, `components/motion` e `components/celebration`, quando existirem).
 - Camadas (ver `ARQUITETURA.md`): `src/domain` é puro e é a fonte única das regras (app e Edge Functions); telas não chamam `supabase` direto, só via `src/services/api`.
 - Segurança: nenhum segredo no código; RLS em toda tabela; `service_role` só nas Edge Functions.
 - Textos da interface em português do Brasil. Todo elemento interativo novo tem `testID` e `accessibilityLabel`.
 - Expo muda a cada SDK: confira a documentação da versão 57 (`https://docs.expo.dev/versions/v57.0.0/`) e instale pacotes com `npx expo install`.
 - Dados de demonstração sempre identificados como demonstração. Mapa nunca mostra a grade de hexágonos (regiões suavizadas).
+
+## Fase 7 — Reformulação v2 (em andamento)
+
+- **Prompt mestre:** `docs/melhoria/00-PROMPT-MELHORIA-COLOSSAL.md`. Leia-o antes de qualquer tarefa da Fase 7.
+- **Equipes:** `.claude/agents/`: `coordenador-melhoria` e as equipes E1–E10 (`pesquisa-produto`, `skills-e-mcps`, `game-design-territorio`, `direcao-de-arte`, `motion-feedback`, `ux-telas`, `engajamento-retencao`, `social-compartilhamento`, `backend-jogo`, `qa-experiencia`).
+- **Donos de pastas:** seção 18 do prompt.
+- **Relatórios:** `docs/melhoria/F1/` (descoberta) e `docs/melhoria/relatorios/` (implementação). Plano: `docs/melhoria/PLANO-MESTRE.md`.
+- **Commits:** na Fase 7, as equipes fazem commit só na própria worktree. Merge e push ficam com o coordenador.
+- **Arquivo novo em `src/domain`:** registre-o na ponte das functions (`supabase/functions/_shared/domain.ts`, `supabase/functions/deno.json` e `supabase/scripts/deno.json`). Sem isso, `supabase/functions/tests/domain_bridge.test.ts` falha.
 
 ## Skills úteis (`.claude/skills`)
 

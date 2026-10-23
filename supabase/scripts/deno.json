@@ -18,6 +18,8 @@
     "@/domain/run-engine": "../../apps/mobile/src/domain/run-engine.ts",
     "../../apps/mobile/src/domain/scoring": "../../apps/mobile/src/domain/scoring.ts",
     "@/domain/scoring": "../../apps/mobile/src/domain/scoring.ts",
+    "../../apps/mobile/src/domain/season": "../../apps/mobile/src/domain/season.ts",
+    "@/domain/season": "../../apps/mobile/src/domain/season.ts",
     "../../apps/mobile/src/domain/territory": "../../apps/mobile/src/domain/territory.ts",
     "@/domain/territory": "../../apps/mobile/src/domain/territory.ts",
     "../../apps/mobile/src/domain/trust": "../../apps/mobile/src/domain/trust.ts",
