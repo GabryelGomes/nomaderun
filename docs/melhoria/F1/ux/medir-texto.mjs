@@ -41,7 +41,8 @@ const VISIBLE_ATTR = new Set(['title', 'body', 'label', 'placeholder', 'help', '
 /** Componentes que valem como "elemento visual" (o que NÃO é texto). */
 const VISUAL = {
   mapa: ['TerritoryMap'],
-  ilustracao: ['CaptureCelebration', 'NeonBackdrop', 'HeroWordmark', 'NeonBadges', 'Svg', 'Image', 'Mascot', 'Boss', 'Chest', 'Medal'],
+  // E6a (onda 2): + as peças da E4 (`components/art`) e a arte feita com as primitivas dela (`StaticArt`).
+  ilustracao: ['CaptureCelebration', 'NeonBackdrop', 'HeroWordmark', 'NeonBadges', 'Svg', 'Image', 'Mascot', 'Boss', 'Chest', 'Medal', 'TutorialArt', 'EmptyArt', 'TeamEmblem', 'StaticArt'],
   numeroGrande: ['CountUp', 'TickerText', 'StatCount', 'Metric', 'Countdown'],
   grafico: ['GrowBar', 'ProgressBar', 'InfluenceBar', 'GrowPillar', 'Podium', 'LineChart', 'StepProgress', 'StrengthMeter'],
   emblema: ['TeamBadge'],
@@ -60,10 +61,19 @@ const SCREENS = [
   { rota: '(auth)/cadastro', tipo: 'conta', partes: [['features/auth/sign-up-screen.tsx']] },
   { rota: '(auth)/recuperar-senha', tipo: 'conta', partes: [['features/auth/forgot-password-screen.tsx']] },
   { rota: 'nova-senha', tipo: 'conta', partes: [['features/auth/new-password-screen.tsx']] },
-  { rota: 'onboarding · 1 boas-vindas', tipo: 'jogo', partes: [['features/screens/onboarding-screen.tsx', "cond:step === 'boas-vindas'"], ['features/auth/neon-badges.tsx']] },
-  { rota: 'onboarding · 2 time', tipo: 'jogo', partes: [['features/screens/onboarding-screen.tsx', "cond:step === 'faccao'"]], extra: 3 },
-  { rota: 'onboarding · 3 localização', tipo: 'jogo', partes: [['features/screens/onboarding-screen.tsx', "cond:step === 'localizacao'"]], extra: 1 },
-  { rota: 'onboarding · 4 notificações', tipo: 'jogo', partes: [['features/screens/onboarding-screen.tsx', "cond:step === 'notificacoes'"]], extra: 1 },
+  // E6a (onda 2, D-72): as boas-vindas viraram a 1ª tela do grupo (auth) e o onboarding foi para
+  // `features/screens/onboarding/`. Os rótulos antigos continuam (para o --comparar antes); o passo de
+  // notificações saiu da primeira abertura (vem depois da 1ª conquista).
+  { rota: 'onboarding · 1 boas-vindas', tipo: 'jogo', partes: [['features/auth/welcome-screen.tsx'], ['features/auth/neon-badges.tsx']] },
+  { rota: 'onboarding · 1b cidade dividida', tipo: 'jogo', partes: [['features/screens/onboarding/city-divided-step.tsx']], extra: 4 },
+  { rota: 'onboarding · 2 time', tipo: 'jogo', partes: [['features/screens/onboarding/onboarding-screen.tsx', "cond:step === 'times'"]], extra: 3 + 12 },
+  { rota: 'onboarding · 2b quiz', tipo: 'jogo', partes: [['features/screens/onboarding/team-quiz.tsx'], ['features/screens/onboarding/quiz.ts']] },
+  { rota: 'onboarding · 2c confirmação', tipo: 'jogo', partes: [['components/celebration/team-confirm.tsx']], extra: 4 },
+  { rota: 'onboarding · 3 localização', tipo: 'jogo', partes: [['features/screens/onboarding/onboarding-screen.tsx', 'LocationStep']] },
+  { rota: 'onboarding · nome (só login social sem nome)', tipo: 'jogo', partes: [['features/screens/onboarding/onboarding-screen.tsx', "cond:step === 'nome'"]] },
+  { rota: 'mapa · missão de boas-vindas', tipo: 'jogo', meta: 25, partes: [['features/screens/onboarding/welcome-mission-card.tsx'], ['features/screens/onboarding/welcome-mission.ts']] },
+  { rota: '(tabs)/correr', tipo: 'jogo', partes: [['components/app-tabs-correr.tsx']] },
+  { rota: 'atividades → perfil/atividades (redireciona)', tipo: 'informativa', partes: [['components/app-tabs-redirect.tsx']] },
   { rota: '(tabs)/index · Mapa', tipo: 'jogo', partes: [['features/screens/map-screen.tsx', 'MapScreen'], ['features/screens/map-layer-chips.tsx']] },
   { rota: 'corrida · preparação', tipo: 'jogo', partes: [['features/screens/run-screen.tsx', 'RunScreen']] },
   { rota: 'corrida · GPS', tipo: 'jogo', partes: [['features/screens/run-screen.tsx', 'GpsPreflight']] },

@@ -1,9 +1,16 @@
 # RF-001: senha errada mostra mensagem amigável; senha certa abre o mapa.
+# Boas-vindas (D-72) → "Já tenho conta" → Entrar.
 appId: ${APP_ID}
 name: Login
 tags: [auth, rf-001]
 ---
 - runFlow: subflows/abrir-app.yaml
+- extendedWaitUntil:
+    visible:
+      id: "tela-boas-vindas"
+    timeout: 30000
+- tapOn:
+    id: "boas-vindas-entrar"
 - extendedWaitUntil:
     visible:
       id: "tela-entrar"

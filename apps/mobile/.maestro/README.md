@@ -2,11 +2,12 @@
 
 | Arquivo | Caso | O que confere |
 |---|---|---|
-| `01-cadastro-onboarding.yaml` | RF-001, RF-003, RNF-013 | cadastro 16+ com aceites → onboarding (nome, time, localização, notificações) → mapa |
+| `01-cadastro-onboarding.yaml` | RF-001, RF-003, RNF-013, D-72 | Boas-vindas → cadastro enxuto (4 campos, 1 aceite) → "A cidade está dividida" → time → confirmação épica → GPS → mapa com a missão de boas-vindas |
 | `02-login.yaml` | RF-001 | senha errada mostra "E-mail ou senha incorretos."; senha certa abre o mapa |
 | `03-uc03-mapa-camadas-zona.yaml` | UC-03 | zonas do servidor, filtros de camada, folha da zona (dono, corredores, eventos) |
 | `04-uc02-alerta-invasao.yaml` | UC-02 | alerta no mapa e na central de notificações abre a zona atacada |
-| `05-uc01-corrida-simulada.yaml` | UC-01 | conta nova → Correr → Simulação → conquista garantida → segurar 600 ms → resumo oficial com "Zona conquistada" |
+| `05-uc01-corrida-simulada.yaml` | UC-01 | conta nova → Correr → Simulação → conquista provável → segurar 600 ms → resumo oficial com "Zona conquistada" |
+| `06-abas-correr-voce.yaml` | D-73 | aba Correr abre a Nova corrida; aba Você → Atividades |
 
 ## Como rodar
 
