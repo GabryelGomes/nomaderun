@@ -175,7 +175,7 @@ describe('servidor de demonstração (roteiro cheio)', () => {
     expect(s.data.band?.name).toBeTruthy();
     expect(s.data.streak.weeks).toBe(2);
     expect(s.data.streak.activitiesThisWeek).toBe(2);
-    expect(s.data.streak.pauseAvailable).toBe(true);
+    expect(s.data.streak.pauseAvailable).toBeNull(); // o my_engagement da E9 não informa
     expect(s.data.cosmetics?.map((c) => c.id)).toEqual(expect.arrayContaining(['rastro-faisca', 'moldura-asfalto']));
     expect(s.data.lastActivityAt).not.toBeNull();
   });

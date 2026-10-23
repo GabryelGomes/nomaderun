@@ -53,7 +53,7 @@ import {
   type XpSource,
 } from '@/domain/progression';
 
-import { msOf, raise, type DemoDb, type Row } from './db';
+import { iso, msOf, raise, type DemoDb, type Row } from './db';
 
 type RpcHandler = (db: DemoDb, userId: string | null, args: Row) => unknown;
 
@@ -231,10 +231,12 @@ function credit(db: DemoDb, st: EngState, userId: string, line: Omit<LedgerLine,
   return line.amount;
 }
 
-function grantCosmetic(st: EngState, id: string, variant: string, source: string): boolean {
+/** Dá o cosmético (idempotente) e grava a linha em `user_cosmetics`, que o app lê pelo PostgREST. */
+function grantCosmetic(db: DemoDb, st: EngState, userId: string, id: string, variant: string, source: string): boolean {
   const key = `${id}|${variant}`;
   if (st.cosmetics.has(key)) return false;
   st.cosmetics.set(key, { id, variant, source });
+  db.tables.user_cosmetics.push({ user_id: userId, cosmetic_id: id, variant, source, unlocked_at: iso(db.now()) });
   return true;
 }
 
@@ -281,7 +283,7 @@ function settleOpen(db: DemoDb, st: EngState, userId: string, at: number, live: 
     a.claimedAt = at;
     credit(db, st, userId, { source: missionXpSource(def), ref: a.id, amount: res.xp, at, activityId: null }, live);
     if (def.bonus?.dailyChest) st.bonus.push({ id: nextId(st, 'bonus'), rarity: def.bonus.dailyChest, source: def.id, openedAt: null });
-    if (def.bonus?.cosmetic) grantCosmetic(st, def.bonus.cosmetic, '', `missao:${def.id}`);
+    if (def.bonus?.cosmetic) grantCosmetic(db, st, userId, def.bonus.cosmetic, '', `missao:${def.id}`);
     out.push({ id: def.id, userMissionId: a.id, cadence: a.cadence, text: missionText(def, a.target, a.variant), xp: res.xp, slot: a.slot });
   }
   return out;
@@ -304,7 +306,7 @@ function openChests(db: DemoDb, st: EngState, userId: string, at: number, live: 
   let duplicateXp = 0;
   const pick = (rarity: ChestRarity, roll: number, n: number) => {
     const drop = rarity === 'comum' ? { cosmeticId: null, extraXp: 0 } : resolveCosmeticDrop(roll, CHEST_POOL[rarity], new Set([...st.cosmetics.values()].map((c) => c.id)));
-    if (drop.cosmeticId) grantCosmetic(st, drop.cosmeticId, '', `bau:${today}:${n}`);
+    if (drop.cosmeticId) grantCosmetic(db, st, userId, drop.cosmeticId, '', `bau:${today}:${n}`);
     return drop;
   };
   rolls.forEach((r, i) => {
@@ -412,7 +414,7 @@ function processActivity(db: DemoDb, st: EngState, userId: string, act: Row, liv
     level: { before: levelBefore, after: levelAfter, titleAfter: titleForLevel(levelAfter).id !== titleForLevel(levelBefore).id ? { id: titleForLevel(levelAfter).id, name: titleForLevel(levelAfter).name } : null },
     band: { before: runnerBand(lifetimeBefore).band.id, after: runnerBand(lifetimeBefore + (f.scored ? f.meters : 0)).band.id },
     dailyChests: opened
-      ? { opened: opened.prizes.map((p) => ({ n: p.n, rarity: p.rarity, xp: p.xp, cosmeticId: p.cosmeticId, duplicate: p.duplicate, guaranteed: p.guaranteed, bonus: p.bonus })), pityLeft: opened.pityLeft }
+      ? { opened: opened.prizes.map((p) => ({ n: p.n, rarity: p.rarity, xp: p.xp, cosmeticDrop: p.cosmeticId !== null || p.duplicate, cosmeticId: p.cosmeticId, duplicate: p.duplicate, guaranteed: p.guaranteed, bonus: p.bonus })), pityLeft: opened.pityLeft }
       : { opened: [], reason: gate.ok ? 'already' : gate.reason, stored: chestState(db, st, userId, at).stored },
     missions: completed.map(({ slot: _slot, ...c }) => c),
     streak: { activitiesThisWeek: weekAfter, weekKept: kept > 0, weeks, best: Math.max(st.best, weeks), freezesLeft: Number(profile.freezes_left ?? 0), paused: isPaused(st, day) },
@@ -467,10 +469,10 @@ function stateOf(db: DemoDb, userId: string, exclude?: string): EngState {
   const reached = seasonTrackStep(seasonXp(st, season)).step;
   for (let s = 1; s < reached; s++) claimStep(db, st, userId, s, season, now, false);
   const level = levelProgress(Number(profile.xp ?? 0)).level;
-  for (const t of unlockedTitles(level)) if (t.unlocks) grantCosmetic(st, t.unlocks, '', `titulo:${t.id}`);
+  for (const t of unlockedTitles(level)) if (t.unlocks) grantCosmetic(db, st, userId, t.unlocks, '', `titulo:${t.id}`);
   const band = runnerBand(lifetime(db, st, userId, now, exclude)).band;
   for (const [id, frame] of Object.entries(BAND_FRAME)) {
-    grantCosmetic(st, frame, '', `faixa:${id}`);
+    grantCosmetic(db, st, userId, frame, '', `faixa:${id}`);
     if (id === band.id) break;
   }
   return st;
@@ -560,7 +562,7 @@ function claimStep(db: DemoDb, st: EngState, userId: string, step: number, seaso
   st.trackClaims.add(key);
   const items = DEMO_TRACK_REWARDS[step] ?? [];
   for (const i of items) {
-    if (i.kind === 'cosmetic' && i.cosmeticId) grantCosmetic(st, i.cosmeticId, season, `trilha:${key}`);
+    if (i.kind === 'cosmetic' && i.cosmeticId) grantCosmetic(db, st, userId, i.cosmeticId, season, `trilha:${key}`);
     if (i.kind === 'xp') credit(db, st, userId, { source: 'season_step', ref: key, amount: i.amount ?? 0, at: now, activityId: null }, live);
     if (i.kind === 'chest' && i.rarity) st.bonus.push({ id: nextId(st, 'bonus'), rarity: i.rarity, source: `trilha:${key}`, openedAt: live ? null : now });
     if (i.kind === 'freeze' && live) {
@@ -577,11 +579,8 @@ function streakState(db: DemoDb, st: EngState, userId: string): StreakV2State {
   return { weeks, best: Math.max(st.best, weeks), freezesLeft: Number(p.freezes_left ?? 0), pause: st.pause, pauseUsedSeason: st.pauseUsedSeason };
 }
 
-function weekTotals(db: DemoDb, userId: string, from: number, to: number) {
-  const acts = scoredActs(db, userId).filter((a) => a.startedAt >= from && a.startedAt < to);
-  return { activities: acts.length, meters: acts.reduce((s, a) => s + a.meters, 0), zones: new Set(acts.flatMap((a) => a.zonesPainted)).size };
-}
 
+/** Mesmo formato do `my_engagement()` da E9 (onda 2): parte `null` = recurso desligado (aqui, tudo ligado). */
 function engagementJson(db: DemoDb, st: EngState, userId: string, now: number) {
   const p = db.profile(userId)!;
   const xp = Number(p.xp ?? 0);
@@ -591,35 +590,30 @@ function engagementJson(db: DemoDb, st: EngState, userId: string, now: number) {
   const today = dayOf(now);
   const season = seasonOf(now);
   const s = streakState(db, st, userId);
-  const t = seasonTrackStep(seasonXp(st, season));
-  const monday = brtCalendar.weekMonday(today);
-  const acts = scoredActs(db, userId, now);
+  const sxp = seasonXp(st, season);
+  const t = seasonTrackStep(sxp);
   const chest = chestState(db, st, userId, now);
+  const weekId = brtCalendar.weekIdOf(today);
+  const pick = (f: (a: Assignment) => boolean) => st.assignments.filter(f).sort((a, b) => a.slot - b.slot).map(missionJson);
+  const comeback = st.assignments.filter((a) => a.cadence === 'volta' && a.completedAt === null).at(-1);
   return {
     level: lp.level,
     xp,
     intoLevel: lp.intoLevel,
     needed: lp.needed,
+    isMax: lp.isMax,
     title: { id: lp.title.id, name: lp.title.name },
-    band: { id: band.band.id, name: band.band.name, metersToNext: band.metersToNext },
+    band: { id: band.band.id, name: band.band.name, next: band.next?.id ?? null, metersToNext: band.metersToNext },
     lifetimeMeters: life,
-    streak: {
-      weeks: s.weeks,
-      best: s.best,
-      activitiesThisWeek: weekActivities(db, userId, now),
-      freezesLeft: s.freezesLeft,
-      pause: isPaused(st, today) || (st.pause && st.pause.from > today) ? st.pause : null,
-      pauseAvailable: st.pauseUsedSeason !== season,
+    streak: { weeks: s.weeks, best: s.best, freezesLeft: s.freezesLeft, activitiesThisWeek: weekActivities(db, userId, now), pause: st.pause },
+    dailyChest: { stored: chest.stored, openedToday: chest.openedToday, pityLeft: chest.pityLeft, odds: chest.odds },
+    missions: {
+      daily: pick((a) => a.cadence === 'diaria' && a.period === today),
+      weekly: pick((a) => a.cadence === 'semanal' && a.period === weekId),
+      ftue: pick((a) => a.cadence === 'ftue'),
+      comeback: comeback ? missionJson(comeback) : null,
     },
-    dailyChest: { stored: chest.stored, pityLeft: chest.pityLeft, odds: chest.odds },
-    season: { id: season, xp: seasonXp(st, season), step: t.step, intoStep: t.intoStep, medal: t.medal, prestigeStars: t.prestigeStars },
-    createdAt: st.createdAt,
-    lastActivityAt: acts.at(-1)?.startedAt ?? null,
-    recentStartTimes: [...acts].reverse().slice(0, 10).map((a) => a.startedAt),
-    week: weekTotals(db, userId, brtCalendar.at(monday), Number.POSITIVE_INFINITY),
-    previousWeek: weekTotals(db, userId, brtCalendar.at(brtCalendar.addDays(monday, -7)), brtCalendar.at(monday)),
-    cosmetics: [...st.cosmetics.values()].map((c) => ({ id: c.id, variant: c.variant })),
-    isDemo: true,
+    season: { id: season, xp: sxp, step: t.step, intoStep: t.intoStep, medal: t.medal, prestigeStars: t.prestigeStars },
   };
 }
 
@@ -763,8 +757,10 @@ export function withEngagementExtras<T>(db: DemoDb, userId: string, response: T)
   const st = stateOf(db, userId, String(act.id));
   if (st.processed.has(String(act.id))) return response;
   const block = processActivity(db, st, userId, act, true);
-  r.xp = (block.xp as { total: number }).total;
-  r.extras = { ...extras, engagement: block };
+  // Contrato da E9 (onda 2): `response.xp` = XP da própria atividade (sem baús e missões, que vêm nas linhas).
+  const own = new Set(['run_distance', 'run_complete', 'fog', 'ghost', 'hunt_chest', 'week_kept']);
+  r.xp = (block.xp as { lines: { source: string; amount: number }[] }).lines.filter((l) => own.has(l.source)).reduce((sum, l) => sum + l.amount, 0);
+  r.extras = { contract: 2, ...extras, engagement: block };
   act.xp = r.xp;
   return response;
 }

@@ -536,7 +536,23 @@ async function loadFacts(now: number) {
   return runs.ok ? activityFacts(runs.data, now) : null;
 }
 
-/** Nível, título, faixa, sequência, pausa e temporada. Nunca "indisponível": sem a RPC, usa o perfil v1. */
+/** Cosméticos da pessoa (`user_cosmetics`, só as próprias linhas pela RLS). `null` = servidor sem a tabela. */
+export async function fetchOwnedCosmetics(): Promise<OwnedCosmetic[] | null> {
+  const res = await attempt(async () => {
+    const { data, error } = await requireSupabase().from('user_cosmetics').select('cosmetic_id,variant');
+    if (error) throw error;
+    return data;
+  });
+  if (!res.ok) return null;
+  return arr(res.data)
+    .map((r) => ({ id: str(r.cosmetic_id), variant: str(r.variant) }))
+    .filter((c) => c.id.length > 0);
+}
+
+/**
+ * Nível, título, faixa, sequência, pausa e temporada (`my_engagement`, E9 onda 2), mais os cosméticos. Nunca
+ * "indisponível": sem a RPC, usa o perfil v1. A semana e a última atividade saem das corridas.
+ */
 export async function fetchEngagementStatus(userId: string, now: number): Promise<Result<EngagementStatus>> {
   const facts = await loadFacts(now);
   const res = asMaybe(
@@ -547,15 +563,15 @@ export async function fetchEngagementStatus(userId: string, now: number): Promis
     }),
   );
   if (!res.ok) return res;
-  if (res.data.available) return ok(parseStatus(res.data.data, facts));
+  // Depois da RPC (no servidor de demonstração, é ela que monta o estado de engajamento).
+  const cosmetics = await fetchOwnedCosmetics();
+  if (res.data.available) return ok({ ...parseStatus(res.data.data, facts), cosmetics });
   return attempt(async () => {
     const { data, error } = await requireSupabase().from('profiles').select('xp,streak_weeks,freezes_left').eq('id', userId).single();
     if (error) throw error;
     const p = obj(data);
-    return statusFromProfile(
-      { xp: num(p.xp), streakWeeks: num(p.streak_weeks), freezesLeft: num(p.freezes_left, 1) },
-      facts ?? activityFacts([], now),
-    );
+    const s = statusFromProfile({ xp: num(p.xp), streakWeeks: num(p.streak_weeks), freezesLeft: num(p.freezes_left, 1) }, facts ?? activityFacts([], now));
+    return { ...s, cosmetics };
   });
 }
 

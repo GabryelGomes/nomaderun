@@ -107,7 +107,11 @@ describe('corrida no modo demonstração → extras.engagement', () => {
     expect(block).not.toBeNull();
     expect(block.xp.lines.map((l) => l.source)).toEqual(expect.arrayContaining(['run_distance', 'run_complete', 'daily_chest']));
     expect(block.xp.total).toBe(block.xp.lines.reduce((s, l) => s + l.amount, 0));
-    expect(official.xp).toBe(block.xp.total);
+    // Contrato da E9 (onda 2): `response.xp` = só o XP da própria atividade; baús e missões vêm nas linhas.
+    const own = ['run_distance', 'run_complete', 'fog', 'ghost', 'hunt_chest', 'week_kept'];
+    expect(official.xp).toBe(block.xp.lines.filter((l) => own.includes(l.source)).reduce((s, l) => s + l.amount, 0));
+    expect(official.xp).toBeLessThan(block.xp.total);
+    expect((official as unknown as { extras: { contract: number } }).extras.contract).toBe(2);
     // 1 guardado + o bônus raro da primeira semana, com a garantia do lendário andando.
     expect(block.dailyChests.opened).toHaveLength(2);
     expect(block.dailyChests.opened.filter((c) => c.bonus).map((c) => c.rarity)).not.toContain('comum');

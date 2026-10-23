@@ -57,6 +57,8 @@ export const DEMO_TABLE_COLUMNS = {
   leaderboard_crews: ['position', 'crew_id', 'name', 'tag', 'faction', 'rp', 'members'],
   leaderboard_factions: ['position', 'faction', 'rp', 'runners', 'zones'],
   leaderboard_cities: ['position', 'city', 'rp', 'active_runners', 'eligible', 'score'],
+  // Engajamento v2 (E7): cosméticos da pessoa (escritos pelos pares em `engagement.ts`).
+  user_cosmetics: ['user_id', 'cosmetic_id', 'variant', 'source', 'unlocked_at'],
 } as const satisfies Record<string, readonly string[]>;
 
 export type DemoTable = keyof typeof DEMO_TABLE_COLUMNS;
@@ -139,6 +141,7 @@ export class DemoDb {
       privacy_zones: [],
       safety_contacts: [],
       moderation_reviews: [],
+      user_cosmetics: [],
     };
     this.seed();
   }
