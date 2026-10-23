@@ -13,6 +13,7 @@ import { neon } from '@/theme/neon';
 import { space } from '@/theme/tokens';
 import { ForceScheme } from '@/theme/use-theme';
 
+import { startDemo, useDemoActive } from './demo-entry';
 import { ErrorNotice, FormScaffold, TextField, TextLink } from './form-ui';
 import { HeroWordmark } from './hero-wordmark';
 import { NeonBackdrop } from './neon-backdrop';
@@ -28,9 +29,11 @@ export function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [demoBusy, setDemoBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<{ email?: string; password?: string }>({});
   const notice = useSession((s) => s.signedOutNotice);
+  const demoOn = useDemoActive();
   const passwordRef = useRef<TextInput>(null);
 
   const submit = async () => {
@@ -45,6 +48,15 @@ export function SignInScreen() {
     setBusy(false);
     // Em sucesso o guarda de rotas do layout raiz leva ao onboarding ou às abas.
     if (!res.ok) setError(res.error.message);
+  };
+
+  // D-77: "Ver demonstração" abre o app com dados de exemplo (o selo "Demonstração" fica fixo no layout).
+  const demo = async () => {
+    setError(null);
+    setDemoBusy(true);
+    const e = await startDemo();
+    setDemoBusy(false);
+    if (e) setError(e.message);
   };
 
   const social = async (p: (typeof env.oauthProviders)[number]) => {
@@ -106,13 +118,25 @@ export function SignInScreen() {
         </View>
 
         <View style={{ gap: space[3], marginTop: 'auto' }}>
-          {env.oauthProviders.map((p) => (
+          {/* Login social não existe na demonstração (o Auth de demonstração responde "Indisponível"). */}
+          {(demoOn ? [] : env.oauthProviders).map((p) => (
             <Button key={p} testID={`entrar-${p}`} label={providerLabel[p]} kind="secondary" size="lg" wide onPress={() => social(p)} />
           ))}
           <Text variant="caption" muted style={{ textAlign: 'center' }}>
             Ainda não corre com a gente?
           </Text>
           <Button testID="entrar-criar-conta" label="Criar conta" kind="secondary" size="lg" wide onPress={() => router.push('/cadastro')} />
+          <Button
+            testID="entrar-ver-demonstracao"
+            label={demoBusy ? 'Abrindo…' : 'Ver demonstração'}
+            accessibilityLabel="Ver demonstração com dados de exemplo"
+            kind="ghost"
+            icon="eye"
+            wide
+            disabled={demoBusy}
+            busy={demoBusy}
+            onPress={demo}
+          />
         </View>
       </FormScaffold>
     </ForceScheme>
