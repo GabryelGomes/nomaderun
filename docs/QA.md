@@ -472,3 +472,33 @@ NODE_PATH=$(npm root -g) node e2e-web/capturas.cjs /tmp/nomade-demo depois-onda2
 
 ### 15.4 CI (T7.1.20)
 `.github/workflows/ci.yml`: jobs `app` (tipos, lint, Jest, cobertura do domain ≥ 90%, contraste como relatório), `web` (export do modo demonstração com `--clear` e orçamento de 980.000 B gzip) e `functions` (Deno test/check, `gen-seed.ts` e `domain-copy --check`). O contraste estrito liga depois da D-75.
+
+## 16. Fase 7 — interruptor da demonstração, estilos animados e CI do banco (E10, onda 2, 2026-10-23)
+
+Relatório completo: `docs/melhoria/relatorios/E10-onda2.md`. Decisões: D-77 (modo demonstração), D-75 (contraste), D-81 (CI).
+
+### 16.1 Interruptor do modo demonstração (T7.2.10)
+`apps/mobile/src/services/demo-mode.ts` liga e desliga o modo demonstração com o app aberto (botão "Ver demonstração" e selo, E6a):
+
+| Nome | O que faz |
+|---|---|
+| `enterDemo(opts?: { scenario?: DemoScenario }): Promise<boolean>` | Liga. Zera fila (`setQueueStore(null)`), motor do sync (`setSyncEngine(null)`) e servidor em memória (`setDemoClient`), apaga sobras de uma demonstração interrompida e avisa os ouvintes com `true`. A conta real (sessão no SecureStore, fila, caches, chave HMAC) não é tocada. `false` se já estava ligado. |
+| `exitDemo(): Promise<boolean>` | Desliga. Apaga corridas e pontos da fila da demonstração, os caches `nomade.demo.*`, a chave HMAC do `demo-corredor` e o mundo em memória; para o GPS em segundo plano se uma corrida da demonstração estava gravando; zera os mesmos singletons e avisa os ouvintes com `false`. `false` se não estava ligado ou se o build é `EXPO_PUBLIC_DEMO=1`. |
+| `isDemoActive(): boolean` | Build de demonstração ou interruptor ligado. |
+| `isDemoBuild(): boolean` | `EXPO_PUBLIC_DEMO=1` (não há servidor real para onde voltar). |
+| `onDemoSwitch(fn): () => void` | Avisa depois de cada troca. Também serve de `subscribe` para `useSyncExternalStore(onDemoSwitch, isDemoActive)`. |
+
+- **Stores:** `src/services` não importa `src/store` (ARQUITETURA §2). Quem zera as stores é o ouvinte que a camada de features registra com `onDemoSwitch` (ver o relatório, pedido à E6a). Sem ouvinte, `enterDemo` avisa no console em desenvolvimento.
+- **Envio em andamento durante a troca:** o transporte guarda o modo em que nasceu; se o modo mudou, responde `MODE_SWITCHED` (como sem conexão) e a corrida fica para depois. Nem corrida real vai ao servidor de demonstração, nem corrida de demonstração ao servidor real.
+- **Espelho fila → store:** os ouvintes do sync (`wireSyncEvents`) sobrevivem à troca do motor; o motor antigo deixa de repassar eventos.
+- **Teste:** `src/__tests__/demo-switch.test.ts` (entrar → correr → sair: nada da demonstração em fila SQLite, kv-store, chave ou store; conta real intacta; nenhum `fetch`).
+
+### 16.2 Estilos animados: só transform e opacidade
+`src/__tests__/animated-styles.test.ts` lê o `src/` pela AST e falha com `arquivo:linha` se `width`, `height`, `top`, `left` ou `margin*` aparecerem no retorno do `useAnimatedStyle`, nos quadros do `animationName` (literal, constante ou função do mesmo arquivo) ou numa transição (`transitionProperty` com esses nomes, `'all'`, ou duração sem `transitionProperty`). Exceções em `BASELINE_LAYOUT_ANIMATIONS`, com motivo e dono; hoje, 5 ocorrências em telas da E6b (saem na T7.2.7). `NOMADE_ANIM_REPORT=1 npx jest animated-styles` imprime o levantamento.
+
+### 16.3 Contrato da demonstração
+O `demo-contract.test.ts` também resolve o nome por constante do arquivo e por tipo importado de outro arquivo (ex.: `type RaidRpc` no `types.ts`). Nos índices da demonstração (`DEMO_TABLE_COLUMNS`, `DEMO_RPC_HANDLERS`, `DEMO_FUNCTION_HANDLERS` + `FunctionName`) cada equipe só acrescenta linhas; as listas `DEMO_*` saem deles.
+
+### 16.4 CI
+- **Job `db`:** instala `postgresql-16-postgis-3`, `postgresql-16-pgtap`, `postgresql-16-cron` (e `pg_prove`) pelo apt no `ubuntu-latest` (se a imagem não tiver o Postgres 16, usa o repositório oficial PGDG) e roda `npm run db:test:local` (migrations, seed e pgTAP, sem Docker). O resumo vai para a página do job.
+- **Contraste estrito:** o job `app` roda `contraste.cjs --strict` (D-75 aplicada): par do tema escuro abaixo do mínimo derruba a CI.
