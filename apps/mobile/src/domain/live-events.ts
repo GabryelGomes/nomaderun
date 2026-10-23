@@ -4,7 +4,7 @@ import {
   cellsOfSegment,
   conquestGap,
   emptyPaintCounts,
-  gapMeters,
+  paintGapMeters,
   PAINT_ATTACK_RATIO,
   PAINT_DEFENSE_RETAKES,
   paintCellOf,
@@ -209,7 +209,7 @@ export function createLiveTracker(opts: LiveTrackerOptions): LiveTracker {
     owner: z.owner,
     counts: { ...z.counts },
     gapCells: z.gap,
-    gapMeters: gapMeters(z.gap),
+    gapMeters: paintGapMeters(z.gap),
     mine: z.owner === faction,
   });
 
@@ -291,9 +291,9 @@ export function createLiveTracker(opts: LiveTrackerOptions): LiveTracker {
       for (const m of LIVE_PROGRESS_MARKS) if (pct >= m && m > z.marks) mark = m;
       if (mark) {
         z.marks = mark;
-        out.push({ ...base, level: LIVE_EVENT_LEVEL.zona_progresso, type: 'zona_progresso', zoneId, pct: mark as LiveProgressMark, gapCells: z.gap, gapMeters: gapMeters(z.gap) });
+        out.push({ ...base, level: LIVE_EVENT_LEVEL.zona_progresso, type: 'zona_progresso', zoneId, pct: mark as LiveProgressMark, gapCells: z.gap, gapMeters: paintGapMeters(z.gap) });
       }
-      out.push({ ...base, level: LIVE_EVENT_LEVEL.faltam_metros, type: 'faltam_metros', zoneId, gapCells: z.gap, gapMeters: gapMeters(z.gap) });
+      out.push({ ...base, level: LIVE_EVENT_LEVEL.faltam_metros, type: 'faltam_metros', zoneId, gapCells: z.gap, gapMeters: paintGapMeters(z.gap) });
     }
   }
 

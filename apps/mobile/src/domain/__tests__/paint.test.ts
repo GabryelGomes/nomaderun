@@ -17,7 +17,7 @@ import {
   emptyPaintCounts,
   fadeCell,
   fadeCells,
-  gapMeters,
+  paintGapMeters,
   inheritZonesV1,
   inheritedCells,
   isZoneUnderAttackV2,
@@ -168,8 +168,8 @@ describe('dono da zona e "faltam N trechos"', () => {
     expect(conquestGap(counts({ owls: 3 }), 'owls', 'owls')).toBe(0);
     expect(conquestGap(counts({ owls: 3, volt: 7 }), 'owls', 'volt')).toBe(5);
     expect(conquestGap(counts({ owls: 4, volt: 4 }), 'owls', 'volt')).toBe(1);
-    expect(gapMeters(5)).toBe(200);
-    expect(gapMeters(-1)).toBe(0);
+    expect(paintGapMeters(5)).toBe(200);
+    expect(paintGapMeters(-1)).toBe(0);
   });
 });
 

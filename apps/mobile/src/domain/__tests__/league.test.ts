@@ -8,10 +8,11 @@ import {
   LEAGUE_V2_GROUP_MAX,
   leagueGroupsV2,
   leagueMovesFor,
+  leaguePlaceNewcomer,
   leagueStandingsV2,
   leagueWeek,
   leagueWeekPoints,
-  nextDivision,
+  leagueNextDivision,
   type LeagueEntry,
   type LeagueMember,
 } from '../league';
@@ -64,6 +65,28 @@ describe('grupos', () => {
   });
 });
 
+describe('entrada no meio da semana', () => {
+  it('vai para o último grupo da divisão com vaga; cheio, abre outro; já inscrito não muda', () => {
+    const groups = leagueGroupsV2(members(59));
+    expect(groups.map((g) => g.members.length)).toEqual([30, 29]);
+    const a = leaguePlaceNewcomer(groups, { userId: 'novo', division: 0, volume: 0 });
+    expect(a.group).toMatchObject({ division: 0, index: 1 });
+    expect(a.groups.map((g) => g.members.length)).toEqual([30, 30]);
+    const b = leaguePlaceNewcomer(a.groups, { userId: 'novo2', division: 0, volume: 0 });
+    expect(b.group).toEqual({ division: 0, index: 2, members: ['novo2'] });
+    expect(leaguePlaceNewcomer(b.groups, { userId: 'novo', division: 0, volume: 0 }).group).toBe(a.group);
+    expect(leaguePlaceNewcomer([], { userId: 'x', division: 99, volume: 0 }).group).toEqual({ division: TOP, index: 0, members: ['x'] });
+    const two = leaguePlaceNewcomer(
+      [
+        { division: 1, index: 1, members: ['p'] },
+        { division: 1, index: 0, members: ['q'] },
+      ],
+      { userId: 'y', division: 1, volume: 0 },
+    );
+    expect(two.group).toEqual({ division: 1, index: 1, members: ['p', 'y'] });
+  });
+});
+
 describe('resultado do grupo', () => {
   it('sobe/desce 1 a cada 6, até 5', () => {
     expect([1, 5, 6, 11, 12, 29, 30, 31].map(leagueMovesFor)).toEqual([0, 0, 1, 1, 2, 4, 5, 5]);
@@ -105,11 +128,11 @@ describe('resultado do grupo', () => {
   });
 
   it('próxima divisão', () => {
-    expect(nextDivision(1, 'promoted')).toBe(2);
-    expect(nextDivision(1, 'relegated')).toBe(0);
-    expect(nextDivision(1, 'stays')).toBe(1);
-    expect(nextDivision(TOP, 'promoted')).toBe(TOP);
-    expect(nextDivision(0, 'relegated')).toBe(0);
+    expect(leagueNextDivision(1, 'promoted')).toBe(2);
+    expect(leagueNextDivision(1, 'relegated')).toBe(0);
+    expect(leagueNextDivision(1, 'stays')).toBe(1);
+    expect(leagueNextDivision(TOP, 'promoted')).toBe(TOP);
+    expect(leagueNextDivision(0, 'relegated')).toBe(0);
   });
 });
 

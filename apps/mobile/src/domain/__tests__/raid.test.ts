@@ -27,7 +27,7 @@ import {
   raidStatusAt,
   raidWeakPoints,
   raidWeekWindow,
-  seededUnit,
+  raidSeededUnit,
   type RaidPhase,
   type RaidState,
 } from '../raid';
@@ -126,7 +126,7 @@ describe('dano', () => {
     expect(raidCritRoll(CRIT)).toBe(true);
     expect(raidCritRoll(CRIT)).toBe(true);
     expect(raidCritRoll(NO_CRIT)).toBe(false);
-    expect(seededUnit('x')).toBe(seededUnit('x'));
+    expect(raidSeededUnit('x')).toBe(raidSeededUnit('x'));
     const n = 20_000;
     let crits = 0;
     for (let i = 0; i < n; i++) if (raidCritRoll(`atividade-${i}`)) crits++;

@@ -127,7 +127,25 @@ export function leagueStandingsV2(entries: readonly LeagueEntry[], division: num
 }
 
 /** Divisão da semana seguinte. */
-export function nextDivision(division: number, result: LeagueResultV2): number {
+export function leagueNextDivision(division: number, result: LeagueResultV2): number {
   const d = division + (result === 'promoted' ? 1 : result === 'relegated' ? -1 : 0);
   return Math.min(LEAGUE_DIVISIONS.length - 1, Math.max(0, d));
+}
+
+/**
+ * Quem entra na liga no meio da semana (1ª corrida da semana, D-68): vai para o último grupo da sua divisão
+ * (o de menor volume, onde fica o iniciante) se ele tiver vaga; senão, abre um grupo novo. Já inscrito: nada muda.
+ */
+export function leaguePlaceNewcomer(groups: readonly LeagueGroup[], member: LeagueMember): { groups: LeagueGroup[]; group: LeagueGroup } {
+  const existing = groups.find((g) => g.members.includes(member.userId));
+  if (existing) return { groups: [...groups], group: existing };
+  const division = Math.min(LEAGUE_DIVISIONS.length - 1, Math.max(0, Math.floor(safe(member.division))));
+  const own = groups.filter((g) => g.division === division);
+  const last = own.reduce<LeagueGroup | null>((acc, g) => (acc === null || g.index > acc.index ? g : acc), null);
+  if (last && last.members.length < LEAGUE_V2_GROUP_MAX) {
+    const group = { ...last, members: [...last.members, member.userId] };
+    return { groups: groups.map((g) => (g === last ? group : g)), group };
+  }
+  const group: LeagueGroup = { division, index: last ? last.index + 1 : 0, members: [member.userId] };
+  return { groups: [...groups, group], group };
 }

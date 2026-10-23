@@ -294,7 +294,7 @@ export function conquestGap(counts: PaintCounts, faction: FactionId, currentOwne
 }
 
 /** "≈ X m" para um número de trechos. */
-export const gapMeters = (cells: number) => Math.max(0, cells) * PAINT_CELL_METERS;
+export const paintGapMeters = (cells: number) => Math.max(0, cells) * PAINT_CELL_METERS;
 
 /** Ataque ainda vale em `now` (expira 24 h depois da última virada do rival). Corrige a E-03 na v2. */
 export const paintAttackActive = (zone: ZonePaint, now: number) =>

@@ -149,7 +149,7 @@ export function closeRaid(raid: RaidState, now: number): RaidState {
 /* ---------- sorte determinística ---------- */
 
 /** Número em [0, 1) derivado de uma semente de texto (FNV-1a + mistura). Mesmo texto, mesmo número. */
-export function seededUnit(seed: string): number {
+export function raidSeededUnit(seed: string): number {
   let h = 0x811c9dc5;
   for (let i = 0; i < seed.length; i++) {
     h ^= seed.charCodeAt(i);
@@ -164,7 +164,7 @@ export function seededUnit(seed: string): number {
 }
 
 /** Crítico (10%, chance visível): sorteio determinístico pela semente (o id da atividade). */
-export const raidCritRoll = (seed: string, chance = RAID_CRIT_CHANCE) => seededUnit(`crit:${seed}`) < chance;
+export const raidCritRoll = (seed: string, chance = RAID_CRIT_CHANCE) => raidSeededUnit(`crit:${seed}`) < chance;
 
 /* ---------- dano ---------- */
 
@@ -247,7 +247,7 @@ export function raidWeakPoints(
   count = RAID_WEAK_POINTS_PER_DAY,
 ): string[] {
   const unique = [...new Set(zoneIds)];
-  const score = (z: string) => (preferred.has(z) ? 0 : 1) + seededUnit(`${seed}|${day}|${z}`);
+  const score = (z: string) => (preferred.has(z) ? 0 : 1) + raidSeededUnit(`${seed}|${day}|${z}`);
   return unique
     .map((z) => ({ z, s: score(z) }))
     .sort((a, b) => a.s - b.s)
