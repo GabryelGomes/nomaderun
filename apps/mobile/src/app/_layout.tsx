@@ -115,6 +115,9 @@ export default function RootLayout() {
             <Stack.Screen name="zonas-privacidade" options={{ ...pushHeader, ...push, title: 'Zonas de privacidade' }} />
             {/* D-73: Atividades moraram para "Você"; o endereço antigo só redireciona. */}
             <Stack.Screen name="atividades" options={fade} />
+            {/* D-78/D-79 (E8): compartilhar a corrida e o feed da crew precisam de sessão. */}
+            <Stack.Screen name="compartilhar/[id]" options={{ presentation: 'modal', ...modal }} />
+            <Stack.Screen name="compartilhar/feed" options={{ ...pushHeader, ...push, title: 'Feed da crew' }} />
             <Stack.Protected guard={staff}>
               <Stack.Screen name="moderacao" options={push} />
             </Stack.Protected>
@@ -131,6 +134,8 @@ export default function RootLayout() {
           <Stack.Protected guard={group === 'unavailable'}>
             <Stack.Screen name="indisponivel" options={fade} />
           </Stack.Protected>
+          {/* Convite (E8): quem recebe o link pode ainda não ter conta, por isso fica fora dos guards. */}
+          <Stack.Screen name="compartilhar/convite/[codigo]" options={{ presentation: 'modal', ...modal }} />
           <Stack.Screen name="termos" options={{ presentation: 'modal', ...modal }} />
           <Stack.Screen name="privacidade" options={{ presentation: 'modal', ...modal }} />
         </Stack>
