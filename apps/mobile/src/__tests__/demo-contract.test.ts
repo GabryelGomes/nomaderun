@@ -8,10 +8,14 @@
  *   - Edge Functions: `functions.invoke(...)`, `callFunction(...)` e o tipo `FunctionName`.
  * Falha, com o nome, se algum não tiver par no servidor de demonstração (`src/services/api/demo`).
  * Nome calculado em tempo de execução também falha: o contrato precisa ser legível.
+ * T7.2.10: o nome também pode vir de uma constante do arquivo (`const X = 'raid_status'`) ou de um tipo
+ * importado de outro arquivo (`fn: RaidRpc`, com `type RaidRpc = 'a' | 'b'` no `types.ts`).
+ * Na onda 2 a E3, a E7 e a E8 acrescentam pares nos índices (`DEMO_TABLE_COLUMNS`, `DEMO_RPC_HANDLERS`,
+ * `DEMO_FUNCTION_HANDLERS` + `FunctionName`); as listas `DEMO_*` saem deles, então o merge só soma linhas.
  */
 import { describe, expect, it } from '@jest/globals';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { dirname, isAbsolute, join, relative, sep } from 'node:path';
 import ts from 'typescript';
 
 import { DEMO_BUCKETS, DEMO_FUNCTIONS, DEMO_RPCS, DEMO_TABLES } from '@/services/api/demo';
@@ -37,19 +41,75 @@ function walk(dir: string, out: string[] = []): string[] {
 const isFunctionLike = (n: ts.Node): n is ts.FunctionLikeDeclaration =>
   ts.isFunctionDeclaration(n) || ts.isFunctionExpression(n) || ts.isArrowFunction(n) || ts.isMethodDeclaration(n);
 
-/** Literais de string de um tipo (`'a' | 'b'`, ou um alias no mesmo arquivo). */
-function typeLiterals(type: ts.TypeNode | undefined, sf: ts.SourceFile): string[] | null {
+/**
+ * Arquivo de um import (`@/…` ou relativo), para seguir um tipo declarado em outro arquivo
+ * (T7.2.10: as equipes da onda 2 guardam os nomes das RPCs em tipos do `types.ts`).
+ */
+function resolveImport(fromFile: string, spec: string): string | null {
+  const base = spec.startsWith('@/') ? join(SRC, spec.slice(2)) : spec.startsWith('.') ? join(dirname(isAbsolute(fromFile) ? fromFile : join(SRC, '..', fromFile)), spec) : null;
+  if (!base) return null;
+  for (const c of [`${base}.ts`, `${base}.tsx`, join(base, 'index.ts')]) if (existsSync(c)) return c;
+  return null;
+}
+
+const parsed = new Map<string, ts.SourceFile>();
+function parse(file: string): ts.SourceFile {
+  let sf = parsed.get(file);
+  if (!sf) {
+    sf = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, file.endsWith('x') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+    parsed.set(file, sf);
+  }
+  return sf;
+}
+
+/** Um alias de tipo pelo nome: no próprio arquivo ou importado (`import type { X } from '…'`). */
+function findAlias(name: string, sf: ts.SourceFile, depth: number): { alias: ts.TypeAliasDeclaration; sf: ts.SourceFile } | null {
+  const local = sf.statements.find((st): st is ts.TypeAliasDeclaration => ts.isTypeAliasDeclaration(st) && st.name.text === name);
+  if (local) return { alias: local, sf };
+  if (depth > 3) return null;
+  for (const st of sf.statements) {
+    if (!ts.isImportDeclaration(st) || !ts.isStringLiteral(st.moduleSpecifier)) continue;
+    const named = st.importClause?.namedBindings;
+    if (!named || !ts.isNamedImports(named)) continue;
+    const el = named.elements.find((e) => e.name.text === name);
+    if (!el) continue;
+    const file = resolveImport(sf.fileName, st.moduleSpecifier.text);
+    return file ? findAlias((el.propertyName ?? el.name).text, parse(file), depth + 1) : null;
+  }
+  return null;
+}
+
+/** Literais de string de um tipo (`'a' | 'b'`, ou um alias no mesmo arquivo ou importado). */
+function typeLiterals(type: ts.TypeNode | undefined, sf: ts.SourceFile, depth = 0): string[] | null {
   if (!type) return null;
   if (ts.isLiteralTypeNode(type) && ts.isStringLiteral(type.literal)) return [type.literal.text];
+  if (ts.isParenthesizedTypeNode(type)) return typeLiterals(type.type, sf, depth);
   if (ts.isUnionTypeNode(type)) {
-    const parts = type.types.map((t) => typeLiterals(t, sf));
+    const parts = type.types.map((t) => typeLiterals(t, sf, depth));
     return parts.every((p): p is string[] => p !== null) ? parts.flat() : null;
   }
   if (ts.isTypeReferenceNode(type) && ts.isIdentifier(type.typeName)) {
-    const alias = sf.statements.find((s): s is ts.TypeAliasDeclaration => ts.isTypeAliasDeclaration(s) && s.name.text === (type.typeName as ts.Identifier).text);
-    return alias ? typeLiterals(alias.type, sf) : null;
+    const found = findAlias(type.typeName.text, sf, depth);
+    return found ? typeLiterals(found.alias.type, found.sf, depth + 1) : null;
   }
   return null;
+}
+
+/** `const NOME = 'literal'` (com ou sem `as const`) no próprio arquivo. */
+function constLiteral(name: string, sf: ts.SourceFile): string[] | null {
+  let out: string[] | null = null;
+  const visit = (n: ts.Node) => {
+    if (out) return;
+    if (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name) && n.name.text === name && n.initializer && ts.isVariableDeclarationList(n.parent) && n.parent.flags & ts.NodeFlags.Const) {
+      let init: ts.Expression = n.initializer;
+      while (ts.isAsExpression(init) || ts.isParenthesizedExpression(init) || ts.isSatisfiesExpression(init)) init = init.expression;
+      if (ts.isStringLiteral(init) || ts.isNoSubstitutionTemplateLiteral(init)) out = [init.text];
+      return;
+    }
+    ts.forEachChild(n, visit);
+  };
+  visit(sf);
+  return out;
 }
 
 /** Primeiros argumentos literais das chamadas a `fnName` no arquivo (ex.: `invoke('register-device', ...)`). */
@@ -89,6 +149,7 @@ function namesOf(expr: ts.Expression | undefined, sf: ts.SourceFile): string[] |
       const lits = fnName ? literalCallArgs(fnName, idx, sf) : [];
       return lits.length ? lits : null;
     }
+    return constLiteral(expr.text, sf);
   }
   return null;
 }
@@ -183,5 +244,22 @@ describe('contrato do modo demonstração (D-77)', () => {
       'function "share-card" (src/services/api/missoes-repo.ts:5) não tem par no servidor de demonstração',
     ]);
     expect(fake.problems.map((p) => p.where)).toEqual(['src/services/api/missoes-repo.ts:6']);
+  });
+
+  it('autoteste: segue o nome por constante do arquivo e por tipo importado de outro arquivo (onda 2)', () => {
+    // `FactionId` vem de `src/domain/types.ts` ('striders' | 'coyotes' | …): um tipo de verdade em outro arquivo.
+    const fake = scanSource(
+      'src/services/api/raid-repo.ts',
+      [
+        "import type { FactionId } from '@/domain/types';",
+        "import { requireSupabase } from './supabase';",
+        "const RAID_STATUS = 'raid_status' as const;",
+        'export const a = () => requireSupabase().rpc(RAID_STATUS);',
+        'function call(fn: FactionId) { return requireSupabase().rpc(fn); }',
+        'export const b = () => call;',
+      ].join('\n'),
+    );
+    expect(fake.problems).toEqual([]);
+    expect(fake.uses.map((u) => `${u.kind}:${u.name}`)).toEqual(['rpc:raid_status', 'rpc:striders', 'rpc:coyotes', 'rpc:owls', 'rpc:volt']);
   });
 });
