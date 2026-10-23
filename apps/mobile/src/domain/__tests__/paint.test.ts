@@ -413,6 +413,20 @@ describe('propriedades da pintura (D-62)', () => {
     });
   });
 
+  it('placar depois = recontar a zona com os trechos e a herança depois da corrida (atalho incremental)', () => {
+    forAll(caseGen, (c) => {
+      const r = run(c, { options: { reinforceOnConquest: c.cells.length % 3 === 0 } });
+      const after: Record<string, PaintCell> = { ...c.world.cells };
+      for (const u of r.updatedCells) after[u.cell] = u;
+      for (const z of r.zones) {
+        const zone = r.updatedZones.find((u) => u.zoneId === z.zoneId)!;
+        expect(z.countsAfter).toEqual(zoneCounts(zone, Object.values(after), c.now));
+        const before = c.world.zones[z.zoneId] ?? newZonePaint(z.zoneId);
+        expect(z.countsBefore).toEqual(zoneCounts(before, Object.values(c.world.cells), c.now));
+      }
+    });
+  });
+
   it('camadas sempre entre 1 e 3; passada rival nunca aumenta camada do rival', () => {
     forAll(caseGen, (c) => {
       const r = run(c, { options: { reinforceOnConquest: c.cells.length % 2 === 0 } });

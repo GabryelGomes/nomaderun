@@ -1,3 +1,4 @@
+import { DAILY_ZONE_CAP, DEFENSE_BONUS, effortMultiplier } from './scoring';
 import { FACTION_IDS, type FactionId } from './types';
 
 /**
@@ -273,4 +274,81 @@ export function seasonResetV2(zone: Zone, now: number): { zone: Zone; events: Zo
     };
   }
   return { zone: z, events: [] };
+}
+
+/* ---------- "faltam X m" na regra v1 (pedido da E6, E-01) ---------- */
+
+/** O que a pessoa precisa fazer na zona: conquistar, defender (é sua e está sob ataque), manter ou nada (bloqueada). */
+export type ZoneGoal = 'conquistar' | 'defender' | 'manter' | 'bloqueada';
+
+export type InfluenceGapInput = {
+  /** A zona como estava no começo da corrida (retrato do servidor). */
+  zone: Zone;
+  faction: FactionId;
+  now: number;
+  /** Ritmo da corrida até aqui e ritmo-base (esforço relativo, `effortMultiplier`). */
+  paceSecPerKm: number;
+  basePaceSecPerKm: number;
+  /** Outros multiplicadores que a pessoa já tem (sequência da v1, grupo). Padrão 1; menor que 1 vira 1. */
+  bonus?: number;
+  /** Pontos que a pessoa já fez nesta zona hoje (teto de 300 por zona e dia). */
+  earnedTodayInZone?: number;
+  /** Metros válidos que esta corrida já fez dentro da zona. */
+  runMetersInZone?: number;
+};
+
+export type InfluenceGap = {
+  goal: ZoneGoal;
+  /** Pontos de domínio que ainda faltam na zona (já descontado o escudo). */
+  points: number;
+  /** "Faltam X m" dentro da zona, no ritmo atual. */
+  meters: number;
+  /** Cabe no teto diário de pontos da zona (senão, só amanhã). */
+  reachableToday: boolean;
+};
+
+const finiteOr = (v: number | undefined, fallback: number) => (v !== undefined && Number.isFinite(v) ? v : fallback);
+
+/** Para ser o rival mais forte, precisa PASSAR de `other` quando ele vem antes na ordem de FACTION_IDS (E-06). */
+const mustExceed = (me: FactionId, other: FactionId) => FACTION_IDS.indexOf(other) < FACTION_IDS.indexOf(me);
+
+/**
+ * Metros (e pontos) que faltam para conquistar ou defender a zona na regra v1 (influência), com esforço,
+ * escudo, janela de defesa e teto diário: o espelho de `applyRunPoints` + `resolveZone`, que o servidor usa
+ * enquanto `territory_rule = 'v1'`. Troca a estimativa `metros × 0,1` do HUD (pedido da E6). Nunca promete
+ * menos do que é preciso: arredonda para cima e exige passar o rival mais forte.
+ */
+export function influenceGapV1(input: InfluenceGapInput): InfluenceGap {
+  const { zone, faction, now } = input;
+  if (zone.blocked) return { goal: 'bloqueada', points: 0, meters: 0, reachableToday: false };
+  const runMeters = Math.max(0, finiteOr(input.runMetersInZone, 0));
+  const earned = Math.max(0, finiteOr(input.earnedTodayInZone, 0));
+  const perMeter = 0.1 * effortMultiplier(input.basePaceSecPerKm, input.paceSecPerKm) * Math.max(1, finiteOr(input.bonus, 1));
+
+  /** `missing` pontos de domínio; cada ponto da corrida vale `perPoint` (escudo) e cada metro `perMeterHere`. */
+  const gap = (goal: ZoneGoal, missing: number, perPoint: number, perMeterHere: number): InfluenceGap => {
+    if (!(missing > 0)) return { goal: goal === 'defender' ? 'manter' : goal, points: 0, meters: 0, reachableToday: true };
+    // Pontos da corrida na zona; o servidor arredonda (Math.round) os metros × 0,1 × multiplicadores.
+    const raw = Math.ceil(missing / perPoint - 1e-9);
+    const meters = Math.max(0, Math.ceil((raw - 0.49) / perMeterHere) - runMeters);
+    return { goal, points: Math.ceil(missing - 1e-9), meters, reachableToday: earned + raw <= DAILY_ZONE_CAP };
+  };
+
+  const mine = zone.influence[faction];
+  if (zone.owner === faction) {
+    if (zone.attackStartedAt === null) return { goal: 'manter', points: 0, meters: 0, reachableToday: true };
+    // Defendida quando o rival mais forte fica abaixo de 40% do dono; na janela de 24 h o dono vale 2×.
+    let rival = 0;
+    for (const f of FACTION_IDS) if (f !== faction) rival = Math.max(rival, zone.influence[f]);
+    const defense = defenseWindowOpen(zone, now) ? DEFENSE_BONUS : 1;
+    return gap('defender', rival / ATTACK_CLEAR_RATIO - mine + (rival > 0 ? 1e-6 : 0), 1, perMeter * defense);
+  }
+
+  let target = zone.owner === null ? CAPTURE_THRESHOLD : Math.max(zone.influence[zone.owner] * TAKEOVER_RATIO, CAPTURE_THRESHOLD);
+  for (const f of FACTION_IDS) {
+    if (f === faction || f === zone.owner) continue;
+    target = Math.max(target, zone.influence[f] + (mustExceed(faction, f) ? 1e-6 : 0));
+  }
+  const shield = zone.owner ? 1 - SHIELD_REDUCTION[Math.min(Math.max(0, zone.shield), SHIELD_MAX)] : 1;
+  return gap('conquistar', target - mine, shield, perMeter);
 }
