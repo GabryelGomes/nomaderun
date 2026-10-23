@@ -13,3 +13,6 @@ supabase/.temp/
 supabase/.branches/
 node_modules/
 apps/mobile/coverage/
+
+# Cópias isoladas (worktrees) das equipes de agentes do Claude Code
+.claude/worktrees/
