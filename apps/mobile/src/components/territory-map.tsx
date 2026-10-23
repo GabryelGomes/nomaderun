@@ -42,8 +42,34 @@ const toCoords = (ring: { lat: number; lng: number }[]) => ring.map(toCoord);
  * Regions are not tappable themselves: a tap is turned into the zone under the finger (same rule as the server).
  */
 export default function TerritoryMap(props: TerritoryMapProps) {
-  const { zones, center, span = 1800, myFaction, onlyMine, explored, user, path, invalidPaths, circles, chests, onZonePress, onMapPress, followUser, interactive = true, onRegionChange, focus, style } = props;
+  const {
+    zones,
+    center,
+    span = 1800,
+    myFaction,
+    onlyMine,
+    explored,
+    user,
+    path,
+    pathVersion,
+    pathColor = palette.orange,
+    invalidPaths,
+    circles,
+    chests,
+    onZonePress,
+    onMapPress,
+    followUser,
+    interactive = true,
+    onRegionChange,
+    focus,
+    style,
+  } = props;
+  // As regiões (suavização das zonas) só são refeitas quando as zonas mudam, nunca a cada ponto de GPS.
   const layers = useMemo(() => mapLayers({ zones, myFaction, onlyMine, explored }), [zones, myFaction, onlyMine, explored]);
+  const routeVersion = pathVersion ?? path?.length ?? 0;
+  // `path` pode ser o mesmo vetor crescendo (appendPoint): a versão é que diz quando refazer as coordenadas.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const route = useMemo(() => (path && path.length > 1 ? path.map(toCoord) : null), [path, routeVersion]);
   const map = useRef<MapView>(null);
   const night = useTheme().scheme === 'dark';
   const delta = span / 111_000;
@@ -94,23 +120,14 @@ export default function TerritoryMap(props: TerritoryMapProps) {
           if (zones.some((z) => z.id === id)) onZonePress(id);
         }}>
         {layers.explored.map(([outline, ...holes], i) => (
-          <Polygon
-            key={`exp-${i}`}
-            coordinates={toCoords(outline)}
-            holes={holes.map(toCoords)}
-            fillColor={alpha(palette.orange, 0.22)}
-            strokeColor={alpha(palette.orange, 0.7)}
-            strokeWidth={1.5}
-          />
+          <Polygon key={`exp-${i}`} coordinates={toCoords(outline)} holes={holes.map(toCoords)} fillColor={alpha(palette.orange, 0.22)} strokeColor={alpha(palette.orange, 0.7)} strokeWidth={1.5} />
         ))}
         {layers.blocked.map(([outline, ...holes], i) => (
           <Polygon key={`blk-${i}`} coordinates={toCoords(outline)} holes={holes.map(toCoords)} fillColor="rgba(94,94,102,0.18)" strokeColor={palette.ink3} strokeWidth={1} lineDashPattern={[4, 4]} />
         ))}
         {layers.regions.map((r) => {
           const [outline, ...holes] = r.rings;
-          return (
-            <Polygon key={`halo-${r.key}`} coordinates={toCoords(outline)} holes={holes.map(toCoords)} fillColor="transparent" strokeColor="rgba(255,255,255,0.9)" strokeWidth={4.5} />
-          );
+          return <Polygon key={`halo-${r.key}`} coordinates={toCoords(outline)} holes={holes.map(toCoords)} fillColor="transparent" strokeColor="rgba(255,255,255,0.9)" strokeWidth={4.5} />;
         })}
         {layers.regions.map((r) => {
           const [outline, ...holes] = r.rings;
@@ -122,15 +139,17 @@ export default function TerritoryMap(props: TerritoryMapProps) {
         {circles?.map((c) => (
           <Circle key={`circle-${c.id}`} center={toCoord(c.center)} radius={c.radius} fillColor="rgba(94,94,102,0.18)" strokeColor={palette.ink2} strokeWidth={1.5} />
         ))}
-        {path && path.length > 1 ? (
+        {route ? (
           <>
-            <Polyline coordinates={path.map(toCoord)} strokeColor={palette.white} strokeWidth={8} lineCap="round" lineJoin="round" />
-            <Polyline coordinates={path.map(toCoord)} strokeColor={palette.orange} strokeWidth={5} lineCap="round" lineJoin="round" />
+            <Polyline coordinates={route} strokeColor={palette.white} strokeWidth={8} lineCap="round" lineJoin="round" />
+            <Polyline coordinates={route} strokeColor={pathColor} strokeWidth={5} lineCap="round" lineJoin="round" />
           </>
         ) : null}
         {invalidPaths
           ?.filter((p) => p.length > 1)
-          .map((p, i) => <Polyline key={`invalid-${i}`} coordinates={p.map(toCoord)} strokeColor={palette.ink3} strokeWidth={5} lineCap="round" lineJoin="round" />)}
+          .map((p, i) => (
+            <Polyline key={`invalid-${i}`} coordinates={p.map(toCoord)} strokeColor={palette.ink3} strokeWidth={5} lineCap="round" lineJoin="round" />
+          ))}
         {chests?.map((c) => (
           <Marker key={c.id} coordinate={toCoord(c.position)} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
             <View
