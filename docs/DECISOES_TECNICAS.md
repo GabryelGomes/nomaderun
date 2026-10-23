@@ -494,3 +494,21 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
 - **Contexto:** medir D1/D7/D30 ajuda a banca, mas toca a LGPD.
 - **Decisão:** telemetria só com consentimento, desligada por padrão, lista fechada de eventos e retenção de 30 dias; prioridade P2 (última onda).
 - **Consequências:** nenhum dado sai sem o opt-in.
+
+### D-83 — Decisões de implementação da onda 1 (aceitas)
+2026-10-23 · Coordenador da Fase 7
+- **Contexto:** cada equipe tomou decisões de detalhe ao implementar a onda 1 e listou no próprio relatório.
+- **Decisão:** ficam aceitas as decisões registradas nos relatórios:
+  - `docs/melhoria/relatorios/E3-onda1.md` §3: desbotar pelo relógio do trecho; teto diário da Raid depois do crítico; fantasma a 7:30/km sem histórico; e as outras;
+  - `E7-onda1.md` §5: Fantasma e Atlas 1×/dia; o congelamento só é gasto com sequência a proteger; só a missão diária pode ser trocada; e as outras;
+  - `E8-onda1.md` §5: pontas escondidas em círculo; `CardChip`; e as outras;
+  - `E9-onda1.md`: flag `streakV2`; tabela `bonus_chests`; `record_ranking_opened()`; o golpe final em `raid_hits` (fora do Realtime); troca de missão no mesmo registro; `CHECK` de `notifications.type` como superconjunto.
+  - A cor provisória do baú raro (E5) deixa de ser violeta, que é só dos vilões (D-67).
+- **Consequências:** quem discordar de uma delas abre uma decisão nova que a substitui.
+
+### D-84 — A Fuligem fica fora do rodízio em agosto e setembro
+2026-10-23 · Coordenador da Fase 7
+- **Contexto:** o rodízio fixo dos chefões (E3) pode pôr a Fuligem (fumaça) na época das queimadas, e a arte (E4) pediu para não incentivar correr na fumaça.
+- **Decisão:** nas semanas que começam em agosto ou setembro, a Fuligem é pulada e entra o próximo chefão do rodízio. A regra fica no domain (`raid.ts`) e no job do servidor, com teste de paridade.
+- **Consequências:** a fala da Fuligem continua sem incentivar correr com fumaça; as outras semanas seguem o rodízio.
+

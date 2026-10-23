@@ -79,6 +79,24 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-23 — Fase 7, onda 1 (fundação) integrada (Coordenador + E3–E10)
+- **Feito:**
+  - **E3:** território v2 (`paint.ts`), eventos ao vivo, Raid, Liga e correções do domain em funções v2 (as v1 ficam iguais).
+  - **E7:** `progression.ts`, `missions.ts`, `reminders.ts`.
+  - **E8:** `share-privacy.ts`, `gpx.ts` e os cards SVG.
+  - **E4:** sistema de arte em `components/art` e `/dev/arte`.
+  - **E5:** tokens de motion v2, primitivas, celebrações e `/dev/motion`.
+  - **E6:** honestidade (GPS como padrão, sem textos falsos), contraste D-75 e componentes base.
+  - **E10:** modo demonstração (`EXPO_PUBLIC_DEMO=1`), teste de contrato, capturas "antes cheio", vazamento do Jest e CI no GitHub.
+  - **E9:** banco local no repositório (`npm run db:test:local`), contrato v2 com flags desligadas, Raid, Liga, missões, trilha, baú do dia e sequência com pausa.
+- **Testes:**
+  - app 986 ✅ (26 de integração pulados) · typecheck ok · eslint 0 · domain 100% linhas;
+  - Deno 58 ✅;
+  - **pgTAP 574/574 ✅ no banco local**;
+  - CI no GitHub ativa (jobs app, web e functions).
+- **Decisões:** D-83 (detalhes da onda 1) e D-84 (Fuligem fora de agosto e setembro).
+- **Para o próximo:** onda 2 conforme o `PLANO-MESTRE.md` §2 (9 frentes).
+
 ### 2026-10-23 — Fase 7 (F0–F2) — Reformulação v2: prompt, agentes, descoberta e plano (Coordenador)
 - **Feito:**
   - **F0:** prompt mestre `docs/melhoria/00-PROMPT-MELHORIA-COLOSSAL.md`; 11 agentes em `.claude/agents/` (coordenador + E1–E10); D-61 (substitui a D-15); nota da Fase 7 no `CLAUDE.md`.
