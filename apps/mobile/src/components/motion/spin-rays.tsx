@@ -5,6 +5,7 @@ import Svg, { Polygon } from 'react-native-svg';
 import { cssEasings, durations } from '@/theme/motion';
 
 import { useReducedMotionSetting } from './reduced-motion';
+import { usePausedWhenHidden } from './use-paused-when-hidden';
 
 export type SpinRaysProps = {
   color: string;
@@ -14,7 +15,7 @@ export type SpinRaysProps = {
   /** Uma volta a cada `periodMs` (padrão 9 s). */
   periodMs?: number;
   delay?: number;
-  /** Pausa o giro (tela fora de foco, app no fundo). */
+  /** Pausa o giro. Fora de foco e com o app no fundo ele já pausa sozinho (`usePausedWhenHidden`). */
   paused?: boolean;
   /** Opacidade dos raios. */
   opacity?: number;
@@ -40,6 +41,7 @@ export function rayPolygons(rays: number, size: number): string[] {
  */
 export function SpinRays({ color, size, rays = 16, periodMs = 9000, delay = 0, paused = false, opacity = 0.35, testID }: SpinRaysProps) {
   const reduced = useReducedMotionSetting();
+  const hidden = usePausedWhenHidden({ paused });
   const art = (
     <Svg width={size} height={size}>
       {rayPolygons(rays, size).map((points, i) => (
@@ -76,7 +78,7 @@ export function SpinRays({ color, size, rays = 16, periodMs = 9000, delay = 0, p
               animationDelay: delay,
               animationIterationCount: 'infinite',
               animationTimingFunction: 'linear',
-              animationPlayState: paused ? 'paused' : 'running',
+              animationPlayState: hidden ? 'paused' : 'running',
             }}>
             {art}
           </Animated.View>

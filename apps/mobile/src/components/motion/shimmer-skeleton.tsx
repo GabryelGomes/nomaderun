@@ -6,6 +6,7 @@ import { radius as radii } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { useReducedMotionSetting } from './reduced-motion';
+import { usePausedWhenHidden } from './use-paused-when-hidden';
 
 export type ShimmerSkeletonProps = {
   /** `line`: linha de texto; `circle`: avatar/ícone; `card`: bloco; `row`: avatar + 2 linhas. */
@@ -23,7 +24,7 @@ export type ShimmerSkeletonProps = {
 const SHIMMER_MS = 1200;
 
 /** Um bloco cinza com a faixa de brilho que atravessa (só `translateX`). */
-function Block({ width, height, radius }: { width: DimensionValue; height: number; radius: number }) {
+function Block({ width, height, radius, paused }: { width: DimensionValue; height: number; radius: number; paused: boolean }) {
   const { colors } = useTheme();
   const reduced = useReducedMotionSetting();
   const [w, setW] = useState(0);
@@ -44,6 +45,7 @@ function Block({ width, height, radius }: { width: DimensionValue; height: numbe
             animationDuration: SHIMMER_MS,
             animationIterationCount: 'infinite',
             animationTimingFunction: 'linear',
+            animationPlayState: paused ? 'paused' : 'running',
           }}
         />
       ) : null}
@@ -57,20 +59,22 @@ function Block({ width, height, radius }: { width: DimensionValue; height: numbe
  */
 export function ShimmerSkeleton({ shape, width = '100%', height, lines = 1, accessibilityLabel = 'Carregando', testID, style }: ShimmerSkeletonProps) {
   const reduced = useReducedMotionSetting();
+  // o laço para fora de foco e com o app no fundo (T7.2.9)
+  const paused = usePausedWhenHidden();
   let body;
   if (shape === 'circle') {
     const d = height ?? 48;
-    body = <Block width={d} height={d} radius={d / 2} />;
+    body = <Block width={d} height={d} radius={d / 2} paused={paused} />;
   } else if (shape === 'card') {
-    body = <Block width={width} height={height ?? 120} radius={radii.lg} />;
+    body = <Block width={width} height={height ?? 120} radius={radii.lg} paused={paused} />;
   } else if (shape === 'row') {
     const d = height ?? 40;
     body = (
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <Block width={d} height={d} radius={d / 2} />
+        <Block width={d} height={d} radius={d / 2} paused={paused} />
         <View style={{ flex: 1, gap: 8 }}>
-          <Block width="70%" height={12} radius={6} />
-          <Block width="45%" height={10} radius={5} />
+          <Block width="70%" height={12} radius={6} paused={paused} />
+          <Block width="45%" height={10} radius={5} paused={paused} />
         </View>
       </View>
     );
@@ -80,7 +84,7 @@ export function ShimmerSkeleton({ shape, width = '100%', height, lines = 1, acce
     body = (
       <View style={{ gap: 8 }}>
         {Array.from({ length: n }, (_, i) => (
-          <Block key={i} width={n > 1 && i === n - 1 ? '60%' : width} height={h} radius={h / 2} />
+          <Block key={i} width={n > 1 && i === n - 1 ? '60%' : width} height={h} radius={h / 2} paused={paused} />
         ))}
       </View>
     );
@@ -101,6 +105,7 @@ export function ShimmerSkeleton({ shape, width = '100%', height, lines = 1, acce
               animationDirection: 'alternate',
               animationIterationCount: 'infinite',
               animationTimingFunction: 'ease-in-out',
+              animationPlayState: paused ? 'paused' : 'running',
             }
           : null,
         style,
