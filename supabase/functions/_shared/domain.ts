@@ -23,3 +23,7 @@ export * from '../../../apps/mobile/src/domain/season.ts';
 export * from '../../../apps/mobile/src/domain/progression.ts';
 export * from '../../../apps/mobile/src/domain/missions.ts';
 export * from '../../../apps/mobile/src/domain/reminders.ts';
+export * from '../../../apps/mobile/src/domain/paint.ts';
+export * from '../../../apps/mobile/src/domain/live-events.ts';
+export * from '../../../apps/mobile/src/domain/raid.ts';
+export * from '../../../apps/mobile/src/domain/league.ts';

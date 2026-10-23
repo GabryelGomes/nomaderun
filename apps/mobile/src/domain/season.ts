@@ -13,6 +13,19 @@ export function seasonIdAt(now: Date): string {
   return `${brt.getUTCFullYear()}-${String(brt.getUTCMonth() + 1).padStart(2, '0')}`;
 }
 
+const DAY_MS_BRT = 24 * 60 * 60 * 1000;
+
+/**
+ * Início da semana (segunda-feira 00:00 em Brasília) que contém o instante, em epoch ms.
+ * Usado pela Raid (D-67) e pela Liga (D-68).
+ */
+export function weekStartBrt(now: number): number {
+  const local = now + BRT_OFFSET_MS;
+  const midnight = Math.floor(local / DAY_MS_BRT) * DAY_MS_BRT;
+  const sinceMonday = (new Date(midnight).getUTCDay() + 6) % 7;
+  return midnight - sinceMonday * DAY_MS_BRT - BRT_OFFSET_MS;
+}
+
 /** Id da temporada seguinte ('2026-12' → '2027-01'). */
 export function nextSeasonId(seasonId: string): string {
   const [y, m] = seasonId.split('-').map(Number);

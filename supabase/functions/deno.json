@@ -16,6 +16,10 @@
     "../../apps/mobile/src/domain/season": "../../apps/mobile/src/domain/season.ts",
     "../../apps/mobile/src/domain/territory": "../../apps/mobile/src/domain/territory.ts",
     "../../apps/mobile/src/domain/trust": "../../apps/mobile/src/domain/trust.ts",
-    "../../apps/mobile/src/domain/types": "../../apps/mobile/src/domain/types.ts"
+    "../../apps/mobile/src/domain/types": "../../apps/mobile/src/domain/types.ts",
+    "../../apps/mobile/src/domain/paint": "../../apps/mobile/src/domain/paint.ts",
+    "../../apps/mobile/src/domain/live-events": "../../apps/mobile/src/domain/live-events.ts",
+    "../../apps/mobile/src/domain/raid": "../../apps/mobile/src/domain/raid.ts",
+    "../../apps/mobile/src/domain/league": "../../apps/mobile/src/domain/league.ts"
   }
 }

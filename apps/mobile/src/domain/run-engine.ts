@@ -1,9 +1,10 @@
 import { validateActivity, type ActivityValidation, MAX_POINT_KMH, TELEPORT_METERS, TELEPORT_SECONDS } from './anti-cheat';
-import { revealFog, FOG_XP_PER_CELL, ghostGap, XP_PER_100M } from './games';
+import { revealFog, FOG_XP_PER_CELL, ghostGap, GHOST_WIN_XP, XP_PER_100M } from './games';
 import { distanceMeters, mpsToKmh, paceSecPerKm } from './geo';
 import { zoneOf } from './grid';
-import { scoreZone } from './scoring';
-import { applyRunPoints, defenseWindowOpen, newZone, type Zone, type ZoneEvent } from './territory';
+import { paintCellsOfRun } from './paint';
+import { scoreZone, scoreZoneV2 } from './scoring';
+import { applyRunPoints, applyRunPointsV2, defenseWindowOpen, newZone, type Zone, type ZoneEvent } from './territory';
 import type { FactionId, GeoPoint, LatLng } from './types';
 
 export const AUTO_PAUSE_KMH = 1;
@@ -28,10 +29,26 @@ export function startRun(now: number): LiveRun {
   return { startedAt: now, points: [], meters: 0, movingSeconds: 0, slowSeconds: 0, autoPaused: false, zoneMeters: {}, currentZone: null, recent: [] };
 }
 
-/** Feeds one GPS fix into the live run (RF-004). Implausible steps are skipped for the live numbers only. */
+/**
+ * Feeds one GPS fix into the live run (RF-004). Implausible steps are skipped for the live numbers only.
+ * Imutável: copia o vetor de pontos (O(n) por ponto). Na corrida longa, prefira `appendPoint` (E-12).
+ */
 export function addPoint(run: LiveRun, p: GeoPoint): LiveRun {
+  return advance(run, [...run.points, p], p, run.points[run.points.length - 1]);
+}
+
+/**
+ * E-12: igual a `addPoint`, mas sem copiar o vetor: acrescenta o ponto no próprio `run.points` (compartilhado com o
+ * LiveRun devolvido). Não reutilize o LiveRun anterior depois de chamar. Os números são idênticos aos de
+ * `addPoint` (teste de regressão).
+ */
+export function appendPoint(run: LiveRun, p: GeoPoint): LiveRun {
   const last = run.points[run.points.length - 1];
-  const points = [...run.points, p];
+  run.points.push(p);
+  return advance(run, run.points, p, last);
+}
+
+function advance(run: LiveRun, points: GeoPoint[], p: GeoPoint, last: GeoPoint | undefined): LiveRun {
   const zone = zoneOf(p);
   if (!last) return { ...run, points, currentZone: zone };
 
@@ -111,8 +128,64 @@ export type RunResult = {
   xp: number;
 };
 
-/** Final, authoritative computation of a run (the server does the same in production). */
+type ScoreRules = {
+  score(input: { meters: number; avgPace: number; ctx: RunContext; beatGhost: boolean; defending: boolean; zoneId: string }): number;
+  apply(zone: Zone, faction: FactionId, rp: number, now: number): { zone: Zone; events: ZoneEvent[] };
+};
+
+const RULES_V1: ScoreRules = {
+  score: ({ meters, avgPace, ctx, beatGhost, defending, zoneId }) =>
+    scoreZone({
+      meters,
+      paceSecPerKm: avgPace,
+      basePaceSecPerKm: ctx.basePace,
+      streakDays: ctx.streakDays,
+      beatGhost,
+      defending,
+      inPack: ctx.packZones?.has(zoneId) ?? false,
+      earnedTodayInZone: ctx.earnedTodayByZone?.[zoneId] ?? 0,
+    }).rp,
+  apply: applyRunPoints,
+};
+
+const RULES_V2: ScoreRules = {
+  score: ({ meters, avgPace, ctx, defending, zoneId }) =>
+    scoreZoneV2({
+      meters,
+      paceSecPerKm: avgPace,
+      basePaceSecPerKm: ctx.basePace,
+      defending,
+      inPack: ctx.packZones?.has(zoneId) ?? false,
+      earnedTodayInZone: ctx.earnedTodayByZone?.[zoneId] ?? 0,
+    }).rp,
+  apply: applyRunPointsV2,
+};
+
+/**
+ * Final, authoritative computation of a run (the server does the same in production).
+ * @deprecated v1, usada pela gravação atual do servidor: sequência e fantasma multiplicam os pontos e as regras
+ * de território têm os bugs E-03, E-06 e E-07. Use `finishRunV2` (e `applyPaint` para o território v2).
+ */
 export function finishRun(run: LiveRun, ctx: RunContext): RunResult {
+  return computeRun(run, ctx, RULES_V1);
+}
+
+export type RunResultV2 = RunResult & {
+  /** Trechos (H3 res 11) de passos válidos, em ordem, para `applyPaint` (D-62). Vazio se rejeitada. */
+  paintCells: string[];
+};
+
+/**
+ * Versão v2 do cálculo oficial: pontos com `scoreZoneV2` (sem sequência e sem fantasma, D-63/E-15), território
+ * por influência com as correções (`applyRunPointsV2`: E-03, E-06, E-07), XP do fantasma (50) e os trechos
+ * para a pintura. `streakDays` do contexto é ignorado.
+ */
+export function finishRunV2(run: LiveRun, ctx: Omit<RunContext, 'streakDays'> & { streakDays?: number }): RunResultV2 {
+  const result = computeRun(run, { ...ctx, streakDays: 0 }, RULES_V2);
+  return { ...result, paintCells: paintCellsOfRun(run.points, result.validation) };
+}
+
+function computeRun(run: LiveRun, ctx: RunContext, rules: ScoreRules): RunResult {
   const validation = validateActivity(run.points);
   const validZoneMeters: Record<string, number> = {};
   let validSeconds = 0;
@@ -139,17 +212,8 @@ export function finishRun(run: LiveRun, ctx: RunContext): RunResult {
       const before = ctx.zones[zoneId] ?? newZone(zoneId);
       if (before.blocked) continue;
       const defending = before.owner === ctx.faction && defenseWindowOpen(before, ctx.now);
-      const { rp } = scoreZone({
-        meters,
-        paceSecPerKm: avgPace,
-        basePaceSecPerKm: ctx.basePace,
-        streakDays: ctx.streakDays,
-        beatGhost: beatGhost === true,
-        defending,
-        inPack: ctx.packZones?.has(zoneId) ?? false,
-        earnedTodayInZone: ctx.earnedTodayByZone?.[zoneId] ?? 0,
-      });
-      const { zone: after, events: zoneEvents } = applyRunPoints(before, ctx.faction, rp, ctx.now);
+      const rp = rules.score({ meters, avgPace, ctx, beatGhost: beatGhost === true, defending, zoneId });
+      const { zone: after, events: zoneEvents } = rules.apply(before, ctx.faction, rp, ctx.now);
       updatedZones[zoneId] = after;
       events.push(...zoneEvents);
       rpTotal += rp;
@@ -167,12 +231,19 @@ export function finishRun(run: LiveRun, ctx: RunContext): RunResult {
   }
   outcomes.sort((a, b) => b.rp - a.rp);
 
-  const validPath: LatLng[] = rejected ? [] : run.points.filter((_, i) => validation.steps.some((s) => s.valid && (s.from === i || s.to === i)));
+  // E-11: marca os pontos dos passos válidos em O(n) (antes, `some` dentro de `filter` era O(n²)).
+  const inValidStep = new Uint8Array(run.points.length);
+  for (const s of validation.steps) {
+    if (!s.valid) continue;
+    inValidStep[s.from] = 1;
+    inValidStep[s.to] = 1;
+  }
+  const validPath: LatLng[] = rejected ? [] : run.points.filter((_, i) => inValidStep[i] === 1);
   const newFogCells = revealFog(validPath, ctx.revealedFog);
   const xp =
     Math.floor(validation.validMeters / 100) * XP_PER_100M +
     newFogCells.length * FOG_XP_PER_CELL +
-    (beatGhost ? 50 : 0);
+    (beatGhost ? GHOST_WIN_XP : 0);
 
   return {
     validation,
