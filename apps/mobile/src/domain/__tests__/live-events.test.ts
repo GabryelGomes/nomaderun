@@ -224,13 +224,19 @@ describe('previsão = oficial (mesma regra) e desempenho', () => {
     for (const c of pathCells) zones[paintZoneOf(c)] = { owner: 'volt' };
     const snapshot: LiveSnapshot = { cells, zones };
 
+    // Tempo de CPU do próprio processo (não o de parede): outro worker pesado em paralelo na CI (a simulação do
+    // território, a cobertura) não deve contar como lentidão da previsão.
+    const cpuMs = () => {
+      const u = process.cpuUsage();
+      return (u.user + u.system) / 1000;
+    };
     let best = Infinity;
     let summary = null as ReturnType<ReturnType<typeof createLiveTracker>['summary']> | null;
     for (let round = 0; round < 3; round++) {
-      const started = performance.now();
+      const started = cpuMs();
       const tracker = createLiveTracker({ runId: 'perf', faction: 'owls', snapshot });
       for (const p of points) tracker.push(p);
-      best = Math.min(best, performance.now() - started);
+      best = Math.min(best, cpuMs() - started);
       summary = tracker.summary();
     }
     expect(summary!.meters).toBeGreaterThan(14_900);

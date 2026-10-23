@@ -1,5 +1,6 @@
 /**
- * Ajuste fino da pintura (C): margem para virar o dono e "reforço na conquista".
+ * Ajuste fino da pintura da F1 (regra própria da simulação, "C-F1"): margem para virar o dono e "reforço na
+ * conquista". Registro histórico da decisão D-62; a regra real do domain está em `rodar.ts` (C) e `regressao.ts`.
  *
  *   npx -y tsx docs/melhoria/F1/jogo/sim/ajuste.ts
  */
@@ -13,7 +14,7 @@ import { metricas, simular, tabela } from './rodar';
 
 const VARIANTES: { id: string; criar: (k: Corredor[]) => Regra }[] = [
   { id: 'A', criar: (k) => new RegraAtual(k) },
-  { id: 'C', criar: (k) => new RegraPintura(k, { miolo: false, azarao: false, desbotar: true }) },
+  { id: 'C-F1', criar: (k) => new RegraPintura(k, { miolo: false, azarao: false, desbotar: true }) },
   { id: 'C+m2', criar: (k) => new RegraPintura(k, { miolo: false, azarao: false, desbotar: true, margem: 2 }) },
   { id: 'C+r', criar: (k) => new RegraPintura(k, { miolo: false, azarao: false, desbotar: true, reforcoConquista: true }) },
   { id: 'C+m2+r', criar: (k) => new RegraPintura(k, { miolo: false, azarao: false, desbotar: true, margem: 2, reforcoConquista: true }) },

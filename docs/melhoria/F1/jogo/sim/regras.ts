@@ -4,6 +4,8 @@
  *       na mesma ordem do finishRun e dos jobs do servidor (fortificar 00:05, temporada 00:15, decair 03:00).
  *  B  — M4 "barra de domínio" limitada (cabo de guerra de 100 pontos por zona, rua nova vale 2×).
  *  C  — M1 "pintar ruas" (trechos H3 res 11 com até 3 camadas que desbotam; zona = time com mais trechos).
+ *       Desde a onda 2 (T7.2.3) a C é a regra REAL do domain (`RegraPinturaReal` → `applyPaint`); a regra
+ *       própria da F1 continua como "C-F1" e nas variantes C+p, C0, D e D+az.
  *  D  — C + M2 "fechar o circuito" (pinta até 40 trechos vazios de dentro da volta).
  *  Variantes: sem decaimento (A0), sem desbotar (C0) e bônus de azarão (C+az / D+az).
  */
@@ -22,6 +24,7 @@ import {
   type Zone,
 } from '../../../../../apps/mobile/src/domain/territory';
 import { FACTION_IDS, type FactionId } from '../../../../../apps/mobile/src/domain/types';
+import { PaintSim } from '../../../../../apps/mobile/src/domain/__tests__/sim/paint-sim';
 
 import { DIA_MS, T0, type Corredor, type Corrida } from './agentes';
 import { h3 } from './base';
@@ -271,7 +274,63 @@ export class RegraBarra implements Regra {
   }
 }
 
-/* =============================================================== C/D — pintar ruas (M1) + circuito (M2) */
+/* =============================================================== C — pintura REAL (D-62, onda 2) */
+/**
+ * A regra C agora é a do domain (T7.2.3): `applyPaint` + `job_fade_cells` + virada de temporada, pelo mesmo
+ * motor do teste de regressão do app (`apps/mobile/src/domain/__tests__/sim/paint-sim.ts`). Diferenças para a
+ * regra própria da F1 (`RegraPintura`, que fica para as variantes C+p, C0, D e D+az): 1 camada por corredor,
+ * trecho e dia; zona = pai H3 do trecho; desbotar pelo relógio do trecho; ataque e defesa da v2.
+ */
+export class RegraPinturaReal implements Regra {
+  nome = 'C pintura real (applyPaint)';
+  private sim = new PaintSim();
+  /** Quem pintou por último cada trecho do próprio time (só para o "crédito" por jogador da simulação). */
+  private autor = new Map<string, number>();
+  private agora = T0;
+  constructor(private corredores: Corredor[]) {}
+
+  correr(c: Corrida, k: Corredor): Captura[] {
+    const cells = c.rota.celulas.map((x) => x.cell);
+    const { captures, result } = this.sim.run(k.id, cells, k.time, c.agora, c.dia);
+    for (const ch of result.changes) if (ch.after.faction === k.time) this.autor.set(ch.cell, k.id);
+    return captures.map((cp) => ({ zona: cp.zone, de: cp.from, para: cp.to, marca: c.rota.celulas[cp.atCell]?.marca ?? c.rota.metros }));
+  }
+
+  fimDoDia(dia: number, virada: boolean) {
+    const manha = T0 + (dia + 1) * DIA_MS;
+    if (virada) this.sim.seasonReset(manha + 15 * 60_000);
+    this.agora = manha + 3 * 3_600_000;
+    this.sim.fade(this.agora);
+  }
+
+  dono(z: string) {
+    return this.sim.owner(z);
+  }
+
+  credito() {
+    const out = new Map<string, number>();
+    for (const z of new Set([...this.autor.keys()].map((cell) => h3.cellToParent(cell, 9)))) {
+      const o = this.sim.owner(z);
+      if (!o) continue;
+      const por = new Map<number, number>();
+      for (const cell of this.sim.zoneCells(z)) {
+        const by = this.autor.get(cell.cell);
+        if (cell.faction === o && by !== undefined && this.corredores[by].time === o) por.set(by, (por.get(by) ?? 0) + 1);
+      }
+      let best = -1;
+      let v = 0;
+      for (const [k, n] of por) if (n > v) (v = n), (best = k);
+      if (best >= 0) out.set(z, best);
+    }
+    return out;
+  }
+
+  custoTomar(z: string) {
+    return this.sim.costToTake(z, this.agora);
+  }
+}
+
+/* =============================================================== C/D — pintar ruas (M1) + circuito (M2), regra própria da F1 */
 export const PINTURA = { CAMADAS_MAX: 3, DESBOTA_DIAS: 7, MIN_TRECHOS: 3, MIOLO_MAX: 40, AZARAO_PARTE: 0.15, METROS_POR_TRECHO: 40 };
 
 type Trecho = { t: FactionId; l: number; last: number; by: number; z: string };
