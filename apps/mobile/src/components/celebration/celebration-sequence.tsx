@@ -247,7 +247,7 @@ export function CelebrationSequence({
   return (
     <View testID={testID} style={[{ gap: space[3] }, style]}>
       {!finished && !all ? (
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', zIndex: 2 }}>
           <PressableScale
             testID={`${testID}-pular`}
             accessibilityLabel="Pular celebrações"

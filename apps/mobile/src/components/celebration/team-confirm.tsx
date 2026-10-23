@@ -91,11 +91,13 @@ export function TeamConfirm(props: TeamConfirmProps) {
                     borderRadius: 80,
                     borderWidth: 3,
                     borderColor: '#FFFFFF',
+                    // escondida até a hora dela (com 'both' a onda ficava parada na tela antes de sair)
+                    opacity: 0,
                     animationName: kf({ from: { opacity: 0.9, transform: [{ scale: 0.6 }] }, to: { opacity: 0, transform: [{ scale: 2.6 }] } }),
                     animationDuration: 800,
                     animationDelay: T.waves + d,
                     animationTimingFunction: cssEasings.standard,
-                    animationFillMode: 'both',
+                    animationFillMode: 'forwards',
                   }}
                 />
               ))

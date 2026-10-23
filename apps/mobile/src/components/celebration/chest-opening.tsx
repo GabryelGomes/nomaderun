@@ -135,13 +135,12 @@ export function ChestOpening(props: ChestOpeningProps) {
   return (
     <View testID={testID} accessible accessibilityLiveRegion="polite" accessibilityLabel={text} style={{ alignItems: 'center', gap: 10 }}>
       <View style={{ width: 220, height: 220, alignItems: 'center', justifyContent: 'flex-end' }}>
-        {/* halo da raridade */}
-        <Animated.View
-          style={[
-            { position: 'absolute', width: 180, height: 180, borderRadius: 90, bottom: 10, backgroundColor: color, opacity: 0.14 },
-            step(still, { from: { opacity: 0 }, to: { opacity: 0.14 } }, at(C.shakeMs), 0, cssEasings.standard),
-          ]}
-        />
+        {/* halo da raridade: a opacidade fixa fica no invólucro (o fade do estado final vai até 1 e a apagaria) */}
+        <View style={{ position: 'absolute', width: 180, height: 180, bottom: 10, opacity: 0.14 }}>
+          <Animated.View
+            style={[{ width: 180, height: 180, borderRadius: 90, backgroundColor: color }, step(still, { from: { opacity: 0 }, to: { opacity: 1 } }, at(C.shakeMs), 0, cssEasings.standard)]}
+          />
+        </View>
         {!still ? <SpinRays color={color} size={240} delay={at(C.burst)} opacity={rarity === 'comum' ? 0.16 : 0.3} /> : null}
         {!still ? <Flash kind="radial" color="#FFFFFF" size={160} delay={at(C.burst)} /> : null}
         {item ? (

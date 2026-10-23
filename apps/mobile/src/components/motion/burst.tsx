@@ -47,6 +47,8 @@ export function Burst({ count = 10, color, distance = 56, length = 14, delay = 0
               borderRadius: 1.5,
               backgroundColor: color,
               transformOrigin: 'left',
+              // escondido até o atraso acabar (com 'both' o raio aparecia parado antes do estouro)
+              opacity: 0,
               animationName: {
                 from: { opacity: 1, transform: [{ translateX: 6 }, { scaleX: 1 }] },
                 to: { opacity: 0, transform: [{ translateX: r.distance }, { scaleX: 0.2 }] },
@@ -54,7 +56,7 @@ export function Burst({ count = 10, color, distance = 56, length = 14, delay = 0
               animationDuration: duration,
               animationDelay: delay + r.delay,
               animationTimingFunction: cssEasings.standard,
-              animationFillMode: 'both',
+              animationFillMode: 'forwards',
             }}
           />
         </View>

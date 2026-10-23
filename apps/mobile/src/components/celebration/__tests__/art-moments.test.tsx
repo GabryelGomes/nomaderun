@@ -234,6 +234,24 @@ describe('arte da E4 nos momentos', () => {
     expect(artOf(r, Medal).map((m) => [m.kind, m.tier])).toEqual([['explorador', 2]]);
     expect(json(r)).toContain('faltam ≈ 80 m');
   });
+
+  it('nenhuma opacidade fixa (< 1) é apagada pelo fade do estado final (o halo do baú ficava branco)', () => {
+    const cases: ReactElement[] = [
+      <ChestOpening key="b" testID="b" rarity="lendario" xp={120} state="done" announce={false} />,
+      <BossDefeated key="d" testID="d" bossName="Mormaço" city="Goiânia" myKm={1} state="done" announce={false} />,
+      <LevelUp key="l" testID="l" level={3} team="volt" state="done" announce={false} />,
+      <TeamConfirm key="t" testID="t" faction="owls" leader={{ name: 'Nara Lis', quote: 'Texto provisório' }} origin={{ x: 1, y: 1 }} onContinue={() => {}} state="done" announce={false} />,
+    ];
+    for (const el of cases) {
+      const r = render(<ReducedMotionOverride reduced>{el}</ReducedMotionOverride>);
+      // estilo de cada elemento já juntado (o fixo e o animado costumam vir em objetos separados)
+      const merged = r.root
+        .findAll((n: ReactTestInstance) => typeof n.type === 'string' && n.props.style !== undefined)
+        .map((n: ReactTestInstance) => Object.assign({}, ...[n.props.style].flat(Infinity).filter(Boolean)) as Record<string, unknown>);
+      const bad = merged.filter((s) => typeof s.opacity === 'number' && s.opacity < 1 && s.animationName);
+      expect(bad).toEqual([]);
+    }
+  });
 });
 
 describe('preferência "Pular celebrações"', () => {
