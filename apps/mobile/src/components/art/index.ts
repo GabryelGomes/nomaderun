@@ -9,7 +9,12 @@ export { ArtFrame, type ArtA11y } from './neon/render';
 
 export { Mascot, type MascotPart, type MascotProps } from './team/mascot';
 export { TeamEmblem, type TeamEmblemProps } from './team/emblem';
+export { MascotRunner, type MascotRunnerProps, type RunnerPart } from './team/mascot-runner';
+export { RUNNER_BOX, RUNNER_PIVOTS } from './team/runner-art';
 export { MASCOT_BOX, MASCOT_NAMES, MASCOT_PIVOTS, MASCOT_POSES, type MascotPose } from './team/mascot-art';
+
+export { LeaderBust, type LeaderBustProps, type LeaderPart } from './leader/leader-bust';
+export { LEADER_BOX, LEADER_NAMES, LEADER_PIVOTS, LEADER_POSES, type LeaderPose } from './leader/leader-art';
 
 export { Boss, bossLabel, type BossPart, type BossProps } from './boss/boss';
 export { BOSS_BOX, BOSS_IDS, BOSS_NAMES, BOSS_PIVOTS, BOSS_STATES, type BossDamage, type BossId, type BossState } from './boss/boss-art';

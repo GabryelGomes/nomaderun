@@ -107,6 +107,49 @@ family(
   264,
 );
 
+// ---------------------------------------------------------------- líderes
+family('lideres', 'Líderes · Íris Valente, Téo Faria, Nara Lis e Bento Rocha · parado e falando · qualidade completa', 4, () => {
+  const l = art('leader/leader-art.ts');
+  const out = [];
+  for (const pose of l.LEADER_POSES) for (const team of TEAMS) out.push(piece(l.leaderNodes(team, pose, ART.team[team]), l.LEADER_BOX, 190, { label: `${l.LEADER_NAMES[team]} · ${pose}` }));
+  return out;
+});
+
+family('lideres-tamanhos', 'Líderes · tamanho real (120, 72 e 40 pt) e o custo de cada qualidade', 6, () => {
+  const l = art('leader/leader-art.ts');
+  const out = [];
+  for (const team of TEAMS) {
+    const n = l.leaderNodes(team, 'parado', ART.team[team]);
+    for (const w of [120, 72, 40]) {
+      const p = piece(n, l.LEADER_BOX, w, { label: `${w} pt` });
+      out.push({ ...p, label: `${l.LEADER_NAMES[team]} · ${w} pt · ${p.count} el.` });
+    }
+  }
+  return out;
+}, 150);
+
+// ---------------------------------------------------------------- mascotes em corrida
+family('corrida', 'Mascotes em corrida (escolha de time) · Lume, Faísca, Breu e Faro · qualidade completa', 2, () => {
+  const r = art('team/runner-art.ts');
+  const t = art('team/mascot-art.ts');
+  return TEAMS.map((team) => piece(r.runnerNodes(team, ART.team[team]), r.RUNNER_BOX, 400, { label: `${t.MASCOT_NAMES[team]} · corrida` }));
+}, 430);
+
+family('corrida-qualidade', 'Mascotes em corrida · tamanho de card (170 pt), completo × leve × plano e o custo em elementos', 4, () => {
+  const r = art('team/runner-art.ts');
+  const t = art('team/mascot-art.ts');
+  const out = [];
+  for (const team of TEAMS) out.push(piece(r.runnerNodes(team, ART.team[team]), r.RUNNER_BOX, 170, { label: `${t.MASCOT_NAMES[team]} · 170 pt` }));
+  const n = r.runnerNodes('owls', ART.team.owls);
+  for (const q of ['completo', 'leve', 'plano']) {
+    const p = piece(n, r.RUNNER_BOX, 170, { quality: q });
+    out.push({ ...p, label: `Breu · ${q} · ${p.count} elementos` });
+  }
+  const s = piece(n, r.RUNNER_BOX, 72, {});
+  out.push({ ...s, label: `72 pt (auto = leve)` });
+  return out;
+});
+
 function page(name) {
   const f = FAMILIES[name];
   const cells = f
