@@ -12,10 +12,11 @@ import { Text } from '@/components/text';
 import TerritoryMap from '@/components/territory-map';
 import type { MapBounds } from '@/components/territory-map.types';
 import { cellCenter } from '@/domain/grid';
-import { isUnderAttack } from '@/domain/territory';
+import { DEFENSE_WINDOW_MS, defenseWindowOpen } from '@/domain/territory';
 import type { LatLng } from '@/domain/types';
 import { DEMO_CENTER, DEMO_CITY, zoneName } from '@/demo/demo-data';
 import { mapZonesInBounds } from '@/features/map-data';
+import { useNow } from '@/features/use-now';
 import { bboxAround } from '@/services/api/zones-repo';
 import { currentPosition } from '@/services/location/current';
 import { useGame } from '@/store/game-store';
@@ -84,6 +85,7 @@ export function MapScreen() {
   const unread = useNotifications(selectUnreadCount);
   const city = useSession((s) => s.profile?.city) ?? DEMO_CITY;
   const faction = useGame((s) => s.faction) ?? 'striders';
+  const now = useNow(60_000);
   const fog = useGame((s) => s.fog);
   const [layer, setLayer] = useState<Layer>('todos');
   const [alertCollapsed, setAlertCollapsed] = useState(false);
@@ -125,8 +127,10 @@ export function MapScreen() {
   const explored = useMemo(() => (layer === 'explorado' ? fog.slice(-600) : undefined), [fog, layer]);
 
   const mine = Object.values(zones).filter((z) => z.owner === faction);
-  const attacked = mine.filter(isUnderAttack);
+  // E-04: o ataque só vale (e a defesa só rende em dobro) dentro da janela de 24 h; depois disso não há alerta.
+  const attacked = mine.filter((z) => defenseWindowOpen(z, now));
   const alert = attacked[0];
+  const defenseEnds = alert?.attackStartedAt != null ? new Date(alert.attackStartedAt + DEFENSE_WINDOW_MS).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
 
   const alertName = alert ? displayZoneName(alert.id, meta[alert.id]?.name) : '';
   const statusError = !!zonesError && !hasZones && !zonesOffline && !zonesLoading;
@@ -228,7 +232,7 @@ export function MapScreen() {
                     {alertName}
                   </Text>
                   <Text variant="caption" muted numberOfLines={1}>
-                    Sob ataque dos {alert.attacker ? factions[alert.attacker].name : 'rivais'} · defender vale pontos em dobro
+                    Sob ataque dos {alert.attacker ? factions[alert.attacker].name : 'rivais'} · dobro até {defenseEnds}
                   </Text>
                 </View>
               </Pressable>

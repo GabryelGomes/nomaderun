@@ -32,10 +32,13 @@ export const light = {
   text: palette.ink,
   textSecondary: palette.ink2,
   line: palette.line,
+  /** Borda de controle (campo, botão secundário, chip): ≥ 3:1 sobre o fundo (WCAG 1.4.11, D-75). */
+  lineControl: '#86857F',
   action: palette.orange,
-  onAction: palette.white,
+  onAction: palette.ink,
   accentText: palette.orangeText,
   danger: palette.danger,
+  onDanger: palette.white,
 } as const;
 
 /**
@@ -48,22 +51,32 @@ export const dark = {
   surfaceSunken: '#1A1B20',
   text: '#F3F1ED',
   textSecondary: '#A8A6A1',
+  /** Borda sutil de cartão e divisória (decorativa: não precisa de 3:1). */
   line: '#24252B',
+  /** Borda de controle (campo, botão secundário, chip): 3,4:1 a 3,6:1 sobre fundo e superfícies (D-75). */
+  lineControl: '#666870',
   action: '#FF6A13',
-  onAction: palette.white,
+  /** Texto escuro sobre o laranja: 7,02:1 (D-75; o branco dava 2,87:1). */
+  onAction: '#070708',
   accentText: '#FF7A2A',
   danger: '#FF4D45',
+  /** Texto escuro no botão de perigo: 6,14:1 (D-75; o branco dava 3,28:1). */
+  onDanger: '#070708',
 } as const;
 
 export type ThemeColors = { [K in keyof typeof light]: string };
 
+/**
+ * Cores dos times (D-70): `color` é para preenchimento (selo, região, barra) e `onColor` é o texto sobre ela.
+ * Texto na cor do time usa o neon (`neonTeam` em `neon.ts`), que passa 4,5:1 no fundo escuro; `color` não passa.
+ */
 /** Redundant cue for color-blind runners: every team badge carries its shape. */
 export type TeamShape = 'circulo' | 'triangulo' | 'losango' | 'quadrado';
 
 export const factions: Record<FactionId, { name: string; color: string; tint: string; onColor: string; shape: TeamShape; motto: string }> = {
   striders: { name: 'Neon Striders', color: '#0072B2', tint: '#E3EEF6', onColor: palette.white, shape: 'circulo', motto: 'Ritmo e precisão' },
-  volt: { name: 'Volt Runners', color: '#009E73', tint: '#E0F2EC', onColor: palette.white, shape: 'triangulo', motto: 'Resistência sem fim' },
-  owls: { name: 'Night Owls', color: '#D7263D', tint: '#FADDE1', onColor: palette.white, shape: 'losango', motto: 'Donos da madrugada' },
+  volt: { name: 'Volt Runners', color: '#009E73', tint: '#E0F2EC', onColor: '#070708', shape: 'triangulo', motto: 'Resistência sem fim' },
+  owls: { name: 'Night Owls', color: '#D7263D', tint: '#FADDE1', onColor: palette.white, shape: 'losango', motto: 'Donos das luzes da cidade' },
   coyotes: { name: 'Urban Coyotes', color: '#D9B200', tint: '#FBF3D2', onColor: palette.ink, shape: 'quadrado', motto: 'Correm em matilha' },
 };
 

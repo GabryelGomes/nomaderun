@@ -10,9 +10,8 @@ import * as authRepo from '@/services/api/auth-repo';
 import { MESSAGES } from '@/services/api/errors';
 import { isUsernameAvailable } from '@/services/api/profile-repo';
 import { space } from '@/theme/tokens';
-import { useTheme } from '@/theme/use-theme';
 
-import { CheckRow, ErrorNotice, FormScaffold, InfoNotice, StrengthMeter, TextField, TextLink } from './form-ui';
+import { CheckRow, ErrorNotice, FormScaffold, InfoNotice, InlineLink, StrengthMeter, TextField, TextLink } from './form-ui';
 import { NeonBackdrop } from './neon-backdrop';
 import { hasErrors, maskBirthdate, MIN_AGE, parseBirthdate, passwordStrength, validateSignUp, type SignUpErrors } from './validation';
 
@@ -21,7 +20,6 @@ import { hasErrors, maskBirthdate, MIN_AGE, parseBirthdate, passwordStrength, va
  * data de nascimento (16+) e dois aceites separados (termos e privacidade, RNF-013).
  */
 export function SignUpScreen() {
-  const { colors } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -180,12 +178,10 @@ export function SignUpScreen() {
 
       <View style={{ gap: space[2] }}>
         <CheckRow testID="cadastro-aceite-termos" label="Li e aceito os Termos de Uso" checked={acceptedTerms} onChange={setAcceptedTerms} error={errors.acceptedTerms}>
-          <Text>
-            Li e aceito os{' '}
-            <Text color={colors.accentText} variant="bodyBold" onPress={() => router.push('/termos')} accessibilityRole="link" testID="cadastro-abrir-termos">
-              Termos de Uso
-            </Text>
-          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 4 }}>
+            <Text>Li e aceito os</Text>
+            <InlineLink testID="cadastro-abrir-termos" label="Termos de Uso" onPress={() => router.push('/termos')} />
+          </View>
         </CheckRow>
         <CheckRow
           testID="cadastro-aceite-privacidade"
@@ -193,12 +189,10 @@ export function SignUpScreen() {
           checked={acceptedPrivacy}
           onChange={setAcceptedPrivacy}
           error={errors.acceptedPrivacy}>
-          <Text>
-            Li e aceito a{' '}
-            <Text color={colors.accentText} variant="bodyBold" onPress={() => router.push('/privacidade')} accessibilityRole="link" testID="cadastro-abrir-privacidade">
-              Política de Privacidade
-            </Text>
-          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 4 }}>
+            <Text>Li e aceito a</Text>
+            <InlineLink testID="cadastro-abrir-privacidade" label="Política de Privacidade" onPress={() => router.push('/privacidade')} />
+          </View>
         </CheckRow>
       </View>
 

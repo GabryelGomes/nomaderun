@@ -29,31 +29,9 @@ export function Surface({ children, style, padded = true }: { children: ReactNod
   );
 }
 
-export function SectionHeader({ title, action }: { title: string; action?: ReactNode }) {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', paddingHorizontal: space[1] }}>
-      <Text variant="title" accessibilityRole="header">
-        {title}
-      </Text>
-      {action}
-    </View>
-  );
-}
-
-/** Empty states give direction, not mood (frontend-design). */
-export function EmptyState({ title, body, action }: { title: string; body: string; action?: ReactNode }) {
-  return (
-    <View style={{ alignItems: 'center', gap: space[2], paddingVertical: space[8], paddingHorizontal: space[6] }}>
-      <Text variant="title" style={{ textAlign: 'center' }}>
-        {title}
-      </Text>
-      <Text muted style={{ textAlign: 'center' }}>
-        {body}
-      </Text>
-      {action}
-    </View>
-  );
-}
+/** Movidos para arquivos próprios na v2 (T7.1.17); reexportados aqui para não quebrar as telas. */
+export { EmptyState, type EmptyStateProps } from './empty-state';
+export { SectionHeader, type SectionHeaderProps } from './section-header';
 
 export function Stat({ label, value, unit, color }: { label: string; value: string; unit?: string; color?: string }) {
   return (

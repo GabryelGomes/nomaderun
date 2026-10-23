@@ -103,15 +103,26 @@ for (const [bn, bv] of Object.entries(BG)) {
 add('dark.onAction', dark.onAction, 'dark.action', dark.action, 'texto', 'Button primary md (bodyBold 16 px) — button.tsx:31');
 add('dark.onAction', dark.onAction, 'dark.action', dark.action, 'grande', 'Button primary lg (variant title, 20 px negrito = texto grande) — button.tsx:71');
 add('neon.bg (proposta)', neon.bg, 'dark.action', dark.action, 'texto', 'proposta P8: texto escuro no laranja');
-add('#FFFFFF', '#FFFFFF', 'dark.danger', dark.danger, 'texto', 'Button danger — button.tsx:34');
-add('#FFFFFF', '#FFFFFF', 'dark.danger', dark.danger, 'grande', 'Button danger lg');
+// E6 (onda 1, D-75): o botão de perigo usa o token `onDanger` (antes era '#FFFFFF' fixo no button.tsx).
+const onDanger = dark.onDanger ?? '#FFFFFF';
+add('dark.onDanger', onDanger, 'dark.danger', dark.danger, 'texto', 'Button danger — button.tsx');
+add('dark.onDanger', onDanger, 'dark.danger', dark.danger, 'grande', 'Button danger lg');
 add('dark.action', dark.action, 'dark.background', dark.background, 'ui', 'IconButton action / anel de foco');
 // Bordas de controles (1.4.11): secondary button, cartões, campos.
-add('dark.line', dark.line, 'dark.background', dark.background, 'ui', 'borda do Button secondary / Surface — button.tsx:60');
-add('dark.line', dark.line, 'dark.surface', dark.surface, 'ui', 'borda de campo sobre superfície');
+// E6 (onda 1, D-75): controles (campo, botão secundário, chip, caixa de seleção) usam `lineControl`.
+// `dark.line` ficou só para a borda sutil de cartão e divisória (decorativa, fora do 1.4.11).
+const lineControl = dark.lineControl ?? dark.line;
+add('dark.lineControl', lineControl, 'dark.background', dark.background, 'ui', 'borda do Button secondary / chip / campo');
+add('dark.lineControl', lineControl, 'dark.surface', dark.surface, 'ui', 'borda de campo sobre superfície');
+add('dark.lineControl', lineControl, 'dark.surfaceSunken', dark.surfaceSunken, 'ui', 'borda de controle sobre superfície afundada');
+if (neon.villain) {
+  add('neon.villain', neon.villain, 'dark.background', dark.background, 'texto', 'violeta dos vilões (D-67) como texto');
+  add('neon.villain', neon.villain, 'dark.surface', dark.surface, 'texto', 'violeta dos vilões sobre cartão');
+}
 // Times (tokens.factions + neonTeam) sobre o fundo e as superfícies.
 for (const [id, f] of Object.entries(factions)) {
-  add(`factions.${id}.color`, f.color, 'dark.background', dark.background, 'texto', 'cor do time como texto');
+  // D-70: a cor base do time não é usada como texto (texto na cor do time = `neonTeam`, medido abaixo).
+  // E6 (onda 1) tirou o par "texto" daqui; o par "ui" (selo, forma, região) continua.
   add(`factions.${id}.color`, f.color, 'dark.background', dark.background, 'ui', 'selo / forma do time / região no mapa');
   add(`factions.${id}.color`, f.color, 'dark.surface', dark.surface, 'ui', 'selo do time sobre cartão');
   add(`factions.${id}.onColor`, f.onColor, `factions.${id}.color`, f.color, 'texto', 'texto sobre o selo do time');
