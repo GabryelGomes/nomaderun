@@ -3,6 +3,7 @@ import { AccessibilityInfo } from 'react-native';
 import type { CSSAnimationKeyframes, CSSAnimationTimingFunction } from 'react-native-reanimated';
 
 import { haptic } from '@/components/motion/haptics';
+import { useMotionPrefs } from '@/store/motion-prefs-store';
 import { celebrationLevels, cssEasings, durations, type CelebrationLevel, type HapticPattern } from '@/theme/motion';
 
 import { MOMENT_SPECS, type CelebrationKind } from './queue';
@@ -12,14 +13,15 @@ export type MomentBaseProps = {
   testID: string;
   /**
    * Controlado pelo orquestrador: `playing` toca a coreografia; `done` mostra o estado final com um fade
-   * curto (é o que o "Pular" faz). Sem orquestrador, o momento toca sozinho ao montar.
+   * curto (é o que o "Pular" faz). Sem orquestrador, o momento toca sozinho ao montar — ou já aparece no
+   * estado final, se a preferência "Pular celebrações" estiver ligada.
    */
   state?: 'playing' | 'done';
   /** Versão curta (dentro do resumo). */
   compact?: boolean;
   /** Vibra sozinho (padrão `true`; o orquestrador passa `false` e vibra pelo relógio dele). */
   haptics?: boolean;
-  /** Preferência "Vibração" da pessoa (padrão ligada). */
+  /** Liga/desliga a vibração deste momento (padrão ligada). A preferência salva "Vibração" também vale. */
   hapticsEnabled?: boolean;
   /** Anuncia ao leitor de tela ao aparecer (padrão `true`; o orquestrador faz um anúncio só). */
   announce?: boolean;
@@ -28,6 +30,8 @@ export type MomentBaseProps = {
 };
 
 export type MomentInfo = {
+  /** Estado efetivo (o pedido pelo orquestrador ou, sem ele, `done` com "Pular celebrações"). */
+  state: 'playing' | 'done';
   /** Sem coreografia: movimento reduzido ou estado final. Tudo aparece com fade curto. */
   still: boolean;
   reduced: boolean;
@@ -51,7 +55,9 @@ export function useMoment(
   /** Duração e vibrações próprias (ex.: o toast, que fica parado 2,25 s). */
   custom?: { durationMs?: number; beats?: { offsetMs: number; pattern: HapticPattern }[] },
 ): MomentInfo {
-  const { state = 'playing', compact = false, haptics = true, hapticsEnabled = true, announce = true, onDone } = props;
+  const { compact = false, haptics = true, hapticsEnabled = true, announce = true, onDone } = props;
+  const skipPref = useMotionPrefs((s) => s.skipCelebrations);
+  const state = props.state ?? (skipPref ? 'done' : 'playing');
   const still = reduced || state === 'done';
   const spec = { ...MOMENT_SPECS[kind], ...(custom?.beats ? { haptics: custom.beats } : null) };
   const full = custom?.durationMs ?? spec.full;
@@ -85,7 +91,7 @@ export function useMoment(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, reduced]);
 
-  return { still, reduced, at: (ms: number) => (compact ? Math.round(ms * ratio) : ms), durationMs };
+  return { state, still, reduced, at: (ms: number) => (compact ? Math.round(ms * ratio) : ms), durationMs };
 }
 
 /** Fade curto (estado final e movimento reduzido). */

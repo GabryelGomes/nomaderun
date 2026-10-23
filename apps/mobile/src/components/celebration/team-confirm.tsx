@@ -2,9 +2,9 @@ import { type ReactNode } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import { Mascot } from '@/components/art';
 import { Confetti } from '@/components/motion/confetti';
 import { PressableScale } from '@/components/motion/pressable';
-import { TeamBadge } from '@/components/team-badge';
 import { useReducedMotionSetting } from '@/components/motion/reduced-motion';
 import { Text } from '@/components/text';
 import type { FactionId } from '@/domain/types';
@@ -12,12 +12,12 @@ import { cssEasings, durations, springCss, springs } from '@/theme/motion';
 import { neonTeam } from '@/theme/neon';
 import { factions, radius, space } from '@/theme/tokens';
 
-import { floodScale, TEAM_TIMELINE } from './choreography';
+import { floodScale, MASCOT_NOD, TEAM_TIMELINE } from './choreography';
 import { type MomentBaseProps, kf, rise, step, useMoment } from './moment';
 
 export type TeamConfirmProps = MomentBaseProps & {
   faction: FactionId;
-  /** Mascote do time (arte da E4). Sem arte: o emblema do time. */
+  /** Troca o mascote (padrão: o `Mascot` da E4 do time, na pose "vitória", que acena com a cabeça). */
   mascot?: ReactNode;
   /** Líder do time e a frase dele (D-70; texto final da E4/E6). */
   leader: { name: string; quote: string };
@@ -35,9 +35,10 @@ const BASE = 100;
 
 /**
  * Confirmação épica da escolha de time (catálogo §7, D-72): a cor do time inunda a tela a partir do botão
- * (círculo que cresce só com `scale`, ≤ 600 ms), vibração forte aos 150 ms, emblema/mascote com mola, 2 ondas
- * de choque e confete, o nome do time sobe e a frase do líder aparece; "Bora correr" é tocável desde o
- * início. "Reduzir movimento": a cor aparece com fade de 250 ms e o conteúdo com fades curtos.
+ * (círculo que cresce só com `scale`, ≤ 600 ms), vibração forte aos 150 ms, o mascote do time (arte da E4,
+ * pose "vitória") salta com mola e acena com a cabeça (`parts.cabeca`, pivô no pescoço), 2 ondas de choque e
+ * confete, o nome do time sobe e a frase do líder aparece; "Bora correr" é tocável desde o início.
+ * "Reduzir movimento": a cor aparece com fade de 250 ms e o conteúdo com fades curtos, sem aceno.
  */
 export function TeamConfirm(props: TeamConfirmProps) {
   const { faction, mascot, leader, origin, onContinue, variant = 'ftue', ctaLabel = 'Bora correr', testID } = props;
@@ -100,8 +101,19 @@ export function TeamConfirm(props: TeamConfirmProps) {
               ))
             : null}
           <Animated.View
-            style={step(still, { from: { opacity: 0, transform: [{ rotate: '-90deg' }, { scale: 0.3 }] }, to: { opacity: 1, transform: [{ rotate: '0deg' }, { scale: 1 }] } }, springs.bouncy.duration, T.content, springCss('bouncy'))}>
-            {mascot ?? <TeamBadge faction={faction} size={140} />}
+            style={step(still, { from: { opacity: 0, transform: [{ translateY: 48 }, { scale: 0.4 }] }, to: { opacity: 1, transform: [{ translateY: 0 }, { scale: 1 }] } }, springs.bouncy.duration, T.content, springCss('bouncy'))}>
+            {mascot ?? (
+              <Mascot
+                team={faction}
+                pose="vitoria"
+                size={150}
+                parts={
+                  still
+                    ? undefined
+                    : { cabeca: { animationName: kf(MASCOT_NOD.keyframes), animationDuration: MASCOT_NOD.durationMs, animationDelay: T.name, animationTimingFunction: cssEasings.standard, animationFillMode: 'both' } }
+                }
+              />
+            )}
           </Animated.View>
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: space[2] }}>

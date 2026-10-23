@@ -6,6 +6,8 @@
  * de cada momento e de cada vibração (≥ 150 ms entre elas), dentro do teto do resumo. Com "Reduzir
  * movimento", fades curtos em cascata e 1 vibração; com leitor de tela, nada roteirizado e 1 anúncio.
  */
+import type { BossId } from '@/components/art/boss/boss-art';
+import type { MedalKind, MedalTier } from '@/components/art/medal/medal-art';
 import type { FactionId } from '@/domain/types';
 import { celebration, celebrationLevels, durations, HAPTIC_MIN_GAP_MS, type CelebrationLevel, type HapticPattern } from '@/theme/motion';
 
@@ -18,19 +20,23 @@ export type ChestRarity = 'comum' | 'raro' | 'lendario';
  * corrida (`live-events.ts`, E3) e do resumo (E7/E9) para estes formatos.
  */
 export interface CelebrationPayloads {
-  'zone-captured': { zone: string; faction: FactionId; points: number };
+  /** `points` só existe no resultado oficial (resumo); a previsão ao vivo não traz. */
+  'zone-captured': { zone: string; faction: FactionId; points?: number };
   'zone-defended': { zone: string; faction: FactionId };
-  'zone-milestone': { zone: string; fraction: number };
+  /** `gapMeters`: quanto falta para conquistar ("faltam ≈ 80 m"), quando a corrida sabe. */
+  'zone-milestone': { zone: string; fraction: number; gapMeters?: number };
   /** `odds`: chances reais de cada raridade (servidor, D-66); sem elas a linha de chances não aparece. */
   chest: { rarity: ChestRarity; xp: number; odds?: Record<ChestRarity, number> };
-  'boss-hit': { boss: string; damageKm: number; hpBefore: number; hpAfter: number; hpMax: number };
-  'boss-defeated': { boss: string; city: string; myKm: number };
+  /** `bossId`: qual arte da E4 desenhar; sem ele, o nome é usado para achar (`resolveBossId`). */
+  'boss-hit': { boss: string; bossId?: BossId; damageKm: number; hpBefore: number; hpAfter: number; hpMax: number };
+  'boss-defeated': { boss: string; bossId?: BossId; city: string; myKm: number };
   xp: { gained: number; from: number; to: number };
   'level-up': { level: number; title?: string };
   streak: { weeks: number; state: 'kept' | 'frozen' };
   'personal-record': { metric: string; value: string };
   mission: { title: string; xp: number };
-  medal: { name: string };
+  /** `medal`/`tier`: qual medalha da E4 desenhar no toast (opcional). */
+  medal: { name: string; medal?: MedalKind; tier?: MedalTier };
   'league-up': { position: number; previous: number };
   'team-confirm': { faction: FactionId };
 }
@@ -70,7 +76,8 @@ export type ScheduledMoment = {
   haptics: MomentHaptic[];
 };
 
-export type CelebrationMode = 'full' | 'reduced' | 'screen-reader';
+/** `skipped`: preferência "Pular celebrações" ligada (tudo no estado final, como um "Pular" no começo). */
+export type CelebrationMode = 'full' | 'reduced' | 'screen-reader' | 'skipped';
 
 export type CelebrationPlan = {
   mode: CelebrationMode;
@@ -94,6 +101,8 @@ export type PlanOptions = {
   budgetMs?: number;
   /** Frase antes das conquistas no anúncio: "Corrida concluída: 8,42 km em 47 minutos." */
   intro?: string;
+  /** Preferência "Pular celebrações" (T7.2.9): nada roteirizado, no máximo 1 vibração de sucesso. */
+  skip?: boolean;
 };
 
 type Beat = { offsetMs: number; pattern: HapticPattern };
@@ -286,10 +295,14 @@ export function planCelebrations(events: readonly CelebrationEvent[], opts: Plan
   const announcement = a11ySummary(events, opts.intro);
   const arranged = arrange(events);
 
-  if (opts.screenReader) {
+  if (opts.screenReader || opts.skip) {
     // nada roteirizado: tudo no estado final, de uma vez; o anúncio único conta o que aconteceu
-    const moments = arranged.map((d) => ({ id: momentId(d), kind: d.kind, level: d.level, events: d.events, startMs: start, durationMs: 0, endMs: start, compact: true, haptics: [] }));
-    return { mode: 'screen-reader', moments, haptics: [], totalMs: start, announcement };
+    const moments: ScheduledMoment[] = arranged.map((d) => ({ id: momentId(d), kind: d.kind, level: d.level, events: d.events, startMs: start, durationMs: 0, endMs: start, compact: true, haptics: [] }));
+    if (opts.screenReader) return { mode: 'screen-reader', moments, haptics: [], totalMs: start, announcement };
+    // "Pular celebrações" = o "Pular" tocado no começo: 1 sucesso se havia algo médio ou épico
+    const haptics: MomentHaptic[] = arranged.some((d) => LEVEL_ORDER[d.level] >= LEVEL_ORDER.medium) ? [{ atMs: start, pattern: 'success' }] : [];
+    if (moments.length > 0) moments[0].haptics = haptics;
+    return { mode: 'skipped', moments, haptics, totalMs: start, announcement };
   }
 
   if (opts.reduced) {
@@ -373,7 +386,7 @@ export function nextStepAt(plan: Pick<CelebrationPlan, 'moments' | 'totalMs'>, a
  * As vibrações pendentes do roteiro são descartadas.
  */
 export function skipHaptic(plan: Pick<CelebrationPlan, 'moments' | 'mode'>, atMs: number): HapticPattern | null {
-  if (plan.mode === 'screen-reader') return null;
+  if (plan.mode === 'screen-reader' || plan.mode === 'skipped') return null;
   const unseen = plan.moments.some((m) => m.endMs > atMs && LEVEL_ORDER[m.level] >= LEVEL_ORDER.medium);
   return unseen ? 'success' : null;
 }
