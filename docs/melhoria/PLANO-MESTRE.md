@@ -153,17 +153,22 @@
 - os índices de handlers de `src/services/api/demo/` (cada equipe acrescenta só as suas linhas);
 - `src/services/api/types.ts` (só o bloco de cada equipe).
 
-### Onda 3 — As outras telas
+### Onda 3 — As outras telas e os encaixes entre as frentes (8 frentes em paralelo)
 
-| ID | Equipe | Entrega |
-|---|---|---|
-| T7.3.1 | E6 | **Arena:** chefão ilustrado com vida, 3 anéis de missões, grade 2×2 de modos, faixa da liga e "?" (195 → ≤ 45 palavras) |
-| T7.3.2 | E6 | **Você:** cartão de jogador, estante de medalhas, Corridas com mini-mapa e gráfico da semana, ajustes atrás da engrenagem |
-| T7.3.3 | E6 | **Clube:** emblema e meta da crew, feed com "Bora!", pódio com 1 linha de filtro; **Crew** |
-| T7.3.4 | E6 | **Folha da zona:** barra de duas cores e 1 frase de regra; **telas secundárias:** notificações por dia, vazios ilustrados, contatos e zonas de privacidade |
-| T7.3.5 | E6 + E10 | **Medição depois** (`medir-texto.mjs --comparar antes`), capturas "depois" e teste de 5 segundos |
-| T7.3.6 | E3 + E10 | Simulação do território como **teste de regressão** na CI (novato ≥ 50%, eternas ≤ 15%, custo ≤ 1,5 km) |
-| T7.3.7 | E9 + E7 | Telemetria opt-in (D-82), se o tempo permitir |
+> **Onda 2 integrada e verde:** 1.287 testes no app, 716 pgTAP, 82 Deno, CI com o job do banco. Cada frente entregou peças prontas para encaixar (hooks, componentes, repositórios). Nesta onda, quem é dono da tela encaixa as peças e termina as telas que faltam.
+
+| ID | Equipe | Entrega | Pastas |
+|---|---|---|---|
+| T7.3.1 | E6a | **Layout e "Você":**<br>• `useReminderPlanner()` no `_layout`;<br>• rotas `/missoes` e `/recompensas` no guard do app;<br>• `<WelcomeBackGate />` nas abas;<br>• **Você**: cartão de jogador com anel de nível, título e mascote, estante de medalhas, Corridas com mini-mapa e gráfico da semana, ajustes atrás da engrenagem;<br>• **Ajustes**: lembretes da E7, "Vibração" e "Pular celebrações" da E5, pausa de saúde da E7, `<FeedSettings/>` da E8, convite do app;<br>• `LeaderBust` e `MascotRunner` (qualidade leve) no onboarding;<br>• `haptic()` no lugar do `expo-haptics` direto em `button.tsx`, `hold-button.tsx`, `use-run-safety.ts`, onboarding e `faction-screen`;<br>• `NeonBackdrop` com `usePausedWhenHidden`;<br>• notificações agrupadas por dia;<br>• telas secundárias (contatos, zonas de privacidade, Meu time) com estado vazio ilustrado | `src/app/_layout.tsx`, `src/app/(tabs)/_layout.tsx`, `src/app/(tabs)/perfil/**`, `src/features/screens/{profile,activities,account,edit-profile,faction,privacy-zones}-screen*`, `src/features/auth/**`, `src/features/safety/**`, `src/features/notifications/notifications-screen.tsx`, `src/components/**` (sem `art`, `motion`, `celebration`) |
+| T7.3.2 | E6b | **Encaixes do Mapa, do Correr e do Resumo:**<br>• Mapa: `today` a partir do `useTodayStrip()` da E7 e do chefão do `fetchRaidCurrent()` da E3;<br>• Resumo: bloco `RunRewardsBlock` (E7) e `<ShareButton>` (E8) por `renderShare`;<br>• Correr: retrato `fetchPaintNear()` (E3) no `createLiveTracker` e `createLiveFeedback()` (E5) no lugar do `toastForEvent`; aviso "Sua 1ª zona!";<br>• **Folha da zona** (`zona/[id]`): barra de duas cores, 1 frase de regra, ilustração do dono, ação visível no detent 0,55 (135 → ≤ 50 palavras);<br>• remover o `CaptureCelebration` sem uso (e a menção no `reduced-motion.test`) | `src/app/(tabs)/index.tsx`, `src/app/resumo.tsx`, `src/app/corrida.tsx`, `src/app/zona/**`, `src/features/screens/{map-screen*,run-screen,summary-screen,zone-sheet,game-motion*}`, `src/features/run/**`, `src/components/{territory-map*,capture-celebration*}`, `src/__tests__/reduced-motion.test.ts` (só a menção) |
+| T7.3.3 | E6c (nova frente da E6) | **Arena:**<br>• chefão ilustrado com vida real (`fetchRaidCurrent`), "Sua parte" e fases;<br>• 3 anéis de missões (E7);<br>• grade 2×2 de modos com `ModeIcon`;<br>• faixa da liga (`fetchLeagueCurrent`);<br>• "?" com o tutorial em 3 cartões;<br>• 195 → ≤ 45 palavras<br>**Clube e Crew:**<br>• emblema e meta semanal da crew;<br>• `<CrewFeed>` (E8);<br>• pódio com 1 linha de filtro;<br>• convite da crew (`InviteCard`)<br>Sem dado verdadeiro: estado ilustrado, nunca número inventado | `src/app/(tabs)/arena/**`, `src/app/(tabs)/clube/**`, `src/features/screens/{arena-screen,club-screen,crew-screen,club-ranking}*` |
+| T7.3.4 | E4 | **Arte:**<br>• chama e gelo da sequência (`StreakFlame`);<br>• ícone laranja da aba Correr (PNG para o nativo);<br>• splash com o logo;<br>• arte dos estados vazios novos que as telas pedirem;<br>• trocar a cor do baú raro se ainda colidir | `src/components/art/**`, `apps/mobile/assets/art/**` |
+| T7.3.5 | E5 | **Motion:**<br>• corrigir na `CelebrationSequence` o leitor de tela "sempre ligado" do react-native-web, removendo o contorno `screenReader={false}`;<br>• chama e gelo da E4 no `StreakFlame`;<br>• clarão do golpe com a silhueta do `Boss`;<br>• item do baú (`Chest layer="item"`);<br>• medir o custo das partículas | `src/components/motion/**`, `src/components/celebration/**` |
+| T7.3.6 | E7 | **Engajamento:**<br>• `firstConquestEver` para o HUD;<br>• `/recompensas` com "Ver todos" (≤ 120 palavras visíveis);<br>• telemetria opt-in no app (D-82), desligada por padrão, com a tela de consentimento;<br>• prêmio da primeira semana ligado às missões reais | `src/features/engagement/**`, `src/features/notifications/**` (exceto a tela), `src/app/missoes.tsx`, `src/app/recompensas.tsx`, `src/services/api/engagement-repo.ts` e os seus pares |
+| T7.3.7 | E8 | **Social:**<br>• arte real no card (`mascotSlot`, `bossSlot`, `LogoSvgArt`);<br>• `BoraReaction` (E5) no feed;<br>• Realtime dos aplausos;<br>• card de recap semanal (com o `weekly_recap` da E9) | `src/features/social/**`, `src/services/api/{feed,share}-repo.ts` e os seus pares |
+| T7.3.8 | E9 | **Servidor:**<br>• `paintedToday` no `zone_paint_near`;<br>• `pauseAvailable` no `my_engagement`;<br>• `weekly_recap`;<br>• telemetria opt-in (D-82: lista fechada, retenção de 30 dias);<br>• casos adversariais da v2 em `supabase/tests/security/`;<br>• o seed v2 na CI | `supabase/**`, `docs/API_CONTRATO.md`, `supabase/DEPLOY.md`, `.github/workflows/ci.yml` (só o passo do seed, em commit separado) |
+
+A medição "depois" (régua de texto, capturas de todas as rotas e teste de 5 segundos) fica para a onda 4, com a E10, sobre as telas finais.
 
 ### Onda 4 — QA e polimento (F5)
 - **E10 + revisor:** revisão adversarial com fluxos completos no modo demonstração, contraste, toque, leitor de tela, movimento reduzido, medição de texto e checklist de ética.

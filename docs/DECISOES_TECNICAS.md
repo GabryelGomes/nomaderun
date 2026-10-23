@@ -512,3 +512,27 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
 - **Decisão:** nas semanas que começam em agosto ou setembro, a Fuligem é pulada e entra o próximo chefão do rodízio. A regra fica no domain (`raid.ts`) e no job do servidor, com teste de paridade.
 - **Consequências:** a fala da Fuligem continua sem incentivar correr com fumaça; as outras semanas seguem o rodízio.
 
+### D-85 — Decisões de implementação da onda 2 (aceitas)
+2026-10-23 · Coordenador da Fase 7
+- **Contexto:** decisões de detalhe tomadas pelas equipes na onda 2, listadas nos relatórios `docs/melhoria/relatorios/*-onda2.md`.
+- **Decisão:** ficam aceitas.
+  - **E9:**
+    - com a flag `missions` ligada, a v1 grava `xp = 0` e o XP vai em linhas no `xp_ledger` (corrida já paga não recebe de novo);
+    - com `territory_rule = 'v2'`, a v1 só cria zonas novas e a pintura decide o dono; `zones.influence` vira espelho (trechos × 10) para o app antigo e para a volta atrás;
+    - `paint`, `points`, `raid` e `league` ficam dentro de `extras`;
+    - `zone_cells` não guarda quem pintou;
+    - o seed v2 não tem Raid nem Liga (D-76).
+  - **E7:**
+    - o silêncio e o "pausar lembretes por 7 dias" ficam no aparelho;
+    - "Abrir baús" só aparece com atividade no dia;
+    - o par de demonstração de `record_share` da E7 vale sobre o da E8.
+  - **E8:**
+    - o convite (`/compartilhar/convite/[codigo]`) fica fora dos guards;
+    - o selo de demonstração dos Stories fica em y = 370.
+  - **E6a:**
+    - Atividades vive em `/perfil/atividades` (o endereço antigo redireciona);
+    - a missão de boas-vindas fica por cima do Mapa.
+  - **E6b:** a previsão ao vivo usa a regra v2 com "~" e "provável" até o servidor ligar a v2.
+  - **Coordenador:** o `paint-repo` aceita `cells`/`zones` como mapa (formato do servidor) ou lista.
+- **Consequências:** quem discordar abre uma decisão nova.
+

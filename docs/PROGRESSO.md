@@ -79,6 +79,26 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-23 — Fase 7, onda 2 (o jogo de verdade e os fluxos) integrada (Coordenador + 9 frentes)
+- **Feito:**
+  - **E9:** gravação v2 atrás de flags (pintura, Raid, Liga, XP, missões, baú, recordes), pintura no banco, feed e aplausos, LGPD v2 e seed v2.
+  - **E3:** D-84, simulação do território como teste de regressão e repositórios de Raid, Liga e pintura.
+  - **E7:** `/missoes`, `/recompensas`, bloco de recompensas, lembretes locais, bem-vindo de volta e pausa de saúde.
+  - **E8:** compartilhar com imagem (nativo e web), GPX, feed da crew com "Bora!", convites e `expo-clipboard`.
+  - **E6a:** primeira abertura nova (D-72), abas Mapa · Arena · Correr · Clube · Você (D-73), "Ver demonstração" e selo.
+  - **E6b:** Mapa v2, Correr v2 com HUD ao vivo e Resumo cinematográfico.
+  - **E4:** líderes, mascotes em corrida, logo e ícone oficial (no `app.json`).
+  - **E5:** arte real nas celebrações, adaptador de eventos ao vivo, "Bora!" e preferências.
+  - **E10:** interruptor do modo demonstração, teste "só transform e opacidade" e CI com pgTAP e contraste estrito.
+- **Correções do coordenador na integração:**
+  - formato do `zone_paint_near` no `paint-repo`;
+  - índices de pares da demonstração;
+  - rotas de compartilhar no `_layout`;
+  - texto novo da corrida no e2e e no guia.
+- **Testes:** app 1.287 ✅ (26 de integração pulados) · typecheck ok · eslint 0 · **pgTAP 716/716 ✅** · Deno 82 ✅ · CI no GitHub.
+- **Decisões:** D-85.
+- **Para o próximo:** onda 3 (`PLANO-MESTRE.md` §2): Arena, Você, Clube, folha da zona e os encaixes entre as frentes.
+
 ### 2026-10-23 — Fase 7, onda 1 (fundação) integrada (Coordenador + E3–E10)
 - **Feito:**
   - **E3:** território v2 (`paint.ts`), eventos ao vivo, Raid, Liga e correções do domain em funções v2 (as v1 ficam iguais).
