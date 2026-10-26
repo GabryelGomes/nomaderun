@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>NOMADE RUN: Gestão e Gamificação de Corridas Urbanas</title>
+<style>
+  @page { size: A4; margin: 25mm 25mm 22mm 25mm; }
+  html { font-family: "Times New Roman", Times, "Liberation Serif", serif; font-size: 11.5pt; line-height: 1.38; color: #111; }
+  body { margin: 0; }
+  h1.title { font-size: 16pt; text-align: center; margin: 0 0 10pt; line-height: 1.25; }
+  .authors { text-align: center; font-size: 11.5pt; margin-bottom: 2pt; }
+  .affil { text-align: center; font-size: 10pt; margin-bottom: 2pt; }
+  .fill { background: #fff3a6; }
+  .emails { text-align: center; font-size: 9.5pt; font-family: "Courier New", monospace; margin-bottom: 12pt; }
+  .abstract { margin: 0 8mm 8pt; font-size: 10.5pt; text-align: justify; }
+  .abstract b { font-style: normal; }
+  h2 { font-size: 12.5pt; margin: 14pt 0 5pt; }
+  h3 { font-size: 11.5pt; margin: 10pt 0 4pt; }
+  p { margin: 0 0 6pt; text-align: justify; text-indent: 1.25cm; }
+  p.noindent, .abstract p { text-indent: 0; }
+  ul, ol { margin: 0 0 6pt; padding-left: 1.4cm; }
+  li { margin-bottom: 2pt; text-align: justify; }
+  figure { margin: 8pt 0 10pt; text-align: center; break-inside: avoid; }
+  figure img, figure svg { max-width: 100%; }
+  figcaption { font-size: 10pt; margin-top: 4pt; }
+  table { border-collapse: collapse; margin: 6pt auto 4pt; font-size: 9.8pt; break-inside: avoid; }
+  th, td { border: 1px solid #555; padding: 2.5pt 5pt; text-align: left; vertical-align: top; }
+  th { background: #eee; }
+  td.n { text-align: right; }
+  .tcap { text-align: center; font-size: 10pt; margin-top: 8pt; }
+  .formula { text-align: center; font-family: "Times New Roman", serif; font-style: italic; margin: 4pt 0 6pt; text-indent: 0; }
+  .refs p { text-indent: -0.8cm; padding-left: 0.8cm; text-align: left; font-size: 10.5pt; margin-bottom: 4pt; }
+  code { font-family: "Courier New", monospace; font-size: 9.5pt; }
+</style>
+</head>
+<body>
+
+<h1 class="title">NOMADE RUN: um aplicativo de gestão e gamificação de corridas urbanas com disputa de território sobre o mapa real da cidade</h1>
+<div class="authors">Gabryel Gomes Bahmad Camapum, Mateus Augusto de Faria Brito</div>
+<div class="affil"><span class="fill">[Curso] — [Instituição]</span> · Projeto de Desenvolvimento de Software (PDS)</div>
+<div class="emails"><span class="fill">[e-mails dos autores]</span></div>
+
+<div class="abstract">
+<p><b>Abstract.</b> This paper presents NOMADE RUN, a mobile running application that combines the essential features of activity trackers (GPS recording, distance, pace and history) with a territory game played on the real city map: every valid meter run inside a hexagonal zone earns points for the runner's team, and the team with the most influence controls the zone. The system was specified in a Software Requirements Specification with 27 functional requirements, 15 non-functional requirements and 19 business rules, and implemented with React Native/Expo and Supabase (PostgreSQL, PostGIS, row-level security and Edge Functions). The server is authoritative: the same pure rules module computes a provisional result on the phone and the official score on the server, protected by per-device HMAC signatures, offline queuing and anti-cheat checks. Verification combined more than 900 automated checks (unit, property, database, API, security and end-to-end) and covered all essential requirements of the minimum viable product.</p>
+<p><b>Resumo.</b> Este artigo apresenta o NOMADE RUN, um aplicativo móvel de corrida de rua que une as funções essenciais dos aplicativos de monitoramento (gravação por GPS, distância, ritmo e histórico) a um jogo de disputa de território sobre o mapa real da cidade: cada metro corrido de forma válida dentro de uma zona hexagonal gera pontos para a equipe do corredor, e a equipe com mais influência domina a zona. O sistema foi especificado em uma ERS com 27 requisitos funcionais, 15 não funcionais e 19 regras de negócio, e implementado com React Native/Expo e Supabase (PostgreSQL, PostGIS, segurança por linha e Edge Functions). O servidor é a fonte oficial das pontuações: o mesmo módulo puro de regras calcula um resultado provisório no celular e o oficial no servidor, com assinatura HMAC por aparelho, fila offline e verificações antifraude. A verificação reuniu mais de 900 checagens automatizadas (unitárias, de propriedade, de banco, de API, de segurança e de ponta a ponta) e cobriu todos os requisitos essenciais do produto mínimo viável.</p>
+<p><b>Palavras-chave:</b> gamificação; corrida de rua; jogos baseados em localização; aplicativos móveis; engenharia de software.</p>
+</div>
+
+<h2>1. Introdução</h2>
+<p>A inatividade física é um dos principais fatores de risco para doenças crônicas, e a Organização Mundial da Saúde recomenda ao menos 150 minutos semanais de atividade aeróbica moderada para adultos [WHO 2020]. A corrida de rua é uma das formas mais acessíveis de atingir essa meta, mas a dificuldade de manter a regularidade faz com que muitos iniciantes abandonem o hábito nas primeiras semanas.</p>
+<p>Os aplicativos de monitoramento, como o Strava e o Nike Run Club, resolvem bem o registro esportivo (percurso, distância, ritmo e histórico), mas oferecem poucos motivos para voltar a correr além das métricas pessoais e dos rankings. Os jogos baseados em localização, por outro lado, mostraram que uma camada de jogo sobre o mundo real pode aumentar a atividade física: um estudo com mais de 30 mil usuários do Pokémon GO registrou aumento médio de mais de 25% nos passos diários nas semanas seguintes à instalação [Althoff et al. 2016].</p>
+<p>O NOMADE RUN parte dessa combinação. O aplicativo registra a corrida como um aplicativo esportivo comum e acrescenta uma Arena de modos de jogo sobre o mapa real da cidade. O modo principal, Domínio, divide o mapa em zonas hexagonais: correr dentro de uma zona gera pontos para a equipe (facção) do corredor, e a facção com mais influência passa a dominá-la. Zonas podem ser atacadas, defendidas e fortificadas, e a influência decai com o tempo, o que obriga as equipes a voltar às ruas. O jogo funciona em qualquer cidade e permite competição entre cidades.</p>
+<p>O objetivo deste trabalho é especificar, projetar, implementar e verificar um produto mínimo viável (MVP) desse sistema, funcional de ponta a ponta. As principais contribuições são: (i) um modelo de pontuação por esforço relativo, que equilibra iniciantes e atletas; (ii) uma arquitetura em que o servidor é a fonte oficial das pontuações e reaproveita o mesmo módulo de regras do aplicativo; (iii) mecanismos de gravação sem internet, assinatura de dados e antifraude adequados a um jogo competitivo; e (iv) uma estratégia de verificação que rastreia cada requisito até testes automatizados. O restante do artigo apresenta a fundamentação e os trabalhos relacionados (Seção 2), a metodologia (Seção 3), a arquitetura e a implementação (Seção 4), os resultados da verificação (Seção 5), as limitações (Seção 6) e as conclusões (Seção 7).</p>
+
+<h2>2. Fundamentação teórica e trabalhos relacionados</h2>
+<h3>2.1. Gamificação e jogos baseados em localização</h3>
+<p>Gamificação é o uso de elementos de design de jogos em contextos que não são jogos [Deterding et al. 2011]. A revisão de Hamari, Koivisto e Sarsa [2014] concluiu que a gamificação tende a produzir efeitos positivos, mas que esses efeitos dependem do contexto e do perfil dos usuários, e que elementos como pontos, rankings e emblemas, quando usados de forma isolada, perdem força com o tempo. Por isso, o NOMADE RUN não se apoia apenas em pontos e medalhas: o progresso fica materializado no espaço (o território da equipe no mapa), há metas coletivas (defender uma zona atacada, vencer o Raid da cidade) e há ciclos de reinício (temporadas mensais e decaimento diário), que mantêm a disputa aberta para novos jogadores.</p>
+<p>Os jogos baseados em localização usam a posição real do jogador como parte da mecânica. O Pokémon GO popularizou o gênero, e jogos de território para corredores, como Turf, Run An Empire e INTVL, mostram que a conquista de áreas é um incentivo forte para explorar a cidade. Em comum, esses produtos enfrentam dois problemas que orientaram este projeto: a justiça da pontuação (corredores rápidos ou que treinam muito tendem a dominar tudo) e a fraude (uso de bicicleta, carro ou localização simulada).</p>
+<h3>2.2. Divisão espacial e antifraude</h3>
+<p>Para dividir o mapa em zonas, foi adotado o H3, sistema público de índice geoespacial hierárquico em hexágonos criado pela Uber [Brodsky 2018]. Hexágonos têm vizinhança uniforme (todos os vizinhos estão à mesma distância do centro), o que torna a disputa entre zonas adjacentes mais justa do que em grades quadradas, e a hierarquia do H3 permite agrupar zonas em distritos. O índice funciona em qualquer lugar do planeta, o que viabiliza a criação automática de zonas na primeira corrida em uma cidade nova.</p>
+<p>Na antifraude, os aplicativos esportivos combinam limites de velocidade, coerência entre pontos consecutivos e sensores do aparelho. O NOMADE RUN aplica regras explícitas e testáveis (Seção 4.3), recalculadas sempre no servidor, e um Índice de Confiança por usuário que encaminha casos duvidosos para revisão humana.</p>
+<h3>2.3. Comparação com trabalhos relacionados</h3>
+<p>A Tabela 1 compara o NOMADE RUN com produtos que inspiraram o projeto, segundo as funções declaradas por cada um.</p>
+<div class="tcap"><b>Tabela 1.</b> Comparação com produtos relacionados</div>
+<table>
+<tr><th>Produto</th><th>Registro esportivo</th><th>Território/mapa</th><th>Equipes</th><th>Pontuação por esforço relativo</th><th>Antifraude explícita</th></tr>
+<tr><td>Strava</td><td>Sim</td><td>Não (segmentos)</td><td>Clubes</td><td>Não</td><td>Sim (aprendizado de máquina)</td></tr>
+<tr><td>Pokémon GO</td><td>Não</td><td>Pontos fixos</td><td>Sim</td><td>Não</td><td>Sim</td></tr>
+<tr><td>Turf / Run An Empire</td><td>Parcial</td><td>Sim</td><td>Parcial</td><td>Não</td><td>Parcial</td></tr>
+<tr><td>INTVL</td><td>Sim</td><td>Sim (área fechada)</td><td>Clubes</td><td>Não</td><td>Parcial</td></tr>
+<tr><td><b>NOMADE RUN</b></td><td>Sim</td><td>Sim (hexágonos H3)</td><td>4 facções e crews</td><td>Sim</td><td>Sim (servidor)</td></tr>
+</table>
+
+<h2>3. Metodologia</h2>
+<p>O trabalho seguiu as etapas clássicas da engenharia de software [Sommerville 2019; Pressman e Maxim 2021]: concepção, especificação de requisitos, projeto, implementação incremental e verificação. Na concepção foram feitas pesquisas de mercado, de interface e de tecnologia, registradas no repositório do projeto. A especificação resultou em uma ERS com 27 requisitos funcionais (RF), 15 requisitos não funcionais (RNF), 19 regras de negócio (RN) e três casos de uso detalhados: correr e conquistar (UC-01), defender território (UC-02) e analisar o mapa de calor (UC-03). Cada requisito recebeu um identificador único e, sempre que possível, um critério de aceite mensurável, para permitir a rastreabilidade até os testes.</p>
+<p>Os requisitos foram priorizados com a técnica MoSCoW em três níveis: P0 (sem eles não há demonstração), P1 (importantes) e P2 (desejáveis). O desenvolvimento foi organizado em seis fases incrementais: (0) análise e base documental; (1) infraestrutura de banco, autenticação e camada de acesso; (2) corrida de ponta a ponta com GPS; (3) funcionalidades de jogo e sociais; (4) qualidade e segurança; e (5–6) entrega, adequação da interface ao uso móvel e animações. Ao fim de cada fase, as verificações automatizadas precisavam passar, e um registro de progresso documentava o que foi feito, os testes executados, os problemas e as pendências. As decisões técnicas foram registradas com contexto, justificativa e consequências (60 decisões ao longo do projeto).</p>
+<p>A implementação contou com apoio de ferramentas de inteligência artificial generativa para programação, organizadas em papéis (arquitetura, backend, frontend, GPS e integrações, qualidade e segurança, documentação), sob coordenação e revisão dos autores. Todo código gerado passou pelas mesmas verificações automatizadas e pela validação dos autores no aparelho.</p>
+
+<h2>4. Arquitetura e implementação</h2>
+<h3>4.1. Visão geral</h3>
+<p>O sistema tem três componentes (Figura 1): o aplicativo móvel, o servidor em nuvem e o painel de moderação. O aplicativo foi desenvolvido em React Native com Expo (SDK 57) e TypeScript, com navegação por arquivos (Expo Router) e estado local com Zustand. O servidor usa o Supabase: PostgreSQL com a extensão PostGIS para dados geográficos, autenticação com tokens JWT, segurança por linha (RLS), Edge Functions em TypeScript (Deno), atualização em tempo real e tarefas agendadas (pg_cron). O painel de moderação é o próprio aplicativo executado no navegador, em uma rota acessível apenas a moderadores e administradores, o que evitou uma terceira base de código.</p>
+<figure>
+<svg viewBox="0 0 760 300" width="680" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif" font-size="12">
+  <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#333"/></marker></defs>
+  <rect x="10" y="20" width="240" height="260" rx="10" fill="#f6f6f6" stroke="#333"/>
+  <text x="130" y="42" text-anchor="middle" font-weight="bold">Aplicativo (Expo / React Native)</text>
+  <rect x="26" y="56" width="208" height="34" rx="6" fill="#fff" stroke="#777"/><text x="130" y="78" text-anchor="middle">Telas e componentes (Expo Router)</text>
+  <rect x="26" y="98" width="208" height="34" rx="6" fill="#fff" stroke="#777"/><text x="130" y="120" text-anchor="middle">Serviços: GPS, sensores, sync</text>
+  <rect x="26" y="140" width="208" height="34" rx="6" fill="#fff" stroke="#777"/><text x="130" y="162" text-anchor="middle">Fila offline (SQLite) + HMAC</text>
+  <rect x="26" y="182" width="208" height="40" rx="6" fill="#ffe8d9" stroke="#c45a14"/><text x="130" y="200" text-anchor="middle" font-weight="bold">Módulo de regras (domínio)</text><text x="130" y="214" text-anchor="middle" font-size="10.5">pontuação, território, antifraude</text>
+  <text x="130" y="248" text-anchor="middle" font-size="10.5">resultado provisório (sem internet)</text>
+  <text x="130" y="264" text-anchor="middle" font-size="10.5">painel de moderação = mesmo app na web</text>
+
+  <rect x="510" y="20" width="240" height="260" rx="10" fill="#f6f6f6" stroke="#333"/>
+  <text x="630" y="42" text-anchor="middle" font-weight="bold">Servidor (Supabase)</text>
+  <rect x="526" y="56" width="208" height="40" rx="6" fill="#fff" stroke="#777"/><text x="630" y="74" text-anchor="middle">Auth (JWT 1 h, bcrypt)</text><text x="630" y="88" text-anchor="middle" font-size="10.5">PKCE, limite de tentativas</text>
+  <rect x="526" y="104" width="208" height="52" rx="6" fill="#ffe8d9" stroke="#c45a14"/><text x="630" y="122" text-anchor="middle" font-weight="bold">Edge Functions (Deno)</text><text x="630" y="136" text-anchor="middle" font-size="10.5">ingest-points, finish-activity, zones…</text><text x="630" y="149" text-anchor="middle" font-size="10.5">mesmo módulo de regras (oficial)</text>
+  <rect x="526" y="164" width="208" height="52" rx="6" fill="#fff" stroke="#777"/><text x="630" y="182" text-anchor="middle">PostgreSQL + PostGIS</text><text x="630" y="196" text-anchor="middle" font-size="10.5">RLS em todas as tabelas</text><text x="630" y="209" text-anchor="middle" font-size="10.5">índice GiST, pg_cron</text>
+  <rect x="526" y="224" width="208" height="40" rx="6" fill="#fff" stroke="#777"/><text x="630" y="248" text-anchor="middle">Realtime (zonas e notificações)</text>
+
+  <line x1="250" y1="110" x2="505" y2="110" stroke="#333" marker-end="url(#a)"/><text x="378" y="102" text-anchor="middle" font-size="11">lotes de pontos GPS assinados (HMAC-SHA256)</text>
+  <line x1="250" y1="150" x2="505" y2="150" stroke="#333" marker-end="url(#a)"/><text x="378" y="143" text-anchor="middle" font-size="11">finalizar corrida (HTTPS + JWT)</text>
+  <line x1="505" y1="190" x2="255" y2="190" stroke="#333" marker-end="url(#a)"/><text x="378" y="183" text-anchor="middle" font-size="11">resultado oficial: RP, zonas, alertas</text>
+  <line x1="505" y1="244" x2="255" y2="244" stroke="#333" stroke-dasharray="5 3" marker-end="url(#a)"/><text x="378" y="237" text-anchor="middle" font-size="11">troca de dono em tempo real (WebSocket)</text>
+</svg>
+<figcaption><b>Figura 1.</b> Arquitetura do NOMADE RUN: o mesmo módulo de regras roda no aplicativo (resultado provisório) e no servidor (resultado oficial).</figcaption>
+</figure>
+<p>O código do aplicativo foi organizado em camadas com dependências em um só sentido: o módulo de regras (domínio) é puro, sem dependência de interface, banco ou rede; os serviços cuidam de infraestrutura (GPS, armazenamento, sincronização, assinatura); e as telas consomem os serviços por meio de repositórios. Essa separação permitiu atender ao RNF-008 (regras isoladas e com cobertura mínima de 90% de testes) e, principalmente, reaproveitar exatamente o mesmo código de regras nas Edge Functions do servidor.</p>
+
+<h3>4.2. Pontuação e território</h3>
+<p>Para cada zona percorrida em uma corrida válida, os pontos (Run Points, RP) seguem a regra RN-001:</p>
+<p class="formula">RP = metros válidos × 0,1 × M<sub>esforço</sub> × M<sub>sequência</sub> × M<sub>fantasma</sub> × M<sub>grupo</sub> × M<sub>defesa</sub></p>
+<p class="noindent">O multiplicador de esforço é a razão entre o ritmo habitual do próprio corredor (mediana das últimas dez corridas) e o ritmo da corrida, limitado entre 0,8 e 1,3. Assim, correr no próprio limite vale o mesmo para um iniciante e para um atleta. Os demais multiplicadores recompensam a regularidade semanal (até 1,5), vencer o "fantasma" na missão Fuga (1,5), correr junto com três ou mais membros da mesma crew (1,25) e defender uma zona da própria facção que está sob ataque (2,0). Há um teto de 300 RP por usuário, por zona e por dia.</p>
+<p>A influência de cada facção em uma zona é a soma dos RP. Uma zona neutra é conquistada ao atingir 30 de influência (cerca de 300 metros corridos), para que a primeira corrida de um iniciante já conquiste algo; uma zona com dono só muda de mãos quando a desafiante atinge 110% da influência do dono (histerese que evita trocas constantes). Quando uma rival atinge 50% da influência do dono, a zona fica sob ataque: abre-se uma janela de defesa de 24 horas e os membros da facção que correram ali recentemente recebem um alerta, limitado a um por zona a cada seis horas e cinco por dia. Corridas em dias seguidos aumentam o escudo da zona (até três níveis, reduzindo em até 30% os pontos de rivais), e todos os dias, às 3h, a influência decai 10%. Esse conjunto de regras mantém o mapa vivo e impede o domínio permanente.</p>
+
+<h3>4.3. Servidor autoritativo, sincronização e antifraude</h3>
+<p>Em um jogo competitivo, nenhum ponto calculado no aparelho pode ser aceito sem verificação (RNF-006). O fluxo de uma corrida (UC-01) funciona assim: (1) o aplicativo cria um identificador para a corrida e grava cada ponto de GPS, com precisão, velocidade, altitude e contagem de passos, primeiro em uma fila local (SQLite); (2) a cada poucos segundos, e sempre que a conexão volta, os pontos são enviados em lotes assinados com HMAC-SHA256, com uma chave exclusiva de cada aparelho; (3) o servidor confere a assinatura, a ordem e a duplicidade de cada lote, de modo que o reenvio após uma queda de conexão não perde nem duplica pontos (RF-005); (4) ao finalizar, o servidor aplica o antifraude e as regras de pontuação e de território em uma transação que trava as zonas envolvidas, e devolve o resultado oficial. Sem internet, o aplicativo calcula um resumo provisório com o mesmo módulo de regras e o confirma automaticamente depois. Testes comparam o resultado provisório com o oficial para garantir que coincidem.</p>
+<p>O antifraude aplica, em ordem: descarte de pontos com precisão pior que 30 m; invalidação de trechos com velocidade acima de 40 km/h, com média acima de 25 km/h por mais de 30 s ou com saltos de posição maiores que 50 m em até 1 s; verificação da cadência de passos entre 8 e 20 km/h; e rejeição da corrida inteira quando o sistema operacional sinaliza localização simulada (RN-007 e RN-008). Cada indício reduz o Índice de Confiança do usuário (RN-009); abaixo de 40, as corridas vão para a fila de moderação e só pontuam após aprovação com justificativa obrigatória (RF-018).</p>
+
+<h3>4.4. Segurança e privacidade</h3>
+<p>As senhas são armazenadas com bcrypt pelo serviço de autenticação, os tokens JWT expiram em uma hora com renovação automática, e o retorno por link de e-mail usa o fluxo PKCE, com confirmação antes de trocar de conta. Todas as tabelas têm políticas de segurança por linha: cada usuário lê apenas os próprios dados privados, e a escrita em zonas e no resultado das corridas é exclusiva do servidor. Colunas sensíveis (papel, índice de confiança, experiência) não podem ser alteradas pelo cliente, contas inativadas perdem o acesso imediatamente, e a chave administrativa existe apenas nas Edge Functions. Para atender à LGPD [Brasil 2018], o cadastro exige idade mínima de 16 anos e o aceite separado dos termos e da política de privacidade, os pedidos de permissão de localização e de notificações são precedidos de explicação, e o usuário pode exportar os próprios dados e excluir a conta pelo aplicativo. As zonas de privacidade (RN-010) escondem de terceiros os trechos do percurso próximos a endereços marcados, sem deixar de pontuar.</p>
+
+<h3>4.5. Interface, acessibilidade e Corrida Segura</h3>
+<p>A interface combina o mapa dos aplicativos de navegação, na tela inicial, com o registro de atividades dos aplicativos de corrida (Figura 2). O território é desenhado como regiões suavizadas, sem mostrar a grade de hexágonos, e cada facção tem, além da cor, uma forma própria (círculo, quadrado, losango e triângulo), para que pessoas com daltonismo diferenciem as equipes [Okabe e Ito 2008]. A identidade visual adota fundo escuro e um único destaque em laranja neon, e as animações seguem curvas e durações curtas inspiradas em sites esportivos de referência. Elementos interativos têm área de toque mínima de 44 pt, descrição para leitores de tela e contraste de texto de pelo menos 4,5:1 [W3C 2018]; com a opção "Reduzir movimento" do sistema, as animações viram apenas transições de opacidade. A tela de corrida mostra no máximo três métricas em números grandes, e encerrar exige manter o botão pressionado por 600 ms, para evitar o fim acidental com o celular no bolso (RNF-015). A Corrida Segura (RF-024) permite cadastrar até cinco contatos, oferece um botão SOS sempre visível e pergunta se está tudo bem quando o corredor fica parado por mais de dez minutos, avisando os contatos se não houver resposta.</p>
+<figure>
+<img src="figuras/telas.png" alt="Telas do aplicativo: entrar, mapa de território, nova corrida e clube" style="width: 100%;">
+<figcaption><b>Figura 2.</b> Telas do aplicativo: entrar, mapa de território com as regiões de cada facção, escolha da missão antes da corrida e clube com rankings (dados de demonstração).</figcaption>
+</figure>
+
+<h2>5. Verificação e resultados</h2>
+<p>A verificação combinou testes em vários níveis, todos automatizados e executados a cada fase (Tabela 2). Os testes do módulo de regras incluem testes baseados em propriedades, que geram milhares de entradas e verificam invariantes: os pontos nunca são negativos nem ultrapassam o teto diário, a conquista respeita a histerese, o decaimento é monotônico, nenhum trecho válido passa de 40 km/h e a fila offline nunca repete um número de sequência. Uma auditoria de segurança dedicada testou, de forma adversarial, as políticas de cada tabela e cada função do servidor (acesso a dados de terceiros, escalada de papel, assinatura adulterada, reenvio, entradas inválidas).</p>
+<div class="tcap"><b>Tabela 2.</b> Resultados das suítes de teste na versão final</div>
+<table>
+<tr><th>Suíte</th><th>O que verifica</th><th>Resultado</th></tr>
+<tr><td>Unitários e de propriedade (Jest)</td><td>regras, serviços, sincronização, telas</td><td class="n">410 aprovados</td></tr>
+<tr><td>Cobertura do módulo de regras</td><td>linhas / ramos (meta RNF-008: 90%)</td><td class="n">99,5% / 99,6%</td></tr>
+<tr><td>Integração aplicativo × servidor</td><td>cadastro, corrida, zonas, moderação</td><td class="n">26/26</td></tr>
+<tr><td>Banco de dados (pgTAP)</td><td>políticas RLS, gatilhos, funções SQL</td><td class="n">285/285</td></tr>
+<tr><td>Edge Functions (Deno)</td><td>HMAC, validações, pontuação oficial</td><td class="n">58 aprovados</td></tr>
+<tr><td>Ponta a ponta do servidor</td><td>fluxos completos da API</td><td class="n">56/56</td></tr>
+<tr><td>Auditoria de segurança adversarial</td><td>ataques às funções e às políticas</td><td class="n">89/89</td></tr>
+<tr><td>Navegador (Playwright)</td><td>demonstração completa e comparação visual</td><td class="n">14/14 e 4/4</td></tr>
+</table>
+<p>A auditoria de qualidade e segurança não encontrou falhas de severidade alta; os quatro achados de severidade média (por exemplo, a exposição do código de convite das crews e um limite de zonas por consulta menor que o especificado) foram corrigidos com testes que falhavam antes e passaram depois. Também foram medidos indicadores de desempenho no ambiente local: a consulta de zonas visíveis respondeu com p95 de 35 ms para 2.000 zonas (meta do RNF-009: 150 ms), e uma troca de dono chegou ao mapa de outro usuário entre 0,2 s e 1,0 s (meta do RNF-003: 3 s). A Tabela 3 resume a situação dos requisitos da ERS.</p>
+<div class="tcap"><b>Tabela 3.</b> Situação dos requisitos no MVP</div>
+<table>
+<tr><th>Tipo</th><th>Implementado</th><th>Parcial</th><th>Não implementado</th><th>Fora do MVP</th></tr>
+<tr><td>Requisitos funcionais (27)</td><td class="n">13</td><td class="n">12</td><td class="n">2</td><td class="n">0</td></tr>
+<tr><td>Requisitos não funcionais (15)</td><td class="n">6</td><td class="n">6</td><td class="n">1</td><td class="n">2</td></tr>
+<tr><td>Regras de negócio (19)</td><td class="n">13</td><td class="n">4</td><td class="n">2</td><td class="n">0</td></tr>
+<tr><td><b>Total (61)</b></td><td class="n"><b>32</b></td><td class="n"><b>22</b></td><td class="n"><b>5</b></td><td class="n"><b>2</b></td></tr>
+</table>
+<p>Todos os 25 requisitos de prioridade P0 foram implementados total ou parcialmente; os itens marcados como parciais funcionam no essencial, com pendências documentadas (por exemplo, compartilhamento da localização ao vivo na Escolta). Os cinco não implementados são de prioridade P1 ou P2: mapa de calor, feed social, título de Prefeito, Raid com dados reais e uma meta de desempenho a ser medida em aparelho. O backend foi publicado no Supabase Cloud e o aplicativo foi distribuído por atualização remota (EAS Update), o que permite testá-lo em qualquer rede, sem depender do computador de desenvolvimento.</p>
+
+<h2>6. Discussão e limitações</h2>
+<p>A decisão mais importante do projeto foi tornar o servidor a fonte oficial das pontuações e reaproveitar nele o mesmo módulo de regras do aplicativo. Isso eliminou a duplicação de lógica, garantiu que o resumo provisório offline coincida com o oficial e concentrou nos testes do domínio a maior parte da complexidade do jogo. A pontuação por esforço relativo e o limiar baixo de conquista de zonas neutras foram pensados para que iniciantes tenham ganhos visíveis já na primeira corrida, alinhando o jogo ao objetivo de saúde do produto.</p>
+<p>O trabalho tem limitações. A gravação com a tela bloqueada e as notificações push exigem uma versão de desenvolvimento do aplicativo, pois o Expo Go não oferece esses recursos em todas as plataformas; no MVP, os alertas chegam por uma central de notificações no próprio aplicativo. A Escolta compartilha a posição no momento do envio, e não um rastreamento contínuo. Não foram executados o teste de carga com 5.000 corredores simultâneos (RNF-001) nem a medição de consumo de bateria (RNF-004), e os fluxos de teste em aparelho (Maestro) foram escritos, mas não executados em dispositivos físicos. A assinatura HMAC dificulta a adulteração dos dados em trânsito, mas não prova que o cliente é o aplicativo oficial; para isso seria necessária a atestação do aparelho (Play Integrity e App Attest). Por fim, a identidade visual escura única diverge do tema claro/escuro automático previsto no RNF-010, e a troca de cor de uma facção para vermelho reduziu a separação entre cores para pessoas com deuteranopia, o que é compensado pelas formas de cada equipe; ambas as decisões estão registradas e devem ser refletidas em uma revisão da ERS.</p>
+
+<h2>7. Conclusão e trabalhos futuros</h2>
+<p>Este artigo apresentou o NOMADE RUN, um aplicativo que transforma a corrida de rua em uma disputa de território entre equipes sobre o mapa real da cidade. O MVP funciona de ponta a ponta: cadastro, escolha de facção, corrida com GPS ou simulação, gravação sem internet, sincronização assinada, validação antifraude, pontuação e conquista no servidor, atualização do mapa em tempo real, alertas de invasão, rankings, crews, Corrida Segura e moderação. A verificação automatizada em vários níveis, rastreada até os requisitos, deu segurança para evoluir o sistema ao longo das fases.</p>
+<p>Como trabalhos futuros, destacam-se: implementar o mapa de calor e o feed social; executar os testes em aparelhos físicos e o teste de carga; adotar a atestação de aparelho para o antifraude; habilitar a gravação em segundo plano e as notificações push em uma versão publicada nas lojas; e, principalmente, conduzir um estudo com corredores reais para medir se a camada de jogo aumenta a regularidade de treino em relação a um aplicativo de corrida convencional, que é a hipótese central do projeto.</p>
+
+<h2>Referências</h2>
+<div class="refs">
+<p>ALTHOFF, T.; WHITE, R. W.; HORVITZ, E. Influence of Pokémon Go on physical activity: study and implications. <i>Journal of Medical Internet Research</i>, v. 18, n. 12, e315, 2016.</p>
+<p>BRASIL. Lei nº 13.709, de 14 de agosto de 2018. Lei Geral de Proteção de Dados Pessoais (LGPD). <i>Diário Oficial da União</i>, Brasília, 2018.</p>
+<p>BRODSKY, I. H3: Uber's hexagonal hierarchical spatial index. <i>Uber Engineering Blog</i>, 2018. Disponível em: https://www.uber.com/blog/h3/.</p>
+<p>DETERDING, S.; DIXON, D.; KHALED, R.; NACKE, L. From game design elements to gamefulness: defining "gamification". In: <i>Proceedings of the 15th International Academic MindTrek Conference</i>. Tampere: ACM, 2011. p. 9–15.</p>
+<p>EXPO. Expo documentation (SDK 57). Disponível em: https://docs.expo.dev/.</p>
+<p>HAMARI, J.; KOIVISTO, J.; SARSA, H. Does gamification work? A literature review of empirical studies on gamification. In: <i>Proceedings of the 47th Hawaii International Conference on System Sciences</i>. IEEE, 2014. p. 3025–3034.</p>
+<p>OKABE, M.; ITO, K. Color Universal Design (CUD): how to make figures and presentations that are friendly to colorblind people. 2008. Disponível em: https://jfly.uni-koeln.de/color/.</p>
+<p>OWASP FOUNDATION. OWASP Top 10: 2021. Disponível em: https://owasp.org/Top10/.</p>
+<p>PRESSMAN, R. S.; MAXIM, B. R. <i>Engenharia de software: uma abordagem profissional</i>. 9. ed. Porto Alegre: AMGH, 2021.</p>
+<p>SOMMERVILLE, I. <i>Engenharia de software</i>. 10. ed. São Paulo: Pearson, 2019.</p>
+<p>SUPABASE. Supabase documentation: Database, Auth, Row Level Security e Edge Functions. Disponível em: https://supabase.com/docs.</p>
+<p>W3C. Web Content Accessibility Guidelines (WCAG) 2.1. W3C Recommendation, 2018. Disponível em: https://www.w3.org/TR/WCAG21/.</p>
+<p>WORLD HEALTH ORGANIZATION. <i>WHO guidelines on physical activity and sedentary behaviour</i>. Geneva: WHO, 2020.</p>
+</div>
+
+</body>
+</html>
