@@ -24,6 +24,7 @@ import { RouteDraw } from '@/features/run/route-draw';
 import { ROUTE_DRAW_MS } from '@/features/run/route-draw.math';
 import { summaryCelebrations, summaryIntro } from '@/features/run/summary-celebration';
 import { invalidReasons, type RunSummary } from '@/features/run/summary-model';
+import type { SummaryXp } from '@/features/run/summary-extras';
 import { useRunRecord } from '@/features/run/use-run-record';
 import { getInvalidStretches } from '@/services/api/track-repo';
 import { useGame } from '@/store/game-store';
@@ -80,6 +81,11 @@ export type SummaryScreenProps = {
   /** Encaixe do bloco "Recompensas" da E7 (missões, baú, XP da semana). */
   rewards?: ReactNode;
   /** Encaixe do `<ShareButton>` da E8 (card com imagem). Sem ele, compartilha o texto. */
+  /**
+   * XP e nível que o servidor creditou de fato (bloco "Recompensas" da E7: corrida + baús + missões). Com ele, o
+   * nível e o "+X XP" do resumo mostram o mesmo número do bloco; sem ele (servidor v1), o `xp` da corrida.
+   */
+  xp?: SummaryXp | null;
   renderShare?: (ctx: { runId: string; status: RunSummary['status'] | null; onShared?: () => void }) => ReactNode;
 };
 
@@ -88,7 +94,7 @@ export type SummaryScreenProps = {
  * v2 (T7.2.7): sequência cinematográfica — a rota se desenha, os números contam, as conquistas aparecem uma
  * a uma (com "Pular"), o nível enche e o Compartilhar é a ação primária ("Concluir" vira link).
  */
-export function SummaryScreen({ rewards, renderShare }: SummaryScreenProps = {}) {
+export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps = {}) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotionSetting();
@@ -105,7 +111,7 @@ export function SummaryScreen({ rewards, renderShare }: SummaryScreenProps = {})
   const official = record.state === 'official';
   const conquered = official && r ? r.zones.filter((z) => z.outcome === 'conquered') : [];
   const highlight = conquered[0];
-  const events = useMemo(() => (r ? summaryCelebrations(r, official, faction) : []), [r, official, faction]);
+  const events = useMemo(() => (r ? summaryCelebrations(r, official, faction, xp?.gained) : []), [r, official, faction, xp?.gained]);
   const [sequenceDone, setSequenceDone] = useState(false);
   /** Sem conquista confirmada, o roteiro vai direto ao nível (depois dos números). */
   const done = sequenceDone || events.length === 0;
@@ -185,7 +191,8 @@ export function SummaryScreen({ rewards, renderShare }: SummaryScreenProps = {})
             : null;
 
   const at = (ms: number) => (reduced ? 0 : ms);
-  const lvl = levelFromXp(xpTotal);
+  const lvl = xp ?? levelFromXp(xpTotal);
+  const gained = xp?.gained ?? r.xp;
   const teamColor = neonTeam[faction];
   const time = formatDuration(r.movingSeconds);
 
@@ -325,9 +332,9 @@ export function SummaryScreen({ rewards, renderShare }: SummaryScreenProps = {})
                 <Text variant="title" style={{ flex: 1 }}>
                   Nível {lvl.level}
                 </Text>
-                {r.xp > 0 ? (
-                  <Text variant="bodyBold" tabular color={neon.orangeText}>
-                    +{r.xp} XP
+                {gained > 0 ? (
+                  <Text variant="bodyBold" tabular color={neon.orangeText} testID="resumo-xp">
+                    +{gained} XP
                   </Text>
                 ) : null}
               </View>
@@ -392,7 +399,7 @@ export function SummaryScreen({ rewards, renderShare }: SummaryScreenProps = {})
                 </Text>
               ) : null}
               <Text variant="small" muted>
-                +{r.xp} XP · {r.newFogCells} ruas novas no Atlas
+                +{gained} XP · {r.newFogCells} ruas novas no Atlas
               </Text>
             </Surface>
             {reasons.length > 0 || r.review ? (

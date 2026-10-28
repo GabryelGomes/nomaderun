@@ -24,6 +24,8 @@ export type ActivitySummary = {
   xp: number;
   flags: CheatFlag[];
   result: OfficialResult | null;
+  /** `activities.v2_extras` (contrato v2): o `extras` da resposta oficial, guardado pelo servidor. `null` no servidor v1. */
+  extras?: Record<string, unknown> | null;
 };
 
 type Row = Record<string, unknown>;
@@ -56,28 +58,46 @@ export function toActivity(row: Row): ActivitySummary {
     xp: num(row.xp),
     flags: Array.isArray(row.flags) ? (row.flags as CheatFlag[]) : [],
     result: row.result && typeof row.result === 'object' ? (row.result as OfficialResult) : null,
+    extras: row.v2_extras && typeof row.v2_extras === 'object' && !Array.isArray(row.v2_extras) ? (row.v2_extras as Record<string, unknown>) : null,
   };
 }
 
-const COLUMNS = 'id,status,mission,started_at,ended_at,meters,moving_seconds,avg_pace,rp_total,xp,flags,result';
+const LEGACY_COLUMNS = 'id,status,mission,started_at,ended_at,meters,moving_seconds,avg_pace,rp_total,xp,flags,result';
+const COLUMNS = `${LEGACY_COLUMNS},v2_extras`;
+
+/** Servidor antigo (sem a coluna `v2_extras`): `42703` (Postgres) ou `PGRST204` (cache do PostgREST). */
+export const isMissingColumn = (e: unknown) => {
+  const code = (e as { code?: unknown } | null)?.code;
+  return code === '42703' || code === 'PGRST204';
+};
+
+/** Lê com `v2_extras`; no servidor antigo, repete sem a coluna (o histórico nunca quebra por ela). */
+async function selectActivities<T>(run: (columns: string) => PromiseLike<{ data: T; error: unknown }>): Promise<T> {
+  const first = await run(COLUMNS);
+  if (!first.error) return first.data;
+  if (!isMissingColumn(first.error)) throw first.error;
+  const legacy = await run(LEGACY_COLUMNS);
+  if (legacy.error) throw legacy.error;
+  return legacy.data;
+}
 
 /** Corridas do usuário, mais recentes primeiro, opcionalmente num período (`started_at` em [from, to)). */
 export async function listMyActivities(opts: { from?: number; to?: number; limit?: number } = {}): Promise<Result<ActivitySummary[]>> {
   return attempt(async () => {
-    let q = requireSupabase().from('activities').select(COLUMNS).order('started_at', { ascending: false }).limit(opts.limit ?? 200);
-    if (opts.from !== undefined) q = q.gte('started_at', new Date(opts.from).toISOString());
-    if (opts.to !== undefined) q = q.lt('started_at', new Date(opts.to).toISOString());
-    const { data, error } = await q;
-    if (error) throw error;
-    return ((data ?? []) as Row[]).map(toActivity);
+    const data = await selectActivities((columns) => {
+      let q = requireSupabase().from('activities').select(columns).order('started_at', { ascending: false }).limit(opts.limit ?? 200);
+      if (opts.from !== undefined) q = q.gte('started_at', new Date(opts.from).toISOString());
+      if (opts.to !== undefined) q = q.lt('started_at', new Date(opts.to).toISOString());
+      return q;
+    });
+    return ((data ?? []) as unknown as Row[]).map(toActivity);
   });
 }
 
 export async function getActivity(id: string): Promise<Result<ActivitySummary | null>> {
   return attempt(async () => {
-    const { data, error } = await requireSupabase().from('activities').select(COLUMNS).eq('id', id).maybeSingle();
-    if (error) throw error;
-    return data ? toActivity(data as Row) : null;
+    const data = await selectActivities((columns) => requireSupabase().from('activities').select(columns).eq('id', id).maybeSingle());
+    return data ? toActivity(data as unknown as Row) : null;
   });
 }
 

@@ -787,6 +787,8 @@ export function withEngagementExtras<T>(db: DemoDb, userId: string, response: T)
   r.xp = (block.xp as { lines: { source: string; amount: number }[] }).lines.filter((l) => own.has(l.source)).reduce((sum, l) => sum + l.amount, 0);
   r.extras = { contract: 2, ...extras, engagement: block };
   act.xp = r.xp;
+  // Como o servidor (`activities.v2_extras`): o resumo de uma corrida antiga relê o bloco.
+  act.v2_extras = r.extras;
   return response;
 }
 

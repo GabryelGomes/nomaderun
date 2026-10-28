@@ -64,3 +64,20 @@ A régua conta todos os estados. Na zona, os 76 incluem o histórico recolhido (
 - **Verificações:**
   - `typecheck` ok; `eslint` em `features/screens` sem avisos;
   - Jest de `features/screens` + `testids`: 76 passam, com 1 teste novo do `mapCityOf`.
+
+## 7. As 2 pendências da seção 5 fechadas (pedido do coordenador)
+
+1. **Resumo de corrida antiga com o bloco Recompensas.**
+   - `activities-repo` passa a ler `v2_extras` (`ActivitySummary.extras`, opcional).
+   - **Servidor antigo:** sem a coluna, o servidor responde `42703`/`PGRST204`. O repositório repete o pedido sem ela, e o histórico não quebra.
+   - **Resumo:** a resposta oficial é remontada com `officialFromActivity` (`result` + `extras`) e entra no cache oficial. A fonte é o histórico ou, se faltar, 1 `getActivity` por corrida.
+   - **Par da demonstração:** a tabela `activities` ganhou `v2_extras`, e o `finish-activity` de demonstração grava o `extras` nela, como o servidor.
+2. **Um número só de XP.**
+   - **Qual número está certo:** o creditado é o **total do bloco da E7**. É a soma das linhas do `xp_ledger`: corrida, semana, baús e missões. O `xp` da resposta v1 é só a parte da corrida (contrato da E9: `response.xp` = XP da própria atividade).
+   - **O que a tela mostra agora:** com o bloco, o "Nível N", o "+X XP", o chip de XP das conquistas e o "Ver detalhes" usam o mesmo total e o nível do servidor (`summaryXpFrom`). Sem o bloco (servidor v1), continua o `xp` da corrida.
+   - **Captura:** `E6b-onda3/pend-depois-resumo-xp.png` mostra "+253 XP" no nível, no chip e no Total.
+- **Testes:**
+  - `features/run/__tests__/old-run-extras.test.ts` (6): leitura, retry sem a coluna, erro que não é engolido, remontagem e XP único;
+  - `__tests__` + `services` + `features`: 781 passam, 26 pulados;
+  - `typecheck` e `eslint`: ok.
+- **Fora das minhas pastas, autorizado pelo coordenador:** `services/api/activities-repo.ts`, `services/api/demo/db.ts` e `services/api/demo/engagement.ts`.

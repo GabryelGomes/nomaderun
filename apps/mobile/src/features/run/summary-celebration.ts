@@ -8,7 +8,8 @@ import type { FactionId } from '@/domain/types';
 
 import type { RunSummary } from './summary-model';
 
-export function summaryCelebrations(summary: RunSummary, official: boolean, faction: FactionId): CelebrationEvent[] {
+/** `xpGained`: o XP que o servidor creditou de fato (bloco da E7, com baús e missões); sem ele, o `xp` da v1. */
+export function summaryCelebrations(summary: RunSummary, official: boolean, faction: FactionId, xpGained?: number): CelebrationEvent[] {
   if (!official) return [];
   if (summary.status !== 'valid' && summary.status !== 'partial') return [];
   const out: CelebrationEvent[] = [];
@@ -19,7 +20,8 @@ export function summaryCelebrations(summary: RunSummary, official: boolean, fact
       out.push({ id: `defesa-${z.zoneId}`, kind: 'zone-defended', level: 'small', label: `defendeu ${z.name}`, payload: { zone: z.name, faction } });
     }
   }
-  if (summary.xp > 0) out.push({ id: 'xp', kind: 'xp', level: 'small', label: `ganhou ${summary.xp} de experiência`, payload: { gained: summary.xp, from: 0, to: summary.xp } });
+  const xp = xpGained ?? summary.xp;
+  if (xp > 0) out.push({ id: 'xp', kind: 'xp', level: 'small', label: `ganhou ${xp} de experiência`, payload: { gained: xp, from: 0, to: xp } });
   return out;
 }
 
