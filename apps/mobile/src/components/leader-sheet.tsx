@@ -34,7 +34,7 @@ export function LeaderSheet({ faction, onJoin, onBack, art, busy, testID = 'lide
   return (
     <View testID={testID} style={{ gap: space[4], padding: space[6] }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[4] }}>
-        <View aria-hidden importantForAccessibility="no-hide-descendants" style={{ width: 88, height: 88, alignItems: 'center', justifyContent: 'center' }}>
+        <View aria-hidden importantForAccessibility="no-hide-descendants" style={{ width: 112, height: 124, alignItems: 'center', justifyContent: 'center' }}>
           {art ?? <TeamBadge faction={faction} size={72} />}
         </View>
         <View style={{ flex: 1, gap: 2 }}>

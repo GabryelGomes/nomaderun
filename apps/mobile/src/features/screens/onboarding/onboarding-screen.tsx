@@ -4,7 +4,7 @@ import { ScrollView, useWindowDimensions, View } from 'react-native';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Mascot, TutorialArt } from '@/components/art';
+import { LeaderBust, Mascot, MascotRunner, TutorialArt } from '@/components/art';
 import { Button } from '@/components/button';
 import { TeamConfirm } from '@/components/celebration';
 import { LeaderSheet } from '@/components/leader-sheet';
@@ -300,7 +300,8 @@ export function OnboardingScreen() {
                 haptic('selection');
               }}
               onLeader={setLeader}
-              renderArt={(f) => <Mascot team={f} pose="parado" size={140} quality="leve" animated />}
+              // E4: o corredor de cada time; `leve` porque os 4 ficam montados juntos no carrossel.
+              renderArt={(f) => <MascotRunner team={f} size={170} quality="leve" animated />}
             />
             <View style={{ alignItems: 'center' }}>
               <Button testID="onboarding-nao-sei" label="Não sei escolher" kind="ghost" onPress={() => setQuiz(true)} />
@@ -315,7 +316,8 @@ export function OnboardingScreen() {
             <LeaderSheet
               testID="onboarding-lider"
               faction={leader}
-              art={<Mascot team={leader} pose="parado" size={84} />}
+              // E4: o busto do líder fala e acena (1 por tela); o nome e a fala ficam em texto.
+              art={<LeaderBust team={leader} pose="falando" size={112} animated />}
               onJoin={() => {
                 setChoice(leader);
                 void join(leader);

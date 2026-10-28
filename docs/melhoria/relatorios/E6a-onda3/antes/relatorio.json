@@ -1,0 +1,482 @@
+{
+  "resumo": {
+    "geradoEm": "2026-10-28T11:08:53.110Z",
+    "relogioDaDemonstracao": "2026-10-23T12:00:00.000Z",
+    "export": "/tmp/claude-0/-home-user-nomaderun/fc6c6825-489b-5478-95eb-ab2a4c07f1ba/scratchpad/e6a-onda3/antes",
+    "capturas": 18,
+    "refeitasNestaExecucao": 18,
+    "minutos": 0.8,
+    "bytesDestaExecucao": {
+      "before": 1411675,
+      "after": 404485
+    },
+    "bytesNaPasta": 404485,
+    "paginasComErro": [],
+    "pedidosAoServidor": 0,
+    "pedidosExternosBloqueados": [
+      "https://tiles.openfreemap.org/styles/dark"
+    ]
+  },
+  "capturas": [
+    {
+      "file": "atividades__cheio__390.png",
+      "route": "/atividades",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/atividades",
+      "loadMs": 2868,
+      "fcpMs": 1524,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 118
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__cheio__390.png",
+      "route": "/perfil",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil?cenario=cheio",
+      "loadMs": 2488,
+      "fcpMs": 892,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 170
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-time__cheio__390.png",
+      "route": "/perfil/time",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/time?cenario=cheio",
+      "loadMs": 2357,
+      "fcpMs": 788,
+      "screens": [
+        "tela-faccao"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 47
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__cheio__390.png",
+      "route": "/notificacoes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/notificacoes?cenario=cheio",
+      "loadMs": 2311,
+      "fcpMs": 712,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 82
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__cheio__390.png",
+      "route": "/contatos-seguranca",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/contatos-seguranca?cenario=cheio",
+      "loadMs": 2270,
+      "fcpMs": 688,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 46
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "zonas-privacidade__cheio__390.png",
+      "route": "/zonas-privacidade",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/zonas-privacidade?cenario=cheio",
+      "loadMs": 2368,
+      "fcpMs": 808,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 45
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "atividades__vazio__390.png",
+      "route": "/atividades",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/perfil/atividades",
+      "loadMs": 2193,
+      "fcpMs": 604,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 66
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__vazio__390.png",
+      "route": "/perfil",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/perfil?cenario=vazio",
+      "loadMs": 2228,
+      "fcpMs": 624,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 170
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__vazio__390.png",
+      "route": "/notificacoes",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/notificacoes?cenario=vazio",
+      "loadMs": 2135,
+      "fcpMs": 532,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__vazio__390.png",
+      "route": "/contatos-seguranca",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/contatos-seguranca?cenario=vazio",
+      "loadMs": 2126,
+      "fcpMs": 512,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 50
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "zonas-privacidade__vazio__390.png",
+      "route": "/zonas-privacidade",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/zonas-privacidade?cenario=vazio",
+      "loadMs": 2112,
+      "fcpMs": 512,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 52
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "atividades__carregando__390.png",
+      "route": "/atividades",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 390,
+      "finalUrl": "/atividades?cenario=lento",
+      "loadMs": 1055,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__carregando__390.png",
+      "route": "/notificacoes",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 390,
+      "finalUrl": "/notificacoes?cenario=lento",
+      "loadMs": 1038,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__erro__390.png",
+      "route": "/atividades",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 390,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2358,
+      "fcpMs": 768,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__erro__390.png",
+      "route": "/notificacoes",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 390,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2298,
+      "fcpMs": 672,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__offline__390.png",
+      "route": "/atividades",
+      "state": "offline",
+      "scenario": "offline",
+      "width": 390,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2315,
+      "fcpMs": 700,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 25
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__sob-ataque__390.png",
+      "route": "/notificacoes",
+      "state": "sob-ataque",
+      "scenario": "sob-ataque",
+      "width": 390,
+      "finalUrl": "/notificacoes?cenario=sob-ataque",
+      "loadMs": 7811,
+      "fcpMs": 696,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 104
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "onboarding__sem-time__390.png",
+      "route": "/onboarding",
+      "state": "sem-time",
+      "scenario": "sem-time",
+      "width": 390,
+      "finalUrl": "/onboarding?cenario=sem-time",
+      "loadMs": 2187,
+      "fcpMs": 684,
+      "screens": [
+        "tela-onboarding"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 25
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    }
+  ]
+}

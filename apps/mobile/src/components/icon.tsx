@@ -44,6 +44,15 @@ const ICONS = {
   diamond: { ios: 'diamond.fill', android: 'diamond', web: 'diamond' },
   speaker: { ios: 'speaker.wave.2.fill', android: 'volume_up', web: 'volume_up' },
   mute: { ios: 'speaker.slash.fill', android: 'volume_off', web: 'volume_off' },
+  // E6a (onda 3): engrenagem do "Você" e linhas dos Ajustes.
+  gear: { ios: 'gearshape.fill', android: 'settings', web: 'settings' },
+  edit: { ios: 'pencil', android: 'edit', web: 'edit' },
+  logout: { ios: 'rectangle.portrait.and.arrow.right', android: 'logout', web: 'logout' },
+  vibrate: { ios: 'iphone.radiowaves.left.and.right', android: 'vibration', web: 'vibration' },
+  sparkles: { ios: 'sparkles', android: 'auto_awesome', web: 'auto_awesome' },
+  moon: { ios: 'moon.fill', android: 'bedtime', web: 'bedtime' },
+  invite: { ios: 'person.badge.plus', android: 'person_add', web: 'person_add' },
+  home: { ios: 'house.fill', android: 'home', web: 'home' },
 } satisfies Record<string, SymbolName>;
 
 export type IconName = keyof typeof ICONS;

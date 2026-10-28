@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, type TextInput, View } from 'react-native';
 
+import { EmptyArt } from '@/components/art';
 import { Button, IconButton } from '@/components/button';
+import { EmptyState } from '@/components/empty-state';
 import { Icon } from '@/components/icon';
 import { FadeUp, Pressable, RevealText, staggerDelay } from '@/components/motion';
 import { Surface } from '@/components/surface';
@@ -127,9 +129,7 @@ export function SafetyContactsScreen() {
           />
         )
       }>
-      <Text muted>
-        Até {MAX_SAFETY_CONTACTS} pessoas. Elas recebem sua localização quando você toca em SOS, liga a Escolta ou fica parado por mais de 10 minutos sem responder.
-      </Text>
+      <Text muted>Eles recebem sua localização no SOS, na Escolta e se você parar por 10 min.</Text>
 
       {/* O formulário fica logo abaixo da explicação: com o teclado aberto, ele continua à vista. */}
       {editor}
@@ -149,7 +149,9 @@ export function SafetyContactsScreen() {
               <ActivityIndicator color={colors.action} />
             </View>
           ) : null}
-          {loaded && contacts.length === 0 ? <Text muted>Nenhum contato ainda. Adicione alguém de confiança para o SOS e a Escolta funcionarem.</Text> : null}
+          {loaded && contacts.length === 0 ? (
+            <EmptyState testID="contatos-vazio" compact art={<EmptyArt kind="sem-contatos" size={160} />} title="Ninguém ainda" body="Adicione alguém de confiança para o SOS." />
+          ) : null}
           {contacts.map((c, i) => (
             <FadeUp key={c.id} delay={staggerDelay(i)} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
               <Pressable
