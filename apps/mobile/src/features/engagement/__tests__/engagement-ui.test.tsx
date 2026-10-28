@@ -146,18 +146,32 @@ describe('/missoes', () => {
     const r = render(<MissionsScreen />);
     expect(r.has('tela-missoes')).toBe(true);
     expect(r.has('missoes-primeira-semana')).toBe(true);
+    // Recolhida: só o passo da vez; os 7 atrás de "Ver os 7 passos".
+    expect(r.has('primeira-semana-passo-2')).toBe(true);
+    expect(r.has('primeira-semana-passo-1')).toBe(false);
+    r.press('missoes-primeira-semana-ver-mais');
     expect(r.has('primeira-semana-passo-1')).toBe(true);
     expect(r.has('primeira-semana-passo-7')).toBe(true);
     for (const id of ['missao-anel-diaria-0', 'missao-anel-diaria-1', 'missao-anel-diaria-2', 'missao-anel-semanal-0', 'missao-anel-semanal-1', 'missao-anel-semanal-2']) expect(r.has(id)).toBe(true);
     expect(r.has('missao-trocar-0')).toBe(true);
     expect(r.has('missao-trocar-1')).toBe(false); // concluída
     const text = r.text();
-    expect(text).toContain('Valem até 23h59. Não curtiu uma? Troque 1 por dia.');
-    expect(text).toContain('caminhar também conta');
+    expect(text).toContain('Até 23h59');
+    expect(text).toContain('Caminhar também conta.');
+    expect(r.host('missoes-hoje-prazo').props.accessibilityLabel).toBe('Valem até 23h59. Dá para trocar 1 por dia.');
     r.press('missao-trocar-0');
     await act(async () => undefined);
     expect(controller.rerollDailyMission).toHaveBeenCalledWith('a');
     expect(r.host('missoes-aviso').props.children).toBe('Você já trocou uma missão hoje.');
+  });
+
+  it('enxuta (E10, onda 4): até 90 palavras e nenhum selo próprio (só o global)', () => {
+    const r = render(<MissionsScreen />);
+    const words = r.text().split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+    expect(words).toBeLessThanOrEqual(90);
+    expect(r.has('missoes-demonstracao')).toBe(false);
+    // O progresso em texto continua para o leitor de tela.
+    expect(r.host('missao-anel-diaria-0').props.accessibilityLabel).toContain('1 de 3 km');
   });
 
   it('indisponível: estado "em breve", sem erro', () => {
@@ -323,7 +337,7 @@ describe('pausa de saúde e bem-vindo de volta', () => {
 describe('primeira semana ligada às missões (T7.3.6)', () => {
   it('passo aberto tem atalho para onde se faz (Caça já escolhida); prêmio aparece no texto', () => {
     const r = render(<MissionsScreen />);
-    expect(r.text()).toContain('No fim: moldura Primeira Semana.');
+    expect(r.text()).toContain('prêmio: moldura Primeira Semana');
     expect(r.has('primeira-semana-ir-1')).toBe(false); // feito
     r.press('primeira-semana-ir-2');
     expect(useGame.getState().mission).toBe('caca');

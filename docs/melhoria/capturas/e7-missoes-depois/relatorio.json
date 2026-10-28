@@ -1,0 +1,70 @@
+{
+  "resumo": {
+    "geradoEm": "2026-10-28T22:29:46.571Z",
+    "relogioDaDemonstracao": "2026-10-23T12:00:00.000Z",
+    "export": "/tmp/claude-0/-home-user-nomaderun/fc6c6825-489b-5478-95eb-ab2a4c07f1ba/scratchpad/e7-onda3/web",
+    "capturas": 2,
+    "refeitasNestaExecucao": 2,
+    "minutos": 0.1,
+    "bytesDestaExecucao": {
+      "before": 200947,
+      "after": 55121
+    },
+    "bytesNaPasta": 55121,
+    "paginasComErro": [],
+    "pedidosAoServidor": 0,
+    "pedidosExternosBloqueados": []
+  },
+  "capturas": [
+    {
+      "file": "missoes__cheio__390.png",
+      "route": "/missoes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/missoes?cenario=cheio",
+      "loadMs": 2425,
+      "fcpMs": 1052,
+      "screens": [
+        "tela-missoes"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 83,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 26
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "missoes__vazio__390.png",
+      "route": "/missoes",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/missoes?cenario=vazio",
+      "loadMs": 2193,
+      "fcpMs": 644,
+      "screens": [
+        "tela-missoes"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 85,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 26
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    }
+  ]
+}
