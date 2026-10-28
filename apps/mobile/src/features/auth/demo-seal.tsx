@@ -28,7 +28,8 @@ export function DemoSeal() {
       style={{
         position: 'absolute',
         // No alto e no centro: os cantos têm o "voltar", o "fechar" e os botões do cabeçalho.
-        top: insets.top + 2,
+        // Colado no topo (sem os 2 px de antes): o título dos cabeçalhos com "voltar" começa logo abaixo (E10, onda 4).
+        top: insets.top,
         left: 0,
         right: 0,
         zIndex: 1000,

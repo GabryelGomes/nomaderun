@@ -44,7 +44,7 @@ export function DemoBadge({ label = 'Demonstração', testID }: DemoBadgeProps) 
   );
 }
 
-/** Altura que o selo fixo "Demonstração" (DemoSeal: topo + 2 e ~20 px) ocupa abaixo do `insets.top`. */
+/** Altura que o selo fixo "Demonstração" (DemoSeal: ~22 px colados no topo) ocupa abaixo do `insets.top`. */
 export const DEMO_SEAL_SPACE = 22;
 
 let seals = 0;
