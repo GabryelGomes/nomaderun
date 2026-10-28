@@ -56,3 +56,11 @@ A régua conta todos os estados. Na zona, os 76 incluem o histórico recolhido (
 - **Folha da zona na v1:** o "faltam X m" usa o ritmo-base da pessoa (`selectBasePace`), então é uma estimativa ("~").
 - **Previsão ao vivo:** zonas fora do raio de 1,5 km usam o retrato do mapa até o próximo pedido (a cada 1 km). Se a pessoa já conquistou a zona ao vivo, a herança do dono antigo não volta depois de trocar o retrato.
 - **Código sem uso:** `InfluenceBar` (game-motion) e `capture-celebration.math.ts` só aparecem nos testes. Apagar os dois junto com os testes fica para a decisão do coordenador.
+
+## 6. Correção da QA (E10, achado Médio) — depois da onda 4
+
+- **Chips do Mapa a 360 pt** ("Sem…", "B…", "Ch…"): a faixa agora fica numa `ScrollView` horizontal. Os chips mostram o rótulo inteiro, e o último passa da borda e rola, sem corte de texto. Capturas: `E6b-onda3/qa-antes-mapa-360.png` → `qa-depois-mapa-360.png`.
+- **Cidade do status:** antes era a cidade natal do perfil ("zonas em Anápolis" com a pessoa em Goiânia). Agora é a cidade mais frequente entre as zonas da área visível (`mapCityOf`, a partir de `meta[id].city`). Sem cidade conhecida, o status diz "N zonas por perto". O modo demonstração sem GPS continua com "Goiânia · demonstração".
+- **Verificações:**
+  - `typecheck` ok; `eslint` em `features/screens` sem avisos;
+  - Jest de `features/screens` + `testids`: 76 passam, com 1 teste novo do `mapCityOf`.
