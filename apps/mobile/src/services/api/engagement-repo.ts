@@ -560,8 +560,16 @@ export async function fetchEverConquered(userId: string): Promise<boolean | null
     if (error) throw error;
     return Array.isArray(data) ? data.length > 0 : null;
   });
-  return res.ok ? res.data : null;
+  if (res.ok && res.data === true) return true;
+  // Confere também o resultado das corridas (`result.zones[].outcome`): cobre conquista que ainda não virou linha.
+  const runs = await listMyActivities({ limit: EVER_CONQUERED_RUNS });
+  if (!runs.ok) return null;
+  if (runs.data.some((r) => (r.result?.zones ?? []).some((z) => z.outcome === 'conquered'))) return true;
+  // Só "nunca" quando as duas fontes responderam e o histórico inteiro coube na leitura.
+  return res.ok && res.data === false && runs.data.length < EVER_CONQUERED_RUNS ? false : null;
 }
+
+const EVER_CONQUERED_RUNS = 200;
 
 /** Missões que o servidor concluiu agora por um fato declarado (`record_share`, `record_ranking_opened`). */
 export type StateMissionsCompleted = { completed: { id: string; cadence: MissionCadence | null; xp: number }[] };
