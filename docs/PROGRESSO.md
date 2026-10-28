@@ -79,6 +79,10 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-28 — Fase 7: terceira pausa a pedido do dono (Coordenador)
+- **Onda 4 (QA, E10) parada no meio**; nada dela integrado. Trabalho parcial (capturas "depois" e ajustes) no commit WIP `124423c` da branch `worktree-agent-a2bf11ee3fc2dce5c` (`.claude/worktrees/agent-a2bf11ee3fc2dce5c`). As capturas de rascunho ficaram em `tmp/` na raiz (ignorada só localmente).
+- **Para continuar:** retomar a E10 a partir do WIP (fluxo completo na demo, régua comparada, auditorias, bundle, ética e achados), integrar, e depois o fechamento (F6).
+
 ### 2026-10-28 — Fase 7: onda 3 integrada e revisão corrigida (Coordenador)
 - **Retomada:** as frentes continuaram do próprio WIP (a entrada da pausa, logo abaixo, ficou superada). Por economia, no máximo 3 agentes ao mesmo tempo, com CodeGraph e rtk. Uma parada no limite de uso da conta foi salva em commits WIP e retomada sem perda.
 - **Integrado (merge `--no-ff`, um por frente):**
