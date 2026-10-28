@@ -26,3 +26,6 @@ export { clampParticles, confettiParticles, crossedMilestones, floatingStack, se
 
 // onda 2 (T7.2.9)
 export { isHidden, usePausedWhenHidden } from './use-paused-when-hidden';
+
+// onda 3 (T7.3.5)
+export { canDetectScreenReader, useScreenReaderEnabled } from './screen-reader';

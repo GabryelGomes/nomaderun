@@ -8,7 +8,7 @@ import { factions } from '@/theme/tokens';
 import { BossDefeated, BossHit } from './boss';
 import { type MomentContext } from './celebration-sequence';
 import { ChestOpening } from './chest-opening';
-import { LevelUp, PRStamp, StreakFlame } from './progress-moments';
+import { LevelUp, PRStamp, StreakFlame, type StreakArtSlot } from './progress-moments';
 import { type ScheduledMoment } from './queue';
 import { RewardToast } from './reward-toast';
 import { ZoneCaptured } from './zone-captured';
@@ -25,6 +25,8 @@ export type CelebrationArt = {
   bossFlash?: ReactNode;
   flame?: ReactNode;
   ice?: ReactNode;
+  /** Arte da sequência da E4 (chama e gelo) por estado; ver `StreakArtSlot`. */
+  streakArt?: StreakArtSlot;
   team?: FactionId;
 };
 
@@ -86,7 +88,7 @@ export function renderCelebrationMoment(art: CelebrationArt = {}) {
       case 'level-up':
         return <LevelUp {...p} level={e.payload.level} title={e.payload.title} team={art.team} />;
       case 'streak':
-        return <StreakFlame {...p} weeks={e.payload.weeks} status={e.payload.state} flame={art.flame} ice={art.ice} />;
+        return <StreakFlame {...p} weeks={e.payload.weeks} status={e.payload.state} streakArt={art.streakArt} flame={art.flame} ice={art.ice} />;
       case 'personal-record':
         return <PRStamp {...p} metric={`${e.payload.metric}: ${e.payload.value}`} />;
       case 'mission':

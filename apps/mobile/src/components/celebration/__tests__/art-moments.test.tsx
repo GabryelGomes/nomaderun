@@ -157,20 +157,20 @@ describe('contas puras novas', () => {
 describe('arte da E4 nos momentos', () => {
   it('baú: o fechado chacoalha a tampa na dobradiça e o aberto entra no estouro; final e reduzido só o aberto', () => {
     const r = render(<ChestOpening testID="b" rarity="lendario" xp={120} />);
-    const chests = artOf(r, Chest);
+    const chests = artOf(r, Chest).filter((c) => !c.layer);
     expect(chests.map((c) => c.state)).toEqual(['fechado', 'aberto']);
     expect(chests.every((c) => c.rarity === 'lendario' && c.decorative)).toBe(true);
     const tampa = chests[0].parts?.tampa as Record<string, unknown>;
     expect(tampa.animationName).toBeTruthy();
     expect(json(r)).not.toContain(VIOLET);
     const done = render(<ChestOpening testID="b" rarity="raro" xp={40} state="done" announce={false} />);
-    expect(artOf(done, Chest).map((c) => c.state)).toEqual(['aberto']);
+    expect(artOf(done, Chest).map((c) => c.state ?? c.layer)).toEqual(['aberto', 'item']);
     const reduced = render(
       <ReducedMotionOverride reduced>
         <ChestOpening testID="b" rarity="comum" xp={10} />
       </ReducedMotionOverride>,
     );
-    expect(artOf(reduced, Chest).map((c) => c.state)).toEqual(['aberto']);
+    expect(artOf(reduced, Chest).map((c) => c.state ?? c.layer)).toEqual(['aberto', 'item']);
   });
 
   it('baú com arte de fora (chest/lid) continua funcionando (API da onda 1)', () => {
@@ -184,17 +184,19 @@ describe('arte da E4 nos momentos', () => {
     const bosses = artOf(r, Boss);
     expect(bosses.map((b) => b.state)).toEqual(['parado', 'golpe', 'golpe']);
     expect(bosses.every((b) => b.id === 'mormaco' && b.dano === 2 && b.decorative)).toBe(true);
-    expect(bosses[2].color).toBe('#FFFFFF');
+    // clarão: a silhueta da E4 (`Boss silhouette`), não mais o traço branco improvisado
+    expect(bosses[2].silhouette).toBe(true);
+    expect(bosses[2].color).toBeUndefined();
     const pinned = render(<BossHit testID="g" bossName="Chefão de demonstração" bossId="fuligem" dano={0} hpFrom={3600} hpTo={3500} hpMax={3600} damageLabel="−10" state="done" announce={false} />);
     expect(artOf(pinned, Boss).map((b) => [b.id, b.state, b.dano])).toEqual([['fuligem', 'parado', 0]]);
   });
 
   it('derrota: furioso e quebrado treme e fica branco; no fim, o "derrotado" apagado atrás do carimbo', () => {
     const r = render(<BossDefeated testID="d" bossName="Rei Buzina" city="Goiânia" myKm={12} />);
-    expect(artOf(r, Boss).map((b) => [b.id, b.state, b.color ?? 'violeta'])).toEqual([
+    expect(artOf(r, Boss).map((b) => [b.id, b.state, b.silhouette ? 'silhueta' : (b.color ?? 'violeta')])).toEqual([
       ['rei-buzina', 'derrotado', 'violeta'],
       ['rei-buzina', 'furioso', 'violeta'],
-      ['rei-buzina', 'furioso', '#FFFFFF'],
+      ['rei-buzina', 'furioso', 'silhueta'],
     ]);
     const done = render(<BossDefeated testID="d" bossName="Rei Buzina" city="Goiânia" myKm={12} state="done" announce={false} />);
     expect(artOf(done, Boss).map((b) => b.state)).toEqual(['derrotado']);
@@ -261,7 +263,7 @@ describe('preferência "Pular celebrações"', () => {
       useMotionPrefs.getState().setSkipCelebrations(true);
     });
     const r = render(<ChestOpening testID="b" rarity="lendario" xp={120} />);
-    expect(artOf(r, Chest).map((c) => c.state)).toEqual(['aberto']);
+    expect(artOf(r, Chest).map((c) => c.state ?? c.layer)).toEqual(['aberto', 'item']);
     act(() => {
       jest.advanceTimersByTime(3000);
     });

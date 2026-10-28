@@ -43,9 +43,10 @@ import { factions, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 /**
- * Galeria de motion (T7.1.15, T7.2.9): cada momento e cada primitiva disparável por botão, com a arte da E4,
- * "Reduzir movimento" forçado, troca de time, de raridade e de chefão, e as preferências salvas "Vibração"
- * e "Pular celebrações". Só em desenvolvimento (`__DEV__`) ou na web. Dados de demonstração.
+ * Galeria de motion (T7.1.15, T7.2.9, T7.3.5): cada momento e cada primitiva disparável por botão, com a arte da
+ * E4 (baú com o item que sobe, clarão com a silhueta do chefão), "Reduzir movimento" forçado, troca de time,
+ * de raridade e de chefão, as preferências salvas "Vibração" e "Pular celebrações" e o confete de 60 para medir
+ * o custo. Só em desenvolvimento (`__DEV__`) ou na web. Dados de demonstração.
  */
 export default function DevMotionRoute() {
   if (!__DEV__ && process.env.EXPO_OS !== 'web') return <Unavailable />;
@@ -81,7 +82,8 @@ type MomentKey =
   | 'time-troca'
   | 'bora'
   | 'resumo'
-  | 'resumo-leitor';
+  | 'resumo-leitor'
+  | 'confete-60';
 
 const MOMENTS: { key: MomentKey; label: string }[] = [
   { key: 'toast-pequeno', label: 'Toast pequeno' },
@@ -102,6 +104,7 @@ const MOMENTS: { key: MomentKey; label: string }[] = [
   { key: 'bora', label: '"Bora!" no feed' },
   { key: 'resumo', label: 'Resumo (fila)' },
   { key: 'resumo-leitor', label: 'Resumo (leitor de tela)' },
+  { key: 'confete-60', label: 'Confete (60, medição)' },
 ];
 
 const FACTIONS: FactionId[] = ['striders', 'volt', 'owls', 'coyotes'];
@@ -256,10 +259,14 @@ function MotionGallery() {
             events={demoEvents(faction, rarity, boss)}
             intro="Corrida de demonstração concluída: 8,42 km."
             layout="single"
-            screenReader={active.key === 'resumo-leitor'}
+            // "Resumo (fila)" segue o sistema (na web, sem como saber, o roteiro toca); o outro força o leitor
+            screenReader={active.key === 'resumo-leitor' ? true : undefined}
             renderMoment={renderCelebrationMoment({ team: faction })}
           />
         );
+      case 'confete-60':
+        // teto de partículas (60) sozinho, para medir quadros por segundo (T7.3.5)
+        return <Confetti count={60} colors={[neon.orange, '#FFFFFF', '#FFD60A', team]} width={stage.width} height={stage.height} origin={{ x: stage.width / 2, y: stage.height * 0.4 }} seed={8} testID="galeria-motion-confete" />;
     }
   })();
 
@@ -272,7 +279,7 @@ function MotionGallery() {
         <View style={{ gap: 4 }}>
           <Text variant="headline">Galeria de motion</Text>
           <Text variant="small" muted>
-            Dados de demonstração. Arte da E4 (baú, chefão, mascote e medalhas).
+            Dados de demonstração. Arte da E4 (baú com o prêmio, chefão com a silhueta, mascote e medalhas).
           </Text>
         </View>
 

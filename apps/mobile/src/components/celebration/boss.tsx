@@ -28,11 +28,11 @@ const BOSS_SIZE = 150;
 const FEET = '50% 95%';
 
 /**
- * Arte do chefão (E4) num estado. O clarão usa a mesma arte com o traço branco e qualidade plana (a
- * silhueta branca própria da E4 ainda não existe; quando existir, entra por `bossFlash`).
+ * Arte do chefão (E4) num estado. O clarão (`white`) é a silhueta da E4 (`Boss silhouette`): a mesma forma toda
+ * branca e sem o chão, empilhada por cima e piscando só na opacidade.
  */
 function BossArt({ id, state, dano, white }: { id: BossId; state: BossState; dano: BossDamage; white?: boolean }) {
-  return <Boss id={id} state={state} dano={dano} size={BOSS_SIZE} decorative color={white ? '#FFFFFF' : undefined} quality={white ? 'plano' : undefined} />;
+  return <Boss id={id} state={state} dano={dano} size={BOSS_SIZE} decorative silhouette={white} />;
 }
 
 /** Id da arte: o pedido, o achado pelo nome ou o primeiro da lista. */
@@ -49,7 +49,7 @@ export type BossHitProps = MomentBaseProps & {
   dano?: BossDamage;
   /** Troca a arte do chefão (padrão: `Boss` da E4 em "parado", com o "golpe" por cima no impacto). */
   boss?: ReactNode;
-  /** Silhueta branca para o clarão do golpe (padrão: a mesma arte com traço branco). */
+  /** Troca o clarão do golpe (padrão: a silhueta branca da E4, `Boss silhouette`). */
   bossFlash?: ReactNode;
   hpFrom: number;
   hpTo: number;
@@ -61,7 +61,7 @@ export type BossHitProps = MomentBaseProps & {
 };
 
 /**
- * Golpe no chefão (catálogo §4.3): silhueta branca pisca, o chefão (arte da E4) troca para "golpe", treme e
+ * Golpe no chefão (catálogo §4.3): a silhueta branca da E4 pisca, o chefão (arte da E4) troca para "golpe", treme e
  * achata a partir dos pés e volta ao "parado" com as rachaduras da vida que sobrou; o dano pula e sobe, a
  * barra cai e a fantasma espera 300 ms e escoa. "Reduzir movimento": chefão parado, número e barra com fade.
  */
@@ -156,7 +156,7 @@ export type BossDefeatedProps = MomentBaseProps & {
   bossId?: BossId;
   /** Troca a arte do chefão (padrão: `Boss` da E4 "furioso" e quebrado, que cai "derrotado" no fim). */
   boss?: ReactNode;
-  /** Silhueta branca (padrão: a mesma arte com traço branco). */
+  /** Troca o clarão do fim (padrão: a silhueta branca da E4, `Boss silhouette`). */
   bossFlash?: ReactNode;
   /** Cidade que venceu junta ("Goiânia"). */
   city: string;

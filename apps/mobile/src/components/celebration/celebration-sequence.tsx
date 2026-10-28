@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AccessibilityInfo, Pressable as RNPressable, type StyleProp, View, type ViewStyle } from 'react-native';
+import { AccessibilityInfo, Pressable as RNPressable, type StyleProp, Text as RNText, View, type ViewStyle } from 'react-native';
 import { cancelAnimation, type SharedValue, useAnimatedReaction, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { haptic } from '@/components/motion/haptics';
 import { PressableScale } from '@/components/motion/pressable';
 import { useReducedMotionSetting } from '@/components/motion/reduced-motion';
+import { canDetectScreenReader, useScreenReaderEnabled } from '@/components/motion/screen-reader';
 import { Text } from '@/components/text';
 import { useMotionPrefs } from '@/store/motion-prefs-store';
 import { easings } from '@/theme/motion';
@@ -45,13 +46,22 @@ export type CelebrationSequenceProps = {
    * Padrão: a preferência salva (`useMotionPrefs`). Passe `false` para tocar mesmo assim (ex.: galeria).
    */
   skipCelebrations?: boolean;
-  /** Força o modo leitor de tela (testes e galeria). Padrão: o ajuste do sistema. */
+  /**
+   * Força o modo leitor de tela (testes e galeria). Padrão: o ajuste do sistema no celular. Na web o navegador não
+   * informa (o react-native-web diria sempre "ligado"): o roteiro toca e o anúncio sai por uma região viva.
+   */
   screenReader?: boolean;
   onStepChange?: (index: number) => void;
   onDone?: () => void;
   skipLabel?: string;
   style?: StyleProp<ViewStyle>;
 };
+
+/** Espera para encher a região viva da web: ela precisa estar na página antes do texto para ser lida. */
+const LIVE_REGION_DELAY_MS = 250;
+
+/** Fora da tela, mas ainda na árvore de acessibilidade (sem `opacity: 0` nem `display: none`). */
+const VISUALLY_HIDDEN: ViewStyle = { position: 'absolute', width: 1, height: 1, overflow: 'hidden', left: -10000, top: 0 };
 
 type Run = { plan: CelebrationPlan; started: number; doneIds: readonly string[]; finished: boolean };
 
@@ -80,7 +90,8 @@ function countUpTo(times: readonly number[], t: number): number {
  * quadro; as vibrações saem do mesmo relógio, com ≥ 150 ms entre elas.
  *  - "Pular": tudo vai ao estado final (fade ≤ 200 ms), sem as vibrações pendentes (no máximo 1 sucesso);
  *  - tocar na área adianta o momento atual;
- *  - leitor de tela: nada roteirizado, tudo no estado final e **um** anúncio;
+ *  - leitor de tela: nada roteirizado, tudo no estado final e **um** anúncio (no celular, onde o sistema avisa);
+ *  - web: o navegador não diz se há leitor; o roteiro toca e o mesmo anúncio sai numa região viva escondida;
  *  - preferência "Pular celebrações": tudo no estado final, no máximo 1 vibração de sucesso;
  *  - "Reduzir movimento": fades curtos em cascata e 1 vibração.
  */
@@ -102,22 +113,15 @@ export function CelebrationSequence({
 }: CelebrationSequenceProps) {
   const { colors } = useTheme();
   const reduced = useReducedMotionSetting();
-  const [systemReader, setSystemReader] = useState(false);
+  const reader = useScreenReaderEnabled(screenReader);
+  /** Sem como saber do leitor (web): o anúncio vai numa região viva escondida, que existe antes do texto. */
+  const liveRegion = !canDetectScreenReader();
+  const [liveReady, setLiveReady] = useState(false);
   useEffect(() => {
-    if (screenReader !== undefined) return;
-    let alive = true;
-    AccessibilityInfo.isScreenReaderEnabled()
-      .then((v) => {
-        if (alive) setSystemReader(v);
-      })
-      .catch(() => {});
-    const sub = AccessibilityInfo.addEventListener('screenReaderChanged', setSystemReader);
-    return () => {
-      alive = false;
-      sub?.remove();
-    };
-  }, [screenReader]);
-  const reader = screenReader ?? systemReader;
+    if (!liveRegion) return;
+    const t = setTimeout(() => setLiveReady(true), LIVE_REGION_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [liveRegion]);
   const skipPref = useMotionPrefs((s) => s.skipCelebrations);
   const skipAll = skipCelebrations ?? skipPref;
 
@@ -242,10 +246,16 @@ export function CelebrationSequence({
     );
   };
 
+  const liveText = liveRegion && liveReady && (all || finished || started > 0) ? plan.announcement : '';
   const visible = plan.moments.map((m, i) => ({ m, i })).filter(({ i }) => i < started && (layout === 'stack' || i === started - 1));
 
   return (
     <View testID={testID} style={[{ gap: space[3] }, style]}>
+      {liveRegion ? (
+        <RNText testID={`${testID}-anuncio`} accessibilityLiveRegion="polite" style={VISUALLY_HIDDEN}>
+          {liveText}
+        </RNText>
+      ) : null}
       {!finished && !all ? (
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', zIndex: 2 }}>
           <PressableScale
