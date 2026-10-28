@@ -108,7 +108,9 @@ export type ChestRow = { id: string; user_id: string; day: string; lat: number; 
 
 export type DemoDbOptions = Omit<WorldOptions, 'now'> & { now?: number };
 
-export type ChangeListener = (table: 'zones' | 'notifications', event: 'INSERT' | 'UPDATE', row: Row) => void;
+/** Tabelas que o Realtime de demonstração emite (`feed_kudos_counts`: contadores do feed, E8/M4). */
+export type DemoRealtimeTable = 'zones' | 'notifications' | 'feed_kudos_counts';
+export type ChangeListener = (table: DemoRealtimeTable, event: 'INSERT' | 'UPDATE', row: Row) => void;
 
 const DEFAULT_PREFS = { invasion: true, conquest: true, missions: true, moderation: true };
 
@@ -160,7 +162,7 @@ export class DemoDb {
     return () => void this.listeners.delete(l);
   }
 
-  emit(table: 'zones' | 'notifications', event: 'INSERT' | 'UPDATE', row: Row) {
+  emit(table: DemoRealtimeTable, event: 'INSERT' | 'UPDATE', row: Row) {
     for (const l of this.listeners) {
       try {
         l(table, event, row);

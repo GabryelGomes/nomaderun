@@ -307,32 +307,26 @@ export async function setFeedSettings(patch: Partial<FeedSettings>): Promise<Res
 }
 
 // -----------------------------------------------------------------------------------------------
-// Realtime dos aplausos (T7.3.7)
+// Realtime dos aplausos (T7.3.7, revisão M4)
 // -----------------------------------------------------------------------------------------------
 
 /**
- * Uma mudança na tabela `kudos` que chegou pelo Realtime. A RLS vale na assinatura: só chegam reações de itens
- * que a pessoa vê. No `DELETE` (e no `UPDATE` sem "replica identity full") o Postgres não manda a linha
- * antiga inteira, então `itemId`/`reaction` podem vir `null`: quem ouve recarrega os contadores.
+ * Contadores de um item que chegaram pelo Realtime de `feed_kudos_counts` (só números: sem `user_id`, RLS da
+ * crew na assinatura). Valores **absolutos**: a tela troca o contador, não soma (nada conta 2 vezes). A
+ * reação da própria pessoa (`myReaction`) continua vindo das RPCs. `kudos` saiu do Realtime na revisão (M4):
+ * o DELETE não passa pela RLS e levava quem desfez.
  */
-export type KudosChange = {
-  event: 'INSERT' | 'UPDATE' | 'DELETE';
-  itemId: string | null;
-  userId: string | null;
-  reaction: FeedReaction | null;
-};
+export type KudosCounts = { itemId: string; kudos: Record<FeedReaction, number> };
 
-export function toKudosChange(payload: unknown): KudosChange | null {
+export function toKudosCounts(payload: unknown): KudosCounts | null {
   const p = obj(payload);
   const event = p.eventType;
   if (event !== 'INSERT' && event !== 'UPDATE' && event !== 'DELETE') return null;
   const row = event === 'DELETE' ? obj(p.old) : obj(p.new);
-  return {
-    event,
-    itemId: str(row.feed_item_id) || null,
-    userId: str(row.user_id) || null,
-    reaction: isFeedReaction(row.reaction) ? row.reaction : null,
-  };
+  const itemId = str(row.feed_item_id);
+  if (!itemId) return null;
+  // Linha apagada (o item saiu do feed): zera.
+  return { itemId, kudos: event === 'DELETE' ? { bora: 0, fogo: 0, raio: 0 } : toKudos(row) };
 }
 
 export type KudosSubscription = { unsubscribe: () => void };
@@ -340,19 +334,19 @@ export type KudosSubscription = { unsubscribe: () => void };
 let kudosTopic = 0;
 
 /**
- * Assina as reações (`kudos`, contrato v2 onda 2: `postgres_changes`, evento `*`). `onStatus` recebe
- * `SUBSCRIBED`, `CHANNEL_ERROR`, `TIMED_OUT` ou `CLOSED` (fora do ar, a tela segue com o "puxar para atualizar").
- * Cada assinatura tem um tópico próprio: o feed pode estar aberto no Clube e na tela cheia ao mesmo tempo.
+ * Assina `feed_kudos_counts` (`postgres_changes`, evento `*`). `onStatus` recebe `SUBSCRIBED`, `CHANNEL_ERROR`,
+ * `TIMED_OUT` ou `CLOSED` (fora do ar, a tela segue com a atualização ao abrir). Cada assinatura tem um tópico
+ * próprio: o feed pode estar aberto no Clube e na tela cheia ao mesmo tempo.
  */
-export function subscribeKudos(onChange: (change: KudosChange) => void, onStatus?: (status: string) => void): Result<KudosSubscription> {
+export function subscribeKudosCounts(onChange: (counts: KudosCounts) => void, onStatus?: (status: string) => void): Result<KudosSubscription> {
   try {
     const supabase = requireSupabase();
     kudosTopic += 1;
     const channel = supabase
-      .channel(`kudos-${kudosTopic}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'kudos' }, (payload: unknown) => {
-        const change = toKudosChange(payload);
-        if (change) onChange(change);
+      .channel(`feed-kudos-${kudosTopic}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'feed_kudos_counts' }, (payload: unknown) => {
+        const counts = toKudosCounts(payload);
+        if (counts) onChange(counts);
       })
       .subscribe((status: string) => onStatus?.(status));
     return ok({ unsubscribe: () => void supabase.removeChannel(channel) });
