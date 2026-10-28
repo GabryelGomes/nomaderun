@@ -115,7 +115,11 @@ Entry **1.186.919 B gzip** (4.358.821 cru) contra o orçamento da CI de **1.250.
 - **Teste novo:** `apps/mobile/src/__tests__/demo-seal-space.test.tsx`.
 - **Capturas:** `docs/melhoria/capturas/depois/` (165 PNG + `relatorio.json`).
 
-## 9. Pendências
+## 9. Testes
+
+`npm run typecheck` ok; `eslint src` ok; Jest **1412 passaram**, 26 pulados (integração `*.local`), 127/131 suítes (4 puladas); `demo-mode-flow` **21/21**; capturas: 0 erros de página e 0 pedidos ao servidor. Deno e pgTAP não rodados: nada mudou em `supabase/` nem em `src/domain`.
+
+## 10. Pendências
 
 - Rodar `demo-flow` e `auth-flow` com o Supabase local, quando houver Docker.
 - Rodar Maestro no aparelho e conferir no Android (pedidos da E4 e da E5):
