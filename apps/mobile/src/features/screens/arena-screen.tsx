@@ -274,8 +274,9 @@ function LeagueStrip({ data }: { data: LeagueCurrent | Unavailable | null }) {
             {me ? `${me.position}º de ${live.groupSize}${live.promoteSlots > 0 ? ` · top ${live.promoteSlots} sobe` : ''}` : 'Corra para entrar'}
           </Text>
         ) : null}
+        {/* Selo embaixo do texto: ao lado, ele cortava a posição em 390 pt. */}
+        {live && isDemoMode() ? <DemoBadge testID="arena-liga-demonstracao" /> : null}
       </View>
-      {live && isDemoMode() ? <DemoBadge testID="arena-liga-demonstracao" /> : null}
     </View>
   );
 }

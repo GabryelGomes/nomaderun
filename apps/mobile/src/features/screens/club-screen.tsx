@@ -213,6 +213,8 @@ function CrewHero({ crew, week }: { crew: MyCrew; week: ReturnType<typeof crewWe
       style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.line, overflow: 'hidden' }}>
       <View aria-hidden style={{ height: 3, backgroundColor: crew.crew.faction ? factions[crew.crew.faction].color : colors.action }} />
       <View style={{ padding: space[4], gap: space[3] }}>
+        {/* Selo numa linha própria: ao lado do nome, ele espremia o nome da crew em 360–390 pt. */}
+        {isDemoMode() ? <DemoBadge testID="clube-crew-demonstracao" /> : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
           {crew.crew.faction ? <TeamEmblem team={crew.crew.faction} size={72} /> : <TeamBadge faction={null} size={56} />}
           <View style={{ flex: 1, gap: 2 }}>
@@ -221,7 +223,7 @@ function CrewHero({ crew, week }: { crew: MyCrew; week: ReturnType<typeof crewWe
             </Text>
             <Text variant="small" muted numberOfLines={1}>{`[${crew.crew.tag}] · ${n} corredores`}</Text>
           </View>
-          {isDemoMode() ? <DemoBadge testID="clube-crew-demonstracao" /> : <Icon name="chevron" size={18} color={colors.textSecondary} />}
+          <Icon name="chevron" size={18} color={colors.textSecondary} />
         </View>
         {week && km !== null ? (
           <View style={{ gap: space[2] }}>
