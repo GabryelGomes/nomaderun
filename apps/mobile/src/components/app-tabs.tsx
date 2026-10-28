@@ -33,7 +33,10 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Label>{arena.label}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name={correr.name} testID={correr.testID} accessibilityLabel="Correr: abrir a Nova corrida">
-        <NativeTabs.Trigger.Icon {...tabIcon(correr.icon)} selectedColor={colors.action} />
+        <NativeTabs.Trigger.Icon
+          src={{ default: require('../../assets/art/aba-correr.png'), selected: require('../../assets/art/aba-correr-selecionado.png') }}
+          renderingMode="original"
+        />
         <NativeTabs.Trigger.Label>{correr.label}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name={clube.name} testID={clube.testID}>

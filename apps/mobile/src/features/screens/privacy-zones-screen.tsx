@@ -194,7 +194,7 @@ export function PrivacyZonesScreen() {
             </View>
           ) : null}
           {loaded && zones.length === 0 ? (
-            <EmptyState testID="zonas-privacidade-vazio" compact art={<EmptyArt kind="sem-localizacao" size={160} />} title="Nenhum endereço" body="Adicione sua casa para escondê-la do mapa." />
+            <EmptyState testID="zonas-privacidade-vazio" compact art={<EmptyArt kind="sem-endereco" size={160} />} title="Nenhum endereço" body="Adicione sua casa para escondê-la do mapa." />
           ) : null}
           {zones.map((z, i) => {
             const name = z.label ?? `Endereço ${i + 1}`;
