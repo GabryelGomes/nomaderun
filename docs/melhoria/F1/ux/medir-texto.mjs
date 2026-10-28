@@ -79,7 +79,7 @@ const SCREENS = [
   { rota: 'corrida · GPS', tipo: 'jogo', partes: [['features/screens/run-screen.tsx', 'GpsPreflight']] },
   { rota: 'corrida · contagem', tipo: 'jogo', partes: [['features/screens/run-screen.tsx', 'Countdown']] },
   { rota: 'corrida · ativa', tipo: 'jogo', meta: 90, partes: [['features/screens/run-screen.tsx', 'ActiveRun', 'Metric']] },
-  { rota: 'resumo', tipo: 'jogo', meta: 60, partes: [['features/screens/summary-screen.tsx'], ['components/capture-celebration.tsx']] },
+  { rota: 'resumo', tipo: 'jogo', meta: 60, partes: [['features/screens/summary-screen.tsx']] }, // capture-celebration.tsx saiu (T7.3.2): estava sem uso
   { rota: 'zona/[id]', tipo: 'jogo', meta: 50, partes: [['features/screens/zone-sheet.tsx']] },
   { rota: '(tabs)/arena', tipo: 'jogo', partes: [['features/screens/arena-screen.tsx']] },
   { rota: '(tabs)/atividades', tipo: 'jogo', partes: [['features/screens/activities-screen.tsx'], ['features/run/history-model.ts']] },
