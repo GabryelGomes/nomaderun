@@ -35,6 +35,9 @@ export function playerCardLabel(p: Pick<PlayerCardProps, 'name' | 'faction' | 'l
   return [p.name, p.title, `${team}, nível ${p.level}`, `${p.xp.into} de ${p.xp.needed} XP para o nível ${p.level + 1}`].filter(Boolean).join('. ');
 }
 
+/** Até 7 caracteres o nome cabe no tamanho `headline`; acima disso usa `title` (24 pt). */
+const NAME_FITS_HEADLINE = 7;
+
 /** Cartão de jogador (herói do "Você" e base do card de compartilhar da E8). */
 export function PlayerCard({ name, faction, level, xp, title, avatar, mascot, ring, onPress, testID }: PlayerCardProps) {
   const { colors } = useTheme();
@@ -48,7 +51,8 @@ export function PlayerCard({ name, faction, level, xp, title, avatar, mascot, ri
           <View style={ring ? { position: 'absolute' } : undefined}>{avatar ?? <TeamBadge faction={faction} size={ring ? 56 : 64} />}</View>
         </View>
         <View style={{ flex: 1, gap: 2 }}>
-          <Text variant="headline" numberOfLines={1}>
+          {/* E10 (onda 4): com anel e mascote, sobram ~140 pt a 390 de largura e "voce.demo" já era cortado em 32 pt. */}
+          <Text variant={name.length > NAME_FITS_HEADLINE ? 'title' : 'headline'} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
             {name}
           </Text>
           {title ? (

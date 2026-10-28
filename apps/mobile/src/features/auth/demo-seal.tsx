@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { DemoBadge } from '@/components/demo-badge';
+import { DemoBadge, registerDemoSeal } from '@/components/demo-badge';
 import { Text } from '@/components/text';
 import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
@@ -20,13 +20,16 @@ export function DemoSeal() {
   const insets = useSafeAreaInsets();
   const [leaving, setLeaving] = useState(false);
   const exit = canLeaveDemo();
+  // As telas (Screen, ScreenScroll, Mapa e corrida) descem a altura do selo enquanto ele está montado.
+  useEffect(() => registerDemoSeal(), []);
   return (
     <View
       pointerEvents="box-none"
       style={{
         position: 'absolute',
         // No alto e no centro: os cantos têm o "voltar", o "fechar" e os botões do cabeçalho.
-        top: insets.top + 2,
+        // Colado no topo (sem os 2 px de antes): o título dos cabeçalhos com "voltar" começa logo abaixo (E10, onda 4).
+        top: insets.top,
         left: 0,
         right: 0,
         zIndex: 1000,

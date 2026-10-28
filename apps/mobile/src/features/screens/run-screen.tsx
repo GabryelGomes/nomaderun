@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, IconButton } from '@/components/button';
 import { ChipRow } from '@/components/chip-row';
+import { useDemoSealSpace } from '@/components/demo-badge';
 import { RewardToast } from '@/components/celebration';
 import { FadeUp, haptic, PressableScale, ProgressBar, ProgressRing, RevealText, ScreenEnter, ShimmerSkeleton, Stagger } from '@/components/motion';
 import { Screen, ScreenScroll } from '@/components/screen';
@@ -239,7 +240,10 @@ export function RunScreen() {
 }
 
 function ActiveRun({ mode }: { mode: RunMode }) {
-  const insets = useSafeAreaInsets();
+  // E10 (onda 4): na demonstração, a faixa do território e os avisos descem a altura do selo "Demonstração".
+  const safeInsets = useSafeAreaInsets();
+  const sealSpace = useDemoSealSpace();
+  const insets = { ...safeInsets, top: safeInsets.top + sealSpace };
   const { colors } = useTheme();
   const reduced = useReducedMotion();
   const s = useRunSession(mode);

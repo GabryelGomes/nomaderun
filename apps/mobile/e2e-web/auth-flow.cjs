@@ -1,6 +1,6 @@
 /**
  * QA-03 / QA-06 / QA-12 / cidade natal (A3) — conferência no navegador (Playwright + Chromium) sobre o export web:
- *  1. cadastro com cidade natal → `profiles.city` no servidor;
+ *  1. cadastro e onboarding da v2 → cidade natal em Editar perfil → `profiles.city` no servidor;
  *  2. "Reduzir movimento": o botão não encolhe ao pressionar, só fica mais transparente (sem a preferência, encolhe);
  *  3. recuperação de senha pelo fluxo PKCE: e-mail na caixa local → link → `?code=` → tela "Crie uma senha nova" → entra;
  *  4. com alguém conectado, um link de acesso pede confirmação ("Trocar de conta?"); tokens na URL são ignorados;
@@ -15,6 +15,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const { execSync } = require('node:child_process');
+const { chooseTeam, signUp } = require('./onboarding-steps.cjs');
 const { serve } = require('./serve.cjs');
 
 function loadPlaywright() {
@@ -96,35 +97,25 @@ async function recoveryLink(to, after) {
     const id = (t) => page.locator(`[data-testid="${t}"]`).first();
     const shot = (n) => page.screenshot({ path: path.join(OUT, `${n}.png`) });
 
-    // 1. cadastro com cidade natal
+    // 1. cadastro (v2: sem cidade) → onboarding → Mapa; a cidade natal mora em Você → Editar perfil (onda 2)
     await page.goto(`${BASE}/`);
-    await id('tela-entrar').waitFor({ timeout: 30_000 });
-    await id('entrar-criar-conta').click();
-    await id('tela-cadastro').waitFor();
-    await id('cadastro-email').fill(user.email);
-    await id('cadastro-senha').fill(user.password);
-    await id('cadastro-usuario').fill(user.username);
-    await id('cadastro-nascimento').fill('15/05/2000');
-    await id('cadastro-cidade').fill('G');
-    await id('cadastro-aceite-termos').click();
-    await id('cadastro-aceite-privacidade').click();
-    await id('cadastro-botao').click();
+    await signUp(page, user);
+    await chooseTeam(page, 'volt');
+    await page.goto(`${BASE}/perfil/editar`);
+    await id('perfil-cidade').waitFor({ timeout: 20_000 });
+    await id('perfil-cidade').fill('G');
+    await id('perfil-salvar').click();
     await page.getByText('A cidade precisa ter pelo menos 2 letras.').first().waitFor({ timeout: 5_000 });
     ok(true, 'cidade de 1 letra é recusada no próprio formulário');
-    await id('cadastro-cidade').fill('Anápolis');
-    await id('cadastro-cidade').scrollIntoViewIfNeeded();
-    await shot('01-cadastro-cidade');
-    await id('cadastro-botao').click();
-    await id('onboarding-escolher-time').waitFor({ timeout: 30_000 });
+    await id('perfil-cidade').fill('Anápolis');
+    await shot('01-perfil-cidade');
+    await id('perfil-salvar').click();
+    // Salvar volta para a tela anterior (ou mostra "perfil-salvo" quando não há para onde voltar).
+    await page.waitForFunction(() => !document.querySelector('[data-testid="tela-editar-perfil"]') || document.querySelector('[data-testid="perfil-salvo"]'), null, { timeout: 15_000 });
     const login = await api('POST', '/auth/v1/token?grant_type=password', null, { email: user.email, password: user.password });
     const me = await api('GET', `/rest/v1/profiles?select=city&id=eq.${login.data.user.id}`, login.data.access_token);
-    ok(me.data?.[0]?.city === 'Anápolis', 'cidade natal do cadastro gravada no perfil', me.data);
-    await id('onboarding-escolher-time').click();
-    await id('onboarding-faccao-volt').click();
-    await id('onboarding-faccao-continuar').click();
-    await id('onboarding-localizacao-continuar').click();
-    await id('onboarding-notificacoes-continuar').waitFor({ timeout: 15_000 });
-    await id('onboarding-notificacoes-continuar').click();
+    ok(me.data?.[0]?.city === 'Anápolis', 'cidade natal gravada no perfil pelo Editar perfil', me.data);
+    await page.goto(`${BASE}/`);
     await id('mapa-status').waitFor({ timeout: 30_000 });
 
     // 2. reduzir movimento: pressionar "Correr" não muda a escala, só a opacidade

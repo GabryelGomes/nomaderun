@@ -1,0 +1,5398 @@
+{
+  "resumo": {
+    "geradoEm": "2026-10-28T22:16:08.846Z",
+    "relogioDaDemonstracao": "2026-10-23T12:00:00.000Z",
+    "export": "/tmp/claude-0/-home-user-nomaderun/fc6c6825-489b-5478-95eb-ab2a4c07f1ba/scratchpad/e10-o4/dist2",
+    "capturas": 165,
+    "refeitasNestaExecucao": 165,
+    "minutos": 7.2,
+    "bytesDestaExecucao": {
+      "before": 15082035,
+      "after": 4519333
+    },
+    "bytesNaPasta": 4519333,
+    "paginasComErro": [],
+    "pedidosAoServidor": 0,
+    "pedidosExternosBloqueados": [
+      "https://tiles.openfreemap.org/styles/dark"
+    ]
+  },
+  "capturas": [
+    {
+      "file": "inicio__cheio__360.png",
+      "route": "/",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/?cenario=cheio",
+      "loadMs": 2685,
+      "fcpMs": 964,
+      "screens": [
+        "tela-mapa"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 30,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "inicio__cheio__390.png",
+      "route": "/",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/?cenario=cheio",
+      "loadMs": 2524,
+      "fcpMs": 888,
+      "screens": [
+        "tela-mapa"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 30,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "inicio__cheio__430.png",
+      "route": "/",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/?cenario=cheio",
+      "loadMs": 2555,
+      "fcpMs": 920,
+      "screens": [
+        "tela-mapa"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 30,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "arena__cheio__360.png",
+      "route": "/arena",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/arena?cenario=cheio",
+      "loadMs": 2461,
+      "fcpMs": 1148,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 72,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "arena__cheio__390.png",
+      "route": "/arena",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/arena?cenario=cheio",
+      "loadMs": 2395,
+      "fcpMs": 824,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 72,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "arena__cheio__430.png",
+      "route": "/arena",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/arena?cenario=cheio",
+      "loadMs": 2422,
+      "fcpMs": 832,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 72,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 27
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__cheio__360.png",
+      "route": "/atividades",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/perfil/atividades",
+      "loadMs": 2472,
+      "fcpMs": 900,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 16,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 119,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 37
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__cheio__390.png",
+      "route": "/atividades",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/atividades",
+      "loadMs": 2416,
+      "fcpMs": 840,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 16,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 119,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 39
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__cheio__430.png",
+      "route": "/atividades",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/perfil/atividades",
+      "loadMs": 2472,
+      "fcpMs": 908,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 16,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 119,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 42
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__cheio__360.png",
+      "route": "/clube",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/clube?cenario=cheio",
+      "loadMs": 2503,
+      "fcpMs": 872,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 29,
+        "small": [
+          {
+            "id": "feed-feed-demo-colega-1-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-2-quem",
+            "w": 55,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-cidades",
+            "w": 81,
+            "h": 36
+          },
+          {
+            "id": "ranking-filtros",
+            "w": 135,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 284,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 25
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__cheio__390.png",
+      "route": "/clube",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/clube?cenario=cheio",
+      "loadMs": 2538,
+      "fcpMs": 880,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 29,
+        "small": [
+          {
+            "id": "feed-feed-demo-colega-1-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-2-quem",
+            "w": 55,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-cidades",
+            "w": 81,
+            "h": 36
+          },
+          {
+            "id": "ranking-filtros",
+            "w": 135,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 284,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 26
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__cheio__430.png",
+      "route": "/clube",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/clube?cenario=cheio",
+      "loadMs": 2524,
+      "fcpMs": 868,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 29,
+        "small": [
+          {
+            "id": "feed-feed-demo-colega-1-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-2-quem",
+            "w": 55,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-cidades",
+            "w": 81,
+            "h": 36
+          },
+          {
+            "id": "ranking-filtros",
+            "w": 135,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 284,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 29
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube-crew__cheio__360.png",
+      "route": "/clube/crew",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/clube/crew?cenario=cheio",
+      "loadMs": 2333,
+      "fcpMs": 768,
+      "screens": [
+        "tela-crew"
+      ],
+      "audit": {
+        "interactive": 9,
+        "small": [],
+        "unlabeled": [],
+        "words": 83,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 20
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube-crew__cheio__390.png",
+      "route": "/clube/crew",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/clube/crew?cenario=cheio",
+      "loadMs": 2391,
+      "fcpMs": 800,
+      "screens": [
+        "tela-crew"
+      ],
+      "audit": {
+        "interactive": 9,
+        "small": [],
+        "unlabeled": [],
+        "words": 83,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 28
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube-crew__cheio__430.png",
+      "route": "/clube/crew",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/clube/crew?cenario=cheio",
+      "loadMs": 2495,
+      "fcpMs": 836,
+      "screens": [
+        "tela-crew"
+      ],
+      "audit": {
+        "interactive": 9,
+        "small": [],
+        "unlabeled": [],
+        "words": 83,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 37
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__cheio__360.png",
+      "route": "/perfil",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/perfil?cenario=cheio",
+      "loadMs": 2417,
+      "fcpMs": 980,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [],
+        "unlabeled": [],
+        "words": 47,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 28
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__cheio__390.png",
+      "route": "/perfil",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil?cenario=cheio",
+      "loadMs": 2491,
+      "fcpMs": 888,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [],
+        "unlabeled": [],
+        "words": 47,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 28
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__cheio__430.png",
+      "route": "/perfil",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/perfil?cenario=cheio",
+      "loadMs": 2455,
+      "fcpMs": 824,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [],
+        "unlabeled": [],
+        "words": 47,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 28
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-editar__cheio__360.png",
+      "route": "/perfil/editar",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/perfil/editar?cenario=cheio",
+      "loadMs": 2567,
+      "fcpMs": 924,
+      "screens": [
+        "tela-editar-perfil"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 105,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 19
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-editar__cheio__390.png",
+      "route": "/perfil/editar",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/editar?cenario=cheio",
+      "loadMs": 2557,
+      "fcpMs": 916,
+      "screens": [
+        "tela-editar-perfil"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 105,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 20
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-editar__cheio__430.png",
+      "route": "/perfil/editar",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/perfil/editar?cenario=cheio",
+      "loadMs": 2427,
+      "fcpMs": 816,
+      "screens": [
+        "tela-editar-perfil"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 105,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 25
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-conta__cheio__360.png",
+      "route": "/perfil/conta",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/perfil/conta?cenario=cheio",
+      "loadMs": 2417,
+      "fcpMs": 808,
+      "screens": [
+        "tela-conta"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [],
+        "unlabeled": [],
+        "words": 80,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-conta__cheio__390.png",
+      "route": "/perfil/conta",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/conta?cenario=cheio",
+      "loadMs": 2335,
+      "fcpMs": 744,
+      "screens": [
+        "tela-conta"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [],
+        "unlabeled": [],
+        "words": 80,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-conta__cheio__430.png",
+      "route": "/perfil/conta",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/perfil/conta?cenario=cheio",
+      "loadMs": 2470,
+      "fcpMs": 860,
+      "screens": [
+        "tela-conta"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [],
+        "unlabeled": [],
+        "words": 80,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 20
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-time__cheio__360.png",
+      "route": "/perfil/time",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/perfil/time?cenario=cheio",
+      "loadMs": 2454,
+      "fcpMs": 868,
+      "screens": [
+        "tela-faccao"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 43,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 19
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-time__cheio__390.png",
+      "route": "/perfil/time",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/time?cenario=cheio",
+      "loadMs": 2529,
+      "fcpMs": 948,
+      "screens": [
+        "tela-faccao"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 43,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 19
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-time__cheio__430.png",
+      "route": "/perfil/time",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/perfil/time?cenario=cheio",
+      "loadMs": 2530,
+      "fcpMs": 908,
+      "screens": [
+        "tela-faccao"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 43,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 19
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__cheio__360.png",
+      "route": "/notificacoes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/notificacoes?cenario=cheio",
+      "loadMs": 2370,
+      "fcpMs": 772,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 86,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 19
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__cheio__390.png",
+      "route": "/notificacoes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/notificacoes?cenario=cheio",
+      "loadMs": 2357,
+      "fcpMs": 728,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 86,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 19
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__cheio__430.png",
+      "route": "/notificacoes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/notificacoes?cenario=cheio",
+      "loadMs": 2455,
+      "fcpMs": 836,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 86,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 19
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__cheio__360.png",
+      "route": "/contatos-seguranca",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/contatos-seguranca?cenario=cheio",
+      "loadMs": 2356,
+      "fcpMs": 760,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 36,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 9
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__cheio__390.png",
+      "route": "/contatos-seguranca",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/contatos-seguranca?cenario=cheio",
+      "loadMs": 2309,
+      "fcpMs": 736,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 36,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 9
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__cheio__430.png",
+      "route": "/contatos-seguranca",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/contatos-seguranca?cenario=cheio",
+      "loadMs": 2345,
+      "fcpMs": 728,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 5,
+        "small": [],
+        "unlabeled": [],
+        "words": 36,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 9
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "zonas-privacidade__cheio__360.png",
+      "route": "/zonas-privacidade",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/zonas-privacidade?cenario=cheio",
+      "loadMs": 2431,
+      "fcpMs": 836,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 30,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 7
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "zonas-privacidade__cheio__390.png",
+      "route": "/zonas-privacidade",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/zonas-privacidade?cenario=cheio",
+      "loadMs": 2425,
+      "fcpMs": 748,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 30,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 7
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "zonas-privacidade__cheio__430.png",
+      "route": "/zonas-privacidade",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/zonas-privacidade?cenario=cheio",
+      "loadMs": 2516,
+      "fcpMs": 852,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 30,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 7
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "corrida__cheio__360.png",
+      "route": "/corrida",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/corrida?cenario=cheio",
+      "loadMs": 2383,
+      "fcpMs": 800,
+      "screens": [
+        "tela-nova-corrida"
+      ],
+      "audit": {
+        "interactive": 9,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 50,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "corrida__cheio__390.png",
+      "route": "/corrida",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/corrida?cenario=cheio",
+      "loadMs": 2385,
+      "fcpMs": 760,
+      "screens": [
+        "tela-nova-corrida"
+      ],
+      "audit": {
+        "interactive": 9,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 50,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "corrida__cheio__430.png",
+      "route": "/corrida",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/corrida?cenario=cheio",
+      "loadMs": 2393,
+      "fcpMs": 792,
+      "screens": [
+        "tela-nova-corrida"
+      ],
+      "audit": {
+        "interactive": 9,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 50,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "resumo__cheio__360.png",
+      "route": "/resumo?id=demo-corrida-1",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/resumo?id=demo-corrida-1&cenario=cheio",
+      "loadMs": 2496,
+      "fcpMs": 752,
+      "screens": [
+        "tela-resumo"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 48,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 25
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "resumo__cheio__390.png",
+      "route": "/resumo?id=demo-corrida-1",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/resumo?id=demo-corrida-1&cenario=cheio",
+      "loadMs": 2452,
+      "fcpMs": 740,
+      "screens": [
+        "tela-resumo"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 48,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 26
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "resumo__cheio__430.png",
+      "route": "/resumo?id=demo-corrida-1",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/resumo?id=demo-corrida-1&cenario=cheio",
+      "loadMs": 2464,
+      "fcpMs": 768,
+      "screens": [
+        "tela-resumo"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 48,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 26
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "zona-parque__cheio__360.png",
+      "route": "/zona/89a8c0ce2c3ffff",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/zona/89a8c0ce2c3ffff?cenario=cheio",
+      "loadMs": 2490,
+      "fcpMs": 916,
+      "screens": [
+        "tela-zona"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 41,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 10
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "zona-parque__cheio__390.png",
+      "route": "/zona/89a8c0ce2c3ffff",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/zona/89a8c0ce2c3ffff?cenario=cheio",
+      "loadMs": 2314,
+      "fcpMs": 760,
+      "screens": [
+        "tela-zona"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 41,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 10
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "zona-parque__cheio__430.png",
+      "route": "/zona/89a8c0ce2c3ffff",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/zona/89a8c0ce2c3ffff?cenario=cheio",
+      "loadMs": 2545,
+      "fcpMs": 972,
+      "screens": [
+        "tela-zona"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 41,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 10
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "termos__cheio__360.png",
+      "route": "/termos",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/termos?cenario=cheio",
+      "loadMs": 2425,
+      "fcpMs": 820,
+      "screens": [
+        "tela-termos"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 235,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 8
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "termos__cheio__390.png",
+      "route": "/termos",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/termos?cenario=cheio",
+      "loadMs": 2414,
+      "fcpMs": 788,
+      "screens": [
+        "tela-termos"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 235,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 10
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "termos__cheio__430.png",
+      "route": "/termos",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/termos?cenario=cheio",
+      "loadMs": 2409,
+      "fcpMs": 764,
+      "screens": [
+        "tela-termos"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 235,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 11
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "privacidade__cheio__360.png",
+      "route": "/privacidade",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/privacidade?cenario=cheio",
+      "loadMs": 2456,
+      "fcpMs": 816,
+      "screens": [
+        "tela-privacidade"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 306,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 8
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "privacidade__cheio__390.png",
+      "route": "/privacidade",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/privacidade?cenario=cheio",
+      "loadMs": 2464,
+      "fcpMs": 816,
+      "screens": [
+        "tela-privacidade"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 306,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 8
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "privacidade__cheio__430.png",
+      "route": "/privacidade",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/privacidade?cenario=cheio",
+      "loadMs": 2374,
+      "fcpMs": 760,
+      "screens": [
+        "tela-privacidade"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 306,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 10
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "correr__cheio__360.png",
+      "route": "/correr",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/correr?cenario=cheio",
+      "loadMs": 2322,
+      "fcpMs": 748,
+      "screens": [
+        "tela-correr"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 11,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 8
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "correr__cheio__390.png",
+      "route": "/correr",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/correr?cenario=cheio",
+      "loadMs": 2332,
+      "fcpMs": 740,
+      "screens": [
+        "tela-correr"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 11,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 8
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "correr__cheio__430.png",
+      "route": "/correr",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/correr?cenario=cheio",
+      "loadMs": 2590,
+      "fcpMs": 960,
+      "screens": [
+        "tela-correr"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 11,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 8
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-ajustes__cheio__360.png",
+      "route": "/perfil/ajustes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/perfil/ajustes?cenario=cheio",
+      "loadMs": 2377,
+      "fcpMs": 784,
+      "screens": [
+        "tela-ajustes"
+      ],
+      "audit": {
+        "interactive": 38,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 204,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-ajustes__cheio__390.png",
+      "route": "/perfil/ajustes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/ajustes?cenario=cheio",
+      "loadMs": 2609,
+      "fcpMs": 1008,
+      "screens": [
+        "tela-ajustes"
+      ],
+      "audit": {
+        "interactive": 38,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 204,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 24
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-ajustes__cheio__430.png",
+      "route": "/perfil/ajustes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/perfil/ajustes?cenario=cheio",
+      "loadMs": 2473,
+      "fcpMs": 864,
+      "screens": [
+        "tela-ajustes"
+      ],
+      "audit": {
+        "interactive": 38,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 204,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 26
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-atividades__cheio__360.png",
+      "route": "/perfil/atividades",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/perfil/atividades?cenario=cheio",
+      "loadMs": 2437,
+      "fcpMs": 832,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 16,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 119,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 37
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-atividades__cheio__390.png",
+      "route": "/perfil/atividades",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/atividades?cenario=cheio",
+      "loadMs": 2439,
+      "fcpMs": 860,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 16,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 119,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 39
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-atividades__cheio__430.png",
+      "route": "/perfil/atividades",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/perfil/atividades?cenario=cheio",
+      "loadMs": 2442,
+      "fcpMs": 844,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 16,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 119,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 42
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "missoes__cheio__360.png",
+      "route": "/missoes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/missoes?cenario=cheio",
+      "loadMs": 2342,
+      "fcpMs": 744,
+      "screens": [
+        "tela-missoes"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 198,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 28
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "missoes__cheio__390.png",
+      "route": "/missoes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/missoes?cenario=cheio",
+      "loadMs": 2395,
+      "fcpMs": 796,
+      "screens": [
+        "tela-missoes"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 198,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 31
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "missoes__cheio__430.png",
+      "route": "/missoes",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/missoes?cenario=cheio",
+      "loadMs": 2424,
+      "fcpMs": 828,
+      "screens": [
+        "tela-missoes"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 198,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 39
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "recompensas__cheio__360.png",
+      "route": "/recompensas",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/recompensas?cenario=cheio",
+      "loadMs": 2353,
+      "fcpMs": 784,
+      "screens": [
+        "tela-recompensas"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 118,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 28
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "recompensas__cheio__390.png",
+      "route": "/recompensas",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/recompensas?cenario=cheio",
+      "loadMs": 2361,
+      "fcpMs": 784,
+      "screens": [
+        "tela-recompensas"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 118,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 32
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "recompensas__cheio__430.png",
+      "route": "/recompensas",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/recompensas?cenario=cheio",
+      "loadMs": 2409,
+      "fcpMs": 824,
+      "screens": [
+        "tela-recompensas"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 118,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 38
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar__cheio__360.png",
+      "route": "/compartilhar/demo-corrida-1",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/compartilhar/demo-corrida-1?cenario=cheio",
+      "loadMs": 3786,
+      "fcpMs": 768,
+      "screens": [
+        "tela-compartilhar"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [
+          {
+            "id": "compartilhar-modelo-0",
+            "w": 131,
+            "h": 36
+          },
+          {
+            "id": "compartilhar-modelo-1",
+            "w": 67,
+            "h": 36
+          },
+          {
+            "id": "compartilhar-formato-stories",
+            "w": 74,
+            "h": 36
+          },
+          {
+            "id": "compartilhar-formato-feed",
+            "w": 62,
+            "h": 36
+          },
+          {
+            "id": "compartilhar-formato-adesivo",
+            "w": 80,
+            "h": 36
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 113,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 12
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar__cheio__390.png",
+      "route": "/compartilhar/demo-corrida-1",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/compartilhar/demo-corrida-1?cenario=cheio",
+      "loadMs": 4523,
+      "fcpMs": 720,
+      "screens": [
+        "tela-compartilhar"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [
+          {
+            "id": "compartilhar-modelo-0",
+            "w": 131,
+            "h": 36
+          },
+          {
+            "id": "compartilhar-modelo-1",
+            "w": 67,
+            "h": 36
+          },
+          {
+            "id": "compartilhar-formato-stories",
+            "w": 74,
+            "h": 36
+          },
+          {
+            "id": "compartilhar-formato-feed",
+            "w": 62,
+            "h": 36
+          },
+          {
+            "id": "compartilhar-formato-adesivo",
+            "w": 80,
+            "h": 36
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 113,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 12
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar__cheio__430.png",
+      "route": "/compartilhar/demo-corrida-1",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/compartilhar/demo-corrida-1?cenario=cheio",
+      "loadMs": 3940,
+      "fcpMs": 740,
+      "screens": [
+        "tela-compartilhar"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [
+          {
+            "id": "compartilhar-modelo-0",
+            "w": 131,
+            "h": 36
+          },
+          {
+            "id": "compartilhar-modelo-1",
+            "w": 67,
+            "h": 36
+          },
+          {
+            "id": "compartilhar-formato-stories",
+            "w": 74,
+            "h": 36
+          },
+          {
+            "id": "compartilhar-formato-feed",
+            "w": 62,
+            "h": 36
+          },
+          {
+            "id": "compartilhar-formato-adesivo",
+            "w": 80,
+            "h": 36
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 113,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 13
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar-semana__cheio__360.png",
+      "route": "/compartilhar/semana",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/compartilhar/semana?cenario=cheio",
+      "loadMs": 2528,
+      "fcpMs": 920,
+      "screens": [
+        "tela-semana"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [
+          {
+            "id": "semana-formato-stories",
+            "w": 74,
+            "h": 36
+          },
+          {
+            "id": "semana-formato-feed",
+            "w": 62,
+            "h": 36
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 103,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 10
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar-semana__cheio__390.png",
+      "route": "/compartilhar/semana",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/compartilhar/semana?cenario=cheio",
+      "loadMs": 2442,
+      "fcpMs": 804,
+      "screens": [
+        "tela-semana"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [
+          {
+            "id": "semana-formato-stories",
+            "w": 74,
+            "h": 36
+          },
+          {
+            "id": "semana-formato-feed",
+            "w": 62,
+            "h": 36
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 103,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 10
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar-semana__cheio__430.png",
+      "route": "/compartilhar/semana",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/compartilhar/semana?cenario=cheio",
+      "loadMs": 2471,
+      "fcpMs": 828,
+      "screens": [
+        "tela-semana"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [
+          {
+            "id": "semana-formato-stories",
+            "w": 74,
+            "h": 36
+          },
+          {
+            "id": "semana-formato-feed",
+            "w": 62,
+            "h": 36
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 103,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 10
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar-feed__cheio__360.png",
+      "route": "/compartilhar/feed",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/compartilhar/feed?cenario=cheio",
+      "loadMs": 2535,
+      "fcpMs": 852,
+      "screens": [
+        "tela-feed-crew"
+      ],
+      "audit": {
+        "interactive": 21,
+        "small": [
+          {
+            "id": "feed-feed-demo-colega-1-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-2-quem",
+            "w": 55,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 160,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar-feed__cheio__390.png",
+      "route": "/compartilhar/feed",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/compartilhar/feed?cenario=cheio",
+      "loadMs": 2356,
+      "fcpMs": 716,
+      "screens": [
+        "tela-feed-crew"
+      ],
+      "audit": {
+        "interactive": 21,
+        "small": [
+          {
+            "id": "feed-feed-demo-colega-1-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-2-quem",
+            "w": 55,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 160,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar-feed__cheio__430.png",
+      "route": "/compartilhar/feed",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/compartilhar/feed?cenario=cheio",
+      "loadMs": 2420,
+      "fcpMs": 776,
+      "screens": [
+        "tela-feed-crew"
+      ],
+      "audit": {
+        "interactive": 21,
+        "small": [
+          {
+            "id": "feed-feed-demo-colega-1-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-2-quem",
+            "w": 55,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 160,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 20
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "convite__cheio__360.png",
+      "route": "/compartilhar/convite/DEMOFLR1",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 360,
+      "finalUrl": "/compartilhar/convite/DEMOFLR1?cenario=cheio",
+      "loadMs": 2339,
+      "fcpMs": 748,
+      "screens": [
+        "tela-convite"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 43,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 8
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "convite__cheio__390.png",
+      "route": "/compartilhar/convite/DEMOFLR1",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/compartilhar/convite/DEMOFLR1?cenario=cheio",
+      "loadMs": 2368,
+      "fcpMs": 764,
+      "screens": [
+        "tela-convite"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 43,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 8
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "convite__cheio__430.png",
+      "route": "/compartilhar/convite/DEMOFLR1",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 430,
+      "finalUrl": "/compartilhar/convite/DEMOFLR1?cenario=cheio",
+      "loadMs": 2308,
+      "fcpMs": 696,
+      "screens": [
+        "tela-convite"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 43,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 8
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__vazio__360.png",
+      "route": "/",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/?cenario=vazio",
+      "loadMs": 2320,
+      "fcpMs": 684,
+      "screens": [
+        "tela-mapa"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 29,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 17
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "inicio__vazio__390.png",
+      "route": "/",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/?cenario=vazio",
+      "loadMs": 2301,
+      "fcpMs": 664,
+      "screens": [
+        "tela-mapa"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 29,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 17
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "inicio__vazio__430.png",
+      "route": "/",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/?cenario=vazio",
+      "loadMs": 2345,
+      "fcpMs": 676,
+      "screens": [
+        "tela-mapa"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 29,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 17
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "arena__vazio__360.png",
+      "route": "/arena",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/arena?cenario=vazio",
+      "loadMs": 2289,
+      "fcpMs": 724,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 69,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "arena__vazio__390.png",
+      "route": "/arena",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/arena?cenario=vazio",
+      "loadMs": 2240,
+      "fcpMs": 676,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 69,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 23
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "arena__vazio__430.png",
+      "route": "/arena",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/arena?cenario=vazio",
+      "loadMs": 2219,
+      "fcpMs": 644,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 69,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 27
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__vazio__360.png",
+      "route": "/atividades",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/perfil/atividades",
+      "loadMs": 2166,
+      "fcpMs": 588,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 48,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 29
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__vazio__390.png",
+      "route": "/atividades",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/perfil/atividades",
+      "loadMs": 2235,
+      "fcpMs": 640,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 48,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 30
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__vazio__430.png",
+      "route": "/atividades",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/perfil/atividades",
+      "loadMs": 2324,
+      "fcpMs": 748,
+      "screens": [
+        "tela-atividades"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [
+          {
+            "id": "atividades-periodo-7d",
+            "w": 80,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-30d",
+            "w": 92,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-ano",
+            "w": 101,
+            "h": 40
+          },
+          {
+            "id": "atividades-periodo-tudo",
+            "w": 73,
+            "h": 40
+          }
+        ],
+        "unlabeled": [],
+        "words": 48,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 30
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__vazio__360.png",
+      "route": "/clube",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/clube?cenario=vazio",
+      "loadMs": 2235,
+      "fcpMs": 660,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-cidades",
+            "w": 81,
+            "h": 36
+          },
+          {
+            "id": "ranking-filtros",
+            "w": 135,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 152,
+        "sealOverlap": [],
+        "lowContrast": [
+          {
+            "id": "ranking-podio",
+            "text": "1",
+            "ratio": 1.08,
+            "min": 4.5,
+            "size": 20,
+            "opacity": 1
+          }
+        ],
+        "contrastChecked": 37
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__vazio__390.png",
+      "route": "/clube",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/clube?cenario=vazio",
+      "loadMs": 2275,
+      "fcpMs": 704,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-cidades",
+            "w": 81,
+            "h": 36
+          },
+          {
+            "id": "ranking-filtros",
+            "w": 135,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 152,
+        "sealOverlap": [],
+        "lowContrast": [
+          {
+            "id": "ranking-podio",
+            "text": "1",
+            "ratio": 1.08,
+            "min": 4.5,
+            "size": 20,
+            "opacity": 1
+          }
+        ],
+        "contrastChecked": 42
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__vazio__430.png",
+      "route": "/clube",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/clube?cenario=vazio",
+      "loadMs": 2290,
+      "fcpMs": 696,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-cidades",
+            "w": 81,
+            "h": 36
+          },
+          {
+            "id": "ranking-filtros",
+            "w": 135,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 152,
+        "sealOverlap": [],
+        "lowContrast": [
+          {
+            "id": "ranking-podio",
+            "text": "1",
+            "ratio": 1.08,
+            "min": 4.5,
+            "size": 20,
+            "opacity": 1
+          }
+        ],
+        "contrastChecked": 51
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__vazio__360.png",
+      "route": "/perfil",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/perfil?cenario=vazio",
+      "loadMs": 2249,
+      "fcpMs": 640,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [],
+        "unlabeled": [],
+        "words": 43,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 27
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__vazio__390.png",
+      "route": "/perfil",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/perfil?cenario=vazio",
+      "loadMs": 2303,
+      "fcpMs": 700,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [],
+        "unlabeled": [],
+        "words": 43,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 27
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil__vazio__430.png",
+      "route": "/perfil",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/perfil?cenario=vazio",
+      "loadMs": 2282,
+      "fcpMs": 652,
+      "screens": [
+        "tela-perfil"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [],
+        "unlabeled": [],
+        "words": 43,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 27
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__vazio__360.png",
+      "route": "/notificacoes",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/notificacoes?cenario=vazio",
+      "loadMs": 2128,
+      "fcpMs": 544,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 11,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 4
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__vazio__390.png",
+      "route": "/notificacoes",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/notificacoes?cenario=vazio",
+      "loadMs": 2146,
+      "fcpMs": 564,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 11,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 4
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__vazio__430.png",
+      "route": "/notificacoes",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/notificacoes?cenario=vazio",
+      "loadMs": 2406,
+      "fcpMs": 560,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 11,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 4
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__vazio__360.png",
+      "route": "/contatos-seguranca",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/contatos-seguranca?cenario=vazio",
+      "loadMs": 2350,
+      "fcpMs": 780,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 35,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 7
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__vazio__390.png",
+      "route": "/contatos-seguranca",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/contatos-seguranca?cenario=vazio",
+      "loadMs": 2140,
+      "fcpMs": 552,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 35,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 7
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "contatos-seguranca__vazio__430.png",
+      "route": "/contatos-seguranca",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/contatos-seguranca?cenario=vazio",
+      "loadMs": 2140,
+      "fcpMs": 556,
+      "screens": [
+        "tela-contatos-seguranca"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 35,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 7
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "zonas-privacidade__vazio__360.png",
+      "route": "/zonas-privacidade",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/zonas-privacidade?cenario=vazio",
+      "loadMs": 2155,
+      "fcpMs": 540,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 31,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 7
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "zonas-privacidade__vazio__390.png",
+      "route": "/zonas-privacidade",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/zonas-privacidade?cenario=vazio",
+      "loadMs": 2173,
+      "fcpMs": 556,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 31,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 7
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "zonas-privacidade__vazio__430.png",
+      "route": "/zonas-privacidade",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/zonas-privacidade?cenario=vazio",
+      "loadMs": 2254,
+      "fcpMs": 516,
+      "screens": [
+        "tela-zonas-privacidade"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 31,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 7
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "missoes__vazio__360.png",
+      "route": "/missoes",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/missoes?cenario=vazio",
+      "loadMs": 2179,
+      "fcpMs": 592,
+      "screens": [
+        "tela-missoes"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 206,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 28
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "missoes__vazio__390.png",
+      "route": "/missoes",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/missoes?cenario=vazio",
+      "loadMs": 2332,
+      "fcpMs": 700,
+      "screens": [
+        "tela-missoes"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 206,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 33
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "missoes__vazio__430.png",
+      "route": "/missoes",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/missoes?cenario=vazio",
+      "loadMs": 2271,
+      "fcpMs": 648,
+      "screens": [
+        "tela-missoes"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 206,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 39
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "recompensas__vazio__360.png",
+      "route": "/recompensas",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/recompensas?cenario=vazio",
+      "loadMs": 2208,
+      "fcpMs": 652,
+      "screens": [
+        "tela-recompensas"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 113,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 28
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "recompensas__vazio__390.png",
+      "route": "/recompensas",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/recompensas?cenario=vazio",
+      "loadMs": 2219,
+      "fcpMs": 628,
+      "screens": [
+        "tela-recompensas"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 113,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 32
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "recompensas__vazio__430.png",
+      "route": "/recompensas",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/recompensas?cenario=vazio",
+      "loadMs": 2242,
+      "fcpMs": 652,
+      "screens": [
+        "tela-recompensas"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 113,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 36
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar-semana__vazio__360.png",
+      "route": "/compartilhar/semana",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/compartilhar/semana?cenario=vazio",
+      "loadMs": 2160,
+      "fcpMs": 552,
+      "screens": [
+        "tela-semana"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 18,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar-semana__vazio__390.png",
+      "route": "/compartilhar/semana",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/compartilhar/semana?cenario=vazio",
+      "loadMs": 2194,
+      "fcpMs": 564,
+      "screens": [
+        "tela-semana"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 18,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar-semana__vazio__430.png",
+      "route": "/compartilhar/semana",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/compartilhar/semana?cenario=vazio",
+      "loadMs": 2290,
+      "fcpMs": 664,
+      "screens": [
+        "tela-semana"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 18,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar-feed__vazio__360.png",
+      "route": "/compartilhar/feed",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 360,
+      "finalUrl": "/compartilhar/feed?cenario=vazio",
+      "loadMs": 2270,
+      "fcpMs": 648,
+      "screens": [
+        "tela-feed-crew"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 63,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 11
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar-feed__vazio__390.png",
+      "route": "/compartilhar/feed",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/compartilhar/feed?cenario=vazio",
+      "loadMs": 2198,
+      "fcpMs": 572,
+      "screens": [
+        "tela-feed-crew"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 63,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 11
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "compartilhar-feed__vazio__430.png",
+      "route": "/compartilhar/feed",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 430,
+      "finalUrl": "/compartilhar/feed?cenario=vazio",
+      "loadMs": 2201,
+      "fcpMs": 556,
+      "screens": [
+        "tela-feed-crew"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 63,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 11
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__carregando__360.png",
+      "route": "/",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 360,
+      "finalUrl": "/?cenario=lento",
+      "loadMs": 1056,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__carregando__390.png",
+      "route": "/",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 390,
+      "finalUrl": "/?cenario=lento",
+      "loadMs": 1106,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__carregando__430.png",
+      "route": "/",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 430,
+      "finalUrl": "/?cenario=lento",
+      "loadMs": 1036,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__carregando__360.png",
+      "route": "/atividades",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 360,
+      "finalUrl": "/atividades?cenario=lento",
+      "loadMs": 1065,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__carregando__390.png",
+      "route": "/atividades",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 390,
+      "finalUrl": "/atividades?cenario=lento",
+      "loadMs": 1021,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__carregando__430.png",
+      "route": "/atividades",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 430,
+      "finalUrl": "/atividades?cenario=lento",
+      "loadMs": 1045,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__carregando__360.png",
+      "route": "/notificacoes",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 360,
+      "finalUrl": "/notificacoes?cenario=lento",
+      "loadMs": 1055,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__carregando__390.png",
+      "route": "/notificacoes",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 390,
+      "finalUrl": "/notificacoes?cenario=lento",
+      "loadMs": 1087,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__carregando__430.png",
+      "route": "/notificacoes",
+      "state": "carregando",
+      "scenario": "lento",
+      "width": 430,
+      "finalUrl": "/notificacoes?cenario=lento",
+      "loadMs": 1061,
+      "fcpMs": null,
+      "screens": [],
+      "audit": {
+        "interactive": 0,
+        "small": [],
+        "unlabeled": [],
+        "words": 0,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 0
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__erro__360.png",
+      "route": "/",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 360,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2407,
+      "fcpMs": 820,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__erro__390.png",
+      "route": "/",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 390,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2353,
+      "fcpMs": 732,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__erro__430.png",
+      "route": "/",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 430,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2445,
+      "fcpMs": 844,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__erro__360.png",
+      "route": "/atividades",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 360,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2359,
+      "fcpMs": 768,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__erro__390.png",
+      "route": "/atividades",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 390,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2280,
+      "fcpMs": 696,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__erro__430.png",
+      "route": "/atividades",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 430,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2286,
+      "fcpMs": 688,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__erro__360.png",
+      "route": "/notificacoes",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 360,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2297,
+      "fcpMs": 712,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__erro__390.png",
+      "route": "/notificacoes",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 390,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2316,
+      "fcpMs": 736,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__erro__430.png",
+      "route": "/notificacoes",
+      "state": "erro",
+      "scenario": "erro",
+      "width": 430,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2327,
+      "fcpMs": 728,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 24,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__offline__360.png",
+      "route": "/",
+      "state": "offline",
+      "scenario": "offline",
+      "width": 360,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2327,
+      "fcpMs": 748,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 25,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__offline__390.png",
+      "route": "/",
+      "state": "offline",
+      "scenario": "offline",
+      "width": 390,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2281,
+      "fcpMs": 688,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 25,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__offline__430.png",
+      "route": "/",
+      "state": "offline",
+      "scenario": "offline",
+      "width": 430,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2333,
+      "fcpMs": 732,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 25,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__offline__360.png",
+      "route": "/atividades",
+      "state": "offline",
+      "scenario": "offline",
+      "width": 360,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2295,
+      "fcpMs": 716,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 25,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__offline__390.png",
+      "route": "/atividades",
+      "state": "offline",
+      "scenario": "offline",
+      "width": 390,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2366,
+      "fcpMs": 752,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 25,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "atividades__offline__430.png",
+      "route": "/atividades",
+      "state": "offline",
+      "scenario": "offline",
+      "width": 430,
+      "finalUrl": "/indisponivel",
+      "loadMs": 2290,
+      "fcpMs": 708,
+      "screens": [
+        "tela-perfil-indisponivel"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 25,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "inicio__sob-ataque__360.png",
+      "route": "/",
+      "state": "sob-ataque",
+      "scenario": "sob-ataque",
+      "width": 360,
+      "finalUrl": "/?cenario=sob-ataque",
+      "loadMs": 8066,
+      "fcpMs": 852,
+      "screens": [
+        "tela-mapa"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 30,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "inicio__sob-ataque__390.png",
+      "route": "/",
+      "state": "sob-ataque",
+      "scenario": "sob-ataque",
+      "width": 390,
+      "finalUrl": "/?cenario=sob-ataque",
+      "loadMs": 8033,
+      "fcpMs": 908,
+      "screens": [
+        "tela-mapa"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 30,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "inicio__sob-ataque__430.png",
+      "route": "/",
+      "state": "sob-ataque",
+      "scenario": "sob-ataque",
+      "width": 430,
+      "finalUrl": "/?cenario=sob-ataque",
+      "loadMs": 7964,
+      "fcpMs": 840,
+      "screens": [
+        "tela-mapa"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 30,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "notificacoes__sob-ataque__360.png",
+      "route": "/notificacoes",
+      "state": "sob-ataque",
+      "scenario": "sob-ataque",
+      "width": 360,
+      "finalUrl": "/notificacoes?cenario=sob-ataque",
+      "loadMs": 7787,
+      "fcpMs": 716,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 108,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 19
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__sob-ataque__390.png",
+      "route": "/notificacoes",
+      "state": "sob-ataque",
+      "scenario": "sob-ataque",
+      "width": 390,
+      "finalUrl": "/notificacoes?cenario=sob-ataque",
+      "loadMs": 7831,
+      "fcpMs": 752,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 108,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 21
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "notificacoes__sob-ataque__430.png",
+      "route": "/notificacoes",
+      "state": "sob-ataque",
+      "scenario": "sob-ataque",
+      "width": 430,
+      "finalUrl": "/notificacoes?cenario=sob-ataque",
+      "loadMs": 7846,
+      "fcpMs": 752,
+      "screens": [
+        "tela-notificacoes"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 108,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 22
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "onboarding__sem-time__360.png",
+      "route": "/onboarding",
+      "state": "sem-time",
+      "scenario": "sem-time",
+      "width": 360,
+      "finalUrl": "/onboarding?cenario=sem-time",
+      "loadMs": 2146,
+      "fcpMs": 528,
+      "screens": [
+        "tela-onboarding"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 25,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 12
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "onboarding__sem-time__390.png",
+      "route": "/onboarding",
+      "state": "sem-time",
+      "scenario": "sem-time",
+      "width": 390,
+      "finalUrl": "/onboarding?cenario=sem-time",
+      "loadMs": 2196,
+      "fcpMs": 560,
+      "screens": [
+        "tela-onboarding"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 25,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 12
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "onboarding__sem-time__430.png",
+      "route": "/onboarding",
+      "state": "sem-time",
+      "scenario": "sem-time",
+      "width": 430,
+      "finalUrl": "/onboarding?cenario=sem-time",
+      "loadMs": 2216,
+      "fcpMs": 576,
+      "screens": [
+        "tela-onboarding"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 25,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 12
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "boas-vindas__primeira-abertura__360.png",
+      "route": "/boas-vindas",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 360,
+      "finalUrl": "/boas-vindas?cenario=primeira-abertura",
+      "loadMs": 2180,
+      "fcpMs": 568,
+      "screens": [
+        "tela-boas-vindas"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 14,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 4
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "boas-vindas__primeira-abertura__390.png",
+      "route": "/boas-vindas",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 390,
+      "finalUrl": "/boas-vindas?cenario=primeira-abertura",
+      "loadMs": 2191,
+      "fcpMs": 528,
+      "screens": [
+        "tela-boas-vindas"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 14,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 4
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "boas-vindas__primeira-abertura__430.png",
+      "route": "/boas-vindas",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 430,
+      "finalUrl": "/boas-vindas?cenario=primeira-abertura",
+      "loadMs": 2174,
+      "fcpMs": 532,
+      "screens": [
+        "tela-boas-vindas"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 14,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 4
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "entrar__primeira-abertura__360.png",
+      "route": "/entrar",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 360,
+      "finalUrl": "/entrar?cenario=primeira-abertura",
+      "loadMs": 2178,
+      "fcpMs": 528,
+      "screens": [
+        "tela-entrar"
+      ],
+      "audit": {
+        "interactive": 7,
+        "small": [],
+        "unlabeled": [],
+        "words": 26,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 9
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "entrar__primeira-abertura__390.png",
+      "route": "/entrar",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 390,
+      "finalUrl": "/entrar?cenario=primeira-abertura",
+      "loadMs": 2201,
+      "fcpMs": 544,
+      "screens": [
+        "tela-entrar"
+      ],
+      "audit": {
+        "interactive": 7,
+        "small": [],
+        "unlabeled": [],
+        "words": 26,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 9
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "entrar__primeira-abertura__430.png",
+      "route": "/entrar",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 430,
+      "finalUrl": "/entrar?cenario=primeira-abertura",
+      "loadMs": 2250,
+      "fcpMs": 592,
+      "screens": [
+        "tela-entrar"
+      ],
+      "audit": {
+        "interactive": 7,
+        "small": [],
+        "unlabeled": [],
+        "words": 26,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 9
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "cadastro__primeira-abertura__360.png",
+      "route": "/cadastro",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 360,
+      "finalUrl": "/cadastro?cenario=primeira-abertura",
+      "loadMs": 2182,
+      "fcpMs": 548,
+      "screens": [
+        "tela-cadastro"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [],
+        "unlabeled": [],
+        "words": 37,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 14
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "cadastro__primeira-abertura__390.png",
+      "route": "/cadastro",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 390,
+      "finalUrl": "/cadastro?cenario=primeira-abertura",
+      "loadMs": 2222,
+      "fcpMs": 616,
+      "screens": [
+        "tela-cadastro"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [],
+        "unlabeled": [],
+        "words": 37,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 14
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "cadastro__primeira-abertura__430.png",
+      "route": "/cadastro",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 430,
+      "finalUrl": "/cadastro?cenario=primeira-abertura",
+      "loadMs": 2238,
+      "fcpMs": 580,
+      "screens": [
+        "tela-cadastro"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [],
+        "unlabeled": [],
+        "words": 37,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 14
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "recuperar-senha__primeira-abertura__360.png",
+      "route": "/recuperar-senha",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 360,
+      "finalUrl": "/recuperar-senha?cenario=primeira-abertura",
+      "loadMs": 2160,
+      "fcpMs": 552,
+      "screens": [
+        "tela-recuperar-senha"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 24,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "recuperar-senha__primeira-abertura__390.png",
+      "route": "/recuperar-senha",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 390,
+      "finalUrl": "/recuperar-senha?cenario=primeira-abertura",
+      "loadMs": 2248,
+      "fcpMs": 620,
+      "screens": [
+        "tela-recuperar-senha"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 24,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "recuperar-senha__primeira-abertura__430.png",
+      "route": "/recuperar-senha",
+      "state": "primeira-abertura",
+      "scenario": "primeira-abertura",
+      "width": 430,
+      "finalUrl": "/recuperar-senha?cenario=primeira-abertura",
+      "loadMs": 2192,
+      "fcpMs": 568,
+      "screens": [
+        "tela-recuperar-senha"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 24,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 5
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "moderacao__moderador__360.png",
+      "route": "/moderacao",
+      "state": "moderador",
+      "scenario": "moderador",
+      "width": 360,
+      "finalUrl": "/moderacao?cenario=moderador",
+      "loadMs": 2510,
+      "fcpMs": 904,
+      "screens": [
+        "tela-moderacao"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 110,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 14
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "moderacao__moderador__390.png",
+      "route": "/moderacao",
+      "state": "moderador",
+      "scenario": "moderador",
+      "width": 390,
+      "finalUrl": "/moderacao?cenario=moderador",
+      "loadMs": 2413,
+      "fcpMs": 820,
+      "screens": [
+        "tela-moderacao"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 110,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 14
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "moderacao__moderador__430.png",
+      "route": "/moderacao",
+      "state": "moderador",
+      "scenario": "moderador",
+      "width": 430,
+      "finalUrl": "/moderacao?cenario=moderador",
+      "loadMs": 2354,
+      "fcpMs": 748,
+      "screens": [
+        "tela-moderacao"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 110,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 14
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "moderacao-detalhe__moderador__360.png",
+      "route": "/moderacao/demo-revisao-1",
+      "state": "moderador",
+      "scenario": "moderador",
+      "width": 360,
+      "finalUrl": "/moderacao/demo-revisao-1?cenario=moderador",
+      "loadMs": 2369,
+      "fcpMs": 728,
+      "screens": [
+        "tela-moderacao-detalhe"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 75,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 13
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "moderacao-detalhe__moderador__390.png",
+      "route": "/moderacao/demo-revisao-1",
+      "state": "moderador",
+      "scenario": "moderador",
+      "width": 390,
+      "finalUrl": "/moderacao/demo-revisao-1?cenario=moderador",
+      "loadMs": 2371,
+      "fcpMs": 736,
+      "screens": [
+        "tela-moderacao-detalhe"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 75,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 16
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    },
+    {
+      "file": "moderacao-detalhe__moderador__430.png",
+      "route": "/moderacao/demo-revisao-1",
+      "state": "moderador",
+      "scenario": "moderador",
+      "width": 430,
+      "finalUrl": "/moderacao/demo-revisao-1?cenario=moderador",
+      "loadMs": 2305,
+      "fcpMs": 688,
+      "screens": [
+        "tela-moderacao-detalhe"
+      ],
+      "audit": {
+        "interactive": 4,
+        "small": [],
+        "unlabeled": [],
+        "words": 75,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 16
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": [
+        "https://tiles.openfreemap.org/styles/dark"
+      ]
+    }
+  ]
+}
