@@ -182,7 +182,7 @@ export function MapScreen({ today }: MapScreenProps = {}) {
   const attacked = useMemo(() => zonesUnderAttack(zones, faction, now), [zones, faction, now]);
   const mission = today?.mission ?? welcomeMission(runCount);
   const dayToday: MapToday = { ...today, mission };
-  const chips: DailyItem[] = todayChips(dayToday, streakWeeks);
+  const chips: DailyItem[] = todayChips(dayToday, streakWeeks).map(({ href, ...c }) => (href ? { ...c, onPress: () => router.push(href) } : c));
   const candidates = mapAlerts({
     attacked,
     zoneName: (id) => displayZoneName(id, meta[id]?.name),
@@ -326,7 +326,7 @@ export function MapScreen({ today }: MapScreenProps = {}) {
               done={mission.done}
               reward={mission.reward}
               demo={today?.demo}
-              onPress={() => router.push('/corrida')}
+              onPress={() => router.push(mission.href ?? '/corrida')}
             />
           </FadeUp>
         ) : top ? (
