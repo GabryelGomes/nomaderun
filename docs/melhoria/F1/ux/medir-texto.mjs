@@ -82,11 +82,13 @@ const SCREENS = [
   { rota: 'resumo', tipo: 'jogo', meta: 60, partes: [['features/screens/summary-screen.tsx']] }, // capture-celebration.tsx saiu (T7.3.2): estava sem uso
   { rota: 'zona/[id]', tipo: 'jogo', meta: 50, partes: [['features/screens/zone-sheet.tsx']] },
   { rota: '(tabs)/arena', tipo: 'jogo', partes: [['features/screens/arena-screen.tsx']] },
-  { rota: '(tabs)/atividades', tipo: 'jogo', partes: [['features/screens/activities-screen.tsx'], ['features/run/history-model.ts']] },
+  { rota: '(tabs)/atividades', tipo: 'jogo', partes: [['features/screens/activities-screen.tsx'], ['features/run/history-model.ts']] }, // hoje em perfil/atividades
   { rota: '(tabs)/clube', tipo: 'jogo', partes: [['features/screens/club-screen.tsx']], extra: 12 },
   { rota: '(tabs)/clube/crew', tipo: 'jogo', meta: 70, partes: [['features/screens/crew-screen.tsx']] },
   { rota: '(tabs)/perfil', tipo: 'jogo', partes: [['features/screens/profile-screen.tsx']] },
   { rota: '(tabs)/perfil/time', tipo: 'jogo', meta: 60, partes: [['features/screens/faction-screen.tsx']] },
+  // E6a (onda 3): os ajustes saíram do perfil para trás da engrenagem.
+  { rota: '(tabs)/perfil/ajustes', tipo: 'conta', partes: [['features/screens/profile-screen.settings.tsx']] },
   { rota: '(tabs)/perfil/editar', tipo: 'conta', partes: [['features/screens/edit-profile-screen.tsx']] },
   { rota: '(tabs)/perfil/conta', tipo: 'conta', partes: [['features/screens/account-screen.tsx']] },
   { rota: 'notificacoes', tipo: 'jogo', partes: [['features/notifications/notifications-screen.tsx']] },

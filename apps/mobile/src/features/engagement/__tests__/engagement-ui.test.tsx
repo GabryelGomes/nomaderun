@@ -12,7 +12,7 @@ jest.mock('react-native-worklets', () => require('@/components/motion/__tests__/
 jest.mock('expo-haptics', () => require('@/components/motion/__tests__/render-mocks').expoHaptics);
 jest.mock('react-native-safe-area-context', () => require('@/components/motion/__tests__/render-mocks').safeArea);
 /* eslint-enable @typescript-eslint/no-require-imports */
-jest.mock('expo-router', () => ({ Stack: { Screen: () => null }, router: { push: jest.fn(), navigate: jest.fn() } }));
+jest.mock('expo-router', () => ({ Stack: { Screen: () => null }, router: { push: jest.fn(), navigate: jest.fn() }, useFocusEffect: () => undefined }));
 jest.mock('@/features/engagement/local-store', () => ({ readLocal: async () => null, writeLocal: async () => undefined }));
 jest.mock('@/features/engagement/controller', () => ({
   refreshEngagement: jest.fn(async () => undefined),
@@ -22,6 +22,11 @@ jest.mock('@/features/engagement/controller', () => ({
   claimSeasonStep: jest.fn(async () => ({ ok: true, data: { step: 3, alreadyClaimed: false, items: [{ kind: 'cosmetic', cosmeticId: 'moldura-temporada', amount: null, rarity: null, medalTier: null }] } })),
   startPause: jest.fn(async () => ({ ok: true, data: { from: '2026-10-19', until: '2026-11-01', seasonId: '2026-10' } })),
   endPause: jest.fn(async () => ({ ok: true, data: null })),
+  markRankingOpened: jest.fn(async () => ({ ok: true, data: { completed: [] } })),
+}));
+jest.mock('@/features/engagement/telemetry', () => ({
+  loadTelemetryConsent: jest.fn(async () => undefined),
+  setTelemetryOptIn: jest.fn(async (optIn: boolean) => ({ ok: true, data: { optIn, policyVersion: 1, decidedAt: Date.now(), deletedEvents: optIn ? null : 0 } })),
 }));
 
 /* eslint-disable import/first */
@@ -30,12 +35,16 @@ import { act } from 'react-test-renderer';
 import { render as renderOnce, type Rendered } from '@/components/__tests__/render-helpers';
 import { parseDailyChest, parseMissions, parseTrack, type EngagementStatus, type RunEngagement } from '@/services/api/engagement-repo';
 import { useEngagement } from '@/store/engagement-store';
+import { useGame } from '@/store/game-store';
+import { router } from 'expo-router';
 
 import * as controller from '../controller';
 import { HealthPauseSheet } from '../health-pause-sheet';
 import { MissionsScreen } from '../missions-screen';
 import { RewardsScreen } from '../rewards-screen';
 import { RunRewardsBlock } from '../run-rewards-block';
+import * as telemetry from '../telemetry';
+import { TelemetrySettingsSection } from '../telemetry-consent';
 import { WelcomeBackSheet } from '../welcome-back-sheet';
 /* eslint-enable import/first */
 
@@ -176,8 +185,15 @@ describe('/recompensas', () => {
     expect(r.text()).toContain('Lendário garantido em até 14 baús.');
     expect(r.text()).toContain('Nada aqui é vendido.');
     expect(r.has('trilha-resgatar-2')).toBe(true);
-    expect(r.has('trilha-degrau-1')).toBe(true);
+    expect(r.has('trilha-degrau-3')).toBe(true);
     expect(r.has('trilha-resgatar-3')).toBe(false);
+    // Trilha curta (4 degraus) e catálogo atrás de "Ver todos" (T7.3.6).
+    expect(r.has('trilha-degrau-1')).toBe(false);
+    expect(r.has('cosmetico-rastro-faisca')).toBe(false);
+    expect(r.text()).toContain('1 de 31 são seus');
+    r.press('recompensas-trilha-ver-toda');
+    expect(r.has('trilha-degrau-1')).toBe(true);
+    r.press('recompensas-cosmeticos-ver-todos');
     expect(r.host('cosmetico-rastro-faisca').props.accessibilityLabel).toContain('É seu');
     expect(r.host('cosmetico-rastro-neon').props.accessibilityLabel).toContain('Como ganhar: Baú do dia');
 
@@ -188,6 +204,16 @@ describe('/recompensas', () => {
     await act(async () => undefined);
     expect(controller.claimSeasonStep).toHaveBeenCalledWith(2);
     expect(r.host('recompensas-trilha-mensagem').props.children).toBe('Resgatado: Moldura do mês');
+  });
+
+  it('essencial em até 120 palavras visíveis (trilha, baús e chances); o catálogo fica atrás de "Ver todos"', () => {
+    const r = render(<RewardsScreen />);
+    const words = (t: string) => t.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+    expect(words(r.text())).toBeLessThanOrEqual(120);
+    expect(r.has('recompensas-chances')).toBe(true);
+    expect(r.has('recompensas-trilha')).toBe(true);
+    r.press('recompensas-cosmeticos-ver-todos');
+    expect(words(r.text())).toBeGreaterThan(120);
   });
 
   it('com atividade hoje e baú guardado: abrir; a recusa do servidor vira frase curta', async () => {
@@ -291,5 +317,61 @@ describe('pausa de saúde e bem-vindo de volta', () => {
     r.press('bem-vindo-comecar');
     r.press('bem-vindo-fechar');
     expect([started, closed]).toEqual([1, 1]);
+  });
+});
+
+describe('primeira semana ligada às missões (T7.3.6)', () => {
+  it('passo aberto tem atalho para onde se faz (Caça já escolhida); prêmio aparece no texto', () => {
+    const r = render(<MissionsScreen />);
+    expect(r.text()).toContain('No fim: moldura Primeira Semana.');
+    expect(r.has('primeira-semana-ir-1')).toBe(false); // feito
+    r.press('primeira-semana-ir-2');
+    expect(useGame.getState().mission).toBe('caca');
+    expect(router.push).toHaveBeenCalledWith('/corrida');
+  });
+
+  it('os 7 feitos: cartão "Primeira semana completa!" com a moldura', () => {
+    const DAYS = 86_400_000;
+    const ids = ['f1-dominio', 'f2-caca', 'f3-fuga', 'f4-raid', 'f5-crew', 'f6-liga', 'f7-compartilhar'];
+    act(() => {
+      const s = useEngagement.getState();
+      const cur = s.missions.data!;
+      s.setReady('missions', {
+        ...cur,
+        ftueStartedAt: NOW - 10 * DAYS,
+        ftue: parseMissions({ periods: { daily: 'd', weekly: 'w' }, daily: [], weekly: [], ftue: ids.map((id, i) => m(`f${i}`, id, 'ftue', i + 1, { availableFrom: NOW - (10 - i) * DAYS, completedAt: NOW - (9 - i) * DAYS })) }).ftue,
+      });
+      s.setReady('status', { ...STATUS, cosmetics: [{ id: 'moldura-primeira-semana', variant: '' }] });
+    });
+    const r = render(<MissionsScreen />);
+    expect(r.has('missoes-primeira-semana')).toBe(false);
+    expect(r.has('missoes-primeira-semana-premio')).toBe(true);
+    expect(r.text()).toContain('Moldura Primeira Semana é sua.');
+  });
+});
+
+const toggle = (r: Rendered) => r.all('telemetria-interruptor').find((n) => typeof n.props.onValueChange === 'function')!.props.onValueChange as (v: boolean) => void;
+
+describe('Dados de uso (telemetria opt-in)', () => {
+  it('desligado por padrão; ligar só pela folha (mesmo peso para "Agora não"); desligar vale na hora', async () => {
+    act(() => useEngagement.getState().setReady('telemetry', { optIn: false, policyVersion: 1, decidedAt: null, deletedEvents: null }));
+    const r = render(<TelemetrySettingsSection />);
+    expect(r.host('telemetria-interruptor').props.value).toBe(false);
+    expect(r.text()).toContain('Desligado. Nada é enviado.');
+    act(() => toggle(r)(true));
+    expect(telemetry.setTelemetryOptIn).not.toHaveBeenCalled();
+    expect(r.has('telemetria-consentimento')).toBe(true);
+    expect(r.text()).toContain('O que nunca coleta');
+    expect(r.text()).toContain('30 dias');
+    expect(r.has('telemetria-consentimento-agora-nao')).toBe(true);
+    r.press('telemetria-consentimento-ligar');
+    await act(async () => undefined);
+    expect(telemetry.setTelemetryOptIn).toHaveBeenCalledWith(true);
+
+    act(() => useEngagement.getState().setReady('telemetry', { optIn: true, policyVersion: 1, decidedAt: NOW, deletedEvents: null }));
+    expect(r.host('telemetria-interruptor').props.value).toBe(true);
+    await act(async () => toggle(r)(false));
+    expect(telemetry.setTelemetryOptIn).toHaveBeenCalledWith(false);
+    expect(r.host('telemetria-mensagem').props.children).toBe('Desligado. Pedimos ao servidor para apagar seus eventos.');
   });
 });

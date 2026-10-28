@@ -2,10 +2,10 @@
  * Corrida Segura durante a corrida (RF-024): SOS, Escolta e alerta de parada.
  * O envio usa os contatos do servidor (`safety_contacts`); sem contatos, abre o compartilhamento.
  */
-import * as Haptics from 'expo-haptics';
 import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { haptic } from '@/components/motion/haptics';
 import type { LatLng } from '@/domain/types';
 import { escortMessage, sendToContacts, sosMessage, type SendResult } from '@/services/safety/messages';
 import { createStopAlert, STOP_ALERT_TICK_MS, type StopAlert } from '@/services/safety/stop-alert';
@@ -48,7 +48,8 @@ export function useRunSafety(opts: { position: LatLng | null; active: boolean })
     const alert = createStopAlert({
       onAsk: (deadline) => {
         setAskingUntil(deadline);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        // Alerta de segurança: vibra mesmo com "Vibração" desligada (`force`).
+        haptic('warning', { force: true });
         Speech.speak('Está tudo bem? Toque em Estou bem.', { language: 'pt-BR' });
       },
       onAlert: () => {
@@ -92,7 +93,7 @@ export function useRunSafety(opts: { position: LatLng | null; active: boolean })
       }
     },
     sos: () => {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      haptic('error', { force: true });
       return send('sos');
     },
     asking: askingUntil !== null ? { secondsLeft: Math.max(0, Math.ceil((askingUntil - now) / 1000)) } : null,

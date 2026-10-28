@@ -169,3 +169,30 @@ Desligar é o mesmo comando com `false` (volta atrás na hora; o que já foi gra
 - Uma corrida de teste com `missions` ligada: `select v2_extras from public.activities where id = '<id>';` e `select * from public.xp_ledger where ref = '<id>';`.
 - `select public.svc_account_export_v2('<user>') ? 'xpLedger';` → `true`.
 - `npx supabase db advisors --linked` (RLS e `search_path` das funções novas).
+
+## 9. Onda 3 (T7.3.8): paintedToday, pauseAvailable, resumo da semana, telemetria
+
+| Ordem | O quê | Observação |
+|---|---|---|
+| 1 | Backup | como na §8.1 |
+| 2 | Testes locais | `npm run db:test:local` (**805** pgTAP, 28 arquivos), os testes Deno (87) e o `deno check` das **9** functions |
+| 3 | Migrations | `20261024120000_paint_today_pause_prefs`, `…120100_weekly_recap`, `…120200_telemetry`. Aditivas. A 1ª **limpa** valores não booleanos de `profiles.notification_prefs` (viram "ligado", como chave ausente) antes do CHECK novo |
+| 4 | Functions | `npx supabase functions deploy weekly-recap` (nova; já está no `config.toml`). As outras não mudaram |
+| 5 | EAS Update | o app que lê `paintedToday`, `pauseAvailable`, `weekly-recap` e a tela de consentimento |
+| 6 | Flag | `update public.game_config set value = value || '{"telemetry": true}' where key = 'features';` — só depois do app com a tela de consentimento. Mesmo ligada, nada é gravado sem o opt-in |
+
+**Compatibilidade.** App antigo × servidor novo: campos novos são ignorados; `weekly-recap` e as RPCs de telemetria
+não são chamadas. App novo × servidor antigo: `paintedToday` ausente → `[]`; `pauseAvailable` ausente → `null`;
+`weekly-recap` → 404 `NOT_AVAILABLE` e `weekly_recap`/`track_events` → `PGRST202` (indisponível); o app não envia
+telemetria. **Volta atrás:** desligar `features.telemetry`; para apagar os eventos, `delete from public.telemetry_events;`.
+
+**Conferir:**
+- `select jobname, schedule from cron.job where jobname = 'nomaderun-telemetry-retention';` → `40 6 * * *`.
+- Como `authenticated`: `select public.zone_paint_near(-16.7097, -49.2388, 1500) -> 'paintedToday';` e
+  `select public.weekly_recap();`.
+- `curl -X POST "$SUPABASE_URL/functions/v1/weekly-recap" -H "Authorization: Bearer <jwt>" -H "apikey: <anon>" -d '{}'`.
+
+**Segurança (máquina com Docker):** `npm run db:start`, `npm run functions:serve` e, em outro terminal,
+`bash supabase/tests/security/run-v2.sh` (aplaudir a si mesmo, 201º aplauso, `feed_items`/`zone_cells`/`paint_marks`/
+telemetria direto, golpe forjado no chefão, missão resgatada 2 vezes, telemetria sem consentimento, `weekly-recap`).
+O script liga as flags da v2 durante o teste e devolve como estavam. A mesma lógica, sem HTTP, está no pgTAP 28.
