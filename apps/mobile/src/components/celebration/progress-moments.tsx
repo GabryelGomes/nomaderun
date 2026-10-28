@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import { Mascot, Medal } from '@/components/art';
+import { Mascot, StreakArt } from '@/components/art';
 import { Confetti } from '@/components/motion/confetti';
 import { CountUp } from '@/components/motion/count-up';
 import { haptic } from '@/components/motion/haptics';
@@ -86,30 +86,38 @@ export type StreakFlameProps = MomentBaseProps & {
   weeks: number;
   /** `kept`: a chama acende; `frozen`: o congelamento salvou a semana. */
   status: 'kept' | 'frozen';
-  /** Troca a chama (padrão: a medalha "Sequência" da E4, com a chama). */
+  /** Troca a chama (padrão: `StreakArt` da E4, camada `chama`, acesa ou congelada). */
   flame?: ReactNode;
-  /** Troca o gelo do congelamento (a E4 ainda não tem arte de gelo: há um bloco provisório). */
+  /** Troca o gelo do congelamento (padrão: `StreakArt` da E4, camada `gelo`, por cima da chama). */
   ice?: ReactNode;
 };
 
-/** Bloco de gelo provisório, até a E4 desenhar o congelamento. */
-function PlaceholderIce() {
-  return <View style={{ width: 56, height: 56, borderRadius: 14, backgroundColor: 'rgba(160,220,255,0.55)', borderWidth: 2, borderColor: '#BFE6FF' }} />;
-}
+/** Largura da arte da sequência (pt; a altura é 7/6). */
+const STREAK_ART_SIZE = 56;
+/** Quando o gelo começa a cobrir a chama (ms). */
+const STREAK_ICE_AT = 150;
 
-/** Sequência semanal mantida (chama acende com mola) ou salva pelo congelamento (gelo cobre a chama). */
+/**
+ * Sequência semanal mantida (a chama da E4 acende com mola) ou salva pelo congelamento (a chama já congelada
+ * acende e o cristal de gelo cobre por cima com mola suave aos 150 ms; as duas camadas do `StreakArt` se
+ * alinham na mesma caixa). A arte fica parada (sem laço). "Reduzir movimento" e estado final: o desenho, com fade.
+ */
 export function StreakFlame(props: StreakFlameProps) {
   const { weeks, status, flame, ice, testID } = props;
   const text = status === 'kept' ? `Sequência mantida: ${weeks} semanas seguidas` : `Congelamento usado: sua sequência de ${weeks} semanas está salva`;
   const reduced = useReducedMotionSetting();
   const { still } = useMoment('streak', 'small', props, text, reduced);
+  const frozen = status === 'frozen';
   return (
     <View testID={testID} accessible accessibilityLiveRegion="polite" accessibilityLabel={text} style={{ alignItems: 'center', gap: 8 }}>
       <View style={{ width: 72, height: 72, alignItems: 'center', justifyContent: 'center' }}>
-        <Animated.View style={step(still, pop(0.6), springs.bouncy.duration, 0, springCss('bouncy'))}>{flame ?? <Medal kind="sequencia" size={56} decorative />}</Animated.View>
-        {status === 'frozen' ? (
-          <Animated.View style={[{ position: 'absolute' }, step(still, { from: { opacity: 0, transform: [{ scale: 0.9 }] }, to: { opacity: 1, transform: [{ scale: 1 }] } }, springs.gentle.duration, 150, springCss('gentle'))]}>
-            {ice ?? <PlaceholderIce />}
+        <Animated.View style={[{ transformOrigin: 'bottom' }, step(still, pop(0.6), springs.bouncy.duration, 0, springCss('bouncy'))]}>
+          {flame ?? <StreakArt state={frozen ? 'gelo' : 'acesa'} layer="chama" size={STREAK_ART_SIZE} />}
+        </Animated.View>
+        {frozen ? (
+          <Animated.View
+            style={[{ position: 'absolute' }, step(still, { from: { opacity: 0, transform: [{ scale: 0.9 }] }, to: { opacity: 1, transform: [{ scale: 1 }] } }, springs.gentle.duration, STREAK_ICE_AT, springCss('gentle'))]}>
+            {ice ?? <StreakArt state="gelo" layer="gelo" size={STREAK_ART_SIZE} />}
           </Animated.View>
         ) : null}
       </View>
