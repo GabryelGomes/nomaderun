@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BOSS_IDS, BOSS_NAMES, type BossId } from '@/components/art';
+import { BOSS_IDS, BOSS_NAMES, LeaderBust, MascotRunner, type BossId } from '@/components/art';
 import {
   BoraReaction,
   BossDefeated,
@@ -83,7 +83,8 @@ type MomentKey =
   | 'bora'
   | 'resumo'
   | 'resumo-leitor'
-  | 'confete-60';
+  | 'confete-60'
+  | 'onboarding-arte';
 
 const MOMENTS: { key: MomentKey; label: string }[] = [
   { key: 'toast-pequeno', label: 'Toast pequeno' },
@@ -105,6 +106,7 @@ const MOMENTS: { key: MomentKey; label: string }[] = [
   { key: 'resumo', label: 'Resumo (fila)' },
   { key: 'resumo-leitor', label: 'Resumo (leitor de tela)' },
   { key: 'confete-60', label: 'Confete (60, medição)' },
+  { key: 'onboarding-arte', label: 'Arte do onboarding (medição)' },
 ];
 
 const FACTIONS: FactionId[] = ['striders', 'volt', 'owls', 'coyotes'];
@@ -267,6 +269,18 @@ function MotionGallery() {
       case 'confete-60':
         // teto de partículas (60) sozinho, para medir quadros por segundo (T7.3.5)
         return <Confetti count={60} colors={[neon.orange, '#FFFFFF', '#FFD60A', team]} width={stage.width} height={stage.height} origin={{ x: stage.width / 2, y: stage.height * 0.4 }} seed={8} testID="galeria-motion-confete" />;
+      case 'onboarding-arte':
+        // o que o onboarding (E6a) deixa vivo de uma vez: os 4 corredores do carrossel (leve) e o busto do líder
+        return (
+          <View testID="galeria-motion-onboarding" style={{ alignItems: 'center', gap: space[2] }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
+              {FACTIONS.map((f) => (
+                <MascotRunner key={f} team={f} size={150} quality="leve" animated />
+              ))}
+            </View>
+            <LeaderBust team={faction} pose="falando" size={112} animated />
+          </View>
+        );
     }
   })();
 

@@ -33,6 +33,3 @@ export { RARITY_COLORS } from './choreography';
 export { BoraReaction, type BoraReactionProps } from './bora';
 export { boraFeedback, BORA_TIMELINE, bossDamageFor, RARITY_PALETTES, RARITY_TEXT, resolveBossId } from './choreography';
 export * from './adapters';
-
-// onda 3 (T7.3.5)
-export { type StreakArtSlot, type StreakArtStatus } from './progress-moments';

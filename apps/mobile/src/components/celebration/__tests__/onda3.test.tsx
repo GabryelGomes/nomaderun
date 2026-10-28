@@ -1,9 +1,9 @@
 /**
  * T7.3.5 — leitor de tela na web (o react-native-web diz sempre "ligado"), item do baú (`Chest layer="item"`),
- * clarão com a silhueta do `Boss` e o encaixe da arte da sequência (`streakArt`, chama e gelo da E4).
+ * clarão com a silhueta do `Boss` e a chama e o gelo da E4 (`StreakArt`) no `StreakFlame`.
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { type ReactElement, type ReactNode } from 'react';
+import { type ReactElement } from 'react';
 import { AccessibilityInfo, Platform, View } from 'react-native';
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from 'react-test-renderer';
 
@@ -17,7 +17,7 @@ jest.mock('@/components/motion/prefs-storage', () => ({ readMotionPrefsRaw: asyn
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 /* eslint-disable import/first */
-import { Boss, Chest, Medal } from '@/components/art';
+import { Boss, Chest, Medal, StreakArt } from '@/components/art';
 import { useMotionPrefs } from '@/store/motion-prefs-store';
 
 import { mockState } from '../../motion/__tests__/render-mocks';
@@ -28,7 +28,7 @@ import { BossDefeated, BossHit } from '../boss';
 import { CelebrationSequence } from '../celebration-sequence';
 import { ChestOpening } from '../chest-opening';
 import { renderCelebrationMoment } from '../default-moment';
-import { StreakFlame, type StreakArtStatus } from '../progress-moments';
+import { StreakFlame } from '../progress-moments';
 import type { CelebrationEvent } from '../queue';
 /* eslint-enable import/first */
 
@@ -265,60 +265,37 @@ describe('clarão do chefão com a silhueta da E4', () => {
   });
 });
 
-describe('arte da sequência (streakArt)', () => {
-  const slot = () => {
-    const calls: [StreakArtStatus, number][] = [];
-    const fn = (s: StreakArtStatus, size: number): ReactNode => {
-      calls.push([s, size]);
-      return <View testID={`arte-${s}`} />;
-    };
-    return { fn, calls };
-  };
-
-  it('mantida: só a chama da E4 (sem a medalha provisória)', () => {
-    const { fn, calls } = slot();
-    const r = render(<StreakFlame testID="s" weeks={3} status="kept" streakArt={fn} />);
-    expect(calls.map((c) => c[0])).toEqual(['kept']);
-    expect(calls[0][1]).toBeGreaterThan(0);
+describe('chama e gelo da E4 no StreakFlame (StreakArt)', () => {
+  it('mantida: a chama acesa, parada (sem laço), sem a medalha provisória', () => {
+    const r = render(<StreakFlame testID="s" weeks={3} status="kept" />);
+    const art = artOf(r, StreakArt);
+    expect(art.map((a) => [a.state, a.layer])).toEqual([['acesa', 'chama']]);
+    expect(art[0].animated).toBeFalsy();
     expect(artOf(r, Medal)).toHaveLength(0);
-    expect(hosts(r, 'arte-kept')).toHaveLength(1);
   });
 
-  it('congelamento: a chama acende, o gelo cobre e a chama de baixo some; no fim, só o gelo', () => {
-    const { fn } = slot();
-    const r = render(<StreakFlame testID="s" weeks={3} status="frozen" streakArt={fn} />);
-    expect(hosts(r, 'arte-kept')).toHaveLength(1);
-    expect(hosts(r, 'arte-frozen')).toHaveLength(1);
-    // a chama sai só na opacidade, depois de o gelo começar a cobrir
-    const out = keyframesOf(r).find((k) => k.from?.opacity === 1 && k.to?.opacity === 0);
-    expect(out).toEqual({ from: { opacity: 1 }, to: { opacity: 0 } });
-    const done = render(<StreakFlame testID="s" weeks={3} status="frozen" streakArt={fn} state="done" announce={false} />);
-    expect(hosts(done, 'arte-kept')).toHaveLength(0);
-    expect(hosts(done, 'arte-frozen')).toHaveLength(1);
+  it('congelamento: a chama congelada e o cristal de gelo por cima, na mesma caixa; só transform e opacidade', () => {
+    const r = render(<StreakFlame testID="s" weeks={3} status="frozen" />);
+    const art = artOf(r, StreakArt);
+    expect(art.map((a) => [a.state, a.layer])).toEqual([
+      ['gelo', 'chama'],
+      ['gelo', 'gelo'],
+    ]);
+    expect(art[0].size).toBe(art[1].size);
+    for (const k of keyframesOf(r)) for (const f of Object.values(k)) for (const key of Object.keys(f)) expect(['opacity', 'transform']).toContain(key);
     const reduced = render(
       <ReducedMotionOverride reduced>
-        <StreakFlame testID="s" weeks={3} status="frozen" streakArt={fn} />
+        <StreakFlame testID="s" weeks={3} status="frozen" />
       </ReducedMotionOverride>,
     );
-    expect(hosts(reduced, 'arte-kept')).toHaveLength(0);
-    expect(hosts(reduced, 'arte-frozen')).toHaveLength(1);
+    expect(artOf(reduced, StreakArt).map((a) => a.layer)).toEqual(['chama', 'gelo']);
+    expect(JSON.stringify(keyframesOf(reduced))).not.toContain('scale');
   });
 
-  it('`flame`/`ice` ainda trocam cada camada; sem nada, a medalha "Sequência" e o gelo provisório', () => {
-    const { fn, calls } = slot();
-    const r = render(<StreakFlame testID="s" weeks={2} status="frozen" streakArt={fn} ice={<View testID="gelo-proprio" />} />);
-    expect(calls.map((c) => c[0])).toEqual(['kept']);
+  it('`flame`/`ice` de fora ainda trocam cada camada', () => {
+    const r = render(<StreakFlame testID="s" weeks={2} status="frozen" flame={<View testID="chama-propria" />} ice={<View testID="gelo-proprio" />} />);
+    expect(artOf(r, StreakArt)).toHaveLength(0);
+    expect(hosts(r, 'chama-propria')).toHaveLength(1);
     expect(hosts(r, 'gelo-proprio')).toHaveLength(1);
-    // com gelo de fora (camada por cima), a chama fica por baixo
-    expect(hosts(r, 'arte-kept')).toHaveLength(1);
-    const plain = render(<StreakFlame testID="s" weeks={2} status="kept" />);
-    expect(artOf(plain, Medal).map((m) => m.kind)).toEqual(['sequencia']);
-  });
-
-  it('desenho padrão do orquestrador repassa `streakArt`', () => {
-    const { fn, calls } = slot();
-    const evs: CelebrationEvent[] = [{ id: 'st', kind: 'streak', level: 'small', label: 'manteve a sequência', payload: { weeks: 5, state: 'frozen' } }];
-    render(<CelebrationSequence testID="seq" events={evs} renderMoment={renderCelebrationMoment({ streakArt: fn })} screenReader />);
-    expect(calls.map((c) => c[0])).toEqual(['frozen']);
   });
 });

@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import { Mascot, Medal } from '@/components/art';
+import { Mascot, StreakArt } from '@/components/art';
 import { Confetti } from '@/components/motion/confetti';
 import { CountUp } from '@/components/motion/count-up';
 import { haptic } from '@/components/motion/haptics';
@@ -81,68 +81,43 @@ export function LevelUp(props: LevelUpProps) {
 
 /* ------------------------------------------------------------- StreakFlame */
 
-/** Estado da arte da sequência: chama acesa (`kept`) ou chama salva pelo congelamento (`frozen`). */
-export type StreakArtStatus = 'kept' | 'frozen';
-
-/**
- * Encaixe da arte da sequência da E4 (`StreakArt`, chama e gelo): recebe o estado e o tamanho (pt) e devolve o
- * desenho, decorativo (o momento já tem o texto). Ex.:
- * `(s, size) => <StreakArt state={s === 'kept' ? 'chama' : 'gelo'} size={size} decorative />`.
- */
-export type StreakArtSlot = (status: StreakArtStatus, size: number) => ReactNode;
-
 export type StreakFlameProps = MomentBaseProps & {
   /** Semanas seguidas (sequência semanal, D-63). */
   weeks: number;
   /** `kept`: a chama acende; `frozen`: o congelamento salvou a semana. */
   status: 'kept' | 'frozen';
-  /**
-   * Arte da E4 para os dois estados (chama e gelo). No congelamento, a chama acende e o gelo cobre por cima;
-   * a chama some por baixo. `flame` e `ice` (se vierem) ainda trocam cada camada.
-   */
-  streakArt?: StreakArtSlot;
-  /** Troca a chama (padrão: `streakArt('kept')` ou a medalha "Sequência" da E4, com a chama). */
+  /** Troca a chama (padrão: `StreakArt` da E4, camada `chama`, acesa ou congelada). */
   flame?: ReactNode;
-  /** Troca o gelo do congelamento (padrão: `streakArt('frozen')` ou um bloco provisório). */
+  /** Troca o gelo do congelamento (padrão: `StreakArt` da E4, camada `gelo`, por cima da chama). */
   ice?: ReactNode;
 };
 
-/** Tamanho da arte da sequência (pt). */
-const STREAK_ART_SIZE = 64;
+/** Largura da arte da sequência (pt; a altura é 7/6). */
+const STREAK_ART_SIZE = 56;
 /** Quando o gelo começa a cobrir a chama (ms). */
 const STREAK_ICE_AT = 150;
 
-/** Bloco de gelo provisório, enquanto a arte de gelo da E4 não chega por `streakArt`/`ice`. */
-function PlaceholderIce() {
-  return <View style={{ width: 56, height: 56, borderRadius: 14, backgroundColor: 'rgba(160,220,255,0.55)', borderWidth: 2, borderColor: '#BFE6FF' }} />;
-}
-
 /**
- * Sequência semanal mantida (a chama acende com mola) ou salva pelo congelamento (o gelo cobre a chama com mola
- * suave em 150 ms). "Reduzir movimento" e estado final: o desenho do estado, com fade.
+ * Sequência semanal mantida (a chama da E4 acende com mola) ou salva pelo congelamento (a chama já congelada
+ * acende e o cristal de gelo cobre por cima com mola suave aos 150 ms; as duas camadas do `StreakArt` se
+ * alinham na mesma caixa). A arte fica parada (sem laço). "Reduzir movimento" e estado final: o desenho, com fade.
  */
 export function StreakFlame(props: StreakFlameProps) {
-  const { weeks, status, streakArt, flame, ice, testID } = props;
+  const { weeks, status, flame, ice, testID } = props;
   const text = status === 'kept' ? `Sequência mantida: ${weeks} semanas seguidas` : `Congelamento usado: sua sequência de ${weeks} semanas está salva`;
   const reduced = useReducedMotionSetting();
   const { still } = useMoment('streak', 'small', props, text, reduced);
   const frozen = status === 'frozen';
-  // a arte da E4 no congelamento é a chama já dentro do gelo: a chama de baixo sai quando o gelo entra
-  const artIce = frozen && ice === undefined && streakArt !== undefined;
-  const showFlame = !(artIce && still);
-  const flameArt = showFlame ? (flame ?? (streakArt ? streakArt('kept', STREAK_ART_SIZE) : <Medal kind="sequencia" size={56} decorative />)) : null;
-  const iceArt = frozen ? (ice ?? (streakArt ? streakArt('frozen', STREAK_ART_SIZE) : <PlaceholderIce />)) : null;
   return (
     <View testID={testID} accessible accessibilityLiveRegion="polite" accessibilityLabel={text} style={{ alignItems: 'center', gap: 8 }}>
       <View style={{ width: 72, height: 72, alignItems: 'center', justifyContent: 'center' }}>
-        {!showFlame ? null : (
-          <Animated.View style={step(still, pop(0.6), springs.bouncy.duration, 0, springCss('bouncy'))}>
-            {artIce ? <Animated.View style={step(false, { from: { opacity: 1 }, to: { opacity: 0 } }, 160, STREAK_ICE_AT + 120, cssEasings.standard)}>{flameArt}</Animated.View> : flameArt}
-          </Animated.View>
-        )}
+        <Animated.View style={[{ transformOrigin: 'bottom' }, step(still, pop(0.6), springs.bouncy.duration, 0, springCss('bouncy'))]}>
+          {flame ?? <StreakArt state={frozen ? 'gelo' : 'acesa'} layer="chama" size={STREAK_ART_SIZE} />}
+        </Animated.View>
         {frozen ? (
-          <Animated.View style={[{ position: 'absolute' }, step(still, { from: { opacity: 0, transform: [{ scale: 0.9 }] }, to: { opacity: 1, transform: [{ scale: 1 }] } }, springs.gentle.duration, STREAK_ICE_AT, springCss('gentle'))]}>
-            {iceArt}
+          <Animated.View
+            style={[{ position: 'absolute' }, step(still, { from: { opacity: 0, transform: [{ scale: 0.9 }] }, to: { opacity: 1, transform: [{ scale: 1 }] } }, springs.gentle.duration, STREAK_ICE_AT, springCss('gentle'))]}>
+            {ice ?? <StreakArt state="gelo" layer="gelo" size={STREAK_ART_SIZE} />}
           </Animated.View>
         ) : null}
       </View>

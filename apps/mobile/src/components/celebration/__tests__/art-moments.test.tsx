@@ -17,7 +17,7 @@ jest.mock('@/components/motion/prefs-storage', () => ({ readMotionPrefsRaw: asyn
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 /* eslint-disable import/first */
-import { Boss, Chest, Mascot, Medal } from '@/components/art';
+import { Boss, Chest, Mascot, Medal, StreakArt } from '@/components/art';
 import { useMotionPrefs } from '@/store/motion-prefs-store';
 
 import { resetHaptics } from '../../motion/haptics';
@@ -216,9 +216,9 @@ describe('arte da E4 nos momentos', () => {
     expect(artOf(reduced, Mascot)[0].parts).toBeUndefined();
   });
 
-  it('sequência com a medalha "Sequência" da E4; nível novo com o mascote do time', () => {
+  it('sequência com a chama da E4 (StreakArt); nível novo com o mascote do time', () => {
     const s = render(<StreakFlame testID="s" weeks={3} status="kept" />);
-    expect(artOf(s, Medal).map((m) => m.kind)).toEqual(['sequencia']);
+    expect(artOf(s, StreakArt).map((a) => [a.state, a.layer])).toEqual([['acesa', 'chama']]);
     const l = render(<LevelUp testID="l" level={7} team="owls" />);
     expect(artOf(l, Mascot).map((m) => [m.team, m.pose])).toEqual([['owls', 'vitoria']]);
     const noTeam = render(<LevelUp testID="l" level={7} />);

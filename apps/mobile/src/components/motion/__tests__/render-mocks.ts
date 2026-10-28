@@ -51,11 +51,19 @@ export const reanimated = {
   withDelay: (_d: number, v: unknown) => v,
   withSequence: (...a: unknown[]) => a[a.length - 1],
   withSpring: (v: unknown) => v,
+  // laços da arte viva da E4 (corredores, busto do líder): no mock, vão direto ao valor
+  withRepeat: (v: unknown) => v,
   cancelAnimation: () => {},
   useReducedMotion: () => mockState.reduced,
   cubicBezier: (...p: number[]) => ({ css: p }),
   linear: (...p: number[]) => ({ linear: p }),
-  Easing: { bezier: (...p: number[]) => ({ factory: p }), bezierFn: () => (t: number) => t, linear: (t: number) => t },
+  Easing: {
+    bezier: (...p: number[]) => ({ factory: p }),
+    bezierFn: () => (t: number) => t,
+    linear: (t: number) => t,
+    sin: (t: number) => t,
+    inOut: (fn: (t: number) => number) => fn,
+  },
 };
 
 export const worklets = { scheduleOnRN: (fn: (...a: unknown[]) => void, ...args: unknown[]) => fn(...args) };
