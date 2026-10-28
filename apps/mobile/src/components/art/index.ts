@@ -4,7 +4,7 @@
  * decide pose, estado, raridade, nível e dano. Guia: `docs/melhoria/relatorios/E4-onda1.md`.
  */
 export { resolveQuality, type Quality, type QualityProp } from './neon/core';
-export { ART, PRISM, VILLAIN, EMBER } from './neon/palette';
+export { ART, PRISM, VILLAIN, EMBER, ICE } from './neon/palette';
 export { ArtFrame, type ArtA11y } from './neon/render';
 export { InSvgArt, fitTransform, type InSvgArtProps, type SvgArtBox } from './neon/in-svg';
 export { BossSvgArt, bossSlot, LeaderSvgArt, LogoSvgArt, MascotSvgArt, mascotSlot, RunnerSvgArt, type SvgArtSlot } from './svg-art';
@@ -38,6 +38,12 @@ export { EMPTY_KINDS, EMPTY_LABELS, EMPTY_USES_TEAM, type EmptyKind } from './em
 
 export { TutorialArt, type TutorialArtProps } from './tutorial/tutorial-card';
 export { TUTORIAL_LABELS, TUTORIAL_STEPS, type TutorialStep } from './tutorial/tutorial-art';
+
+export { StreakArt, streakLabel, type StreakArtProps, type StreakPart } from './streak/streak';
+export { STREAK_BOX, STREAK_LABELS, STREAK_LAYERS, STREAK_PIVOTS, STREAK_STATES, type StreakLayer, type StreakState } from './streak/streak-art';
+
+export { RunTabIcon, type RunTabIconProps } from './tab-icon/run-tab-icon';
+export { RUN_TAB_BOX, RUN_TAB_VARIANTS, type RunTabVariant } from './tab-icon/run-tab-art';
 
 export { TabBackground, type TabBackgroundProps } from './backgrounds/tab-background';
 export { BACKGROUND_OPACITY, MAX_BACKGROUND_OPACITY, TAB_BACKGROUND_KINDS, TAB_BACKGROUND_LABELS, type TabBackgroundKind } from './backgrounds/background-art';
