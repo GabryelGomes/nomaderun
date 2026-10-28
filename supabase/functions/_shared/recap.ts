@@ -47,7 +47,9 @@ export function parseRecapInput(body: unknown): { weekStart: string | null } {
   if (keys.some((k) => k !== 'weekStart')) throw new HttpError(400, 'VALIDATION', 'Campo desconhecido.');
   const w = (body as { weekStart?: unknown }).weekStart;
   if (w === undefined || w === null || w === '') return { weekStart: null };
-  if (typeof w !== 'string' || !DATE_RE.test(w) || Number.isNaN(Date.parse(`${w}T12:00:00Z`))) {
+  // data que existe no calendário (2026-02-31 não passa: viraria erro de SQL em vez de VALIDATION)
+  const parsed = typeof w === 'string' && DATE_RE.test(w) ? new Date(`${w}T12:00:00Z`) : null;
+  if (!parsed || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== w) {
     throw new HttpError(400, 'VALIDATION', 'weekStart deve ser uma data AAAA-MM-DD.');
   }
   return { weekStart: w };
