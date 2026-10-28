@@ -88,7 +88,7 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 - **Problemas encontrados na revisão dos docs:**
   - o resumo de `REQUISITOS.md` somava 32 ✅/22 🟡, mas as linhas davam 31/23 (RNF e P1); corrigido junto com a v2;
   - a Simulação só existe no modo demonstração (D-76): o roteiro antigo, que corria em Simulação com o servidor real, não funciona mais; o novo roteiro usa o modo demonstração;
-  - a política de privacidade (`/privacidade`, `features/auth/legal-screen.tsx`) não cita a telemetria opt-in. Ligar `features.telemetry` só depois de incluir (registrado no `DEPLOY.md` §10, passo 9; pedido para E6/E7).
+  - a política de privacidade (`/privacidade`, `features/auth/legal-screen.tsx`) agora cita a telemetria opt-in (corrigido pelo coordenador no fechamento).
 - **Pendências do dono (autores):**
   - **A-1:** trocar no Supabase Cloud as senhas públicas de `admin.demo` e `moderador.demo`;
   - **deploy do backend v2** e das flags, na ordem do `supabase/DEPLOY.md` §10 (território v2 só na troca de temporada; telemetria por último);

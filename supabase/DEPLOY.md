@@ -212,7 +212,7 @@ Resumo das seções 7 a 9 mais as correções da revisão (`20261028120000_revie
 | 6 | App novo | Confira que o `apps/mobile/.env.production` **não** tem `EXPO_PUBLIC_DEMO=1` (senão o app publicado só abre a demonstração) e rode `npm run publicar -- "v2"` na raiz (branch `demo` do EAS Update) |
 | 7 | Flags, uma por vez | Na ordem da §8.2: `records` → `missions` + `dailyChest` + `track` → `feed` → `raid` → `league` → `streakV2`. Depois de cada uma, uma corrida de teste e `select v2_extras from public.activities order by created_at desc limit 1;` |
 | 8 | Território v2 | Só na **troca de temporada** (dia 1), com o app novo já publicado: §8.3. Volta atrás com `territory_rule = 'v1'` |
-| 9 | Telemetria, por último | `features.telemetry` só depois que o app com a seção "Ajudar a melhorar o app" (Você → Ajustes) estiver publicado **e** a política de privacidade (`/privacidade`) citar a telemetria opt-in; hoje ela não cita. Mesmo ligada, nada é gravado sem o consentimento da pessoa |
+| 9 | Telemetria, por último | `features.telemetry` só depois que o app com a seção "Ajudar a melhorar o app" (Você → Ajustes) estiver publicado **e** a política de privacidade (`/privacidade`) citar a telemetria opt-in (já cita, desde o fechamento da Fase 7). Mesmo ligada, nada é gravado sem o consentimento da pessoa |
 | 10 | Conferir | `select jobname, schedule from cron.job;` (8 jobs), `npx supabase db advisors --linked` e o `curl` do `weekly-recap` (§9) |
 
 **Para desligar a v2 de uma vez** (o que já foi gravado fica): `update public.game_config set value = (select jsonb_object_agg(k, false) from jsonb_object_keys(value) k) where key = 'features';` e `territory_rule = 'v1'`.
