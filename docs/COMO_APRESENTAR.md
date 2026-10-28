@@ -94,7 +94,7 @@ Frase de transição: "Vou abrir o app como alguém que nunca usou, escolher um 
 >
 > Toda tabela tem Row Level Security. As zonas de privacidade são escondidas por uma máscara deslocada e sorteada uma vez, para ninguém achar o centro tirando a média do buraco. O modo demonstração não faz nenhum pedido ao servidor, e um teste garante isso.
 >
-> Testamos em camadas: 1.411 testes no app, 832 no banco, 87 nas functions, o fluxo inteiro da demonstração no navegador e uma revisão adversarial da lógica, com todos os achados altos e médios corrigidos."
+> Testamos em camadas: 1.419 testes no app, 832 no banco, 87 nas functions, o fluxo inteiro da demonstração no navegador e uma revisão adversarial da lógica, com todos os achados altos e médios corrigidos."
 
 ---
 
@@ -103,7 +103,7 @@ Frase de transição: "Vou abrir o app como alguém que nunca usou, escolher um 
 | Item | Valor |
 |---|---|
 | Requisitos do ERS | 61: 39 ✅ · 17 🟡 · 3 ⬜ · 2 fora do MVP; nenhum P0 sem fazer (`docs/REQUISITOS.md`) |
-| Testes do app (Jest) | 1.411 passando (26 de integração rodam só com o backend); regras do jogo com cobertura mínima de 90% na CI |
+| Testes do app (Jest) | 1.419 passando (26 de integração rodam só com o backend); regras do jogo com cobertura mínima de 90% na CI |
 | Banco (pgTAP) | 832 testes em 29 arquivos |
 | Edge Functions (Deno) | 87 testes (1 ignorado) |
 | Fluxo completo da demonstração (Playwright) | 21/21 verificações, 0 pedidos ao servidor |
