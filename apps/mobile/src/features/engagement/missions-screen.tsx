@@ -4,7 +4,6 @@ import { RefreshControl, View } from 'react-native';
 
 import { EmptyArt, ModeIcon, type ModeIconKind } from '@/components/art';
 import { Button } from '@/components/button';
-import { DemoBadge } from '@/components/demo-badge';
 import { EmptyState } from '@/components/empty-state';
 import { Icon } from '@/components/icon';
 import { MissionCoachCard } from '@/components/mission-coach-card';
@@ -76,9 +75,11 @@ function MissionRow({ m, rerollsLeft, onReroll, busy }: { m: EngagementMission; 
         <Text variant="bodyBold" numberOfLines={2}>
           {m.title}
         </Text>
-        <Text variant="caption" muted numberOfLines={1}>
-          {done ? `${TIER_LABEL[m.tier]} · Concluída` : `${TIER_LABEL[m.tier]} · ${missionProgressLabel(m)}`}
-        </Text>
+        {m.tier === 'leve' ? (
+          <Text variant="caption" muted numberOfLines={1}>
+            {TIER_LABEL.leve}
+          </Text>
+        ) : null}
       </View>
       <View style={{ alignItems: 'flex-end', gap: space[1] }}>
         <Text variant="bodyBold" color={done ? colors.textSecondary : colors.accentText} tabular>{`+${m.xp} XP`}</Text>
@@ -96,6 +97,7 @@ function FtueStepRow({ row, now }: { row: FtueRow; now: number }) {
   const locked = row.status === 'locked';
   const done = row.status === 'done';
   const action = ftueAction(row);
+  const caption = done ? 'Feito' : locked ? unlockLabel(row, now) : row.mission && row.mission.target > 1 ? missionProgressLabel(row.mission) : null;
   const label = `Passo ${row.step}: ${row.title}. ${done ? 'Feito' : locked ? unlockLabel(row, now) : `Aberto, +${row.xp} XP`}`;
   return (
     <View
@@ -110,9 +112,11 @@ function FtueStepRow({ row, now }: { row: FtueRow; now: number }) {
         <Text variant={row.status === 'open' ? 'bodyBold' : 'body'} numberOfLines={2}>
           {row.title}
         </Text>
-        <Text variant="caption" muted>
-          {done ? 'Feito' : locked ? unlockLabel(row, now) : `Hoje · ${row.mission ? missionProgressLabel(row.mission) : ''}`}
-        </Text>
+        {caption ? (
+          <Text variant="caption" muted>
+            {caption}
+          </Text>
+        ) : null}
       </View>
       <View style={{ alignItems: 'flex-end', gap: space[1] }}>
         <Text variant="small" color={done ? colors.textSecondary : colors.accentText} tabular>{`+${row.xp} XP`}</Text>
@@ -142,10 +146,19 @@ function FtuePrizeCard({ owned }: { owned: boolean | null }) {
   );
 }
 
+/** Recolhido: só o passo da vez (o aberto, ou o próximo a liberar). A lista inteira fica atrás de "Ver todos". */
+export function currentSteps(rows: readonly FtueRow[]): FtueRow[] {
+  const open = rows.filter((r) => r.status === 'open');
+  if (open.length > 0) return open;
+  const next = rows.find((r) => r.status === 'locked');
+  return next ? [next] : [];
+}
+
 /** `/missoes` (E7, T7.2.4): primeira semana, missão de volta, 3 de hoje e 3 da semana com anéis de progresso. */
 export function MissionsScreen() {
   const { colors } = useTheme();
-  const { missions, now, refresh, demo } = useEngagementData();
+  // Selo de demonstração: só o global do layout (E10, onda 4).
+  const { missions, now, refresh } = useEngagementData();
   const owned = useEngagement((s) => (s.status.data?.cosmetics ? s.status.data.cosmetics.some((c) => c.id === FTUE_PRIZE.cosmeticId) : null));
   useFocusEffect(
     useCallback(() => {
@@ -156,6 +169,7 @@ export function MissionsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [allSteps, setAllSteps] = useState(false);
   const data = missions.data;
 
   const pull = async () => {
@@ -180,7 +194,6 @@ export function MissionsScreen() {
   return (
     <ScreenScroll testID="tela-missoes" edges={['bottom']} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={pull} />}>
       <Stack.Screen options={{ title: 'Missões' }} />
-      {demo ? <DemoBadge testID="missoes-demonstracao" /> : null}
 
       {missions.status === 'loading' || missions.status === 'idle' ? (
         <View testID="missoes-carregando" style={{ gap: space[3] }}>
@@ -207,19 +220,20 @@ export function MissionsScreen() {
       {data ? (
         <>
           {data.comeback && data.comeback.completedAt === null ? (
-            <MissionCoachCard testID="missoes-volta" eyebrow="Missão de volta" title={data.comeback.title} done={0} steps={['Hoje']} reward={`+${data.comeback.xp} XP`} demo={demo} />
+            <MissionCoachCard testID="missoes-volta" eyebrow="Missão de volta" title={data.comeback.title} done={0} steps={['Hoje']} reward={`+${data.comeback.xp} XP`} demo={false} />
           ) : null}
 
           {ftueOpen ? (
             <View testID="missoes-primeira-semana" style={{ gap: space[2] }}>
               <SectionHeader title="Primeira semana" testID="missoes-primeira-semana-titulo" />
               <ProgressBar value={ftueValue} color={colors.action} trackColor={colors.surfaceSunken} height={8} milestones={[]} accessibilityLabel={`Primeira semana: ${ftueDoneCount(rows)} de ${rows.length} passos`} />
-              <Text variant="caption" muted>
-                {`Um passo por dia, sem prazo. No fim: moldura ${FTUE_PRIZE.name}.`}
+              <Text testID="missoes-primeira-semana-resumo" variant="caption" muted accessibilityLabel={`${ftueDoneCount(rows)} de ${rows.length} passos. Um por dia, sem prazo. Prêmio: moldura ${FTUE_PRIZE.name}.`}>
+                {`${ftueDoneCount(rows)}/${rows.length} · prêmio: moldura ${FTUE_PRIZE.name}`}
               </Text>
-              {rows.map((r) => (
+              {(allSteps ? rows : currentSteps(rows)).map((r) => (
                 <FtueStepRow key={r.id} row={r} now={now} />
               ))}
+              <Button testID="missoes-primeira-semana-ver-mais" label={allSteps ? 'Ver menos' : 'Ver todos'} kind="ghost" onPress={() => setAllSteps((v) => !v)} />
             </View>
           ) : null}
 
@@ -227,8 +241,8 @@ export function MissionsScreen() {
 
           <View style={{ gap: space[2] }}>
             <SectionHeader title="Hoje" testID="missoes-hoje-titulo" />
-            <Text variant="caption" muted>
-              {data.rerollsLeft > 0 ? 'Valem até 23h59. Não curtiu uma? Troque 1 por dia.' : 'Valem até 23h59. A troca de hoje já foi usada.'}
+            <Text testID="missoes-hoje-prazo" variant="caption" muted accessibilityLabel={data.rerollsLeft > 0 ? 'Valem até 23h59. Dá para trocar 1 por dia.' : 'Valem até 23h59. A troca de hoje já foi usada.'}>
+              Até 23h59
             </Text>
             {data.daily.map((m) => (
               <MissionRow key={m.id} m={m} rerollsLeft={data.rerollsLeft} onReroll={reroll} busy={busy} />
@@ -243,7 +257,7 @@ export function MissionsScreen() {
           <View style={{ gap: space[2] }}>
             <SectionHeader title="Esta semana" testID="missoes-semana-titulo" />
             <Text variant="caption" muted>
-              Valem até domingo.
+              Até domingo
             </Text>
             {data.weekly.map((m) => (
               <MissionRow key={m.id} m={m} rerollsLeft={0} onReroll={reroll} busy={busy} />
@@ -251,7 +265,7 @@ export function MissionsScreen() {
           </View>
 
           <Text variant="caption" muted style={{ textAlign: 'center' }}>
-            Sempre há uma missão leve: caminhar também conta.
+            Caminhar também conta.
           </Text>
         </>
       ) : null}
