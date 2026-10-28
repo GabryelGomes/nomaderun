@@ -7,7 +7,7 @@
 
 - **Arte real no card:** `mascotSlot`/`bossSlot` da E4 viram a arte padrão de todos os modelos (os marcadores provisórios saíram). O logotipo de texto virou `LogoSvgArt variant="horizontal"`, com o @ sob o logotipo e a pílula do time alinhada ao símbolo. O adesivo usa `LogoSvgArt variant="logotipo"`, com sombra. O mascote ficou maior no "Nível novo" (230 px, saindo do anel) e na "Rota protegida" (210 px).
 - **"Bora!" da E5:** `BoraReaction` nas 3 reações do feed (Bora!, Fogo, Raio). O momento provisório da E8 (faíscas + "+1") saiu.
-- **Realtime dos aplausos:** `subscribeKudos` (`postgres_changes` em `kudos`, RLS na assinatura). O aplauso de outra pessoa soma na hora, e 1,5 s depois da última mudança os contadores são conferidos com o `crew_feed`. Na demonstração, a reação da pessoa sai pelo canal e um colega aplaude ao vivo a corrida mais recente cerca de 4 s depois de abrir o feed (uma vez). O `crew_feed` seguinte conta igual.
+- **Realtime dos aplausos (revisão M4):** `subscribeKudosCounts` assina `feed_kudos_counts` (só contadores, sem `user_id`, RLS da crew). O contador troca pelo valor absoluto do servidor, sem somar, então nada conta 2 vezes. A minha reação (`myReaction`) continua vindo da RPC; item com reação minha a caminho espera a resposta. Na demonstração, cada reação sai como os contadores do item, e um colega aplaude ao vivo a corrida mais recente cerca de 4 s depois de abrir o feed (uma vez). O `crew_feed` seguinte conta igual.
 - **Recap semanal (modelo 5):** a tela `/compartilhar/semana?inicio=AAAA-MM-DD` usa a Edge Function `weekly-recap` da E9. As rotas já vêm cortadas no servidor e entram no card por um **adaptador** (`ownRouteFromServer` → `CardRoute`), **sem cortar de novo**. Com servidor antigo (404), o recap é montado das próprias corridas e cortado no aparelho. Para a E6a e a E7: `<RecapButton>` e `recapHref()`.
 - **Telemetria:** `trackTelemetry('share')` no `onShared` do compartilhar e do recap (opt-in da E7, sem propriedades).
 
@@ -49,7 +49,7 @@ Export `EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear` → `E8/capturar-onda
 - `features/social/share/share-screen.tsx`: `trackTelemetry('share')`, sem o selo duplicado. `feed/crew-feed-screen.tsx`: idem. `share-flow.ts`, `share-image.web.ts`: imports puros.
 - `features/social/feed/`:
   - `reaction-bar.tsx`: `BoraReaction`;
-  - `use-crew-feed.ts`: Realtime e `live`;
+  - `use-crew-feed.ts`: Realtime (`feed_kudos_counts`) e `live`;
   - `feed-model.ts`: `applyKudosChange`, `mergeKudos`, `KUDOS_SYNC_MS`.
 - `features/social/recap/` (novo): `recap-model.ts` (puro), `use-weekly-recap.ts`, `recap-screen.tsx`, `recap-button.tsx`, `index.ts`.
 - `app/compartilhar/semana.tsx` (nova rota).
@@ -57,10 +57,11 @@ Export `EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear` → `E8/capturar-onda
   - `feed-repo.ts`: `subscribeKudos`, `toKudosChange`;
   - `recap-repo.ts` (novo): `getWeeklyRecap` → `POST /weekly-recap`;
   - `functions.ts`: **1 linha** (`'weekly-recap'` no `FunctionName`);
-  - `demo/social.ts`: Realtime de `kudos`, aplauso ao vivo, `weeklyRecapDemo`;
+  - `demo/social.ts`: Realtime de `feed_kudos_counts`, aplauso ao vivo, `weeklyRecapDemo`;
+  - `demo/db.ts`: **2 linhas**, o `emit` aceita `feed_kudos_counts` (`DemoRealtimeTable`). O cast saiu;
   - `demo/functions.ts`: **2 linhas** (o import e o par `'weekly-recap'`).
 
-**Testes novos:** `recap/__tests__/recap-model.test.ts` (13), `recap/__tests__/recap-screen.test.tsx` (3), `feed/__tests__/kudos-live.test.ts` (7), `services/api/demo/__tests__/social-onda3.test.ts` (4). Atualizados: `share-card.test.tsx` (+4: arte da E4, chefão desconhecido, `bossIdOf`, logo na área segura), `crew-feed.test.tsx`, `demo-stamp.test.tsx`, `share-flow.test.ts`, `share-input.test.ts` (só imports e as asserções da arte nova).
+**Testes novos:** `recap/__tests__/recap-model.test.ts` (13), `recap/__tests__/recap-screen.test.tsx` (3), `feed/__tests__/kudos-live.test.ts` (5), `services/api/demo/__tests__/social-onda3.test.ts` (4). Atualizados: `share-card.test.tsx` (+4: arte da E4, chefão desconhecido, `bossIdOf`, logo na área segura), `crew-feed.test.tsx`, `demo-stamp.test.tsx`, `share-flow.test.ts`, `share-input.test.ts` (só imports e as asserções da arte nova).
 
 **Relatório:** este arquivo, `E8/onda3/*.png`, `E8/onda3/relatorio.json` e `E8/capturar-onda3.cjs`.
 
@@ -90,7 +91,7 @@ Export `EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear` → `E8/capturar-onda
 - **Aplausos ao vivo:**
   - propriedade com 300 sequências: o total só sobe 1 por `INSERT` de outra pessoa e nunca fica negativo;
   - a minha reação não conta 2 vezes;
-  - a conferência não mexe em item com reação a caminho;
+  - contadores absolutos: o mesmo evento 2 vezes não muda nada, e em qualquer ordem de chegada a tela termina igual ao último contador (300 sequências); item com reação minha a caminho não muda;
   - na demonstração: `INSERT`/`UPDATE`/`DELETE` pelo canal, e o aplauso ao vivo acontece 1 vez e o `crew_feed` conta igual.
 - **Recap:** semana de segunda a domingo (inclusive na virada do ano), leitura tolerante, recap local só com corridas pontuadas, legenda sem hora, tela no modo demonstração (card, chaves, exportação, semana vazia) e o `<RecapButton>`.
 
@@ -101,7 +102,7 @@ Export `EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear` → `E8/capturar-onda
 | `POST /weekly-recap { weekStart? }` | `toWeeklyRecap` lê `weekStart`, `weekEnd`, `final`, `days[7]`, `meters`, `runs`, `movingSeconds`, `zones`, `streakWeeks`, `isDemo` e `routes[].pieces` (precisão 4). `routeHidden` é ignorado (o card sempre trata a ponta como escondida). Campo estranho vira o neutro. |
 | 404 (`NOT_AVAILABLE` ou function inexistente) | `RECAP_UNAVAILABLE`: recap local (`listMyActivities` da semana + `getActivityPath` das 3 mais longas, cortadas no aparelho com as zonas e semente nova; sem as zonas, sem rotas e com aviso). |
 | `rpc('weekly_recap')` | **não usado** (sem rotas). Não tem par de demonstração: o teste de contrato não aceita par órfão. |
-| Realtime `kudos` | `channel('kudos-N').on('postgres_changes', { event: '*', table: 'kudos' })`. `INSERT` com `feed_item_id`, `user_id` e `reaction`. Em `UPDATE`/`DELETE` o app não depende da linha antiga: ele só confere os contadores. |
+| Realtime `feed_kudos_counts` (revisão M4) | `channel('feed-kudos-N').on('postgres_changes', { event: '*', table: 'feed_kudos_counts' })`. Linha com `feed_item_id`, `bora`, `fogo` e `raio` (absolutos); um `DELETE` zera o item. `kudos` saiu do Realtime. |
 
 **Adaptador da rota (decisão para virar D-xx):** o `SharedRoute` continua só do `clipRouteForSharing` local (domain intocado). O card passa a aceitar `CardRoute = SharedRoute | OwnServerRoute`. O `OwnServerRoute` é um tipo nominal com registro próprio e nasce **só** de `ownRouteFromServer`, a partir das polylines do `weekly-recap` da própria pessoa. Um teste confere que o único chamador é o `recap-model.ts`: a rota do feed, de outra pessoa, nunca vira card. Objeto montado à mão não passa por `isCardRoute`.
 
@@ -117,9 +118,9 @@ Export `EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear` → `E8/capturar-onda
 - **Pedidos:**
   - **E6/E6a:** encaixes da §5 e o registro de `compartilhar/semana` no `_layout`;
   - **E7:** `reminderRoute('recap')` → `recapHref(...)`;
-  - **E10:** o `DemoDb.emit` só tipa `zones | notifications`. A E8 manda `kudos` com um cast em `demo/social.ts`. Pode alargar o tipo quando quiser. Incluir `/compartilhar/semana` no `capturas.cjs`.
+  - **E10:** incluir `/compartilhar/semana` no `capturas.cjs`.
 - **Coordenador:** 3 linhas fora da minha pasta, todas nos índices: `services/api/functions.ts` (`'weekly-recap'`) e `services/api/demo/functions.ts` (o import e o par).
 - **Riscos:**
   - **Nada testado em aparelho:** `toDataURL` com a arte da E4 (muitos `<G>` com `transform`) só rodou na web. No Android médio, medir o tempo de geração do card com mascote e logo (a E4 estima ~300 elementos no completo).
-  - **Realtime real:** a política de `kudos` vale na assinatura, mas o `DELETE` do Postgres não passa pela RLS do mesmo jeito. O app não usa a linha antiga, só confere com o `crew_feed`, então nada vaza na tela. A E9 confere a publicação de `kudos`.
+  - **Realtime real:** depois da revisão M4, o app só recebe contadores (sem `user_id`). A E9 confere a publicação de `feed_kudos_counts` e a RLS de `can_see_feed_item`.
   - **Mini-rotas da demonstração iguais:** as 2 corridas da semana usam a mesma volta do mundo de demonstração. No servidor real, cada uma é a sua.

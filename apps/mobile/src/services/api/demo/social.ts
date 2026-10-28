@@ -10,8 +10,8 @@
  * banco, incluindo a que ele acabou de correr) e 3 de colegas da crew, geradas sobre a rota do lago.
  * Estado (reações) guardado fora do `DemoDb`, por banco, para não mexer nas tabelas da E10.
  *
- * T7.3.7 — Realtime dos aplausos: cada reação muda a "tabela" `kudos` e sai pelo canal de demonstração
- * (`postgres_changes` em `kudos`, como no servidor real). Para a demonstração ficar viva, ~4 s depois da
+ * T7.3.7 (revisão M4) — Realtime dos aplausos: cada reação sai pelo canal de demonstração como os
+ * contadores do item (`postgres_changes` em `feed_kudos_counts`, sem quem reagiu, como no servidor real). Para a demonstração ficar viva, ~4 s depois da
  * 1ª abertura do feed um colega da crew manda um "Bora!" na corrida mais recente do corredor (uma vez por
  * banco). O `crew_feed` seguinte já devolve o contador novo: tela e servidor contam a mesma coisa.
  * Também aqui: o recap semanal (`weeklyRecapDemo`), servido como a Edge Function `weekly-recap` (o app não usa
@@ -234,12 +234,12 @@ function itemRow(db: DemoDb, item: StoredItem, userId: string): Row {
 }
 
 /**
- * Manda a mudança de `kudos` pelo Realtime de demonstração. O `DemoDb.emit` só tipa `zones` e
- * `notifications` (arquivo da E10); o canal filtra pelo nome da tabela, então `kudos` passa igual.
+ * Manda os contadores do item pelo Realtime de demonstração, como o trigger de `feed_kudos_counts` do servidor
+ * (revisão M4): só números, sem quem reagiu.
  */
-function emitKudos(db: DemoDb, event: 'INSERT' | 'UPDATE' | 'DELETE', itemId: string, userId: string, reaction: FeedReaction | null) {
-  const emit = db.emit.bind(db) as unknown as (table: string, event: string, row: Row) => void;
-  emit('kudos', event, event === 'DELETE' ? { id: `${itemId}|${userId}` } : { id: `${itemId}|${userId}`, feed_item_id: itemId, user_id: userId, reaction, day: db.brToday() });
+function emitCounts(db: DemoDb, itemId: string) {
+  const c = countsOf(stateOf(db).kudos.get(itemId));
+  db.emit('feed_kudos_counts', 'UPDATE', { feed_item_id: itemId, ...c, total: c.bora + c.fogo + c.raio });
 }
 
 /** Agenda (uma vez por banco) o "Bora!" ao vivo do colega que ainda não aplaudiu a corrida mais recente. */
@@ -262,7 +262,7 @@ function scheduleLiveKudo(db: DemoDb, userId: string, items: StoredItem[]) {
     s.kudos.set(target.id, kudos);
     if (kudos.has(mate)) return;
     kudos.set(mate, 'bora');
-    emitKudos(db, 'INSERT', target.id, mate, 'bora');
+    emitCounts(db, target.id);
   }, DEMO_LIVE_KUDO_MS);
   // Não segura o processo (testes e Node) só por causa do aplauso de demonstração.
   (timer as { unref?: () => void }).unref?.();
@@ -347,14 +347,14 @@ export const DEMO_SOCIAL_RPC_HANDLERS: Record<string, RpcHandler> = {
     const had = kudos.get(userId!) ?? null;
     if (reaction === null) {
       kudos.delete(userId!);
-      if (had) emitKudos(db, 'DELETE', item.id, userId!, null);
+      if (had) emitCounts(db, item.id);
     } else if (had !== reaction) {
       const key = `${userId}|${db.brToday()}`;
       const given = s.given.get(key) ?? 0;
       if (given >= FEED_DAILY_REACTIONS) throw raise('KUDOS_LIMIT: limite de reações do dia atingido');
       s.given.set(key, given + 1);
       kudos.set(userId!, reaction);
-      emitKudos(db, had ? 'UPDATE' : 'INSERT', item.id, userId!, reaction);
+      emitCounts(db, item.id);
     }
     return itemRow(db, item, userId!);
   },

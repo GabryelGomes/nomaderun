@@ -5,17 +5,15 @@
  *  - `noCrew`: a pessoa não está em crew;
  *  - `error`: rede ou servidor; a última página carregada continua na tela.
  *
- * T7.3.7 — Realtime dos aplausos: com o feed carregado, o hook assina `kudos` (RLS vale na assinatura). O
- * aplauso de outra pessoa soma na hora e, 1,5 s depois da última mudança, os contadores são conferidos com
- * o servidor (`crew_feed` com o tamanho da lista carregada). Sem Realtime (canal fora do ar), nada muda: a
- * lista atualiza ao abrir, ao "Ver mais" e na reação otimista, como na onda 2.
+ * T7.3.7 (revisão M4) — Realtime dos aplausos: com o feed carregado, o hook assina `feed_kudos_counts` (só
+ * contadores, RLS da crew). O contador troca pelo valor do servidor na hora, sem somar. Item com reação minha
+ * a caminho espera a resposta da RPC. Sem Realtime, a lista atualiza ao abrir, ao "Ver mais" e na reação.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { deleteFeedItem, isFeedUnavailable, listCrewFeed, reactToFeedItem, subscribeKudos, type FeedCrew, type FeedItem, type FeedReaction } from '@/services/api/feed-repo';
-import { useSession } from '@/store/session-store';
+import { deleteFeedItem, isFeedUnavailable, listCrewFeed, reactToFeedItem, subscribeKudosCounts, type FeedCrew, type FeedItem, type FeedReaction } from '@/services/api/feed-repo';
 
-import { applyKudosChange, KUDOS_SYNC_MS, mergeKudos, toggleReaction } from './feed-model';
+import { applyKudosCounts, toggleReaction } from './feed-model';
 
 export type CrewFeedStatus = 'loading' | 'ready' | 'noCrew' | 'unavailable' | 'error';
 
@@ -37,7 +35,6 @@ export function useCrewFeed(opts: { pageSize?: number } = {}) {
   const cursor = useRef<string | null>(null);
   const alive = useRef(true);
   const pageSize = opts.pageSize;
-  const me = useSession((s) => s.session?.userId ?? null);
   /** Itens com reação minha ainda a caminho do servidor (a conferência ao vivo não mexe neles). */
   const pending = useRef(new Set<string>());
   /** O canal dos aplausos está assinado (`SUBSCRIBED`). */
@@ -123,38 +120,23 @@ export function useCrewFeed(opts: { pageSize?: number } = {}) {
     if (!res.ok || !res.data) setState((s) => ({ ...s, items: before, error: res.ok ? 'Não deu para tirar do feed.' : res.error.message }));
   }, []);
 
-  // Realtime dos aplausos: assina só com o feed pronto (com crew) e solta ao sair.
+  // Realtime dos aplausos (contadores absolutos de `feed_kudos_counts`): assina só com o feed pronto.
   const ready = state.status === 'ready';
   useEffect(() => {
     if (!ready) return;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const sync = () => {
-      timer = null;
-      const n = Math.max(1, Math.min(50, current.current.items.length));
-      void listCrewFeed({ limit: n }).then((res) => {
-        if (!alive.current || !res.ok) return;
-        setState((s) => ({ ...s, items: mergeKudos(s.items, res.data.items, pending.current) }));
-      });
-    };
-    const sub = subscribeKudos(
-      (change) => {
-        const { sync: needsSync } = applyKudosChange(current.current.items, change, me);
+    const sub = subscribeKudosCounts(
+      (counts) =>
         setState((s) => {
-          const next = applyKudosChange(s.items, change, me).items;
+          const next = applyKudosCounts(s.items, counts, pending.current);
           return next === s.items ? s : { ...s, items: [...next] };
-        });
-        if (!needsSync) return;
-        if (timer) clearTimeout(timer);
-        timer = setTimeout(sync, KUDOS_SYNC_MS);
-      },
+        }),
       (status) => alive.current && setLive(status === 'SUBSCRIBED'),
     );
     return () => {
-      if (timer) clearTimeout(timer);
       if (sub.ok) sub.data.unsubscribe();
       setLive(false);
     };
-  }, [ready, me]);
+  }, [ready]);
 
   return { ...state, live, reload: load, loadMore, react, remove };
 }

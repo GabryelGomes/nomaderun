@@ -7,7 +7,6 @@
 import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
 
 import { distanceMeters } from '@/domain/geo';
-import { DEMO_USER_ID } from '@/demo/world';
 
 jest.mock('@/services/api/env', () => {
   const actual = jest.requireActual<typeof import('@/services/api/env')>('@/services/api/env');
@@ -16,7 +15,7 @@ jest.mock('@/services/api/env', () => {
 });
 
 /* eslint-disable import/first */
-import { listCrewFeed, reactToFeedItem, subscribeKudos, type KudosChange } from '../../feed-repo';
+import { listCrewFeed, reactToFeedItem, subscribeKudosCounts, type KudosCounts } from '../../feed-repo';
 import { listPrivacyZones } from '../../privacy-zones-repo';
 import { getWeeklyRecap } from '../../recap-repo';
 import { createDemoClient, setDemoClient } from '..';
@@ -42,23 +41,23 @@ function expectOk<T>(r: { ok: true; data: T } | { ok: false; error: { message: s
 
 const flush = () => new Promise((r) => setImmediate(r));
 
-describe('Realtime dos aplausos (demonstração)', () => {
-  it('a reação da pessoa sai pelo canal `kudos` (INSERT, depois DELETE ao tirar)', async () => {
+describe('Realtime dos aplausos (demonstração, revisão M4)', () => {
+  it('cada reação sai como os contadores absolutos do item, sem quem reagiu, iguais aos do RPC', async () => {
     setDemoClient(createDemoClient({ clock: () => NOW }));
     const page = expectOk(await listCrewFeed());
-    const changes: KudosChange[] = [];
+    const changes: KudosCounts[] = [];
     const statuses: string[] = [];
-    const sub = expectOk(subscribeKudos((c) => changes.push(c), (s) => statuses.push(s)));
+    const sub = expectOk(subscribeKudosCounts((c) => changes.push(c), (s) => statuses.push(s)));
     await flush();
     expect(statuses).toContain('SUBSCRIBED');
     const mate = page.items.find((i) => !i.you && i.myReaction === null)!;
-    expectOk(await reactToFeedItem(mate.id, 'bora'));
-    expectOk(await reactToFeedItem(mate.id, 'fogo'));
-    expectOk(await reactToFeedItem(mate.id, null));
-    expect(changes.map((c) => c.event)).toEqual(['INSERT', 'UPDATE', 'DELETE']);
-    expect(changes[0]).toMatchObject({ itemId: mate.id, userId: DEMO_USER_ID, reaction: 'bora' });
-    // DELETE como no Postgres: só a chave da linha antiga (o app recarrega os contadores)
-    expect(changes[2]).toMatchObject({ itemId: null, reaction: null });
+    const put = expectOk(await reactToFeedItem(mate.id, 'bora'));
+    const swap = expectOk(await reactToFeedItem(mate.id, 'fogo'));
+    const off = expectOk(await reactToFeedItem(mate.id, null));
+    expect(changes.map((c) => c.itemId)).toEqual([mate.id, mate.id, mate.id]);
+    expect(changes.map((c) => c.kudos)).toEqual([put.kudos, swap.kudos, off.kudos]);
+    expect(off.kudos).toEqual(mate.kudos);
+    for (const c of changes) expect(Object.keys(c)).toEqual(['itemId', 'kudos']);
     sub.unsubscribe();
   });
 
@@ -68,16 +67,15 @@ describe('Realtime dos aplausos (demonstração)', () => {
       setDemoClient(createDemoClient({ clock: () => NOW }));
       const before = expectOk(await listCrewFeed());
       const mine = before.items.find((i) => i.you)!;
-      const changes: KudosChange[] = [];
-      const sub = expectOk(subscribeKudos((c) => changes.push(c)));
+      const changes: KudosCounts[] = [];
+      const sub = expectOk(subscribeKudosCounts((c) => changes.push(c)));
       await flush();
       jest.advanceTimersByTime(DEMO_LIVE_KUDO_MS + 10);
       await flush();
       expect(changes).toHaveLength(1);
-      expect(changes[0]).toMatchObject({ event: 'INSERT', itemId: mine.id, reaction: 'bora' });
-      expect(changes[0].userId).not.toBe(DEMO_USER_ID);
+      expect(changes[0]).toEqual({ itemId: mine.id, kudos: { ...mine.kudos, bora: mine.kudos.bora + 1 } });
       const after = expectOk(await listCrewFeed());
-      expect(after.items.find((i) => i.id === mine.id)!.kudos.bora).toBe(mine.kudos.bora + 1);
+      expect(after.items.find((i) => i.id === mine.id)!.kudos).toEqual(changes[0].kudos);
       // não repete
       expectOk(await listCrewFeed());
       jest.advanceTimersByTime(DEMO_LIVE_KUDO_MS * 3);
