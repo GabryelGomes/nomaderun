@@ -63,6 +63,9 @@ insert into public.zone_cells (cell, zone_id, faction, layers, painted_at, lat, 
   ('8ba90128e383fff', '89a90128e3bffff', 'striders', 1, now(), -30.034460634923736, -51.21831058523841);
 insert into public.privacy_zones (user_id, lat, lng, radius_m)
 values ('e9e9e9e9-0025-4000-8000-00000000000c', -30.0341006, -51.21831058523841, 50); -- cobre só o trecho …383
+
+-- D-87: a máscara é sorteada; aqui ela é fixada no círculo exato para o teste conferir trecho a trecho
+update private.privacy_zone_masks m set lat = z.lat, lng = z.lng, radius_m = z.radius_m from public.privacy_zones z where m.zone_id = z.id;
 insert into public.paint_marks (user_id, day, cell) values
   ('e9e9e9e9-0025-4000-8000-00000000000a', public.br_today(), '8ba90128e380fff'),
   ('e9e9e9e9-0025-4000-8000-00000000000a', public.br_today(), '8ba90128e383fff'),      -- em zona de privacidade

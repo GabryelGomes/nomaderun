@@ -319,7 +319,7 @@ Regras da gravação v2 (todas com o domain, D-02):
 | `personal_records` | as próprias | `kind` (`1k`, `5k`, `10k`, `21k` em segundos; `longest` em metros), `value`, `previous`, `day` (sem hora). Só corrida `valid` |
 | `user_settings` | a própria | `share_runs_to_feed`, `feed_show_map` (padrão `true`); escrita por `set_feed_settings` |
 | `feed_items` | **nada** (só `crew_feed`) | 1 item por corrida aceita, só a crew vê, sem horário |
-| `kudos` | dos itens que a pessoa vê | `feed_item_id`, `user_id`, `reaction` (`bora\|fogo\|raio`), `day`. **Realtime** (a RLS vale na assinatura): `channel('kudos').on('postgres_changes', { event: '*', schema: 'public', table: 'kudos' }, …)` |
+| `kudos` | dos itens que a pessoa vê | `feed_item_id`, `user_id`, `reaction` (`bora\|fogo\|raio`), `day`. **Fora do Realtime desde a revisão (M4)**: para aplausos ao vivo, assinar `feed_kudos_counts` (abaixo) |
 
 `zones` ganhou `rule_version`, `inherit_faction`, `inherit_cells`, `inherit_until`, `attack_last_at`, `attack_flips` (lidas por quem já lê `zones`). `activities` ganhou `v2_extras` (o que a v2 aplicou; o dono lê).
 
@@ -370,7 +370,7 @@ function nova responde 404 — o app trata como indisponível.
 `profiles_notification_prefs_boolean`; antes, um valor como `"abc"` derrubava a transação de outra pessoa). Chave
 ausente = ligada. Chaves que o servidor lê hoje: `invasion` e `conquest` (v1), `streak`, `league`, `raid` e `kudos` (v2).
 As chaves `chests`, `season`, `recap` e `comeback` do app são aceitas e guardadas, mas só os lembretes locais as usam.
-**`kudos` (aplausos) não está no `NotificationPrefs` do app:** sem a chave, a notificação de aplauso fica sempre ligada.
+O `NotificationPrefs` do app já tem `kudos` (aplausos).
 
 ### Resumo da semana (card "Minha semana", E8)
 
@@ -433,3 +433,19 @@ pessoa (sem linha = sem consentimento). O cliente não lê nem escreve as tabela
 | `svc_weekly_recap(user, week_start)` | números + `routeIds` (até 3) + `privacyZones`, só para a function `weekly-recap` (que remove os dois) |
 | `job_telemetry_retention(today)` | diário 03:40 BRT (`nomaderun-telemetry-retention`), apaga eventos com mais de 30 dias |
 | `private.cell_in_privacy_zone(lat, lng)` | o corte de privacidade de `zone_paint_near` (`cells` e `paintedToday`) |
+
+## Correções da revisão da lógica v2 (revisor-onda4-logica.md: A1, M1–M5, B4)
+
+Migration `20261028120000_review_fixes` (aditiva). O que muda para o app:
+
+| Item | Mudança |
+|---|---|
+| **A1 (D-87)** | `zone_paint_near` (`cells` e `paintedToday`) e o percurso visto pela staff escondem a **máscara** de cada zona de privacidade, não o círculo exato: centro deslocado de 0,6 a 1,0 × raio numa direção sorteada e raio = raio + deslocamento + folga (25–85 m). Sorteio gravado uma vez por zona (`private.privacy_zone_masks`, nunca sai do banco); mover a zona move a máscara com o mesmo sorteio. O buraco no retrato fica maior e fora do centro da casa. Formato da resposta igual |
+| **M1** | `react_feed_item`: o teto de 200 conta os **itens aplaudidos no dia** (`kudos_log`, só servidor); desfazer não libera o teto; refazer no mesmo item não conta de novo nem reabre o aviso do autor. Texto: "Sua corrida ganhou 1 reação da crew." / "N reações". Erros iguais |
+| **M2** | `track_events` e `set_telemetry_consent` usam a mesma trava por pessoa: desligar durante um envio espera o envio e apaga os eventos dele. Formato igual |
+| **M3** | criar ou mover uma zona de privacidade tira na hora as rotas da pessoa já publicadas no feed (`route = null`, `routeHidden = true`; o item fica) |
+| **M4** | `kudos` **saiu** do Realtime (o DELETE não passa pela RLS e levava `user_id`). Entra **`feed_kudos_counts`** (`feed_item_id`, `bora`, `fogo`, `raio`, `total`; sem `user_id`, com a RLS de `can_see_feed_item`). Assinatura: `channel('feed-kudos').on('postgres_changes', { event: '*', schema: 'public', table: 'feed_kudos_counts' }, …)`; quem reagiu continua em `feed_item_kudos(p_item)` |
+| **M5** | `weekly_recap` / `weekly-recap`: `zones` conta só as zonas que ficaram com o **time da pessoa** |
+| **B4** | `league_current` mostra a semana anterior até o fechamento (segunda 03:20) |
+
+Tabelas novas: `kudos_log` (`user_id`, `day`, `feed_item_id`; cliente não lê; entra no `account_export_v2` como `kudosLog`, guarda 2 dias) e `feed_kudos_counts` (leitura pela crew, Realtime).
