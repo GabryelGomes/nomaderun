@@ -37,9 +37,11 @@ export type Notifier = {
 };
 
 /** Para onde o toque leva (a rota abre a tela que explica o aviso). */
-export function reminderRoute(kind: PlannedReminder['kind']): '/missoes' | '/recompensas' | '/' {
+export function reminderRoute(kind: PlannedReminder['kind']): '/missoes' | '/recompensas' | '/compartilhar/semana' | '/' {
   if (kind === 'missao' || kind === 'ftue' || kind === 'volta') return '/missoes';
-  if (kind === 'bau' || kind === 'sequencia' || kind === 'temporada' || kind === 'recap') return '/recompensas';
+  // Sem semana na rota, o recap abre a semana que acabou quando a atual ainda está vazia (segunda de manhã).
+  if (kind === 'recap') return '/compartilhar/semana';
+  if (kind === 'bau' || kind === 'sequencia' || kind === 'temporada') return '/recompensas';
   return '/';
 }
 

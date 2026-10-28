@@ -133,6 +133,7 @@ describe('estado do planejador', () => {
     expect(reminderRoute('bau')).toBe('/recompensas');
     expect(reminderRoute('volta')).toBe('/missoes');
     expect(reminderRoute('chefao')).toBe('/');
+    expect(reminderRoute('recap')).toBe('/compartilhar/semana');
   });
 });
 

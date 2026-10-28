@@ -20,6 +20,7 @@ import type { LatLng } from '@/domain/types';
 import { mergeHistory, periodStart, PERIODS, TAG_LABEL, type PeriodId } from '@/features/run/history-model';
 import { loadHistory, refreshLocalRuns } from '@/features/run/run-controller';
 import { bootstrapOfflineSync } from '@/features/run/use-offline-sync';
+import { RecapButton } from '@/features/social/recap';
 import { useNow } from '@/features/use-now';
 import { getActivityPath } from '@/services/api/activities-repo';
 import { useGame } from '@/store/game-store';
@@ -154,6 +155,7 @@ export function ActivitiesScreen() {
               {missing === 0 ? 'Semana garantida.' : `Mais ${missing} corrida${missing > 1 ? 's' : ''} até domingo.`} {freezesLeft} congelamento.
             </Text>
           </View>
+          <RecapButton testID="atividades-recap" wide />
         </Surface>
       </FadeUp>
 

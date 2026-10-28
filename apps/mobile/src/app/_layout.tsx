@@ -122,6 +122,7 @@ export default function RootLayout() {
             <Stack.Screen name="atividades" options={fade} />
             {/* D-78/D-79 (E8): compartilhar a corrida e o feed da crew precisam de sessão. */}
             <Stack.Screen name="compartilhar/[id]" options={{ presentation: 'modal', ...modal }} />
+            <Stack.Screen name="compartilhar/semana" options={{ presentation: 'modal', ...modal }} />
             <Stack.Screen name="compartilhar/feed" options={{ ...pushHeader, ...push, title: 'Feed da crew' }} />
             <Stack.Protected guard={staff}>
               <Stack.Screen name="moderacao" options={push} />
