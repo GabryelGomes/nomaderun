@@ -114,7 +114,7 @@ Prompt: `docs/melhoria/00-PROMPT-MELHORIA-COLOSSAL.md`. Equipes: `.claude/agents
 | T7.2 | Onda 2 — Jogo de verdade e fluxos (gravação v2, engajamento, compartilhar, primeira abertura, Mapa, Correr, Resumo) | E4–E9 | T7.1 | ✅ |
 | T7.3 | Onda 3 — Outras telas (Arena, Você, Clube, zona, secundárias) e medição depois | E6, E3, E7, E9, E10 | T7.2 | ✅ |
 | T7.4 | Onda 4 — QA adversarial e polimento | E10 + revisor + donos | T7.3 | ✅ |
-| T7.5 | Fechamento: docs, apresentação, ERS v1.2 (proposta), push final | Coordenador | T7.4 | 🟡 docs ✅; faltam slides e push (autores) |
+| T7.5 | Fechamento: docs, apresentação, ERS v1.2 (proposta), push final | Coordenador | T7.4 | 🟡 docs ✅; slides da v2 ✅ (P-41); falta o push (autores) |
 
 ## 5. Pós-MVP / próximos passos
 

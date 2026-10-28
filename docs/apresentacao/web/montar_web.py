@@ -1,11 +1,11 @@
-"""Monta a apresentação completa numa página web só: os 10 slides + 2 slides do mockup interativo.
+"""Monta a apresentação completa numa página web só, com os mesmos slides do PDF (deck.json).
 Uso: python3 montar_web.py <pasta-slides> <mockup/build> <saida.html>
 Os slides vêm da fonte do deck (docs/apresentacao/slides); o mockup vem do gerador (mockup/build/gen.py)."""
 import json, re, runpy, sys, tempfile, os
 
 SL, MB, OUT = sys.argv[1:4]
 deck = json.load(open(f'{SL}/deck.json'))
-TOTAL = len(deck['order']) + 2
+TOTAL = len(deck['order'])
 
 # --- peças do mockup (mapa real, celulares, CSS e JS) a partir do próprio gerador
 tmp = tempfile.mktemp(suffix='.html')
@@ -34,6 +34,7 @@ def convert(h):
     notes = re.search(r'<aside>(.*?)</aside>', h, flags=re.S)
     h = re.sub(r'<aside>.*?</aside>', '', h, flags=re.S)
     h = re.sub(r'/_blob/([0-9a-f]{32})', lambda m: BLOBS[m.group(1)], h)
+    h = h.replace('src="telas-v2/', 'src="img/')  # capturas reais da v2, copiadas para web/img pelo npm run web
     h = re.sub(r'<x-icon name="(\w+)" style="([^"]*)"></x-icon>',
                lambda m: f'<svg viewBox="0 0 24 24" style="{m.group(2)};flex:none" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">{ICONS[m.group(1)]}</svg>', h)
     def conn(m):
@@ -44,7 +45,7 @@ def convert(h):
     h = re.sub(r'<svg aria-label="Corredor no mapa"[^>]*style="([^"]*)">.*?</svg>',
                lambda m: f'<div class="pulse" style="{m.group(1)}"><i></i><i></i></div>', h, flags=re.S)
     h = h.replace('● AO VIVO</p>', '<span class="blink">●</span> AO VIVO</p>')
-    h = re.sub(r'(\d\d)/10<', lambda m: f'{m.group(1)}/{TOTAL}<', h)
+    h = re.sub(r'(\d\d)/\d\d<', lambda m: f'{m.group(1)}/{TOTAL:02d}<', h)
     return h, (notes.group(1).strip() if notes else '')
 
 slides = []
@@ -53,32 +54,7 @@ for i, sid in enumerate(deck['order']):
     h = h.replace(f'<section id="{sid}"', f'<section id="{sid}" class="slide ds" data-notes="{notes.replace(chr(34), "&quot;")}"', 1)
     slides.append(h)
 
-NUM = len(slides) + 1
-slides.append(f'''<section id="mockup-mapa" class="slide ms" data-notes="- Mockup interativo. O mapa é real: ruas, prédios, parques e água do OpenStreetMap ao redor do Parque Flamboyant.
-- A linha laranja é a volta de {G['km'](G['LAP'])} km traçada pelas ruas reais; ela se desenha ao abrir o slide e o ponto do corredor percorre a volta.
-- As regiões coloridas são os territórios dos times; a zona tracejada amarela está sob ataque.">
-  <div class="hero">{G['hero_map']}<div class="hero-shade"></div>
-    <div class="hero-copy">
-      <p class="mono kicker">MOCKUP INTERATIVO · MAPA REAL DE GOIÂNIA</p>
-      <h2 class="mega"><span class="outline">MAPA</span><span class="fill">REAL</span></h2>
-      <p class="lede">Ruas e prédios do OpenStreetMap. <em>Volta de {G['km'](G['LAP'])} km pelas ruas em volta do Parque Flamboyant.</em></p>
-    </div>
-    <div class="hud-chip c1 mono"><b>{G['km'](G['LAP'])} km</b><small>volta real · Parque Flamboyant</small></div>
-    <div class="hud-chip c2 mono"><b>+183 RP</b><small>território conquistado</small></div>
-  </div>
-  <p class="foot-note mono">{NUM:02d}/{TOTAL}</p>
-</section>''')
-slides.append(f'''<section id="mockup-telas" class="slide ms" data-notes="- As três telas principais, no visual preto e laranja.
-- Passe o mouse nos celulares: eles inclinam em 3D e acendem; o botão laranja reage ao cursor.
-- Mapa vivo da cidade, corrida ao vivo com o cronômetro rodando, e a zona conquistada com o anel do time fechando.">
-  <p class="mock-kicker mono">MOCKUP INTERATIVO · PASSE O MOUSE NOS CELULARES</p>
-  <div class="stage">
-    <figure class="shot">{G['phone_mapa']}<figcaption><b>01</b> Mapa vivo da cidade</figcaption></figure>
-    <figure class="shot">{G['phone_corrida']}<figcaption><b>02</b> Corrida ao vivo</figcaption></figure>
-    <figure class="shot">{G['phone_conq']}<figcaption><b>03</b> Zona conquistada</figcaption></figure>
-  </div>
-  <p class="foot-note mono">{NUM + 1:02d}/{TOTAL}</p>
-</section>''')
+# Os dois slides do mockup interativo (telas da v1) saíram da página na v2: o mockup continua em mockup/.
 
 VIEWER_CSS = '''
 /* Palco fixo 1920×1080 escalado para caber na janela; fundo preto nas sobras */

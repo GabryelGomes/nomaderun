@@ -11,9 +11,11 @@
     "capa",
     "problema",
     "objetivo",
+    "times",
     "corrida",
     "territorio",
     "arena",
+    "social",
     "construcao",
     "demo",
     "entregas",
@@ -25,8 +27,8 @@
       "start": "capa"
     },
     "s2": {
-      "description": "O produto: app de corrida, território e Arena de minigames",
-      "start": "corrida"
+      "description": "O produto: escolha do time, corrida, território, Arena e crew",
+      "start": "times"
     },
     "s3": {
       "description": "Como foi construído, demonstração e resultados",
