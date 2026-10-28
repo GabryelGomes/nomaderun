@@ -117,7 +117,7 @@ Mudou o domain? Rode `npm run domain:copy` de novo antes do próximo deploy (`np
 
 ## 6. Jobs e Realtime
 
-- Os 4 jobs do pg_cron (RN-004, RN-005, RN-006, RN-014) são criados pela migration; confira em **Database → Cron Jobs** (horários em UTC = Brasília + 3 h).
+- Os 4 jobs do pg_cron do MVP (RN-004, RN-005, RN-006, RN-014) são criados pela migration; a v2 soma mais 4 (§10). Confira em **Database → Cron Jobs** (horários em UTC = Brasília + 3 h).
 - Realtime: `zones` (mapa) e `notifications` (central, P-13) estão na publicação `supabase_realtime`; a RLS vale para quem assina.
 
 ## 7. Servidor v2 (Fase 7, D-80): migrations atrás de flags
@@ -196,3 +196,23 @@ telemetria. **Volta atrás:** desligar `features.telemetry`; para apagar os even
 `bash supabase/tests/security/run-v2.sh` (aplaudir a si mesmo, 201º aplauso, `feed_items`/`zone_cells`/`paint_marks`/
 telemetria direto, golpe forjado no chefão, missão resgatada 2 vezes, telemetria sem consentimento, `weekly-recap`).
 O script liga as flags da v2 durante o teste e devolve como estavam. A mesma lógica, sem HTTP, está no pgTAP 28.
+
+## 10. Deploy completo da v2 (Fase 7), do zero ao app na nuvem
+
+Resumo das seções 7 a 9 mais as correções da revisão (`20261028120000_review_fixes`), na ordem que não quebra o app que já está publicado no EAS Update. Cada passo pode parar no meio: com as flags desligadas, o app antigo continua igual, e o app novo mostra "indisponível" no que o servidor ainda não tem.
+
+| Passo | O quê | Comando / observação |
+|---|---|---|
+| 0 | **A-1: senhas das contas demo** | Troque as senhas de `admin.demo` e `moderador.demo` no projeto da nuvem (SQL em `docs/COMO_APRESENTAR.md` §1). Elas estão no README, e o repositório é público |
+| 1 | Backup | `npx supabase db dump --linked -f backup-<data>.sql` e o mesmo com `--data-only` |
+| 2 | Testes locais | `npm run db:test:local` (**832** pgTAP em 29 arquivos), `npm run functions:test` (Deno: 87 ok, 1 ignorado), `npm run functions:check` e `npm run domain:copy:check` |
+| 3 | Migrations | `npx supabase db push --dry-run` e `npx supabase db push`. Sobem de `20261023120000_v2_contract` a `20261028120000_review_fixes` (15 arquivos, todos aditivos). Jobs novos: `raid-tick`, `close-league`, `fade-cells` e `telemetry-retention`. Realtime ganha `raids` e `feed_kudos_counts` |
+| 4 | Functions | `npx supabase functions deploy` (as 9). Mudaram na v2: `finish-activity`, `moderate-activity`, `account-export` e a nova `weekly-recap` |
+| 5 | Seed v2 (só para a apresentação) | `psql "$DB_URL" -f supabase/seed_v2_demo.sql`, depois do `seed.sql`. Idempotente, não liga flag e não cria Raid nem Liga (D-76) |
+| 6 | App novo | Confira que o `apps/mobile/.env.production` **não** tem `EXPO_PUBLIC_DEMO=1` (senão o app publicado só abre a demonstração) e rode `npm run publicar -- "v2"` na raiz (branch `demo` do EAS Update) |
+| 7 | Flags, uma por vez | Na ordem da §8.2: `records` → `missions` + `dailyChest` + `track` → `feed` → `raid` → `league` → `streakV2`. Depois de cada uma, uma corrida de teste e `select v2_extras from public.activities order by created_at desc limit 1;` |
+| 8 | Território v2 | Só na **troca de temporada** (dia 1), com o app novo já publicado: §8.3. Volta atrás com `territory_rule = 'v1'` |
+| 9 | Telemetria, por último | `features.telemetry` só depois que o app com a seção "Ajudar a melhorar o app" (Você → Ajustes) estiver publicado **e** a política de privacidade (`/privacidade`) citar a telemetria opt-in; hoje ela não cita. Mesmo ligada, nada é gravado sem o consentimento da pessoa |
+| 10 | Conferir | `select jobname, schedule from cron.job;` (8 jobs), `npx supabase db advisors --linked` e o `curl` do `weekly-recap` (§9) |
+
+**Para desligar a v2 de uma vez** (o que já foi gravado fica): `update public.game_config set value = (select jsonb_object_agg(k, false) from jsonb_object_keys(value) k) where key = 'features';` e `territory_rule = 'v1'`.

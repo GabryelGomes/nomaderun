@@ -5,11 +5,11 @@
 
 ## Estado atual (resumo)
 
-- **Fase:** **7 em andamento — Reformulação v2** (`docs/melhoria/PLANO-MESTRE.md`): F0 ✅ prompt e agentes · F1 ✅ 10 relatórios · F2 ✅ plano e decisões D-62 a D-82 · ondas 1, 2 e 3 ✅ integradas (D-83 a D-87) · **agora: onda 4 (QA, E10)**, depois o fechamento (F6). Fases 0–6 concluídas (MVP + visual neon).
-- **Requisitos (61):** 32 ✅ · 22 🟡 · 5 ⬜ · 2 ➖. Nenhum P0 sem fazer (P0: 16 ✅, 9 🟡). Detalhes em `REQUISITOS.md`.
-- **Testes (2026-10-21, T6.5, banco local):** app `npm test` 398 ✅ (26 de integração ignorados sem `NOMADE_IT`; integração 26/26 com o backend) · `typecheck` ok · eslint 0 · domain 99,5% ramos/100% linhas · Playwright demo 14/14, auth 17/17, imagem 4/4 (referências regeneradas na T6.5) · varredura visual de 31 telas × 8 combinações sem rolagem horizontal, sem nada fora da tela e sem erros de console. Backend (Fase 5): pgTAP 285/285 · Deno 58 ok · e2e 56/56 · segurança `STRICT=1` 89/89.
-- **Como rodar e apresentar:** `README.md` (instalação e testes), `docs/COMO_APRESENTAR.md` (checklist, roteiro de 10 min, banca, plano B), `apps/mobile/README.md`.
-- **O que falta para a equipe humana:** validar em aparelho (P-05, P-07, P-17, P-21, P-28), deploy no Cloud se for apresentar pela nuvem (P-08, P-09/P-34), `npx expo install --fix` (P-37), revisão do ERS (P-02 → `ERS-ALTERACOES-PROPOSTAS.md`).
+- **Fase:** **7 — Reformulação v2: ondas 1 a 4 integradas e documentação fechada (F6)** (`docs/melhoria/PLANO-MESTRE.md`). Falta só o que depende dos autores: deploy do backend v2 e das flags, slides com as telas novas, push final e prévia web. Fases 0–6 concluídas (MVP + visual neon).
+- **Requisitos (61):** 39 ✅ · 17 🟡 · 3 ⬜ · 2 ➖. Nenhum P0 sem fazer (P0: 18 ✅, 7 🟡). Detalhes em `REQUISITOS.md` (o resumo antigo, 32/22, tinha um erro de soma).
+- **Testes (2026-10-28, branch `claude/affectionate-gauss-e8gm77`, banco local sem Docker):** app Jest **1.411 ✅** (26 de integração pulados sem `NOMADE_IT`) · `typecheck` ok · eslint 0 · pgTAP **832/832** em 29 arquivos · Deno **87 ok, 1 ignorado** · `demo-mode-flow` **21/21** (0 pedidos ao servidor) · 165 capturas "depois" sem erro de página · bundle web **1.186.919 B gzip** (orçamento 1.250.000). Não rodados aqui (precisam do Supabase local com Docker): `demo-flow`, `auth-flow`, e2e, segurança HTTP (`run.sh`, `run-v2.sh`).
+- **Como rodar e apresentar:** `README.md` (modo demonstração, instalação e testes), `docs/COMO_APRESENTAR.md` (roteiro da v2 em 10 min, cenários `?cenario=`, banca, plano B), `apps/mobile/README.md`, `supabase/DEPLOY.md` §10 (deploy da v2).
+- **O que falta para a equipe humana:** A-1 (senhas das contas demo no Cloud), deploy do backend v2 e flags (`DEPLOY.md` §10), nomes dos mascotes e líderes (D-70), validar em aparelho (P-05, P-07, P-17, P-21, P-28, P-45 e os itens da v2), `npx expo install --fix` (P-37), revisão do ERS (P-02 → `ERS-ALTERACOES-PROPOSTAS.md`, agora v1.1 + v1.2), slides (P-41).
 - **Backend local:** API `http://127.0.0.1:54321` · chaves com `npx supabase status -o env` · e-mails em `http://127.0.0.1:54324` (`npm run mail`). Banco resetado no fim da Fase 5 (estado do seed).
 - **Bloqueios:** nenhum no código. Dependem de fora: aparelho físico, conta no Supabase Cloud, credenciais Google/Apple.
 
@@ -19,7 +19,7 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 | # | Pendência | Depende de | Dono | Origem |
 |---|---|---|---|---|
-| P-02 | ERS §6.2 descreve a paleta "Asfalto & Giz", mas o visual aprovado é o "Pista" (D-15). **Proposta pronta** em `docs/ERS-ALTERACOES-PROPOSTAS.md` (ERS v1.1, com outras diferenças); falta os autores editarem `docs/ERS/ERS-NOMADE-RUN.md` e regerarem o PDF/DOCX | 🧑 | Autores | Baseline |
+| P-02 | O ERS v1.0 não bate com o que foi construído (visual, mapas, painel web) nem com as regras da v2 (pintura, Raid semanal, Liga, sequência, feed da crew, telemetria, máscara das zonas de privacidade). **Proposta pronta** em `docs/ERS-ALTERACOES-PROPOSTAS.md` (Parte 1: v1.1; Parte 2: v1.2); falta os autores editarem `docs/ERS/ERS-NOMADE-RUN.md` e regerarem o PDF/DOCX | 🧑 | Autores | Baseline, Fase 7 |
 | P-05 | Validar em aparelho: seletor de foto, notificação local de invasão com o app aberto, SecureStore em partes, deep link `nomaderun://nova-senha?code=…` e diálogo "Trocar de conta?", permissão de notificações no Expo Go Android, compartilhamento do JSON exportado | 📱 | Equipe/A5 | T1.4–T1.6 |
 | P-06 | Login Google/Apple só com credenciais reais (código pronto, aparece com `EXPO_PUBLIC_AUTH_PROVIDERS`) | 🔑 ☁️ | Equipe | T1.5 |
 | P-07 | Fluxos Maestro feitos (`apps/mobile/.maestro/`), falta **rodar em aparelho**. Testes de tela com React Native Testing Library não feitos | 📱 | Equipe/A5 | T1.5 |
@@ -78,6 +78,27 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 ```
 
 ## Log
+
+### 2026-10-28 — Fase 7: onda 4 integrada e documentação (F6) (Coordenador)
+- **Feito:**
+  - **Onda 4 (E10, `docs/melhoria/relatorios/E10-onda4.md`):** 165 capturas "depois" (55 rota×estado × 360/390/430, 0 erros, 0 pedidos ao servidor); `demo-mode-flow.cjs` novo (fluxo inteiro da v2 sem servidor, 21/21); `demo-flow`/`auth-flow` atualizados para o onboarding v2; régua de texto comparada (jogo: média 37 palavras, 5 telas acima da meta); teste de 5 s 4,3/5; contraste do texto renderizado sem falha real; checklist ético ok. Corrigidos: selo "Demonstração" por cima de texto (Alto), card de boas-vindas empilhado no Mapa, contraste de Missões/Recompensas, nome cortado no cartão do jogador.
+  - **Documentação (F6):** `REQUISITOS.md` (status da v2 e resumo), `API_CONTRATO.md` (índice do contrato v2 e jobs `fade-cells`/`telemetry-retention`), `supabase/DEPLOY.md` §10 (deploy completo da v2), `COMO_APRESENTAR.md` (roteiro da v2 no modo demonstração), `README.md` e `apps/mobile/README.md`, proposta de ERS v1.2 em `ERS-ALTERACOES-PROPOSTAS.md` (Parte 2), status da Fase 7 no `PLANO_DESENVOLVIMENTO.md`.
+- **Arquivos:** os docs acima. Nenhum código mudou nesta entrada.
+- **Testes (branch `claude/affectionate-gauss-e8gm77`, números da integração):** app Jest 1.411 ✅ (26 pulados) · typecheck ok · eslint 0 · pgTAP 832/832 (29 arquivos) · Deno 87 ok, 1 ignorado · `demo-mode-flow` 21/21 · bundle 1.186.919 B gzip de 1.250.000.
+- **Problemas encontrados na revisão dos docs:**
+  - o resumo de `REQUISITOS.md` somava 32 ✅/22 🟡, mas as linhas davam 31/23 (RNF e P1); corrigido junto com a v2;
+  - a Simulação só existe no modo demonstração (D-76): o roteiro antigo, que corria em Simulação com o servidor real, não funciona mais; o novo roteiro usa o modo demonstração;
+  - a política de privacidade (`/privacidade`, `features/auth/legal-screen.tsx`) não cita a telemetria opt-in. Ligar `features.telemetry` só depois de incluir (registrado no `DEPLOY.md` §10, passo 9; pedido para E6/E7).
+- **Pendências do dono (autores):**
+  - **A-1:** trocar no Supabase Cloud as senhas públicas de `admin.demo` e `moderador.demo`;
+  - **deploy do backend v2** e das flags, na ordem do `supabase/DEPLOY.md` §10 (território v2 só na troca de temporada; telemetria por último);
+  - **nomes** dos mascotes e líderes (D-70);
+  - **validar em aparelho:** fluxos Maestro, ícone da aba Correr no Android, splash no Android 12+, fps do baú lendário num Android de entrada, `toDataURL` do card, título do cabeçalho sob o selo no iOS, leitores de tela (TalkBack, VoiceOver, NVDA);
+  - **rodar `demo-flow` e `auth-flow`** com o Supabase local (Docker);
+  - **CI:** pôr o `demo-mode-flow.cjs` no job `web` (precisa de `npx playwright install chromium`);
+  - revisar e aplicar o ERS v1.2 (P-02) e atualizar os slides (P-41).
+- **Pendências técnicas abertas (baixas ou médias, não bloqueiam a apresentação):** XP do nível ≠ total do bloco Recompensas no Resumo; Resumo de corridas antigas sem o bloco v2 (`v2_extras` fora do `COLUMNS`); meta oficial de km da crew; `league.ts:53` com a regra da B4 (E3); consultas D1/D7/D30 da telemetria; B1–B3 da revisão da lógica; Mapa a 360 com chips cortados (E6b); Missões com 198 palavras e 2 selos (E7); título duplicado no Feed (E8); rótulos cortados na Arena (E6c); "48 zonas em Anápolis" no Mapa (E6b); erro/offline da demonstração vão para `/indisponivel` (E10); régua estática sem `/missoes`, `/recompensas` e `/compartilhar/*`.
+- **Para o próximo:** com o ok do dono, push final e prévia web na Vercel; depois do deploy da v2 no Cloud, ensaiar o roteiro de `COMO_APRESENTAR.md` também com o servidor real.
 
 ### 2026-10-28 — Fase 7: terceira pausa a pedido do dono (Coordenador)
 - **Onda 4 (QA, E10) parada no meio**; nada dela integrado. Trabalho parcial (capturas "depois" e ajustes) no commit WIP `124423c` da branch `worktree-agent-a2bf11ee3fc2dce5c` (`.claude/worktrees/agent-a2bf11ee3fc2dce5c`). As capturas de rascunho ficaram em `tmp/` na raiz (ignorada só localmente).

@@ -2,26 +2,28 @@
 
 **Um Projeto de Gestão e Gamificação de Corridas Urbanas**
 
-App de corrida de rua com GPS e disputa de território: cada trecho corrido soma pontos para o seu time na região da cidade por onde você passou. O time com mais influência domina a região, que pode ser atacada, defendida e perdida. Além do território (o modo Domínio), a Arena tem outros minigames sobre o mapa real e um placar Cidade × Cidade.
+App de corrida de rua com GPS e disputa de território entre quatro times. A regra cabe numa frase: corra pelas ruas para pintá-las com a cor do seu time; a zona fica com o time que pintou mais ruas nela. Em volta do território há um chefão semanal da cidade, uma liga, missões, crews e cards para compartilhar.
 
 **Integrantes:** Gabryel Gomes Bahmad Camapum · Mateus Augusto De Faria Brito
 
 ---
 
-## O que o MVP entrega
+## O que o app faz
 
-- **Conta:** cadastro com e-mail e senha (16 anos ou mais, termos e privacidade aceitos em separado), login, recuperação de senha, perfil com foto, exportar os dados (JSON) e excluir a conta (LGPD).
-- **Times:** escolha de um dos quatro times no primeiro acesso.
-- **Corrida:** GPS a cada 1 s com pausa automática, pedômetro, guia por voz e tela sempre acesa. Para apresentar em sala existe o modo **Simulação**: uma volta no Parque Flamboyant (Goiânia) em velocidade 10×.
-- **Sem internet:** a corrida é gravada no aparelho e enviada quando a conexão volta. Enquanto isso, o resumo aparece como provisório.
-- **Servidor como juiz:** o servidor confere a assinatura de cada lote de pontos, roda o antifraude, recalcula toda a pontuação e decide quem conquista cada zona. O app só mostra estimativas.
-- **Mapa vivo:** zonas carregadas do servidor e troca de dono em tempo real (menos de 1 s nos testes locais), alerta de zona sob ataque e central de notificações.
-- **Jogo:** rankings por semana ou temporada (geral, time, cidade e distrito), crews, Neblina ("Onde já corri"), Fuga (fantasma), Caça (baús sorteados pelo servidor), placar entre cidades.
-- **Corrida Segura:** até 5 contatos, botão SOS sempre visível (SMS com a localização), Escolta (compartilha a localização ao ligar) e alerta de parada.
-- **Moderação:** painel web, dentro do próprio app, em que moderadores revisam corridas suspeitas e aprovam ou rejeitam com justificativa; administradores inativam contas.
-- **Privacidade:** até 3 zonas de privacidade, que escondem os pontos do percurso perto de casa para outras pessoas.
+O app tem cinco abas: **Mapa · Arena · Correr · Clube · Você**.
 
-O que **não** entrou (ou entrou só como demonstração) e o motivo estão em [`docs/REQUISITOS.md`](docs/REQUISITOS.md) e na seção "Limitações" de [`docs/COMO_APRESENTAR.md`](docs/COMO_APRESENTAR.md).
+- **Primeira abertura:** cadastro com e-mail e senha (16 anos ou mais, termos e privacidade aceitos em separado), "a cidade está dividida", escolha do time (com mascote, líder e um quiz para quem não sabe escolher) e a explicação da localização antes do pedido.
+- **Corrida:** GPS a cada 1 s com pausa automática, pedômetro, guia por voz, SOS sempre visível e a pintura prevista ao vivo. Sem internet, a corrida fica no aparelho e é enviada quando a conexão volta.
+- **Servidor como juiz:** o servidor confere a assinatura de cada lote de pontos, roda o antifraude, recalcula a corrida e decide quem fica com cada zona. O app só mostra estimativas.
+- **Território:** zonas desenhadas como regiões suavizadas, troca de dono em tempo real, alerta de invasão e central de notificações.
+- **Arena:** Raid semanal (um chefão com barra de vida coletiva), Liga semanal em grupos de até 30, Fuga (fantasma) e Caça (baús no mapa).
+- **Progresso sem pressão:** níveis com títulos, missões diárias e semanais, primeira semana guiada, baú do dia com as chances à vista, medalhas e uma sequência semanal com congelamento e pausa de saúde. Nada é vendido.
+- **Social:** crews com convite por link, feed da crew com reações prontas (Bora!, fogo, raio) e cards da corrida e da semana para Stories, sem o começo e o fim da rota.
+- **Privacidade e LGPD:** até 3 zonas de privacidade, exportar os dados, excluir a conta e telemetria opcional, desligada por padrão.
+- **Moderação:** painel web dentro do próprio app, em que moderadores revisam corridas suspeitas; administradores inativam contas.
+- **Modo demonstração:** o app inteiro roda com dados de exemplo, sem servidor, marcado com o selo "Demonstração" em toda tela.
+
+As partes novas do servidor (pintura, Raid, Liga, missões, feed, telemetria) ligam por chaves que começam desligadas, uma por vez ([`supabase/DEPLOY.md`](supabase/DEPLOY.md) §10). O que não entrou e o motivo estão em [`docs/REQUISITOS.md`](docs/REQUISITOS.md).
 
 ## Tecnologias
 
@@ -30,7 +32,8 @@ O que **não** entrou (ou entrou só como demonstração) e o motivo estão em [
 | App | Expo SDK 57, React Native 0.86, TypeScript, Expo Router, Zustand, expo-location, expo-sqlite, expo-secure-store, react-native-maps (celular) e MapLibre (web) |
 | Backend | Supabase: Postgres 17 com PostGIS, Auth, Row Level Security (RLS), Edge Functions em Deno, Realtime e pg_cron |
 | Regras do jogo | `apps/mobile/src/domain`: TypeScript puro, usado pelo app **e** pelas Edge Functions (uma única fonte de regras) |
-| Testes | Jest (app), pgTAP (banco), Deno (functions), Playwright (navegador) e Maestro (fluxos no celular) |
+| Arte e animação | SVG (react-native-svg) e Reanimated 4, sem Skia nem Lottie |
+| Testes | Jest (app), pgTAP (banco), Deno (functions), Playwright (navegador), Maestro (fluxos no celular) e CI no GitHub |
 
 ## Estrutura do repositório
 
@@ -39,22 +42,40 @@ nomaderun/
 ├── apps/mobile/          app Expo (celular e painel web)
 │   ├── src/app/          rotas (Expo Router)
 │   ├── src/domain/       regras do jogo, puras e testadas
-│   ├── src/features/     telas e casos de uso (auth, corrida, segurança, moderação)
-│   ├── src/services/     API, GPS, fila offline, sincronização, assinatura HMAC
+│   ├── src/features/     telas e casos de uso (auth, corrida, engajamento, social, moderação)
+│   ├── src/services/     API, modo demonstração, GPS, fila offline, sincronização, assinatura HMAC
+│   ├── src/components/   componentes, arte (SVG), animações e celebrações
 │   ├── .maestro/         fluxos de teste no celular
 │   └── e2e-web/          testes no navegador (Playwright)
 ├── supabase/
 │   ├── migrations/       esquema, RLS, funções SQL, jobs
 │   ├── functions/        Edge Functions (Deno) e seus testes
 │   ├── tests/            pgTAP e teste de segurança
-│   ├── seed.sql          dados de DEMONSTRAÇÃO (Goiânia)
+│   ├── seed.sql          dados de DEMONSTRAÇÃO (Goiânia); seed_v2_demo.sql completa a v2
 │   └── DEPLOY.md         como publicar no Supabase Cloud
-└── docs/                 requisitos, arquitetura, decisões, QA, ERS e apresentação
+├── .github/workflows/    CI no GitHub
+└── docs/                 requisitos, arquitetura, decisões, QA, ERS e apresentação (melhoria/ = reformulação v2)
 ```
 
 ---
 
-## Instalar e rodar
+## Ver o app sem servidor (modo demonstração)
+
+Precisa só do Node.js 22. Nada é enviado a servidor nenhum.
+
+```bash
+cd apps/mobile
+npm install
+EXPO_PUBLIC_DEMO=1 npx expo start --web --clear
+```
+
+Abra `http://localhost:8081/?cenario=primeira-abertura` para começar do cadastro, ou `?cenario=cheio` para um corredor com histórico. Os outros cenários (`vazio`, `sem-time`, `sob-ataque`, `moderador`, `lento`, `erro`, `offline`) estão em [`docs/COMO_APRESENTAR.md`](docs/COMO_APRESENTAR.md) §1. No celular, troque `--web` por nada e leia o QR com o Expo Go.
+
+O `--clear` é obrigatório ao ligar ou desligar o `EXPO_PUBLIC_DEMO`. Num app ligado a um servidor, o botão **Ver demonstração** da tela Entrar abre o mesmo modo.
+
+---
+
+## Instalar e rodar com o backend
 
 ### Pré-requisitos
 
@@ -157,26 +178,28 @@ Criadas pelo `seed.sql` e marcadas como demonstração (`is_demo = true`). **Est
 
 O seed também cria 271 zonas de demonstração em volta do Parque Flamboyant, com o parque sob ataque. Para voltar ao estado inicial: `npx supabase db reset` (apaga tudo o que foi feito no banco local) e espere uns 15 s antes de abrir o app.
 
+As telas da v2 que dependem do servidor (pintura, Raid, Liga, missões, feed) ficam "indisponíveis" até você ligar as flags. Para vê-las no backend local: `psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -f supabase/seed_v2_demo.sql` e as flags de [`supabase/DEPLOY.md`](supabase/DEPLOY.md) §8.2. Na conta real, a corrida usa o GPS; a **Simulação** (uma volta no Parque Flamboyant em 10×) só existe no modo demonstração.
+
 ---
 
 ## Rodar os testes
 
-Com o backend local no ar e `npm run functions:serve` rodando:
+| O quê | Onde | Comando | Precisa do backend? |
+|---|---|---|---|
+| App: regras, serviços, telas, testIDs | `apps/mobile` | `npm test` | Não |
+| Cobertura das regras (mínimo 90%) | `apps/mobile` | `npx jest --coverage` | Não |
+| Tipos e lint | `apps/mobile` | `npm run typecheck` e `./node_modules/.bin/eslint src` | Não |
+| Fluxo completo no modo demonstração | `apps/mobile` | `EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear --output-dir /tmp/nomade-demo` e `NODE_PATH="$(npm root -g)" node e2e-web/demo-mode-flow.cjs /tmp/nomade-demo` (Playwright global) | Não |
+| Banco sem Docker (Postgres 16 + PostGIS + pgTAP, Linux) | raiz | `npm run db:test:local` (na 1ª vez, `NR_INSTALL=1`; detalhes em `supabase/DEPLOY.md` §0.1) | Não |
+| Banco (pgTAP) no Supabase local | raiz | `npm run db:test:psql` | Sim |
+| Edge Functions (Deno) | raiz | `npm run functions:test` e `npm run functions:check` | Não |
+| Ponta a ponta do backend | raiz | `npm run e2e` | Sim, com `functions:serve` |
+| Segurança (ataques à API) | raiz | `STRICT=1 bash supabase/tests/security/run.sh` e `bash supabase/tests/security/run-v2.sh` | Sim, com `functions:serve` |
+| Integração do app com o backend | `apps/mobile` | ver `docs/QA.md` §3 | Sim |
+| Outros testes no navegador (Playwright) | `apps/mobile` | ver [`apps/mobile/e2e-web/README.md`](apps/mobile/e2e-web/README.md) | Depende do teste |
+| Celular (Maestro) | `apps/mobile` | ver [`apps/mobile/.maestro/README.md`](apps/mobile/.maestro/README.md) | Sim, e um aparelho |
 
-| O quê | Onde | Comando |
-|---|---|---|
-| App: regras, serviços, testIDs | `apps/mobile` | `npm test` |
-| Cobertura das regras (mínimo 90%) | `apps/mobile` | `npx jest --coverage` |
-| Tipos e lint | `apps/mobile` | `npm run typecheck` e `./node_modules/.bin/eslint src` |
-| Banco (pgTAP: RLS, funções, jobs) | raiz | `npm run db:test:psql` |
-| Edge Functions (Deno) | raiz | `npm run functions:test` |
-| Ponta a ponta do backend | raiz | `npm run e2e` |
-| Segurança (ataques à API) | raiz | `STRICT=1 bash supabase/tests/security/run.sh` |
-| Integração do app com o backend | `apps/mobile` | ver `docs/QA.md` §3 |
-| Navegador (Playwright) | `apps/mobile` | ver [`apps/mobile/e2e-web/README.md`](apps/mobile/e2e-web/README.md) |
-| Celular (Maestro) | `apps/mobile` | ver [`apps/mobile/.maestro/README.md`](apps/mobile/.maestro/README.md) |
-
-Os testes de banco e de ponta a ponta gravam dados. Antes de uma apresentação, rode `npx supabase db reset`.
+A CI do GitHub (`.github/workflows/ci.yml`) roda tipos, lint, Jest, cobertura, contraste, o export web com o limite de tamanho, Deno e pgTAP a cada push. Os testes de banco e de ponta a ponta gravam dados: antes de uma apresentação, rode `npx supabase db reset`.
 
 ---
 
@@ -187,12 +210,13 @@ Os testes de banco e de ponta a ponta gravam dados. Antes de uma apresentação,
 | [`docs/COMO_APRESENTAR.md`](docs/COMO_APRESENTAR.md) | Checklist, roteiro da demo, perguntas da banca e plano B |
 | [`docs/REQUISITOS.md`](docs/REQUISITOS.md) | Status de cada requisito do ERS e onde foi testado |
 | [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) | Componentes, camadas, banco e fluxo de segurança |
-| [`docs/DECISOES_TECNICAS.md`](docs/DECISOES_TECNICAS.md) | Decisões D-01 a D-53 com justificativa |
+| [`docs/DECISOES_TECNICAS.md`](docs/DECISOES_TECNICAS.md) | Decisões D-01 a D-87 com justificativa |
 | [`docs/API_CONTRATO.md`](docs/API_CONTRATO.md) | Contrato das Edge Functions e erros |
 | [`docs/QA.md`](docs/QA.md) | Revisão de segurança, matriz de rastreabilidade e como rodar cada suíte |
 | [`docs/PROGRESSO.md`](docs/PROGRESSO.md) | Log do desenvolvimento e pendências |
 | [`docs/PLANO_DESENVOLVIMENTO.md`](docs/PLANO_DESENVOLVIMENTO.md) | Fases, tarefas e próximos passos |
-| [`docs/ERS-ALTERACOES-PROPOSTAS.md`](docs/ERS-ALTERACOES-PROPOSTAS.md) | O que mudar no ERS para ele bater com o que foi construído |
+| [`docs/ERS-ALTERACOES-PROPOSTAS.md`](docs/ERS-ALTERACOES-PROPOSTAS.md) | O que mudar no ERS (v1.1 e v1.2) para ele bater com o que foi construído |
+| [`docs/melhoria/PLANO-MESTRE.md`](docs/melhoria/PLANO-MESTRE.md) | Reformulação v2: o que mudou, decisões e ondas; relatórios em `docs/melhoria/relatorios/` |
 | [`supabase/DEPLOY.md`](supabase/DEPLOY.md) | Publicar o backend no Supabase Cloud |
 | [`apps/mobile/README.md`](apps/mobile/README.md) | Detalhes do app: variáveis, GPS em segundo plano, testes |
 | [`docs/GUIA-DO-DESENVOLVEDOR.md`](docs/GUIA-DO-DESENVOLVEDOR.md) | Git, onde está cada coisa e como editar a apresentação |
