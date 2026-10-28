@@ -10,7 +10,7 @@ import { SettingsRow } from '@/components/settings-row';
 import { Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { signOut } from '@/features/auth/session-controller';
-import { HealthPauseSheet } from '@/features/engagement';
+import { HealthPauseSheet, TelemetrySettingsSection } from '@/features/engagement';
 import { canModerate } from '@/features/moderation/guard';
 import { ReminderSettingsSection } from '@/features/notifications/reminder-settings';
 import { FeedSettings } from '@/features/social/feed';
@@ -92,6 +92,8 @@ export function SettingsScreen() {
         </Group>
 
         <ReminderSettingsSection testID="lembretes" />
+
+        <TelemetrySettingsSection />
 
         <InviteCard kind="app" place={city} faction={faction} testID="convite-app" />
 
