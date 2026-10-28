@@ -5,12 +5,10 @@
 import { router } from 'expo-router';
 import { View } from 'react-native';
 
-import { DemoBadge } from '@/components/demo-badge';
 import { Icon } from '@/components/icon';
 import { PressableScale } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
 import { Text } from '@/components/text';
-import { isDemoMode } from '@/services/api/env';
 import { useGame } from '@/store/game-store';
 import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
@@ -28,7 +26,6 @@ export function CrewFeedScreen() {
         <Text variant="headline" style={{ flex: 1 }} accessibilityRole="header">
           {CREW_FEED_TEXT.title}
         </Text>
-        {isDemoMode() ? <DemoBadge testID="feed-demonstracao" /> : null}
         <PressableScale testID="feed-fechar" accessibilityLabel="Fechar" onPress={close} hitSlop={8} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="close" color={colors.text} />
         </PressableScale>

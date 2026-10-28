@@ -69,7 +69,7 @@ export function CrewFeedCard({ item, today, onReact, onRemove }: CrewFeedCardPro
           </View>
         ) : null}
       </View>
-      <ReactionBar itemId={item.id} reactions={item.kudos} myReaction={item.myReaction} readOnly={item.you} color={color} onReact={(r) => onReact(item.id, r)} />
+      <ReactionBar itemId={item.id} reactions={item.kudos} myReaction={item.myReaction} readOnly={item.you} onReact={(r) => onReact(item.id, r)} />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space[2] }}>
         {totalReactions(item.kudos) > 0 ? <WhoReacted itemId={item.id} total={totalReactions(item.kudos)} /> : null}
         {item.you && onRemove ? (

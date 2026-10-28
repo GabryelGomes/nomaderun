@@ -14,7 +14,6 @@ import type Svg from 'react-native-svg';
 
 import { Button } from '@/components/button';
 import { ChipRow } from '@/components/chip-row';
-import { DemoBadge } from '@/components/demo-badge';
 import { EmptyState } from '@/components/empty-state';
 import { Icon } from '@/components/icon';
 import { haptic, PressableScale, ShimmerSkeleton } from '@/components/motion';
@@ -22,6 +21,7 @@ import { layout, ScreenScroll } from '@/components/screen';
 import { Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import type { PrivacyCircle } from '@/domain/share-privacy';
+import { trackTelemetry } from '@/features/engagement';
 import { useRunRecord } from '@/features/run/use-run-record';
 import { listMyActivities, type ActivitySummary } from '@/services/api/activities-repo';
 import { isDemoMode } from '@/services/api/env';
@@ -32,9 +32,8 @@ import { useSession } from '@/store/session-store';
 import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-import { buildCarousel, buildRunCard, CARD_FORMATS, CARD_KIND_LABEL, DEFAULT_CARD_CHOICES, pickCardModels, ShareCard, ShareSticker, STICKER_SIZE, type CardChoices, type CardModel } from '../card';
+import { buildCarousel, buildRunCard, CARD_FORMATS, CARD_KIND_LABEL, cardArtFor, DEFAULT_CARD_CHOICES, pickCardModels, ShareCard, ShareSticker, STICKER_SIZE, type CardChoices, type CardModel } from '../card';
 import { copyText } from '../clipboard';
-import { cardArtFor } from './card-art-e4';
 import { demoMoments, getShareExtras } from './share-extras';
 import { doneMessage, primaryLabel, SHARE_FAILURE_TEXT, SHARE_FORMAT_KEY, SHARE_FORMAT_LABEL, SHARE_FORMATS, SHARE_TEXT, shareSize, type ShareFormat } from './share-flow';
 import { buildShareRunInput, randomSeed, shareCaption } from './share-input';
@@ -84,6 +83,8 @@ export function ShareScreen() {
   const share = useShareCard({
     onShared: () => {
       haptic('success');
+      // Telemetria opt-in da E7 (D-82): só conta se a pessoa ligou; o evento não leva nada além do nome.
+      trackTelemetry('share');
       if (id && record.state === 'official') void recordShare(id);
     },
   });
@@ -172,7 +173,6 @@ export function ShareScreen() {
       <Text variant="headline" style={{ flex: 1 }} accessibilityRole="header">
         Compartilhar
       </Text>
-      {demo ? <DemoBadge testID="compartilhar-demonstracao" /> : null}
       <PressableScale testID="compartilhar-fechar" accessibilityLabel="Fechar" onPress={close} hitSlop={8} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
         <Icon name="close" color={colors.text} />
       </PressableScale>

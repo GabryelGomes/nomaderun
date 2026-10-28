@@ -79,7 +79,11 @@ describe('<CrewFeed> no modo demonstração', () => {
     const after = String(byId(r, `feed-${mateId}-bora`)[0].props.accessibilityLabel);
     const n = (s: string) => Number(/(\d+)$/.exec(s)?.[1] ?? 0);
     expect(n(after)).toBe(n(before) + 1);
-    expect(byId(r, `feed-${mateId}-bora`)[0].props.accessibilityState).toEqual({ selected: true });
+    // o `BoraReaction` da E5 repassa o testID ao botão, que leva o estado
+    expect(byId(r, `feed-${mateId}-bora`).find((n) => n.props.accessibilityState)!.props.accessibilityState).toMatchObject({ selected: true });
+    expect(after).toMatch(/^Tirar Bora!/);
+    // sai antes da conferência ao vivo (1,5 s): nada de atualização fora do act
+    act(() => r.unmount());
   });
 
   it('"Tirar do feed" no próprio item e "quem reagiu" sob demanda', async () => {

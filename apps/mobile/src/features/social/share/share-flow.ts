@@ -2,7 +2,8 @@
  * T7.2.5 — estados e textos do fluxo de compartilhar (puro). Os efeitos (gerar o PNG, abrir o menu) ficam
  * em `use-share-card.ts` e nos módulos de plataforma (`share-image.ts` / `share-image.web.ts`).
  */
-import { CARD_FORMATS, STICKER_SIZE, type ShareCardFormat } from '../card';
+import type { ShareCardFormat } from '../card/card-model';
+import { CARD_FORMATS, STICKER_SIZE } from '../card/card-sizes';
 
 /** Formatos da tela: os 2 do card e o adesivo transparente. */
 export type ShareFormat = ShareCardFormat | 'sticker';
