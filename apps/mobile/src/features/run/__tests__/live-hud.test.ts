@@ -1,6 +1,7 @@
 /**
  * T7.2.7 (E6b) — HUD da corrida ativa: retrato para o `createLiveTracker`, estado do cartão da zona, avisos
  * ao vivo com o nível de cada evento e a fila curta de avisos.
+ * T7.3.2: os avisos saem do `createLiveFeedback` da E5 (`liveEffects`), no lugar do antigo `toastForEvent`.
  */
 import { describe, expect, it } from '@jest/globals';
 
@@ -10,7 +11,9 @@ import { emptyPaintCounts } from '@/domain/paint';
 import { DEFENSE_WINDOW_MS, newZone, type Zone } from '@/domain/territory';
 import type { GeoPoint } from '@/domain/types';
 
-import { anchorFromKey, enqueueToast, hudFor, lazyLiveSnapshot, liveSnapshotFromZones, mapAnchorKey, TOAST_QUEUE_MAX, toastForEvent, type RunToast } from '../live-hud';
+import { createLiveFeedback } from '@/components/celebration/adapters';
+
+import { anchorFromKey, enqueueToast, hudFor, lazyLiveSnapshot, liveEffects, liveSnapshotFromZones, mapAnchorKey, TOAST_QUEUE_MAX, type RunToast } from '../live-hud';
 
 const NOW = Date.UTC(2026, 9, 23, 12);
 const HERE = { lat: -16.7097, lng: -49.2388 };
@@ -50,8 +53,11 @@ describe('liveSnapshotFromZones', () => {
     }
     const conquest = events.find((e) => e.type === 'zona_conquistada');
     expect(conquest).toBeDefined();
-    const toast = toastForEvent(conquest!, 'striders', (zid, n) => n ?? zid);
-    expect(toast).toMatchObject({ size: 'medium', title: 'Zona conquistada', subtitle: 'Parque', edgeGlow: true, haptics: true, faction: 'striders' });
+    const fx = liveEffects(conquest!, createLiveFeedback({ faction: 'striders' }).push(conquest!), 'striders');
+    // A vibração sai do feedback da E5 (a conquista fura o ritmo); o aviso não vibra sozinho.
+    expect(fx.toast).toMatchObject({ size: 'medium', title: 'Zona conquistada', subtitle: 'Parque', edgeGlow: true, haptics: false, faction: 'striders' });
+    expect(fx.haptic).toBe('success');
+    expect(fx.voice).toBe('Zona conquistada!');
     expect(tracker.summary().conquered).toContain(id);
   });
 });
@@ -101,35 +107,51 @@ describe('hudFor', () => {
   });
 });
 
-describe('toastForEvent', () => {
+describe('liveEffects (createLiveFeedback da E5 no lugar do toastForEvent)', () => {
   const base = { runId: 'r', t: 1, atMeters: 10 };
-  const name = (id: string, n: string | null) => n ?? `Zona ${id}`;
+  const name = (id: string) => `Zona ${id}`;
+  const fx = (e: LiveEvent, faction: 'striders' | 'owls' = 'striders') => liveEffects(e, createLiveFeedback({ faction, zoneName: name }).push(e), faction);
 
-  it('micro (trecho pintado, "faltam X m") não vira aviso: só atualiza o HUD', () => {
-    expect(toastForEvent({ ...base, level: 'micro', type: 'trecho_pintado', cell: 'c', zoneId: 'z', kind: 'novo', layers: 1 }, 'striders', name)).toBeNull();
-    expect(toastForEvent({ ...base, level: 'micro', type: 'faltam_metros', zoneId: 'z', gapCells: 2, gapMeters: 80 }, 'striders', name)).toBeNull();
+  it('micro (trecho pintado, "faltam X m") não vira aviso nem vibra: só atualiza o HUD', () => {
+    expect(fx({ ...base, level: 'micro', type: 'trecho_pintado', cell: 'c', zoneId: 'z', kind: 'novo', layers: 1 })).toEqual({ toast: null, haptic: null, voice: null });
+    expect(fx({ ...base, level: 'micro', type: 'faltam_metros', zoneId: 'z', gapCells: 2, gapMeters: 80 })).toEqual({ toast: null, haptic: null, voice: null });
   });
 
-  it('pequena → aviso pequeno; entrar em zona rival usa a cor do rival e não vibra de novo', () => {
-    const t = toastForEvent({ ...base, level: 'pequena', type: 'zona_rival_entrou', zoneId: 'z', name: null, owner: 'volt', counts: emptyPaintCounts(), gapCells: 4, gapMeters: 160 }, 'striders', name);
-    expect(t).toMatchObject({ size: 'small', faction: 'volt', haptics: false, title: 'Zona rival', subtitle: 'Zona z' });
-    const p = toastForEvent({ ...base, level: 'pequena', type: 'zona_progresso', zoneId: 'z', pct: 50, gapCells: 2, gapMeters: 80 }, 'striders', name);
-    expect(p).toMatchObject({ size: 'small', title: 'Metade da zona', subtitle: 'Faltam 80 m' });
+  it('entrar em zona rival: sem aviso, sem vibração e sem voz aqui (a faixa do HUD e o Guia já avisam)', () => {
+    const e: LiveEvent = { ...base, level: 'pequena', type: 'zona_rival_entrou', zoneId: 'z', name: null, owner: 'volt', counts: emptyPaintCounts(), gapCells: 4, gapMeters: 160 };
+    expect(fx(e)).toEqual({ toast: null, haptic: null, voice: null });
   });
 
-  it('épica (1ª conquista da vida) vira médio com a borda acesa: nada pesado durante a corrida', () => {
-    const t = toastForEvent({ ...base, level: 'epica', type: 'zona_conquistada', zoneId: 'z', name: 'Lago', from: null, counts: emptyPaintCounts(), provisional: true, first: true }, 'owls', name);
-    expect(t).toMatchObject({ size: 'medium', edgeGlow: true, title: 'Sua 1ª zona!', subtitle: 'Lago', faction: 'owls' });
+  it('progresso: aviso pequeno com "Faltam ~X m" e a vibração leve', () => {
+    const p = fx({ ...base, level: 'pequena', type: 'zona_progresso', zoneId: 'z', pct: 50, gapCells: 2, gapMeters: 80 });
+    expect(p.toast).toMatchObject({ size: 'small', title: 'Metade da zona', subtitle: 'Faltam ~80 m', haptics: false });
+    expect(p.haptic).toBe('tap');
   });
 
-  it('defesa: aviso médio', () => {
-    const t = toastForEvent({ ...base, level: 'media', type: 'zona_defendida', zoneId: 'z', name: null, retaken: 3, counts: emptyPaintCounts(), provisional: true }, 'striders', name);
-    expect(t).toMatchObject({ size: 'medium', title: 'Zona defendida' });
+  it('épica (1ª conquista da vida) vira médio com a borda acesa e "Sua 1ª zona!": nada pesado durante a corrida', () => {
+    const t = fx({ ...base, level: 'epica', type: 'zona_conquistada', zoneId: 'z', name: 'Lago', from: null, counts: emptyPaintCounts(), provisional: true, first: true }, 'owls');
+    expect(t.toast).toMatchObject({ size: 'medium', edgeGlow: true, title: 'Sua 1ª zona!', subtitle: 'Lago', faction: 'owls' });
+  });
+
+  it('defesa: aviso médio com o nome do cache quando o evento não traz', () => {
+    const t = fx({ ...base, level: 'media', type: 'zona_defendida', zoneId: 'z', name: null, retaken: 3, counts: emptyPaintCounts(), provisional: true });
+    expect(t.toast).toMatchObject({ size: 'medium', title: 'Zona defendida', subtitle: 'Zona z' });
+    expect(t.haptic).toBe('impact');
+  });
+
+  it('ritmo da E3: duas vibrações de progresso em menos de 10 s viram uma só', () => {
+    const feedback = createLiveFeedback({ faction: 'striders' });
+    const a: LiveEvent = { ...base, t: 1000, level: 'pequena', type: 'zona_progresso', zoneId: 'z', pct: 25, gapCells: 3, gapMeters: 120 };
+    const b: LiveEvent = { ...a, t: 5000, pct: 50 };
+    expect(liveEffects(a, feedback.push(a), 'striders').haptic).toBe('tap');
+    const second = liveEffects(b, feedback.push(b), 'striders');
+    expect(second.haptic).toBeNull();
+    expect(second.toast).not.toBeNull();
   });
 });
 
 describe('enqueueToast', () => {
-  const t = (id: string, size: RunToast['size']): RunToast => ({ id, size, haptics: true, edgeGlow: false, title: id, faction: 'striders' });
+  const t = (id: string, size: RunToast['size']): RunToast => ({ id, size, haptics: false, edgeGlow: false, title: id, faction: 'striders' });
 
   it('sem repetir o mesmo aviso', () => {
     expect(enqueueToast([t('a', 'small')], t('a', 'small'))).toHaveLength(1);
