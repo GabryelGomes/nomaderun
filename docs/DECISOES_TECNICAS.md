@@ -546,3 +546,9 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
   - **Banco na CI:** o job `db` roda com `DEBIAN_FRONTEND=noninteractive`, `NEEDRESTART_MODE=a`, `sudo -E`, espera de trava do apt, `--no-install-recommends`, saída visível (`-q`) e limite de 10 min na instalação.
 - **Consequências:** nenhuma mudança no app.
 
+
+### D-87 — Máscara estável das zonas de privacidade no servidor (revisão A1)
+2026-10-28 · E9 (revisão da lógica v2, `docs/melhoria/relatorios/revisor-onda4-logica.md`, A1)
+- **Contexto:** o retrato da pintura (`zone_paint_near`) escondia os trechos pelo círculo exato de cada zona de privacidade; tirando a média dos trechos que faltavam, o centro (a casa) saía com 3,5 m de erro (ataque de Hassan et al., USENIX 2018, o mesmo que a D-78 evita no card).
+- **Decisão:** no servidor, toda zona de privacidade é escondida por uma **máscara**, no estilo do Strava: centro deslocado de 0,6 a 1,0 × raio numa direção sorteada e raio = raio + deslocamento + folga de 25 a 85 m (cobre a zona inteira). Os três sorteios são feitos **uma vez por zona** e gravados (`private.privacy_zone_masks`, fora do alcance do cliente); mover a zona move a máscara com o mesmo sorteio, e só mudar o rótulo não sorteia de novo. Vale para `cells` e `paintedToday` do retrato e para o percurso que a staff vê (`activity_points`).
+- **Consequências:** o buraco no retrato fica maior e descentrado (pgTAP 29: erro do centro > 0,5 × raio; nenhum ponto da zona visível). Some um pouco mais de pintura perto das casas. O card e o feed continuam com o corte do domain (D-78).

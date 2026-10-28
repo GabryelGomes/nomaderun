@@ -55,6 +55,9 @@ select is((select count(*)::int from public.activity_points where activity_id = 
   'corredor comum não lê percurso alheio');
 
 -- moderador (painel web) vê o percurso sem os pontos perto da casa
+-- D-87: a máscara é sorteada (maior que a zona); aqui fica fixada no círculo exato para conferir ponto a ponto
+reset role;
+update private.privacy_zone_masks m set lat = z.lat, lng = z.lng, radius_m = z.radius_m from public.privacy_zones z where m.zone_id = z.id;
 select pg_temp.login('81111111-0000-4000-8000-000000000003');
 select is((select count(*)::int from public.activity_points where activity_id = 'a8111111-0000-4000-8000-000000000001'), 3,
   'painel de moderação não recebe os pontos dentro da zona de privacidade (RN-010)');

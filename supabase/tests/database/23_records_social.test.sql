@@ -20,7 +20,10 @@ select ok(not has_any_column_privilege('authenticated', 'public.feed_items', 'se
 select is((select array_agg(column_name::text order by column_name) from information_schema.columns
             where table_schema = 'public' and table_name = 'kudos'), array['day', 'feed_item_id', 'reaction', 'user_id'],
   'kudos sem horário (só o dia) — é o que vai pelo Realtime');
-select ok(exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'kudos'), 'Realtime em kudos');
+-- revisão M4: kudos saiu do Realtime (DELETE sem RLS levava user_id); os contadores sem dado pessoal entram no lugar
+select ok(not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'kudos')
+          and exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'feed_kudos_counts'),
+  'Realtime dos aplausos por feed_kudos_counts (sem user_id), não por kudos');
 
 -- ---------------------------------------------------------------------------
 -- Fixtures: A e B na crew FEED2; C fora; uma corrida de A no feed
@@ -124,8 +127,14 @@ select ('e9e9e9e9-3023-4000-8000-' || lpad(n::text, 12, '0'))::uuid, ('e9e9e9e9-
 insert into public.kudos (feed_item_id, user_id, reaction, day)
 select ('e9e9e9e9-3023-4000-8000-' || lpad(n::text, 12, '0'))::uuid, 'e9e9e9e9-0023-4000-8000-00000000000b', 'bora', public.br_today()
   from generate_series(1, 199) n;
+-- revisão M1: o teto conta os itens do dia em kudos_log (desfazer não apaga; refazer no mesmo item não conta de novo).
+-- A fixture registra 198 itens; com os 2 da RPC acima são 200, e o item 199 (novo no registro) bate no teto.
+insert into public.kudos_log (user_id, day, feed_item_id)
+select 'e9e9e9e9-0023-4000-8000-00000000000b', public.br_today(), ('e9e9e9e9-3023-4000-8000-' || lpad(n::text, 12, '0'))::uuid
+  from generate_series(1, 198) n;
+delete from public.kudos where feed_item_id = 'e9e9e9e9-3023-4000-8000-000000000199';
 select pg_temp.login('e9e9e9e9-0023-4000-8000-00000000000b');
-select throws_like($$ select public.react_feed_item('e9e9e9e9-2023-4000-8000-000000000002', 'bora') $$, '%KUDOS_LIMIT%',
+select throws_like($$ select public.react_feed_item('e9e9e9e9-3023-4000-8000-000000000199', 'bora') $$, '%KUDOS_LIMIT%',
   'teto de 200 reações por dia');
 select is((public.react_feed_item('e9e9e9e9-2023-4000-8000-000000000001', 'raio') ->> 'myReaction'), 'raio',
   'trocar uma reação que já existe não conta no teto');

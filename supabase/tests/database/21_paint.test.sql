@@ -111,6 +111,9 @@ select pg_temp.cell('8ba90128e383fff', '89a90128e3bffff', 'striders', 1, now(), 
 select pg_temp.cell('8ba90128e384fff', '89a90128e3bffff', 'owls', 1, now() - interval '9 days', -30.035250665253834, -51.21834262559783);
 insert into public.privacy_zones (user_id, lat, lng, radius_m)
 values ('e9e9e9e9-0021-4000-8000-00000000000c', -30.0341006, -51.21831058523841, 50); -- cobre só o trecho …383 (a 40 m)
+
+-- D-87: a máscara é sorteada; aqui ela é fixada no círculo exato para o teste conferir trecho a trecho
+update private.privacy_zone_masks m set lat = z.lat, lng = z.lng, radius_m = z.radius_m from public.privacy_zones z where m.zone_id = z.id;
 update public.zones set attacker = 'striders', attack_started_at = now() - interval '1 hour', attack_last_at = now() - interval '1 hour',
                         attack_flips = 1 where id = '89a90128e3bffff';
 
