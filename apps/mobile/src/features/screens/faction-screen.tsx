@@ -1,11 +1,10 @@
-import * as Haptics from 'expo-haptics';
 import { Stack } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Icon } from '@/components/icon';
-import { FadeUp, Pressable, Stagger } from '@/components/motion';
+import { FadeUp, haptic, Pressable, Stagger } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader, Surface } from '@/components/surface';
 import { TeamBadge } from '@/components/team-badge';
@@ -47,7 +46,7 @@ export function FactionScreen() {
       setError(res.error.message);
       return;
     }
-    if (process.env.EXPO_OS === 'ios') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    haptic('success');
     setDone(choice);
     setChoice(null);
   };
@@ -112,7 +111,7 @@ export function FactionScreen() {
                   onPress={() => {
                     setChoice(on ? null : f);
                     setError(null);
-                    if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
+                    haptic('selection');
                   }}
                   style={{
                     flexDirection: 'row',

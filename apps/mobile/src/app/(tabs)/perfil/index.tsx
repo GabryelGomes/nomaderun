@@ -1,19 +1,18 @@
-import { router, Stack } from 'expo-router';
+import { router, Stack, type Href } from 'expo-router';
 
 // A tela vem primeiro: a régua de texto (`medir-texto.mjs`) liga a rota ao 1º import `@/`.
-import { ProfileScreen } from '@/features/screens/profile-screen';
-import { ACTIVITIES_ROUTE } from '@/components/app-tabs-config';
-import { Button } from '@/components/button';
+import { ProfileScreen, VOCE_ROUTES } from '@/features/screens/profile-screen';
+import { IconButton } from '@/components/button';
 
-/** Atalho para as Atividades no cabeçalho de "Você" (D-73). A reforma da tela "Você" é da onda 3 (T7.3.2). */
-function ActivitiesShortcut() {
-  return <Button testID="voce-atividades" label="Atividades" accessibilityLabel="Abrir suas atividades" icon="activities" kind="ghost" onPress={() => router.push(ACTIVITIES_ROUTE)} />;
+/** Engrenagem no cabeçalho de "Você": os ajustes saem da tela e ficam a 1 toque (F1 §5.8). */
+function SettingsShortcut() {
+  return <IconButton testID="voce-ajustes" icon="gear" label="Ajustes" tone="sunken" size={44} onPress={() => router.push(VOCE_ROUTES.ajustes as Href)} />;
 }
 
 export default function VoceIndex() {
   return (
     <>
-      <Stack.Screen options={{ headerRight: () => <ActivitiesShortcut /> }} />
+      <Stack.Screen options={{ headerRight: () => <SettingsShortcut /> }} />
       <ProfileScreen />
     </>
   );

@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import { useState, type ReactNode } from 'react';
 import { Pressable, type PressableProps, View } from 'react-native';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
@@ -8,6 +7,7 @@ import { floating, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { Icon, type IconName } from './icon';
+import { haptic } from './motion/haptics';
 import { pressFeedback } from './press-feedback';
 import { Text } from './text';
 
@@ -54,7 +54,8 @@ export function Button({ label, kind = 'primary', icon, size = 'md', wide, trail
       onPressIn={() => setPressed(true)}
       onPressOut={() => setPressed(false)}
       onPress={(e) => {
-        if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        // E5: módulo único de vibração (respeita "Vibração" e o intervalo mínimo; nada na web).
+        haptic('tap');
         onPress?.(e);
       }}
       style={wide ? { alignSelf: 'stretch' } : undefined}>
