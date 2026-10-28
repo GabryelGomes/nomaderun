@@ -62,7 +62,7 @@ export function todayChips(today: MapToday | null | undefined, streakWeeks: numb
     out.push({ key: 'streak', testID: 'mapa-hoje-sequencia', icon: 'fire', value: String(streakWeeks), label: streakWeeks === 1 ? 'semana' : 'semanas', tone: 'action' });
   }
   if (today?.chest && today.chest.credits > 0) {
-    out.push({ key: 'chest', testID: 'mapa-hoje-bau', icon: 'chest', value: today.chest.credits > 1 ? `${today.chest.credits}×` : '1', label: 'Baú do dia', tone: 'action', href: '/recompensas' });
+    out.push({ key: 'chest', testID: 'mapa-hoje-bau', icon: 'chest', value: String(today.chest.credits), label: today.chest.credits > 1 ? 'Baús' : 'Baú', tone: 'action', href: '/recompensas' });
   }
   if (today?.boss && Number.isFinite(today.boss.hp)) {
     out.push({ key: 'boss', testID: 'mapa-hoje-chefao', icon: 'raid', value: `${Math.round(Math.max(0, Math.min(1, today.boss.hp)) * 100)}%`, label: 'Chefão', tone: 'villain', href: '/arena' });

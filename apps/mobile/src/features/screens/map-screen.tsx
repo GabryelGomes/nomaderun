@@ -266,10 +266,8 @@ export function MapScreen({ today }: MapScreenProps = {}) {
           )}
         </View>
 
-        {/* Faixa de hoje: só os chips verdadeiros (sem dado, o chip não existe). Deixa espaço à direita para o sino. */}
-        <View style={{ marginRight: 56 }}>
-          <DailyStrip items={chips} testID="mapa-hoje" />
-        </View>
+        {/* Faixa de hoje: só os chips verdadeiros (sem dado, o chip não existe). O sino fica abaixo (mapControlsTop). */}
+        <DailyStrip items={chips} testID="mapa-hoje" />
 
         {changes && !changesGone ? (
           <FadeUp distance={-12} duration={400}>
