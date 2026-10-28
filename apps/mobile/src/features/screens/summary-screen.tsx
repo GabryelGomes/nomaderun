@@ -41,7 +41,6 @@ const COUNT_MS = 900;
 const CONQUESTS_AT = NUMBERS_AT + 3 * NUMBER_STEP + COUNT_MS;
 /** Altura do palco das conquistas (o maior momento, a zona conquistada, cabe inteiro). */
 const CONQUEST_STAGE = 300;
-const WEB = process.env.EXPO_OS === 'web';
 const renderMoment = renderCelebrationMoment();
 
 const CHIP_ICON: Partial<Record<CelebrationEvent['kind'], IconName>> = { 'zone-captured': 'flag', 'zone-defended': 'shield', xp: 'trophy' };
@@ -431,7 +430,6 @@ export function SummaryScreen({ rewards, renderShare }: SummaryScreenProps = {})
               layout="single"
               // react-native-web responde sempre "leitor de tela ligado" (`isScreenReaderEnabled` → true), o que
               // pularia o roteiro inteiro na web. Pedido à E5: tratar isso dentro do CelebrationSequence.
-              screenReader={WEB ? false : undefined}
               intro={summaryIntro(formatKm(r.meters), formatDuration(r.movingSeconds))}
               renderMoment={(m, ctx) => <View style={{ minHeight: CONQUEST_STAGE, justifyContent: 'center' }}>{renderMoment(m, ctx)}</View>}
               onDone={() => setSequenceDone(true)}
