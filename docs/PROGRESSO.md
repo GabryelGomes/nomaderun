@@ -5,7 +5,7 @@
 
 ## Estado atual (resumo)
 
-- **Fase:** **7 em andamento — Reformulação v2** (`docs/melhoria/PLANO-MESTRE.md`): F0 ✅ prompt e agentes · F1 ✅ 10 relatórios (`docs/melhoria/F1/`) · F2 ✅ plano e decisões D-62 a D-82 · próxima: onda 1 (fundação). Fases 0–6 concluídas (MVP + visual neon).
+- **Fase:** **7 em andamento — Reformulação v2** (`docs/melhoria/PLANO-MESTRE.md`): F0 ✅ prompt e agentes · F1 ✅ 10 relatórios · F2 ✅ plano e decisões D-62 a D-82 · ondas 1, 2 e 3 ✅ integradas (D-83 a D-87) · **agora: onda 4 (QA, E10)**, depois o fechamento (F6). Fases 0–6 concluídas (MVP + visual neon).
 - **Requisitos (61):** 32 ✅ · 22 🟡 · 5 ⬜ · 2 ➖. Nenhum P0 sem fazer (P0: 16 ✅, 9 🟡). Detalhes em `REQUISITOS.md`.
 - **Testes (2026-10-21, T6.5, banco local):** app `npm test` 398 ✅ (26 de integração ignorados sem `NOMADE_IT`; integração 26/26 com o backend) · `typecheck` ok · eslint 0 · domain 99,5% ramos/100% linhas · Playwright demo 14/14, auth 17/17, imagem 4/4 (referências regeneradas na T6.5) · varredura visual de 31 telas × 8 combinações sem rolagem horizontal, sem nada fora da tela e sem erros de console. Backend (Fase 5): pgTAP 285/285 · Deno 58 ok · e2e 56/56 · segurança `STRICT=1` 89/89.
 - **Como rodar e apresentar:** `README.md` (instalação e testes), `docs/COMO_APRESENTAR.md` (checklist, roteiro de 10 min, banca, plano B), `apps/mobile/README.md`.
@@ -78,6 +78,19 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 ```
 
 ## Log
+
+### 2026-10-28 — Fase 7: onda 3 integrada e revisão corrigida (Coordenador)
+- **Retomada:** as frentes continuaram do próprio WIP (a entrada da pausa, logo abaixo, ficou superada). Por economia, no máximo 3 agentes ao mesmo tempo, com CodeGraph e rtk. Uma parada no limite de uso da conta foi salva em commits WIP e retomada sem perda.
+- **Integrado (merge `--no-ff`, um por frente):**
+  - E9 (servidor): `paintedToday`, `pauseAvailable`, CHECK booleano em `notification_prefs`, `weekly_recap` + Edge Function `weekly-recap`, telemetria com consentimento e retenção de 30 dias;
+  - E6a (Você com cartão de jogador, Ajustes, Corridas com mini-mapa), E6b (Mapa com a faixa de hoje, pintura ao vivo, Resumo com recompensas, folha da zona v2), E6c (Arena com chefão e modos, Clube com herói da crew, feed e pódio);
+  - E7 (telemetria opt-in, primeira semana nas missões, `/recompensas` enxuta, chave `kudos`), E4 (chama/gelo da sequência, ícone da aba Correr, splash, 5 vazios), E5 (StreakArt, arte da E4 nos momentos, leitor de tela na web, custo medido), E8 (arte no card, Bora!, aplausos ao vivo, recap semanal).
+- **Encaixes do coordenador:** telemetria em Ajustes; splash escuro no `app.json`; ícone da aba Correr; arte `sem-endereco` nas zonas de privacidade; botão do recap em Corridas; rota `compartilhar/semana` (modal); notificação do recap abrindo a semana; contorno do leitor de tela tirado do Resumo.
+- **Revisão da lógica e segurança** (`docs/melhoria/relatorios/revisor-onda4-logica.md`): 1 Alto, 5 Médios, 4 Baixos. Corrigidos pela E9 (`20261028120000_review_fixes.sql`, pgTAP 29): A1 (máscara estável das zonas de privacidade, **D-87**), M1 (teto de aplausos), M2 (trava da telemetria), M3 (feed recortado ao criar zona), M4 (`kudos` fora do Realtime → `feed_kudos_counts`, app ajustado pela E8), M5 (recap) e B4 (liga antes das 03:20). B1–B3 abertos (baixos).
+- **Testes (branch `claude/affectionate-gauss-e8gm77`):** app `typecheck` ok · eslint 0 · Jest 1.409 ✅ (26 de integração pulados) · pgTAP 832/832 (29 arquivos) · Deno 87 ok, 1 ignorado · régua de texto ok.
+- **Pendências abertas da onda 3:** XP do nível (+98) ≠ total do bloco Recompensas (153) no Resumo; Resumo de corridas antigas sem o bloco (`v2_extras` fora do `COLUMNS`); meta oficial de km da crew; `league.ts:53` com a regra da B4 (E3); consultas D1/D7/D30 da telemetria; validar em aparelho (ícone da aba no Android, splash no Android 12+, fps do baú lendário num Android de entrada, Maestro).
+- **Deploy (dono):** migrations novas + `functions deploy weekly-recap`; ligar `features.telemetry` só depois do app com a seção de consentimento (`DEPLOY.md` §9).
+- **Próximo:** onda 4 (E10: capturas "depois", régua comparada, teste de 5 s, auditorias, fluxos completos, bundle, ética) e o fechamento (F6).
 
 ### 2026-10-28 — Fase 7: segunda pausa a pedido do dono (Coordenador)
 - **Feito antes da pausa:**
