@@ -13,6 +13,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const { execSync } = require('node:child_process');
+const { chooseTeam, signUp } = require('./onboarding-steps.cjs');
 const { serve } = require('./serve.cjs');
 
 function loadPlaywright() {
@@ -89,27 +90,12 @@ async function api(method, url, token, body) {
     const id = (t) => page.locator(`[data-testid="${t}"]`).first();
     const shot = (n) => page.screenshot({ path: path.join(OUT, `${n}.png`) });
 
+    // Onda 4 (E10): cadastro e onboarding da v2 (sem cidade no cadastro; cidade dividida → carrossel → confirmação).
     await page.goto(`${BASE}/`);
-    await id('tela-entrar').waitFor({ timeout: 30_000 });
-    await id('entrar-criar-conta').click();
-    await id('tela-cadastro').waitFor();
-    await id('cadastro-email').fill(user.email);
-    await id('cadastro-senha').fill(user.password);
-    await id('cadastro-usuario').fill(user.username);
-    await id('cadastro-nascimento').fill('15/05/2000');
-    await id('cadastro-cidade').fill('Goiânia');
-    await id('cadastro-aceite-termos').click();
-    await id('cadastro-aceite-privacidade').click();
-    await id('cadastro-botao').click();
-    await id('onboarding-escolher-time').waitFor({ timeout: 30_000 });
-    ok(true, 'cadastro com 16+ e aceites abre o onboarding');
-    await id('onboarding-escolher-time').click();
-    await id('onboarding-faccao-striders').click();
-    await id('onboarding-faccao-continuar').click();
-    await id('onboarding-localizacao-continuar').click();
-    await id('onboarding-notificacoes-continuar').waitFor({ timeout: 15_000 });
-    await id('onboarding-notificacoes-continuar').click();
-    await id('mapa-status').waitFor({ timeout: 30_000 });
+    await signUp(page, user);
+    await id('onboarding-cidade').waitFor({ timeout: 30_000 });
+    ok(true, 'cadastro com 16+ e aceite abre o onboarding');
+    await chooseTeam(page, 'striders');
     await page.getByText(/zonas em/).first().waitFor({ timeout: 30_000 }).catch(() => {});
     ok(true, 'facção Neon Striders gravada e mapa com zonas do servidor');
     await shot('01-mapa');
@@ -135,15 +121,15 @@ async function api(method, url, token, body) {
     await id('tela-resumo').waitFor({ timeout: 30_000 });
     await id('resumo-zona-conquistada').waitFor({ timeout: 30_000 });
     const celebration = await id('resumo-zona-conquistada').getAttribute('aria-label');
-    ok(/Zona conquistada, mais \d+ RP em .+/.test(celebration || ''), `resumo oficial: "${celebration}"`);
+    ok(/^Zona conquistada: .+/.test(celebration || ''), `resumo oficial: "${celebration}"`);
     ok((await page.locator('[data-testid="resumo-status-provisional"], [data-testid="resumo-status-failed"]').count()) === 0, 'resumo não ficou provisório');
     await shot('03-resumo');
     const zoneIds = await page.locator('[data-testid^="resumo-zona-8"]').evaluateAll((els) => els.map((e) => e.getAttribute('data-testid').replace('resumo-zona-', '')));
 
     // servidor: qual zona virou dos Striders com este corredor no topo
     const login = await api('POST', '/auth/v1/token?grant_type=password', null, { email: user.email, password: user.password });
-    const me = await api('GET', `/rest/v1/profiles?select=city&id=eq.${login.data.user.id}`, login.data.access_token);
-    ok(me.data?.[0]?.city === 'Goiânia', 'cidade natal do cadastro gravada no perfil (options.data.city)', me.data);
+    const me = await api('GET', `/rest/v1/profiles?select=faction&id=eq.${login.data.user.id}`, login.data.access_token);
+    ok(me.data?.[0]?.faction === 'striders', 'time escolhido no onboarding gravado no perfil', me.data);
     let conquered = null;
     for (const zid of zoneIds) {
       const z = await api('GET', `/functions/v1/zone?id=${zid}`, login.data.access_token);
@@ -176,7 +162,8 @@ async function api(method, url, token, body) {
     const mpage = await mctx.newPage();
     mpage.on('pageerror', (e) => errors.push(`pageerror (moderador): ${e.message}`));
     const mid = (t) => mpage.locator(`[data-testid="${t}"]`).first();
-    await mpage.goto(`${BASE}/`);
+    // Primeira abertura num aparelho novo cai em Boas-vindas: o moderador vai direto para Entrar.
+    await mpage.goto(`${BASE}/entrar`);
     await mid('tela-entrar').waitFor({ timeout: 30_000 });
     await mid('entrar-email').fill('moderador.demo@nomaderun.app');
     await mid('entrar-senha').fill('Moderacao@2026');

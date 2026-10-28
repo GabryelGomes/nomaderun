@@ -58,18 +58,29 @@ const LOGGED = [
   ['zona-parque', `/zona/${ZONE}`],
   ['termos', '/termos'],
   ['privacidade', '/privacidade'],
+  // Onda 4 (F5): rotas novas das ondas 2 e 3.
+  ['correr', '/correr'],
+  ['perfil-ajustes', '/perfil/ajustes'],
+  ['perfil-atividades', '/perfil/atividades'],
+  ['missoes', '/missoes'],
+  ['recompensas', '/recompensas'],
+  ['compartilhar', '/compartilhar/demo-corrida-1'],
+  ['compartilhar-semana', '/compartilhar/semana'],
+  ['compartilhar-feed', '/compartilhar/feed'],
+  ['convite', '/compartilhar/convite/DEMOFLR1'],
 ];
 
 /** Matriz rota × estado (docs/melhoria/F1/10-qualidade.md §3.2), no que as telas atuais alcançam. */
 const MATRIX = [
   ...LOGGED.map(([nome, rota]) => ({ nome, rota, estado: 'cheio' })),
-  ...['inicio', 'arena', 'atividades', 'clube', 'perfil', 'notificacoes', 'contatos-seguranca', 'zonas-privacidade'].map((nome) => ({ nome, rota: LOGGED.find((r) => r[0] === nome)[1], estado: 'vazio' })),
+  ...['inicio', 'arena', 'atividades', 'clube', 'perfil', 'notificacoes', 'contatos-seguranca', 'zonas-privacidade', 'missoes', 'recompensas', 'compartilhar-semana', 'compartilhar-feed'].map((nome) => ({ nome, rota: LOGGED.find((r) => r[0] === nome)[1], estado: 'vazio' })),
   ...['inicio', 'atividades', 'notificacoes'].map((nome) => ({ nome, rota: LOGGED.find((r) => r[0] === nome)[1], estado: 'carregando', cenario: 'lento', espera: 700, semTela: true })),
   ...['inicio', 'atividades', 'notificacoes'].map((nome) => ({ nome, rota: LOGGED.find((r) => r[0] === nome)[1], estado: 'erro' })),
   ...['inicio', 'atividades'].map((nome) => ({ nome, rota: LOGGED.find((r) => r[0] === nome)[1], estado: 'offline' })),
   { nome: 'inicio', rota: '/', estado: 'sob-ataque', espera: 7000 },
   { nome: 'notificacoes', rota: '/notificacoes', estado: 'sob-ataque', espera: 7000 },
   { nome: 'onboarding', rota: '/onboarding', estado: 'sem-time' },
+  { nome: 'boas-vindas', rota: '/boas-vindas', estado: 'primeira-abertura' },
   { nome: 'entrar', rota: '/entrar', estado: 'primeira-abertura' },
   { nome: 'cadastro', rota: '/cadastro', estado: 'primeira-abertura' },
   { nome: 'recuperar-senha', rota: '/recuperar-senha', estado: 'primeira-abertura' },
@@ -150,6 +161,90 @@ async function audit(page) {
       if (!name) out.unlabeled.push(id);
     }
     out.words = (document.body.innerText || '').split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+    // Onda 4: texto da tela por baixo do selo fixo "Demonstração" (o selo cobria o nome do time no Mapa).
+    out.sealOverlap = [];
+    const seal = document.querySelector('[data-testid="selo-demonstracao"]');
+    if (seal) {
+      const s = seal.getBoundingClientRect();
+      const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n = tw.nextNode(); n; n = tw.nextNode()) {
+        const el = n.parentElement;
+        if (!el || !/[\p{L}\p{N}]/u.test(n.nodeValue || '') || seal.contains(el) || el.closest('[aria-hidden="true"]')) continue;
+        const st = getComputedStyle(el);
+        if (st.visibility === 'hidden' || Number(st.opacity) === 0) continue;
+        const range = document.createRange();
+        range.selectNodeContents(n);
+        for (const r of range.getClientRects()) {
+          const w = Math.min(r.right, s.right) - Math.max(r.left, s.left);
+          const h = Math.min(r.bottom, s.bottom) - Math.max(r.top, s.top);
+          if (w > 2 && h > 2) {
+            out.sealOverlap.push({ id: el.closest('[data-testid]')?.getAttribute('data-testid') || el.tagName.toLowerCase(), text: n.nodeValue.trim().slice(0, 30) });
+            break;
+          }
+        }
+      }
+    }
+    // Onda 4: contraste do texto RENDERIZADO (cor × fundo efetivo, com opacidade dos ancestrais). Fundo com
+    // gradiente/imagem/canvas não é medido. Mínimo WCAG AA: 4,5:1; texto grande (≥ 24 px, ou ≥ 18,66 px
+    // em negrito): 3:1. Limite conhecido: fundo pintado por uma camada irmã (absoluta) não entra na conta.
+    const parse = (c) => {
+      const m = /rgba?\(([^)]+)\)/.exec(c || '');
+      if (!m) return null;
+      const [r, g, b, a = 1] = m[1].split(/[ ,/]+/).filter(Boolean).map(Number);
+      return { r, g, b, a };
+    };
+    const over = (top, bottom) => ({ r: top.r * top.a + bottom.r * (1 - top.a), g: top.g * top.a + bottom.g * (1 - top.a), b: top.b * top.a + bottom.b * (1 - top.a), a: 1 });
+    const lum = (c) => {
+      const f = (v) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+      return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b);
+    };
+    const ratio = (x, y) => {
+      const [a, b] = [lum(x), lum(y)].sort((p, q) => q - p);
+      return (a + 0.05) / (b + 0.05);
+    };
+    const BASE = { r: 7, g: 7, b: 8, a: 1 };
+    out.lowContrast = [];
+    out.contrastChecked = 0;
+    const texts = new Set();
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) if (/[\p{L}\p{N}]/u.test(n.nodeValue || '') && n.parentElement) texts.add(n.parentElement);
+    for (const el of texts) {
+      const r = el.getBoundingClientRect();
+      const st = getComputedStyle(el);
+      if (r.width === 0 || r.height === 0 || st.visibility === 'hidden' || r.bottom < 0 || r.top > innerHeight) continue;
+      // Texto de SVG (cards de compartilhar) usa `fill`, não `color`: fora da medida.
+      if (el.closest('[aria-hidden="true"]') || el.closest('svg')) continue;
+      let opacity = 1;
+      const layers = [];
+      let unknown = false;
+      for (let a = el; a; a = a.parentElement) {
+        const s = getComputedStyle(a);
+        opacity *= Number(s.opacity);
+        if (s.backgroundImage && s.backgroundImage !== 'none') unknown = true;
+        const bg = parse(s.backgroundColor);
+        if (bg && bg.a > 0) {
+          layers.push(bg);
+          if (bg.a >= 1) break;
+        }
+        if (a.tagName === 'CANVAS') unknown = true;
+      }
+      if (opacity < 0.05) continue;
+      if (unknown && !layers.some((l) => l.a >= 1)) continue;
+      let bg = BASE;
+      for (const l of layers.reverse()) bg = over(l, bg);
+      const fg = parse(st.color);
+      if (!fg) continue;
+      const shown = over({ ...fg, a: fg.a * opacity }, bg);
+      const size = parseFloat(st.fontSize);
+      const large = size >= 24 || (size >= 18.66 && Number(st.fontWeight) >= 700);
+      const min = large ? 3 : 4.5;
+      const cr = ratio(shown, bg);
+      out.contrastChecked++;
+      if (cr < min) {
+        const id = el.closest('[data-testid]')?.getAttribute('data-testid') || el.tagName.toLowerCase();
+        out.lowContrast.push({ id, text: (el.innerText || '').trim().replace(/\s+/g, ' ').slice(0, 40), ratio: Math.round(cr * 100) / 100, min, size, opacity: Math.round(opacity * 100) / 100 });
+      }
+    }
     return out;
   });
 }

@@ -7,6 +7,7 @@ import { AlertSlot, pickAlert, type SlotAlert } from '@/components/alert-slot';
 import { BigRunButton } from '@/components/big-run-button';
 import { IconButton } from '@/components/button';
 import { DailyStrip, type DailyItem } from '@/components/daily-strip';
+import { useDemoSealSpace } from '@/components/demo-badge';
 import { MissionCoachCard } from '@/components/mission-coach-card';
 import { FadeUp, ShimmerSkeleton } from '@/components/motion';
 import { tabBarClearance } from '@/components/screen';
@@ -18,6 +19,7 @@ import type { MapBounds } from '@/components/territory-map.types';
 import { cellCenter } from '@/domain/grid';
 import type { LatLng } from '@/domain/types';
 import { DEMO_CENTER, DEMO_CITY, zoneName } from '@/demo/demo-data';
+import { useOnboardingFlow } from '@/features/auth/onboarding-flow';
 import { mapZonesInBounds } from '@/features/map-data';
 import { loadHistory } from '@/features/run/run-controller';
 import { useNow } from '@/features/use-now';
@@ -197,10 +199,18 @@ export function MapScreen({ today }: MapScreenProps = {}) {
     onPress: () => (a.zoneId ? router.push({ pathname: '/zona/[id]', params: { id: a.zoneId } }) : router.push('/corrida')),
     onDismiss: () => setDismissed((d) => [...d, a.id]),
   }));
-  const top = pickAlert(slot);
+  // E10 (onda 4): na primeira sessão, o card de boas-vindas (WelcomeMissionOverlay, montado pelas abas) fica no mesmo
+  // lugar; o Mapa cede a vaga a ele em vez de empilhar dois cards (um cobria o outro).
+  const userId = useSession((s) => s.session?.userId ?? null);
+  const welcomeOn = useOnboardingFlow((s) => !!userId && s.welcomeFor === userId);
+  const top = welcomeOn ? null : pickAlert(slot);
 
   const statusError = !!zonesError && !hasZones && !zonesOffline && !zonesLoading;
-  const controlsTop = mapControlsTop(insets.top);
+  // E10 (onda 4): o selo "Demonstração" (DemoSeal, no alto e no centro) encostava no nome do time. Na
+  // demonstração, o cabeçalho e os botões do mapa descem a altura do selo.
+  const sealSpace = useDemoSealSpace();
+  const headTop = insets.top + sealSpace;
+  const controlsTop = mapControlsTop(headTop);
 
   return (
     <View testID="tela-mapa" style={{ flex: 1, backgroundColor: colors.background }}>
@@ -217,7 +227,7 @@ export function MapScreen({ today }: MapScreenProps = {}) {
         onZonePress={(id) => router.push({ pathname: '/zona/[id]', params: { id } })}
       />
 
-      <View style={{ position: 'absolute', top: insets.top + space[2], left: space[4], right: space[4], gap: space[2] }}>
+      <View style={{ position: 'absolute', top: headTop + space[2], left: space[4], right: space[4], gap: space[2] }}>
         <View
           style={{
             flexDirection: 'row',

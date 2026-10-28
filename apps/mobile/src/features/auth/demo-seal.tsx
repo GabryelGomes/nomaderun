@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { DemoBadge } from '@/components/demo-badge';
+import { DemoBadge, registerDemoSeal } from '@/components/demo-badge';
 import { Text } from '@/components/text';
 import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
@@ -20,6 +20,8 @@ export function DemoSeal() {
   const insets = useSafeAreaInsets();
   const [leaving, setLeaving] = useState(false);
   const exit = canLeaveDemo();
+  // As telas (Screen, ScreenScroll, Mapa e corrida) descem a altura do selo enquanto ele está montado.
+  useEffect(() => registerDemoSeal(), []);
   return (
     <View
       pointerEvents="box-none"

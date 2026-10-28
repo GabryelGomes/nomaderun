@@ -26,6 +26,8 @@ import { canReroll, FTUE_PRIZE, ftueAction, ftueComplete, ftueDoneCount, ftueRow
 
 /** Volta à tela depois de fazer um passo (compartilhou, entrou na crew): relê se o dado tem mais de 15 s. */
 const STALE_MS = 15_000;
+/** E10 (onda 4): item bloqueado continua legível (WCAG AA 4,5:1 com o texto secundário e o laranja sobre o fundo). */
+const LOCKED_OPACITY = 0.8;
 
 /** Leva ao lugar onde o passo se faz de verdade; quem conta o passo é o servidor. */
 export function goToFtueStep(a: FtueAction) {
@@ -100,7 +102,7 @@ function FtueStepRow({ row, now }: { row: FtueRow; now: number }) {
       testID={`primeira-semana-passo-${row.step}`}
       accessible
       accessibilityLabel={label}
-      style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], opacity: locked ? 0.6 : 1, paddingVertical: space[1] }}>
+      style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], opacity: locked ? LOCKED_OPACITY : 1, paddingVertical: space[1] }}>
       <View aria-hidden style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: radius.md, backgroundColor: done ? neon.activeFill : colors.surfaceSunken }}>
         {done ? <Icon name="check" size={20} color={colors.accentText} /> : locked ? <Icon name="lock" size={18} color={colors.textSecondary} /> : icon ? <ModeIcon kind={icon} size={32} /> : <Icon name="share" size={20} color={colors.accentText} />}
       </View>

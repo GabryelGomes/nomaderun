@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react';
 import { View } from 'react-native';
 
 import { radius, space } from '@/theme/tokens';
@@ -41,4 +42,36 @@ export function DemoBadge({ label = 'Demonstração', testID }: DemoBadgeProps) 
       </Text>
     </View>
   );
+}
+
+/** Altura que o selo fixo "Demonstração" (DemoSeal: topo + 2 e ~20 px) ocupa abaixo do `insets.top`. */
+export const DEMO_SEAL_SPACE = 22;
+
+let seals = 0;
+const listeners = new Set<() => void>();
+const emit = () => listeners.forEach((l) => l());
+const subscribe = (l: () => void) => {
+  listeners.add(l);
+  return () => {
+    listeners.delete(l);
+  };
+};
+
+/** O selo fixo avisa que está na tela (devolve a função que desfaz). Usado pelo `DemoSeal`. */
+export function registerDemoSeal(): () => void {
+  seals++;
+  emit();
+  return () => {
+    seals--;
+    emit();
+  };
+}
+
+/**
+ * E10 (onda 4): espaço a deixar no alto enquanto o selo fixo "Demonstração" está na tela (0 fora da demonstração).
+ * O selo fica no alto e no centro, por cima de tudo: sem esta folga ele cobria o nome do time no Mapa, a faixa da
+ * corrida, o "Zona conquistada" do resumo e os títulos das telas sem cabeçalho.
+ */
+export function useDemoSealSpace(): number {
+  return useSyncExternalStore(subscribe, () => (seals > 0 ? DEMO_SEAL_SPACE : 0), () => 0);
 }

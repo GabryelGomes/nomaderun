@@ -30,6 +30,8 @@ import { chestRefusal, fmtInt, oddsRows, pauseActive, pityLabel, RARITY_LABEL, s
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const monthOf = (seasonId: string) => MONTHS[Number(seasonId.slice(5, 7)) - 1] ?? 'mês';
 const MEDAL_TIER = { bronze: 1, prata: 2, ouro: 3 } as const;
+/** E10 (onda 4): item bloqueado continua legível (WCAG AA 4,5:1 com o texto secundário e o laranja sobre o fundo). */
+const LOCKED_OPACITY = 0.8;
 const RANK: Record<ChestRarity, number> = { comum: 0, raro: 1, lendario: 2 };
 
 function LevelCard({ s, now, onPause }: { s: EngagementStatus; now: number; onPause: () => void }) {
@@ -216,7 +218,7 @@ function StepCard({ step, current, onClaim, busy }: { step: TrackStep; current: 
     borderWidth: 1,
     borderColor: current || (step.unlocked && !step.claimed) ? colors.action : colors.line,
     backgroundColor: step.unlocked && !step.claimed ? neon.activeFill : colors.surface,
-    opacity: step.unlocked ? 1 : 0.65,
+    opacity: step.unlocked ? 1 : LOCKED_OPACITY,
   };
   return step.unlocked && !step.claimed ? (
     <PressableScale testID={`trilha-resgatar-${step.step}`} accessibilityLabel={`Resgatar degrau ${step.step}: ${label}`} disabled={busy} onPress={() => onClaim(step.step)} style={style}>
