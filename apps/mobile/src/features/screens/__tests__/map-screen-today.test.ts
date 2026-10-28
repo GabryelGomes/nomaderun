@@ -6,7 +6,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import type { RaidBoss, RaidCurrent } from '@/services/api/raid-repo';
 
-import { mapAlerts, todayChips } from '../map-screen.model';
+import { mapAlerts, mapCityOf, todayChips } from '../map-screen.model';
 import { bossOf, mapTodayFrom, streakAtRisk, weekdayIn, type StripInput } from '../map-screen.today';
 
 // Quarta-feira, 28/10/2026, 12:00 em Brasília (15:00 UTC); sexta = +2 dias.
@@ -54,6 +54,15 @@ const strip = (patch: Partial<StripInput> = {}): StripInput => ({
   items: [{ key: 'missao', testID: 'hoje-missao', icon: 'trophy', value: '40%', label: 'Missão' }],
   coach: null,
   ...patch,
+});
+
+describe('mapCityOf (cidade do mapa, não a natal — QA E10)', () => {
+  it('a cidade mais frequente entre as zonas visíveis; sem cidade, null', () => {
+    const meta = { a: { city: 'Goiânia' }, b: { city: 'Goiânia' }, c: { city: 'Anápolis' }, d: { city: null } };
+    expect(mapCityOf(['a', 'b', 'c', 'd'], meta)).toBe('Goiânia');
+    expect(mapCityOf(['c'], meta)).toBe('Anápolis');
+    expect(mapCityOf(['d', 'x'], meta)).toBeNull();
+  });
 });
 
 describe('weekdayIn / streakAtRisk', () => {

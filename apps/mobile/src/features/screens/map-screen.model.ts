@@ -157,3 +157,15 @@ export function expiredAttackKey(zones: Readonly<Record<string, Zone>>, now: num
   for (const z of Object.values(zones)) if (z.attackStartedAt !== null && !isUnderAttackAt(z, now)) ids.push(z.id);
   return ids.sort().join(',');
 }
+
+/** Cidade mais frequente entre as zonas da área visível (o servidor manda a cidade de cada zona). */
+export function mapCityOf(ids: readonly string[], meta: Readonly<Record<string, { city?: string | null } | undefined>>): string | null {
+  const n = new Map<string, number>();
+  for (const id of ids) {
+    const c = meta[id]?.city?.trim();
+    if (c) n.set(c, (n.get(c) ?? 0) + 1);
+  }
+  let best: string | null = null;
+  for (const [c, k] of n) if (best === null || k > (n.get(best) ?? 0)) best = c;
+  return best;
+}

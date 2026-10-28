@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AlertSlot, pickAlert, type SlotAlert } from '@/components/alert-slot';
@@ -35,7 +35,7 @@ import { useTheme } from '@/theme/use-theme';
 import { CounterBadge } from './game-motion';
 import { mapControlsTop } from './game-motion-math';
 import { LayerChips, type Layer } from './map-layer-chips';
-import { changesSinceYesterday, changesText, expiredAttackKey, mapAlerts, todayChips, welcomeMission, zonesUnderAttack, type MapToday } from './map-screen.model';
+import { changesSinceYesterday, changesText, mapCityOf, expiredAttackKey, mapAlerts, todayChips, welcomeMission, zonesUnderAttack, type MapToday } from './map-screen.model';
 
 const MAP_CENTER: LatLng = { lat: DEMO_CENTER.lat - 0.0035, lng: DEMO_CENTER.lng };
 const MAP_SPAN = 2600;
@@ -119,7 +119,6 @@ export function MapScreen({ today }: MapScreenProps = {}) {
   const hasZones = useZones((s) => Object.keys(s.zones).length > 0);
   const unread = useNotifications(selectUnreadCount);
   const notifications = useNotifications((s) => s.items);
-  const city = useSession((s) => s.profile?.city) ?? DEMO_CITY;
   const faction = useGame((s) => s.faction) ?? 'striders';
   const streakWeeks = useGame((s) => s.streakWeeks);
   const now = useNow(60_000);
@@ -180,6 +179,8 @@ export function MapScreen({ today }: MapScreenProps = {}) {
   }, [zones, bounds, expiredKey]);
   const explored = useMemo(() => (layer === 'explorado' ? fog.slice(-600) : undefined), [fog, layer]);
 
+  // Cidade do que está no mapa (zonas da área visível), não a cidade natal do perfil (QA E10).
+  const city = useMemo(() => mapCityOf(mapZones.map((z) => z.id), meta), [mapZones, meta]);
   const mine = useMemo(() => Object.values(zones).filter((z) => z.owner === faction).length, [zones, faction]);
   const attacked = useMemo(() => zonesUnderAttack(zones, faction, now), [zones, faction, now]);
   const mission = today?.mission ?? welcomeMission(runCount);
@@ -253,7 +254,9 @@ export function MapScreen({ today }: MapScreenProps = {}) {
                   : zonesError && !hasZones
                     ? 'Não deu para carregar as zonas'
                     : here
-                      ? `${mine} zonas em ${city}`
+                      ? city
+                        ? `${mine} zonas em ${city}`
+                        : `${mine} zonas por perto`
                       : `${mine} zonas em ${DEMO_CITY} · demonstração`}
             </Text>
           </View>
@@ -277,7 +280,14 @@ export function MapScreen({ today }: MapScreenProps = {}) {
         </View>
 
         {/* Faixa de hoje: só os chips verdadeiros (sem dado, o chip não existe). O sino fica abaixo (mapControlsTop). */}
-        <DailyStrip items={chips} testID="mapa-hoje" />
+        {/* A 360 pt os 3 chips não cabem com o rótulo inteiro: a linha rola na horizontal (sem cortar texto). */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -space[4], marginVertical: -space[2] }}
+          contentContainerStyle={{ paddingHorizontal: space[4], paddingVertical: space[2] }}>
+          <DailyStrip items={chips} testID="mapa-hoje" />
+        </ScrollView>
 
         {changes && !changesGone ? (
           <FadeUp distance={-12} duration={400}>
