@@ -15,9 +15,9 @@ import { useTheme } from '@/theme/use-theme';
  */
 export function arenaHelpCards(team: FactionId): HelpCard[] {
   return [
-    { key: 'corra', title: 'Corra', body: 'Cada metro que você corre conta para o seu time.', art: <TutorialArt step="corra" team={team} size={64} decorative /> },
-    { key: 'pinte', title: 'Pinte', body: 'A zona fica com o time que mais correu nela.', art: <TutorialArt step="pinte" team={team} size={64} decorative /> },
-    { key: 'defenda', title: 'Defenda', body: 'Rival na sua zona? Corra lá para segurar a cor.', art: <TutorialArt step="defenda" team={team} size={64} decorative /> },
+    { key: 'corra', title: 'Corra', body: 'Cada metro que você corre conta para o seu time.', art: <TutorialArt step="corra" team={team} size={64} /> },
+    { key: 'pinte', title: 'Pinte', body: 'A zona fica com o time que mais correu nela.', art: <TutorialArt step="pinte" team={team} size={64} /> },
+    { key: 'defenda', title: 'Defenda', body: 'Rival na sua zona? Corra lá para segurar a cor.', art: <TutorialArt step="defenda" team={team} size={64} /> },
   ];
 }
 
