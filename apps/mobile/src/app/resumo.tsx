@@ -9,6 +9,6 @@ import { SummaryScreen } from '@/features/screens/summary-screen';
  */
 export default function ResumoRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { rewards, renderShare } = useSummaryExtras(id);
-  return <SummaryScreen rewards={rewards} renderShare={renderShare} />;
+  const { rewards, renderShare, xp } = useSummaryExtras(id);
+  return <SummaryScreen rewards={rewards} renderShare={renderShare} xp={xp} />;
 }

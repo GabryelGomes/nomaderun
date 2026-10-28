@@ -5,6 +5,7 @@
 import type { CardBoss, CardLevel } from '@/features/social/card';
 import { levelProgress } from '@/domain/progression';
 import { RAID_DAMAGE_PER_KM } from '@/domain/raid';
+import type { ActivitySummary } from '@/services/api/activities-repo';
 import type { RunEngagement } from '@/services/api/engagement-repo';
 import type { RaidCurrent } from '@/services/api/raid-repo';
 
@@ -43,6 +44,28 @@ export function shareLevelFrom(block: RunEngagement | null, xpTotal: number, tot
     progressToNext: sameLevel && p.needed > 0 ? p.intoLevel / p.needed : 0,
     totals,
   };
+}
+
+/**
+ * Resposta oficial remontada de uma corrida antiga (`activities.result` + `activities.v2_extras`), no formato
+ * que o `useRunRewards` (E7) e o card (E8) leem. Sem `v2_extras` (servidor v1): `null`.
+ */
+export function officialFromActivity(a: Pick<ActivitySummary, 'id' | 'result' | 'extras'> | null | undefined): Record<string, unknown> | null {
+  if (!a?.extras) return null;
+  return { ...(a.result ?? {}), activityId: a.id, extras: a.extras };
+}
+
+export type SummaryXp = { gained: number; level: number; intoLevel: number; needed: number };
+
+/**
+ * Um número só de XP no resumo (pendência da onda 3): o total do bloco da E7 (o que o servidor credita no
+ * `xp_ledger`: corrida, semana, baús e missões), não o `xp` da resposta v1 (só a corrida). Nível do servidor.
+ */
+export function summaryXpFrom(block: RunEngagement | null, xpTotal: number): SummaryXp | null {
+  if (!block) return null;
+  const p = levelProgress(xpTotal);
+  const same = p.level === block.level.after;
+  return { gained: block.xp.total, level: block.level.after, intoLevel: same ? p.intoLevel : 0, needed: same ? p.needed : 0 };
 }
 
 export type RaidExtra = { raidId: string; defeated: boolean; countedKm: number; hpMax: number };
