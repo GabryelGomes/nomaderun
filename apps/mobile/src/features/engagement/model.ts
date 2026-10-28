@@ -209,6 +209,22 @@ export function trackItemLabel(i: TrackItem): string {
   }
 }
 
+/**
+ * Recorte curto da trilha para a tela (T7.3.6, ≤ 120 palavras): até 2 degraus prontos para resgatar e os
+ * próximos a alcançar, até `size`. Quando nada falta resgatar e a trilha acabou, os últimos degraus.
+ */
+export function trackWindow<T extends { step: number; unlocked: boolean; claimed: boolean }>(rewards: readonly T[], step: number, size = 4): T[] {
+  const sorted = [...rewards].sort((a, b) => a.step - b.step);
+  const pending = sorted.filter((r) => r.unlocked && !r.claimed).slice(0, 2);
+  const ahead = sorted.filter((r) => r.step > step && !pending.includes(r));
+  const picked = [...pending, ...ahead].slice(0, size);
+  if (picked.length < size) {
+    const rest = sorted.filter((r) => !picked.includes(r)).slice(-(size - picked.length));
+    picked.push(...rest);
+  }
+  return picked.sort((a, b) => a.step - b.step);
+}
+
 /* ---------- Pausa de saúde ---------- */
 
 export const PAUSE_WEEKS = [1, 2, 3, 4] as const;
