@@ -5,11 +5,11 @@
 
 ## Estado atual (resumo)
 
-- **Fase:** **7 — Reformulação v2: ondas 1 a 4 integradas e documentação fechada (F6)** (`docs/melhoria/PLANO-MESTRE.md`). Falta só o que depende dos autores: deploy do backend v2 e das flags, slides com as telas novas, push final e prévia web. Fases 0–6 concluídas (MVP + visual neon).
+- **Fase:** **7 — Reformulação v2: ondas 1 a 4 integradas e documentação fechada (F6)** (`docs/melhoria/PLANO-MESTRE.md`). Falta só o que depende dos autores: deploy do backend v2 e das flags, push final e prévia web. Slides da v2 prontos (P-41). Fases 0–6 concluídas (MVP + visual neon).
 - **Requisitos (61):** 39 ✅ · 17 🟡 · 3 ⬜ · 2 ➖. Nenhum P0 sem fazer (P0: 18 ✅, 7 🟡). Detalhes em `REQUISITOS.md` (o resumo antigo, 32/22, tinha um erro de soma).
 - **Testes (2026-10-28, branch `claude/affectionate-gauss-e8gm77`, banco local sem Docker):** app Jest **1.411 ✅** (26 de integração pulados sem `NOMADE_IT`) · `typecheck` ok · eslint 0 · pgTAP **832/832** em 29 arquivos · Deno **87 ok, 1 ignorado** · `demo-mode-flow` **21/21** (0 pedidos ao servidor) · 165 capturas "depois" sem erro de página · bundle web **1.186.919 B gzip** (orçamento 1.250.000). Não rodados aqui (precisam do Supabase local com Docker): `demo-flow`, `auth-flow`, e2e, segurança HTTP (`run.sh`, `run-v2.sh`).
 - **Como rodar e apresentar:** `README.md` (modo demonstração, instalação e testes), `docs/COMO_APRESENTAR.md` (roteiro da v2 em 10 min, cenários `?cenario=`, banca, plano B), `apps/mobile/README.md`, `supabase/DEPLOY.md` §10 (deploy da v2).
-- **O que falta para a equipe humana:** A-1 (senhas das contas demo no Cloud), deploy do backend v2 e flags (`DEPLOY.md` §10), nomes dos mascotes e líderes (D-70), validar em aparelho (P-05, P-07, P-17, P-21, P-28, P-45 e os itens da v2), `npx expo install --fix` (P-37), revisão do ERS (P-02 → `ERS-ALTERACOES-PROPOSTAS.md`, agora v1.1 + v1.2), slides (P-41).
+- **O que falta para a equipe humana:** A-1 (senhas das contas demo no Cloud), deploy do backend v2 e flags (`DEPLOY.md` §10), nomes dos mascotes e líderes (D-70), validar em aparelho (P-05, P-07, P-17, P-21, P-28, P-45 e os itens da v2), `npx expo install --fix` (P-37), revisão do ERS (P-02 → `ERS-ALTERACOES-PROPOSTAS.md`, agora v1.1 + v1.2).
 - **Backend local:** API `http://127.0.0.1:54321` · chaves com `npx supabase status -o env` · e-mails em `http://127.0.0.1:54324` (`npm run mail`). Banco resetado no fim da Fase 5 (estado do seed).
 - **Bloqueios:** nenhum no código. Dependem de fora: aparelho físico, conta no Supabase Cloud, credenciais Google/Apple.
 
@@ -32,7 +32,6 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 | P-28 | Validar a Caça com GPS real (baús do servidor perto da última corrida, abrem no resumo oficial). Comentário de `listMyChestOpens` em `activities-repo.ts` desatualizado | 📱 💻 | A5/A4 | Fase 3 |
 | P-37 | QA-15: `npm audit` com avisos em ferramentas de build do SDK 57 (`npx expo install --fix` antes da entrega; bloqueado neste ambiente). A parte QA-14 (`apps/mobile/coverage/` no git) já foi resolvida pela coordenação | 🧑 | Equipe | T4.2 |
 | P-38 | QA-10 (risco aceito): o HMAC não prova que o cliente é o app oficial. Pós-MVP: Play Integrity/App Attest | 💻 | Pós-MVP | T4.2 |
-| P-41 | **Novo (A6):** slide "O que entregamos e o que falta" (`docs/apresentacao/slides/slides/entregas.html`, PDF e página web) ainda diz "60 testes" e "sem servidor". Atualizar com os números de `COMO_APRESENTAR.md` §5 e regerar | 🧑 | Autores | T5.1 |
 | P-43 | **Novo (A5, T6.5):** ajustes Baixa de layout — QA-20 alerta do mapa corta "pontos em dobro" (A8); QA-21 mais de 4 tamanhos de fonte em 21 de 28 telas (A7 com os donos); QA-23 "2 não lidas" quebra em 360 (A3); QA-24 nome "(você)" cortado no ranking em 360 (A8); QA-25 links do cadastro com 20 pt (A3) | 💻 | A3/A7/A8 | T6.5 |
 | P-44 | **Novo (A5, T6.5):** QA-22 — botões laranja, aba ativa e card "Sob ataque" com texto branco a 3,12:1 (marca aprovada, D-15). Decidir: rótulo ≥ 19 pt negrito, texto escuro sobre laranja ou `orangeText` no card | 🧑 | Autores + A7 | T6.5 |
 | P-45 | **Novo (A5, T6.5):** checklist do aparelho da Fase 6 (`QA.md` §14.7: folha 0,55/0,9, teclado, barra fixa acima das abas nativas, 60 fps, vibração, VoiceOver/TalkBack, reduzir movimento do sistema, tela bloqueada, área segura) | 📱 | Equipe/A5 | T6.5 |
@@ -64,6 +63,7 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 | P-35 | QA-11: pgTAP independente do estado do banco | A2 |
 | P-36 | QA-12/13: "Reduzir movimento", 44 pt, faixa amarela, testIDs (D-52) | A3 |
 | P-39 | App acompanhou o contrato da D-50 (D-53) | A3 |
+| P-41 | Apresentação refeita para a v2 (12 slides, capturas reais no modo demonstração); entregas com os números reais (1.419 Jest, pgTAP 832 em 29 arquivos, Deno 87, fluxo demo 21/21, 87 decisões); PDF e página web regerados | Coordenação (F6) |
 
 ## Modelo de entrada
 
@@ -78,6 +78,14 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 ```
 
 ## Log
+
+### 2026-10-28 — Fase 7, F6 — Apresentação da v2 (P-41) (Coordenação)
+- **Feito:** a apresentação passou de 10 para 12 slides e trocou as telas da v1 pelas capturas reais da v2 (modo demonstração, com o selo "Demonstração" visível e a marca "Telas reais · modo demonstração" nos slides de produto). Slides novos: **Primeira abertura** (escolha do time com mascote, cor e forma) e **Juntos** (card para Stories, feed da crew com "Bora!", recap semanal). Refeitos: **Correr** (corrida ao vivo com SOS, conquista provável, resumo com recompensas), **Conquistar** (pintura de trechos que desbotam em 7 dias, zona com o time que pintou mais ruas, regiões suavizadas, 13% → 62% na simulação), **Arena** (chefão do Raid ilustrado, Liga semanal, missões e baú do dia), **Como construímos** (servidor, mesmo código das regras no app e no servidor, RLS/HMAC), **Demonstração** (roteiro da v2) e **Entregas** (1.419 testes do app, 832 do banco em 29 arquivos, 87 das funções, 21/21 do fluxo demo, 39/61 requisitos, 87 decisões). Rodapés só com o número do slide; crédito do OpenStreetMap saiu do rodapé para o canto superior do mapa. A página web passou a ter os mesmos 12 slides do PDF (os 2 slides do mockup interativo mostravam telas da v1 e saíram; o mockup continua em `docs/apresentacao/mockup/`).
+- **Arquivos:** `docs/apresentacao/slides/deck.json`, `slides/slides/*.html` (novos `times.html` e `social.html`), `telas-v2/` (12 capturas comprimidas com pngquant, ~300 KB no total), `pdf/montar_pdf.py`, `pdf/gerar_pdf.js` (sem limite de 10 páginas), `web/montar_web.py`, `package.json` (script `web`), `NOMADE RUN - Apresentação.pdf` (3,7 MB, antes 4,3 MB), `web/NOMADE RUN Apresentação.html` e `web/img/` (telas antigas `tel-*.png` removidas), `README.md` da apresentação.
+- **Testes:** `npm run pdf` → 12 páginas; `npm run web` → 12 slides; cada slide renderizado em PNG (1920×1080) e revisado (texto cortado, sobreposição, contraste); página web aberta no Chromium: 0 imagens quebradas, 0 pedidos falhos. Busca por "TCC", "Claude", IA e agentes no PDF e nos slides: 0. Nenhum código do app mudou.
+- **Problemas encontrados:** a tela de corrida ao vivo no navegador não desenha o mapa (área vazia no topo); no slide Correr ela aparece recortada, só com o painel de baixo (tempo, ritmo, SOS e conquista provável).
+- **Pendências:** P-41 fechada. Os nomes dos mascotes e líderes ainda dependem da D-70 (os slides não citam nomes de mascote). As cópias online antigas da apresentação continuam na v1.
+- **Para o próximo:** ao trocar números ou telas, editar `docs/apresentacao/slides/slides/*.html` e rodar `npm run pdf` e `npm run web` em `docs/apresentacao` (passo a passo no README dali).
 
 ### 2026-10-28 — Fase 7: onda 4 integrada e documentação (F6) (Coordenador)
 - **Feito:**

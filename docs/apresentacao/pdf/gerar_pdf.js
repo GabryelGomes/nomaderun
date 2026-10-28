@@ -7,7 +7,7 @@ const [IN, PDF, PREV] = process.argv.slice(2);
   await p.goto('file://' + IN, { waitUntil: 'load' });
   await p.evaluate(() => document.fonts.ready);
   await p.waitForTimeout(500);
-  await p.pdf({ path: PDF, width: '1920px', height: '1080px', printBackground: true, pageRanges: '1-10' });
+  await p.pdf({ path: PDF, width: '1920px', height: '1080px', printBackground: true });
   if (PREV) {
     const secs = await p.$$('section');
     for (let i = 0; i < secs.length; i++) await secs[i].screenshot({ path: `${PREV}/s${String(i + 1).padStart(2, '0')}.png` });

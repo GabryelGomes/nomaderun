@@ -32,15 +32,17 @@
 </div>
 <div style="display:flex;flex-direction:column;gap:12px">
 <h3 style="font-family:'Unbounded', 'Arial Black', sans-serif;font-size:32px;font-weight:700;color:#F3F1ED">Arquitetura em camadas</h3>
-<p style="font-size:26px;color:#E4E1DB;background:#0F1013;border:1px solid #24252B;border-radius:14px;padding:18px 28px">Telas: React Native + Expo + TypeScript</p>
-<p style="font-size:26px;color:#E4E1DB;background:#0F1013;border:1px solid #24252B;border-radius:14px;padding:18px 28px">Funcionalidades: corrida, Arena, clube, perfil</p>
-<p style="font-size:26px;font-weight:600;color:#F3F1ED;background:#160E09;border:2px solid #FF6A13;border-radius:14px;padding:18px 28px;box-shadow:0 0 30px rgba(255,106,19,0.3)">Domínio: as regras do jogo, isoladas e testadas</p>
-<p style="font-size:26px;color:#E4E1DB;background:#0F1013;border:1px solid #24252B;border-radius:14px;padding:18px 28px">Grade geográfica H3 · Mapas · GPS</p>
+<p style="font-size:26px;color:#E4E1DB;background:#0F1013;border:1px solid #24252B;border-radius:14px;padding:18px 28px">App: React Native + Expo + TypeScript</p>
+<p style="font-size:26px;color:#E4E1DB;background:#0F1013;border:1px solid #24252B;border-radius:14px;padding:18px 28px">Servidor: Supabase, Postgres + PostGIS</p>
+<p style="font-size:26px;font-weight:600;color:#F3F1ED;background:#160E09;border:2px solid #FF6A13;border-radius:14px;padding:18px 28px;box-shadow:0 0 30px rgba(255,106,19,0.3)">Regras do jogo: o mesmo código no app e no servidor</p>
+<p style="font-size:26px;color:#E4E1DB;background:#0F1013;border:1px solid #24252B;border-radius:14px;padding:18px 28px">Segurança: RLS em toda tabela, HMAC e antifraude</p>
 </div>
 </div>
-<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#8A8883">07/10</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#8A8883">09/12</p>
 <aside>- Método em 4 etapas: pesquisa, ERS no modelo da disciplina, protótipo em ciclos curtos, testes.
 - A ERS: 27 requisitos funcionais, 15 não funcionais, 19 regras de negócio.
-- Arquitetura: as regras do jogo ficam numa camada sem interface. Por isso dá para testar pontuação, conquista e antifraude sem abrir o app.
+- Arquitetura: as regras do jogo ficam numa camada sem interface, e o mesmo código roda no app e no servidor. Dá para testar pintura, conquista, Raid e antifraude sem abrir o app.
+- O servidor é o juiz: cada celular assina os lotes de pontos (HMAC); o servidor confere, roda o antifraude e recalcula a corrida.
+- Toda tabela tem Row Level Security. A v2 entrou sem quebrar a primeira: as partes novas ficam atrás de chaves que começam desligadas.
 - React Native com Expo: um único código para iOS, Android e Web.</aside>
 </section>
