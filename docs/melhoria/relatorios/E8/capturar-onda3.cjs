@@ -96,10 +96,12 @@ async function main() {
 
     // 4) Feed: "Bora!" da E5 num colega e o aplauso ao vivo (Realtime de demonstração, ~4 s).
     await page.goto(`${base}/compartilhar/feed`, { waitUntil: 'networkidle' });
-    const first = page.locator('[data-testid^="feed-item-"]').first();
-    await first.waitFor({ timeout: 30_000 });
-    const mineId = (await first.getAttribute('data-testid')).replace('feed-item-', '');
+    await page.locator('[data-testid^="feed-item-"]').first().waitFor({ timeout: 30_000 });
+    // a corrida mais recente do corredor de demonstração (só o próprio item tem "Tirar do feed")
+    const mineId = (await page.locator('[data-testid$="-tirar"]').first().getAttribute('data-testid')).replace(/^feed-/, '').replace(/-tirar$/, '');
+    const first = tid(`feed-item-${mineId}`);
     const total = tid(`feed-${mineId}-bora-total`);
+    await first.screenshot({ path: path.join(out, 'feed-antes-ao-vivo-390.png') });
     report.liveBefore = (await total.count()) ? await total.getAttribute('aria-label') : null;
     await page.waitForTimeout(5200);
     report.liveAfter = (await total.count()) ? await total.getAttribute('aria-label') : null;

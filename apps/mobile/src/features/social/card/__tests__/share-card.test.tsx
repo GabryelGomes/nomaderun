@@ -66,8 +66,7 @@ describe('ShareCard — 5 modelos × 2 formatos', () => {
         expect(svg.props.height).toBeCloseTo((360 * H) / W, 5);
         expect(svg.props.accessibilityLabel).toBe(model.a11yLabel);
         const t = texts(r);
-        // no feed, o recap com mini-rotas não tem espaço para a ficha da sequência (só no Stories)
-        const expected = model.kind === 'week' && format === 'feed' ? EXPECTED.week.filter((s) => !s.startsWith('Sequência')) : EXPECTED[model.kind];
+        const expected = EXPECTED[model.kind];
         for (const s of expected) expect(t).toContain(s);
         expect(t).toEqual(expect.arrayContaining(['NEON STRIDERS', DEMO_STAMP, format === 'stories' ? CARD_SLOGAN_STORIES : CARD_SLOGAN_FEED]));
         // T7.3.7: o logo é o oficial da E4 (traço, sem <text>), não mais o logotipo provisório em texto.

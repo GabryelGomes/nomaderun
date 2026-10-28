@@ -111,7 +111,8 @@ export function BossCard({ model, format, art, ...surface }: Props<BossCardModel
   y += st ? 86 : 62;
   const chipY = y;
   const nameSize = fitFontSize(model.bossName, cardFonts.display, st ? 86 : 70, W - 144, 44);
-  const bossBox = { cx, cy, size: R * 2 };
+  // A arte da E4 tem folga em volta (nuvens, chão): a caixa é maior que o círculo para o chefão ler grande.
+  const bossBox = { cx, cy: cy - R * 0.08, size: R * 2.5 };
   const chipSize = st ? 28 : 24;
   return (
     <CardFrame format={format} faction={model.faction} isDemo={model.isDemo} username={model.username} statusTag={model.statusTag} a11yLabel={model.a11yLabel} bgId={id('bg')} bg={{ teamOpacity: 0.05, orangeOpacity: 0.3 }} {...surface}>

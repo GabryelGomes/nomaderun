@@ -14,7 +14,6 @@ import type Svg from 'react-native-svg';
 
 import { Button } from '@/components/button';
 import { ChipRow } from '@/components/chip-row';
-import { DemoBadge } from '@/components/demo-badge';
 import { EmptyState } from '@/components/empty-state';
 import { Icon } from '@/components/icon';
 import { haptic, PressableScale, ShimmerSkeleton } from '@/components/motion';
@@ -174,7 +173,6 @@ export function ShareScreen() {
       <Text variant="headline" style={{ flex: 1 }} accessibilityRole="header">
         Compartilhar
       </Text>
-      {demo ? <DemoBadge testID="compartilhar-demonstracao" /> : null}
       <PressableScale testID="compartilhar-fechar" accessibilityLabel="Fechar" onPress={close} hitSlop={8} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
         <Icon name="close" color={colors.text} />
       </PressableScale>

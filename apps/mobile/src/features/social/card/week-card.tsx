@@ -17,20 +17,23 @@ export function WeekCard({ model, format, regions, ...surface }: Props) {
   const { W } = CARD_FORMATS[format];
   const st = format === 'stories';
   const withRoutes = model.routes.length > 0;
-  let y = st ? 430 : 222;
+  // T7.3.7: começa abaixo do logo da E4 (o símbolo vai até y ≈ 362 nos Stories).
+  let y = st ? 470 : 222;
   const headY = y;
   y += st ? 228 : 170;
   const heroY = y;
   y += st ? 110 : 70;
   const chartY = y;
-  const ch = st ? (withRoutes ? 170 : 420) : withRoutes ? 96 : 150;
+  const ch = st ? (withRoutes ? 170 : 420) : withRoutes ? 130 : 180;
   const max = Math.max(1, ...model.bars.map((b) => b.meters));
   const bw = st ? 44 : 38;
   const gap = (W - 144 - bw * 7) / 6;
   y += ch + (st ? 90 : 66);
   const tilesY = y;
   const tw = (W - 144 - 2 * 24) / 3;
-  const th = st ? 340 : 220;
+  const th = st ? 310 : 250;
+  // Menos de 3 mini-rotas: centralizadas.
+  const tilesX = W / 2 - (model.routes.length * tw + Math.max(0, model.routes.length - 1) * 24) / 2;
   if (withRoutes) y += th + (st ? 100 : 70);
   else y += st ? 90 : 30;
   const totalsY = y;
@@ -73,7 +76,7 @@ export function WeekCard({ model, format, regions, ...surface }: Props) {
         <MapPanel
           key={i}
           id={id(`mini${i}`)}
-          box={{ x: 72 + i * (tw + 24), y: tilesY, w: tw, h: th, rx: 28 }}
+          box={{ x: tilesX + i * (tw + 24), y: tilesY, w: tw, h: th, rx: 28 }}
           routes={[r]}
           regions={regions}
           pad={38}
@@ -94,7 +97,7 @@ export function WeekCard({ model, format, regions, ...surface }: Props) {
           </CardText>
         </G>
       ))}
-      {model.streakChip && (st || !withRoutes) ? <CardChip cx={72} cy={chipY} label={model.streakChip} color={cardColors.orange} align="start" size={st ? 28 : 24} h={st ? 68 : 58} /> : null}
+      {model.streakChip ? <CardChip cx={72} cy={chipY} label={model.streakChip} color={cardColors.orange} align="start" size={st ? 28 : 24} h={st ? 68 : 58} /> : null}
     </CardFrame>
   );
 }

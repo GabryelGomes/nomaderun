@@ -13,7 +13,6 @@ import type Svg from 'react-native-svg';
 
 import { Button } from '@/components/button';
 import { ChipRow } from '@/components/chip-row';
-import { DemoBadge } from '@/components/demo-badge';
 import { EmptyState } from '@/components/empty-state';
 import { Icon } from '@/components/icon';
 import { haptic, PressableScale, ShimmerSkeleton } from '@/components/motion';
@@ -77,12 +76,12 @@ export function RecapScreen() {
     setCopied(false);
   };
 
+  // Sem selo próprio: o selo global de demonstração (`DemoSeal`, raiz) já fica no topo; o card leva o dele.
   const header = (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
-      <Text variant="headline" style={{ flex: 1 }} accessibilityRole="header">
+      <Text variant="headline" style={{ flex: 1 }} numberOfLines={1} accessibilityRole="header">
         Minha semana
       </Text>
-      {demo ? <DemoBadge testID="semana-demonstracao" /> : null}
       <PressableScale testID="semana-fechar" accessibilityLabel="Fechar" onPress={close} hitSlop={8} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
         <Icon name="close" color={colors.text} />
       </PressableScale>
