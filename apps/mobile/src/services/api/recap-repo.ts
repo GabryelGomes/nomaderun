@@ -77,10 +77,11 @@ export function toWeeklyRecap(data: unknown, fallbackWeekStart: string): WeeklyR
   };
 }
 
-const UNAVAILABLE_CODES = new Set(['PGRST202', 'PGRST205', '42883', '42P01']);
+const UNAVAILABLE_DETAILS = new Set(['PGRST202', 'PGRST205', '42883', '42P01', 'FEATURE_DISABLED']);
 
+/** Servidor sem o `weekly_recap` (ou flag desligada): o app monta o recap das próprias corridas. */
 export function isRecapUnavailable(error: AppError): boolean {
-  return error.detail === RECAP_UNAVAILABLE;
+  return error.detail === RECAP_UNAVAILABLE || (!!error.detail && UNAVAILABLE_DETAILS.has(error.detail));
 }
 
 /** A semana `weekStart` (`AAAA-MM-DD`, segunda). */
@@ -90,11 +91,6 @@ export async function getWeeklyRecap(weekStart: string): Promise<Result<WeeklyRe
     if (error) throw error;
     return toWeeklyRecap(data, weekStart);
   });
-  if (res.ok) return res;
-  const e = res.error;
-  const raw = `${e.message} ${e.detail ?? ''}`;
-  if (UNAVAILABLE_CODES.has(String(e.detail)) || /FEATURE_DISABLED|PGRST202|42883|could not find the function/i.test(raw)) {
-    return { ok: false, error: new AppError(e.code, 'Recap indisponível.', { detail: RECAP_UNAVAILABLE, cause: e }) };
-  }
-  return res;
+  if (res.ok || !isRecapUnavailable(res.error)) return res;
+  return { ok: false, error: new AppError('SERVER', 'O recap semanal ainda não está disponível.', { detail: RECAP_UNAVAILABLE }) };
 }

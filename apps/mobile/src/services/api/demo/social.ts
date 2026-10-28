@@ -344,6 +344,35 @@ export const DEMO_SOCIAL_RPC_HANDLERS: Record<string, RpcHandler> = {
     return next;
   },
 
+  /** Recap semanal (contrato no `recap-repo.ts`): só as corridas pontuadas da pessoa, semana de segunda a domingo em Brasília. */
+  weekly_recap: (db, userId, args) => {
+    const profile = requireUser(db, userId);
+    const asked = typeof args.p_week_start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(args.p_week_start) ? args.p_week_start : db.brToday();
+    const noon = Date.parse(`${asked}T12:00:00Z`);
+    const back = (new Date(noon).getUTCDay() + 6) % 7;
+    const weekStart = new Date(noon - back * DAY_MS).toISOString().slice(0, 10);
+    const from = Date.parse(`${weekStart}T03:00:00Z`); // 00:00 em Brasília
+    const runs = db.tables.activities.filter((a) => {
+      const t = msOf(a.started_at) ?? 0;
+      return a.user_id === userId && (a.status === 'valid' || a.status === 'partial') && t >= from && t < from + 7 * DAY_MS;
+    });
+    const days = [0, 0, 0, 0, 0, 0, 0];
+    for (const a of runs) days[Math.floor(((msOf(a.started_at) ?? from) - from) / DAY_MS)] += Number(a.meters) || 0;
+    const ids = new Set(runs.map((a) => a.id));
+    return {
+      weekStart,
+      days: days.map(Math.round),
+      runs: runs.length,
+      meters: Math.round(days.reduce((n, m) => n + m, 0)),
+      movingSeconds: runs.reduce((n, a) => n + (Number(a.moving_seconds) || 0), 0),
+      zones: db.tables.activity_zones.filter((z) => ids.has(z.activity_id) && z.outcome === 'conquered').length,
+      zonesHeld: null,
+      streakWeeks: Number(profile.streak_weeks) || 0,
+      activityIds: [...runs].sort((a, b) => (Number(b.meters) || 0) - (Number(a.meters) || 0)).slice(0, 3).map((a) => String(a.id)),
+      isDemo: true,
+    };
+  },
+
   record_share: (db, userId, args) => {
     requireUser(db, userId);
     if (db.activityOwner(args.p_activity) !== userId) throw raise('NOT_FOUND: corrida não encontrada');
