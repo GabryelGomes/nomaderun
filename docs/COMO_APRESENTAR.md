@@ -1,84 +1,100 @@
 # Como apresentar o NOMADE RUN
 
-Guia para a apresentação na faculdade: o que preparar no dia anterior, o roteiro da demonstração em cerca de 10 minutos, o que dizer sobre arquitetura e segurança, as perguntas prováveis da banca e o que fazer quando algo falhar.
+Guia para a banca: o que preparar, o roteiro da demonstração da v2 em cerca de 10 minutos, o que dizer sobre arquitetura e segurança, as perguntas prováveis e o que fazer quando algo falhar.
 
-Instalação e comandos básicos: [`README.md`](../README.md). Publicação na nuvem: [`supabase/DEPLOY.md`](../supabase/DEPLOY.md).
+Instalação e comandos: [`README.md`](../README.md). Publicação na nuvem: [`supabase/DEPLOY.md`](../supabase/DEPLOY.md) §10.
 
 ---
 
-## 1. Escolha onde o backend vai rodar
+## 1. Escolha como mostrar
 
-| Opção | Quando usar | O que muda |
+A demonstração principal usa o **modo demonstração**: o app inteiro roda com dados de exemplo guardados no próprio aparelho, sem servidor e sem internet. Toda tela mostra o selo "Demonstração", e o card compartilhado sai com "DADOS DE DEMONSTRAÇÃO".
+
+| Opção | Quando usar | Como abrir |
 |---|---|---|
-| **A. Backend local no notebook** | Rede da sala confiável e notebook com Docker | Celular e notebook na **mesma rede Wi-Fi**; o `.env` do app aponta para o IP do notebook (`http://<ip>:54321`). Se a rede da faculdade isolar os aparelhos entre si, use o roteador do próprio celular (ponto de acesso) para os dois |
-| **B. Supabase Cloud** | Não quer depender do notebook nem da rede local | Siga `supabase/DEPLOY.md` com `WITH_SEED=1` (contas e zonas de demonstração). O `.env` aponta para `https://<ref>.supabase.co`. Precisa de conta no Supabase |
-| **C. App publicado + Cloud (recomendado, já configurado)** | Apresentar sem notebook, de qualquer rede (Wi-Fi ou 4G) | Backend no projeto `rbdxksunpfbaxkelnsob` do Supabase Cloud e app no EAS Update (branch `demo`, conta `deltafaria785`). Abra pelo QR do botão **Preview** do último update em expo.dev, com o Expo Go logado numa conta do projeto. Para publicar uma versão nova: `npm run publicar -- "mensagem"` (usa sempre o `apps/mobile/.env.production`, nunca o `.env` local) |
+| **A. Demonstração no navegador (recomendada)** | Projetor ligado ao notebook; nenhuma dependência de rede | Em `apps/mobile`: `EXPO_PUBLIC_DEMO=1 npx expo start --web --clear` e abra `http://localhost:8081/?cenario=primeira-abertura`. Use o modo celular das ferramentas do navegador (390 px de largura) |
+| **B. Demonstração no celular** | Quer mostrar no aparelho, com vibração e animações reais | Em `apps/mobile`: `EXPO_PUBLIC_DEMO=1 npx expo start --clear` e leia o QR com o Expo Go. No celular, o app abre já com um corredor de exemplo (sem a escolha de time). No app da v2 publicado, a tela **Entrar** tem o botão **Ver demonstração** |
+| **C. Servidor de verdade** | Mostrar o servidor como juiz: tempo real, moderação, corrida sem internet | Backend local (`npm run db:start` e `npm run functions:serve`) ou o Supabase Cloud. As telas da v2 que dependem do servidor (pintura, Raid, Liga, missões, feed) só aparecem com as migrations e as flags da v2 ligadas (`DEPLOY.md` §10); sem elas, mostram "indisponível" |
 
-A, B e C funcionam com o Expo Go. Escolha uma e ensaie com ela.
+O `--clear` é obrigatório sempre que ligar ou desligar o `EXPO_PUBLIC_DEMO`: sem ele, o Expo reaproveita o pacote anterior.
 
-**Antes de usar a nuvem (B ou C):**
-- **Senhas das contas de demonstração:** as do seed estão no README, e o repositório é público. No projeto da nuvem, troque a senha de `admin.demo` e `moderador.demo` (painel **Authentication → Users**, ou no **SQL Editor**: `update auth.users set encrypted_password = crypt('NOVA_SENHA', gen_salt('bf')) where email in ('admin.demo@nomaderun.app','moderador.demo@nomaderun.app');`). Guarde as novas senhas só com a equipe.
-- **Limite de login:** suba para **30** em **Authentication → Rate Limits → Sign-ups and sign-ins** antes do ensaio e da apresentação; volte para 3 depois.
-- **Projeto pausado:** o plano gratuito pausa o projeto depois de uma semana sem uso; abra o app uns dias antes (ou clique em **Restore** no painel).
+### Cenários da demonstração (`?cenario=`, só no navegador)
+
+| Cenário | O que abre |
+|---|---|
+| `primeira-abertura` | Sem conta: Boas-vindas → cadastro → escolha do time. **Use no roteiro** |
+| `sem-time` | Conta criada, sem time: começa na escolha do time |
+| `cheio` (padrão) | Corredor com histórico, crew, feed e notificações |
+| `vazio` | Conta nova com time: telas nos estados vazios ilustrados |
+| `sob-ataque` | Como `cheio`, e um alerta de invasão chega alguns segundos depois de abrir |
+| `moderador` | Como `cheio`, com papel de moderador e 3 corridas em revisão |
+| `lento`, `erro`, `offline` | Cada pedido demora 2,5 s, falha com erro, ou falha por falta de rede |
+
+O cenário é lido quando a página carrega. Para trocar, mude a URL e recarregue.
+
+### Antes de usar a nuvem (opção C)
+
+- **Senhas das contas de demonstração (A-1):** as do seed estão no README, e o repositório é público. No projeto da nuvem, troque a senha de `admin.demo` e `moderador.demo` (painel **Authentication → Users**, ou no **SQL Editor**: `update auth.users set encrypted_password = crypt('NOVA_SENHA', gen_salt('bf')) where email in ('admin.demo@nomaderun.app','moderador.demo@nomaderun.app');`). Guarde as novas senhas só com a equipe.
+- **Limite de login:** suba para **30** em **Authentication → Rate Limits → Sign-ups and sign-ins** antes do ensaio; volte para 3 depois. A banca e você saem pelo mesmo IP.
+- **Projeto pausado:** o plano gratuito pausa o projeto depois de uma semana sem uso. Abra o app uns dias antes, ou clique em **Restore** no painel.
+
+---
 
 ## 2. Checklist do dia anterior
 
-**Backend**
-- [ ] **Opção A:** `npm run db:start` e `npm run functions:serve` sobem sem erro; `npm run e2e` termina com `56/56`.
-- [ ] **Opção B:** deploy feito (`npm run deploy` com `WITH_SEED=1`) e conferido com o `curl` da seção 4 do `DEPLOY.md`.
-- [ ] **Opção B, limite de login (P-09/P-34):** no painel do Supabase, **Authentication → Rate Limits → "Sign-ups and sign-ins" = 30** por 5 min. A banca e você saem pelo mesmo IP da rede; com o valor normal (3) o login trava. Confira com 4 logins seguidos sem erro. **Depois da apresentação, volte para 3** (passo a passo em `DEPLOY.md` §3).
-- [ ] Banco no estado inicial: `npx supabase db reset` (opção A) **com antecedência**, e espere ~15 s antes de abrir o app. Logo depois do reset, o tempo real pode demorar alguns segundos para começar a entregar eventos (P-22). Cada ensaio conquista uma zona; resete de novo depois do último ensaio.
+**Demonstração (A ou B)**
+- [ ] `EXPO_PUBLIC_DEMO=1 npx expo start --web --clear` abre a tela de Boas-vindas com o selo "Demonstração".
+- [ ] Ensaio completo do roteiro da seção 3, do cadastro ao Você, sem erro.
+- [ ] Uma segunda aba em `?cenario=cheio`, para mostrar telas com dados se o tempo apertar.
+- [ ] Teste automático do mesmo fluxo (opcional, confirma que o pacote está bom): `EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear --output-dir /tmp/nomade-demo` e `NODE_PATH="$(npm root -g)" node e2e-web/demo-mode-flow.cjs /tmp/nomade-demo` → 21/21.
 
-**App**
-- [ ] `apps/mobile/.env` com a URL certa (IP do notebook ou URL da nuvem) e `npx expo start --clear`.
-- [ ] Celular 1 (o seu): Expo Go aberto, app carregando o mapa com as zonas de Goiânia.
-- [ ] Celular 2 ou navegador do notebook: conectado com `corredor.demo@nomaderun.app` / `Corrida@2026`, para mostrar a troca de dono em tempo real.
-- [ ] Navegador do notebook: `npx expo start --web` (ou tecla `w`), aba pronta com `moderador.demo@nomaderun.app` / `Moderacao@2026` para o painel de moderação.
-- [ ] Permissões de localização e notificações já concedidas no Expo Go (o pedido do sistema na frente da banca gasta tempo).
-- [ ] Faça uma corrida de ensaio em **Simulação** do começo ao fim e confira "Zona conquistada" no resumo.
+**Servidor (só se for usar a opção C)**
+- [ ] Local: `npm run db:start` e `npm run functions:serve` sem erro; `npx supabase db reset` com antecedência e ~15 s de espera antes de abrir o app (o tempo real demora a começar logo depois do reset).
+- [ ] Nuvem: deploy conferido (`DEPLOY.md` §10), limite de login em 30, senhas demo trocadas.
+- [ ] Navegador com `moderador.demo@nomaderun.app` pronto para o painel de moderação.
 
 **Aparelhos e sala**
-- [ ] Celular e notebook na mesma rede; teste o espelhamento da tela do celular no projetor.
-- [ ] Bateria acima de 80% nos dois, carregadores na mochila; brilho no máximo, modo "Não perturbe" ligado.
-- [ ] Vídeo de reserva (2 min) do roteiro abaixo gravado no notebook, sem depender de internet.
-- [ ] Slide "O que entregamos e o que falta" (`docs/apresentacao/slides/slides/entregas.html`) atualizado: ele ainda diz "60 testes" e "sem servidor". Use os números da seção 5 deste guia.
-- [ ] **Plano B do GPS:** use sempre a **Simulação** na demonstração. GPS real em sala fechada costuma ter sinal fraco, e ninguém vai correr no auditório.
+- [ ] Espelhamento do celular no projetor testado (opção B).
+- [ ] Bateria acima de 80%, carregadores na mochila, brilho no máximo, "Não perturbe" ligado.
+- [ ] Vídeo de reserva (2 min) do roteiro gravado no notebook.
+- [ ] Capturas de reserva abertas numa pasta: `docs/melhoria/capturas/depois/` (165 telas em 3 larguras).
+- [ ] Slides com os números da seção 5.
 
 ---
 
 ## 3. Roteiro da demonstração (~10 min)
 
-Faça a demo com uma **conta nova** no celular 1, para mostrar o cadastro. Entre parênteses, os requisitos do ERS que cada passo demonstra.
+Opção A, com `?cenario=primeira-abertura`. Entre parênteses, os requisitos do ERS que cada passo mostra.
 
 | # | Tempo | O que fazer | O que dizer | Requisitos |
 |---|---|---|---|---|
-| 1 | 1:00 | **Cadastro:** Criar conta, preencher nome de usuário, e-mail, senha, nascimento (mostre que menos de 16 anos é recusado) e aceitar **termos** e **privacidade** em separado | "Cada consentimento é separado, como pede a LGPD. A idade mínima é conferida no app e no banco." | RF-001, RNF-013 |
-| 2 | 0:40 | **Time:** escolher o time, depois as telas que explicam localização e notificações **antes** do pedido do sistema | "O app explica para que usa a localização antes de pedir." | RF-003, RNF-013 |
-| 3 | 0:50 | **Mapa:** mostrar as zonas de Goiânia, os chips "Todos os times" e "Só meu time", e o alerta "Parque Flamboyant sob ataque". Tocar no alerta e abrir a folha da zona (dono, influência, maiores corredores, eventos) | "As zonas vêm do servidor. O mapa mostra regiões de bairro; a grade de hexágonos fica só nas regras." | RF-007, RF-009, RF-010 |
-| 4 | 2:00 | **Correr:** Correr → Simulação → Começar (2 toques). Mostrar o 3-2-1, o percurso, o **SOS** sempre visível, o chip da Escolta, o guia por voz e a faixa "Território dos …" ao entrar em zona rival. Quando aparecer "Conquista garantida ao terminar" (cerca de 1 min), segurar "Segure para encerrar" por 600 ms | "A simulação percorre o Parque Flamboyant em 10× e desvia até a zona neutra mais próxima. O encerramento pede 600 ms pressionado para não terminar com o celular no bolso." | RF-004, RF-021, RF-024, RF-025, RNF-010, RNF-015 |
-| 5 | 0:40 | **Resumo oficial:** "Zona conquistada, mais N RP em <zona>", métricas e lista de zonas afetadas | "Este número veio do servidor, não do celular. O servidor recebeu os pontos assinados, rodou o antifraude e recalculou tudo." | RF-006, RF-008, RNF-006 |
-| 6 | 1:20 | **Sem internet:** ligar o modo avião, iniciar outra corrida em Simulação, encerrar após uns 20 s. O resumo aparece como **"Resumo provisório"**. Desligar o modo avião: o resumo é confirmado sozinho (ou toque "Tentar enviar agora") | "A corrida fica gravada no aparelho. Nenhum ponto se perde; quando a conexão volta, o envio é repetido sem duplicar." | RF-005, RNF-005 |
-| 7 | 0:40 | **Tempo real:** no celular 2 (ou navegador) com `corredor.demo`, o mapa da região já aberto mostra a zona do passo 5 com a cor do novo time, sem recarregar | "Nos testes locais, a troca de dono chega aos outros em menos de 1 segundo; o ERS pede até 3." | RNF-003, RF-007 |
-| 8 | 0:40 | **Notificações:** abrir o sino do mapa (central de notificações) e mostrar "Zona conquistada"; tocar e abrir a zona. No celular 2, tocar no alerta do parque sob ataque | "Quem é do time dono e correu na zona nos últimos 30 dias recebe o Alerta de Invasão, com limite de 1 por zona a cada 6 h e 5 por dia." | RF-009, RF-019, RN-003 |
-| 9 | 0:40 | **Clube:** rankings com os chips Temporada/Semana e Todos/cidade/Meu time/distrito; crew (criar ou mostrar) | "Os rankings são calculados no banco por semana ou temporada." | RF-011, RF-015, RF-020 |
-| 10 | 1:00 | **Painel de moderação (navegador):** com `moderador.demo`, Perfil → Painel de moderação → corrida de `suspeito_demo` → percurso, gráficos de velocidade e passos, alerta de veículo → **Aprovar** com uma justificativa de pelo menos 10 caracteres | "Só moderador e administrador entram aqui; o banco confere o papel, não só a tela. A justificativa é obrigatória e o corredor é notificado." | RF-018, RN-009 |
-| 11 | 0:30 | **LGPD:** no celular 1, Perfil → Conta e privacidade → **Exportar meus dados** (gera um JSON). Mostrar que **Excluir conta** pede a senha atual (não precisa excluir) | "A pessoa leva os próprios dados e pode apagar a conta pelo app." | RF-002, RNF-013 |
+| 1 | 1:00 | **Boas-vindas → Começar → cadastro.** Preencha nome, e-mail, senha e nascimento; aceite termos e privacidade em separado | "Cada consentimento é separado, como pede a LGPD. Menor de 16 anos é recusado no app e no banco." | RF-001, RNF-013 |
+| 2 | 1:30 | **Escolher o time:** "A cidade está dividida" → carrossel dos 4 times, com mascote e líder → toque em **Não sei escolher** para mostrar o quiz → escolha um time → a cor do time inunda a tela → explicação da localização antes do pedido | "Cada time tem mascote, líder e uma forma própria, para quem é daltônico. O app explica para que usa a localização antes de pedir." | RF-003, RNF-013 |
+| 3 | 1:00 | **Mapa:** zonas da cidade como regiões suavizadas, faixa de hoje (missão, baú, chefão) e a missão de boas-vindas | "A regra do território é uma frase: corra pelas ruas para pintá-las com a cor do seu time; a zona fica com o time que pintou mais ruas nela. O mapa nunca mostra a grade de hexágonos." | RF-007, RF-021 |
+| 4 | 1:30 | **Correr:** toque na missão de boas-vindas → **Simulação** → **Começar**. Mostre o tempo, a distância, o ritmo, a pintura prevista e o **SOS** sempre visível. Depois de ~20 s, segure **Segure para encerrar** | "Na conta real o padrão é o GPS; a simulação só existe na demonstração. Encerrar pede 600 ms pressionado, para não terminar com o celular no bolso." | RF-004, RF-024, RNF-010, RNF-015 |
+| 5 | 1:00 | **Resumo:** "Zona conquistada", métricas, bloco de recompensas (XP, missão, baú, sequência) | "Na conta real, esse resultado vem do servidor, que recalcula a corrida inteira. As recompensas são só XP e cosméticos: nada é vendido." | RF-006, RF-008, RF-016 |
+| 6 | 1:00 | **Compartilhar:** troque o modelo do card, mostre a versão sem rota e baixe a imagem | "O começo e o fim da rota são cortados e as zonas de privacidade somem, com uma folga sorteada. Assim, ninguém descobre onde você mora pelo card." | RF-017, RN-010 |
+| 7 | 1:00 | **Arena:** chefão da semana com a barra de vida e a "Sua parte", missões de hoje e os modos (Fuga, Caça, Liga) | "Toda semana um chefão invade a cidade: cada quilômetro tira 10 de vida. A chance de crítico está à vista." | RF-021, RF-026, RF-027 |
+| 8 | 0:40 | **Clube:** crew, km da semana, feed com **Bora!** e o pódio | "O feed é só da crew, com reações prontas e sem comentários, para não precisar de moderação de texto." | RF-011, RF-014, RF-015 |
+| 9 | 1:00 | **Você:** cartão do jogador, medalhas, **Ajustes** (pausa de saúde, notificações, telemetria desligada) → **Missões** → **Recompensas** (baú do dia com as chances) | "A sequência é semanal e tem pausa de saúde: descansar não é punido. Os lembretes têm limite de 1 por dia e nunca culpam. A telemetria vem desligada e só liga se a pessoa quiser." | RF-016, RF-019, RN-014, RNF-013 |
 
-Total: cerca de 10 min. Se o tempo for curto, corte os passos 9 e 11.
+Frase de transição: "Vou abrir o app como alguém que nunca usou, escolher um time e correr uma volta."
 
-Frase de transição para a demo: "Agora vou criar uma conta e correr uma volta no Parque Flamboyant em um minuto."
+**Se sobrar tempo, com o servidor de verdade (opção C):** no navegador, entre com `moderador.demo`, abra Você → Ajustes → **Moderação** e aprove a corrida de `suspeito.demo` com uma justificativa (RF-018, RN-009); num segundo aparelho, logado como `suspeito.demo` (senha no README), o sino recebe o aviso na hora (RF-019). Na conta real, a corrida usa o GPS de verdade (a simulação só existe na demonstração, D-76): para a corrida sem internet que vira "Resumo provisório" (RF-005), use o vídeo.
 
 ---
 
 ## 4. Arquitetura e segurança em 1 minuto
 
-> "São três partes: o app em React Native com Expo, o servidor no Supabase com Postgres e PostGIS, e o painel de moderação, que é o próprio app rodando no navegador.
+> "São três partes: o app em React Native com Expo, o servidor no Supabase com Postgres e PostGIS, e o painel de moderação, que é o próprio app no navegador.
 >
-> O servidor é o juiz. Cada celular tem uma chave própria e assina os lotes de pontos com HMAC-SHA256; o servidor recusa lote com assinatura errada, fora de ordem ou repetido com outro conteúdo. Depois ele recalcula a corrida inteira com as mesmas regras do app — o mesmo código TypeScript roda nos dois lados — e só então decide quem conquista cada zona.
+> O servidor é o juiz. Cada celular assina os lotes de pontos com HMAC; o servidor confere, roda o antifraude e recalcula a corrida com as mesmas regras do app — o mesmo código TypeScript roda nos dois lados.
 >
-> No banco, toda tabela tem Row Level Security: cada pessoa só lê os próprios dados privados, e só o servidor escreve em zonas e corridas. Conta inativada perde o acesso na hora. Os links de recuperação de senha usam PKCE.
+> A versão 2 entrou sem quebrar a primeira: tudo novo no servidor fica atrás de chaves que começam desligadas, e o app antigo continua funcionando.
 >
-> Testamos isso em camadas: 360 testes no app com 100% de cobertura das regras, 285 testes no banco, 58 nas functions, 56 verificações de ponta a ponta, 89 ataques simulados contra a API e o fluxo completo da demonstração no navegador com Playwright."
+> Toda tabela tem Row Level Security. As zonas de privacidade são escondidas por uma máscara deslocada e sorteada uma vez, para ninguém achar o centro tirando a média do buraco. O modo demonstração não faz nenhum pedido ao servidor, e um teste garante isso.
+>
+> Testamos em camadas: 1.411 testes no app, 832 no banco, 87 nas functions, o fluxo inteiro da demonstração no navegador e uma revisão adversarial da lógica, com todos os achados altos e médios corrigidos."
 
 ---
 
@@ -86,15 +102,17 @@ Frase de transição para a demo: "Agora vou criar uma conta e correr uma volta 
 
 | Item | Valor |
 |---|---|
-| Requisitos do ERS | 27 RF, 15 RNF, 19 RN (situação de cada um em `docs/REQUISITOS.md`) |
-| Testes do app (Jest) | 360 passando; regras do jogo com 100% de linhas e 99,6% de ramos cobertos |
-| Banco (pgTAP) | 285 testes em 13 arquivos |
-| Edge Functions (Deno) | 58 testes |
-| Ponta a ponta do backend | 56 verificações |
-| Segurança adversarial | 89 verificações, 0 achados abertos |
-| Navegador (Playwright) | fluxo da demo (14 passos), autenticação (17) e comparação de imagem (4 telas) |
-| Troca de dono em tempo real | 0,2 a 0,7 s (local; ERS pede ≤ 3 s) |
-| `/zones` com 2.000 zonas | p95 de 35 ms (local; ERS pede < 150 ms) |
+| Requisitos do ERS | 61: 39 ✅ · 17 🟡 · 3 ⬜ · 2 fora do MVP; nenhum P0 sem fazer (`docs/REQUISITOS.md`) |
+| Testes do app (Jest) | 1.411 passando (26 de integração rodam só com o backend); regras do jogo com cobertura mínima de 90% na CI |
+| Banco (pgTAP) | 832 testes em 29 arquivos |
+| Edge Functions (Deno) | 87 testes (1 ignorado) |
+| Fluxo completo da demonstração (Playwright) | 21/21 verificações, 0 pedidos ao servidor |
+| Capturas da v2 | 165 (55 telas e estados × 3 larguras), 0 texto com contraste abaixo de AA |
+| Texto por tela de jogo | média de 82 → 37 palavras |
+| Teste de 5 segundos | 4,3 de 5 (86%; meta 80%) |
+| Simulação do território v2 | novato que conquista na 1ª corrida: 13% → 62%; zonas "eternas": 38% → 11% |
+| Tamanho do app web | 1.186.919 B gzip (orçamento da CI: 1.250.000) |
+| Troca de dono em tempo real | 0,2 a 0,7 s (local; o ERS pede ≤ 3 s) |
 
 ---
 
@@ -102,19 +120,19 @@ Frase de transição para a demo: "Agora vou criar uma conta e correr uma volta 
 
 | Pergunta | Resposta curta |
 |---|---|
-| Como evitam trapaça (carro, bicicleta, GPS falso)? | O servidor descarta trechos acima de 40 km/h, saltos de posição e localização simulada; confere passos × velocidade; tem teto de 300 RP por zona por dia e um índice de confiança que manda corridas suspeitas para a moderação. Toda a pontuação é recalculada no servidor (RN-007 a RN-009, RNF-006). |
-| E se alguém escrever um app falso que assina os pontos? | É um limite conhecido: a chave é registrada pelo próprio aparelho, então a assinatura prova que o lote não foi alterado, mas não que veio do app oficial. O próximo passo é Play Integrity (Android) e App Attest (iOS). O antifraude no servidor continua valendo. |
-| Quem corre muito não domina tudo? | Os pontos são pelo esforço relativo ao próprio ritmo (mediana das últimas 10 corridas), com teto diário por zona, perda diária de influência sem corridas e reset mensal de temporada. |
-| Funciona sem internet? | Sim. Os pontos ficam numa fila no aparelho e são enviados quando a conexão volta; o reenvio não duplica nada. O resumo aparece como provisório até o servidor confirmar. |
-| E a privacidade? | Cada usuário só acessa os próprios dados (RLS no banco). Há até 3 zonas de privacidade que escondem os pontos perto de casa para outras pessoas. Exportar e excluir os dados ficam no app. |
-| Por que hexágonos nas regras se o mapa não mostra hexágonos? | A grade H3 deixa a regra justa e testável. Para a pessoa, o mapa mostra regiões suavizadas, que parecem bairros. |
-| Por que não Mapbox, como diz o ERS? | `react-native-maps` roda no Expo Go sem token e o visual aprovado já usava ele; na web usamos MapLibre. O ERS previa alternativa (§2.5). A mudança está proposta em `docs/ERS-ALTERACOES-PROPOSTAS.md`. |
-| Grava com a tela bloqueada? | Só em *development build*, com a flag `NOMADE_BACKGROUND_LOCATION=1`. O Expo Go não permite GPS em segundo plano. O código está pronto e ainda precisa ser validado em aparelho. |
-| Tem notificação push? | A central de notificações e o tempo real funcionam no Expo Go. Push remoto exige *development build* (o Expo Go no Android não recebe push desde o SDK 53). |
-| A Escolta mostra a posição ao vivo? | Não. No MVP ela compartilha a localização atual uma vez, ao ligar. O SOS abre o SMS com a localização para os contatos. Rastreamento contínuo precisa de mais backend (P-18). |
-| Aguenta 5.000 corredores ao mesmo tempo (RNF-001)? Quanto gasta de bateria (RNF-004)? | Não medimos. A ingestão foi projetada para isso (só grava; o cálculo é no fim) e os índices geográficos estão medidos localmente, mas o teste de carga com k6 e a medição de bateria em aparelho ficaram fora do MVP. |
-| Os testes rodam no celular? | Os fluxos Maestro (cadastro, login, UC-01, UC-02, UC-03) estão escritos e os IDs conferidos automaticamente, mas não rodaram em aparelho. No navegador, o fluxo inteiro roda com Playwright. |
-| Tem integração contínua (CI)? | Não. Todas as suítes rodam à mão com os comandos do README. É um próximo passo. |
+| Por que mudaram a regra do território? | Na regra antiga, quem chegou primeiro ficava com a zona para sempre e o novato quase nunca conquistava. Com a pintura, o novato que conquista na 1ª corrida passa de 13% para 62% na simulação. A troca acontece na virada de temporada. |
+| Isso é caixa de recompensa (loot box)? | Não. O baú do dia é grátis, só dá XP e cosméticos, mostra as chances e garante um lendário se ele demorar a sair. Não existe loja nem nada pago. |
+| A sequência não vicia ou pune quem descansa? | A sequência é semanal (2 atividades, caminhar vale), tem congelamento automático 1 vez por mês e pausa de saúde de até 4 semanas. Os lembretes têm limite de 1 por dia, nunca no dia em que a pessoa já correu, e nenhum texto de culpa (há teste que proíbe). |
+| Como evitam trapaça? | O servidor descarta trechos acima de 40 km/h, saltos e localização simulada, confere passos × velocidade, limita o dano do chefão a 30 km por dia e manda corridas suspeitas para a moderação. Tudo é recalculado no servidor. |
+| E a privacidade do card e do feed? | A rota perde o começo, o fim e as zonas de privacidade, com folga sorteada a cada geração. No servidor, as zonas são escondidas por uma máscara deslocada. Não há horário em lugar nenhum. |
+| E a telemetria? LGPD? | Opcional e desligada por padrão. Só 5 eventos com o dia, sem localização nem horário, apagados em 30 dias. Desligar apaga tudo na hora. Exportar e excluir a conta incluem tudo da v2. |
+| Os dados da demonstração são reais? | Não. É um mundo de exemplo dentro do app, marcado com o selo "Demonstração" em toda tela e no card. Na conta real, Raid, Liga e encontros mostram dado real ou um estado vazio, nunca número inventado. |
+| A v2 está no ar? | O app e o servidor da v2 estão prontos e testados. No Supabase Cloud, as partes novas ligam por chave, uma por vez, na ordem do `DEPLOY.md`; o território novo liga na troca de temporada. |
+| Por que o Raid é semanal, se o ERS diz 48 h? | Uma semana dá tempo para a cidade inteira participar e cabe na rotina de quem corre 2 ou 3 vezes. A mudança está proposta na revisão do ERS (`ERS-ALTERACOES-PROPOSTAS.md`). |
+| Grava com a tela bloqueada? Tem push? | Só em *development build*. O Expo Go não permite GPS em segundo plano nem push remoto no Android; os avisos chegam pela central e como notificação local. |
+| Tem integração contínua? | Sim. A cada push, o GitHub roda tipos, lint, testes do app, cobertura das regras, contraste, tamanho do app web, testes das functions e do banco. |
+| Os testes rodam no celular? | Os fluxos Maestro estão escritos e os IDs conferidos automaticamente, mas não rodaram em aparelho. No navegador, o fluxo inteiro roda com Playwright. |
+| Aguenta 5.000 corredores? Quanto gasta de bateria? | Não medimos. A ingestão foi projetada para isso, mas o teste de carga e a medição de bateria em aparelho ficaram fora do MVP. |
 
 ---
 
@@ -122,19 +140,18 @@ Frase de transição para a demo: "Agora vou criar uma conta e correr uma volta 
 
 | Falha | Sinal | O que fazer |
 |---|---|---|
-| **Sem internet na sala** | Mapa vazio ou "Sem internet: mostrando o último mapa salvo" | Opção A: crie uma rede com o celular (ponto de acesso), conecte o notebook nela e use o IP novo no `.env` (`npx expo start --clear`). Sem rede nenhuma: mostre o vídeo de reserva. |
-| **Backend fora do ar** | "Sem conexão com a internet…" ao entrar, mesmo com a rede funcionando | Opção A: confira os dois terminais (`npm run db:start`, `npm run functions:serve`) e rode `npx supabase status`. Opção B: veja se o projeto não foi pausado no painel do Supabase. Se não voltar em 1 minuto, vá para o vídeo. |
-| **GPS ruim** | Aviso de sinal fraco | Use a Simulação (já é o roteiro padrão). |
-| **Login travado** | "Muitas tentativas seguidas…" (erro 429) | Opção B: suba o limite em Authentication → Rate Limits; vale na hora. Opção A não tem limite. |
-| **Zona não troca de cor no celular 2** | Mapa do celular 2 parado | Arraste o mapa um pouco (recarrega a área) e siga. Se o banco acabou de ser resetado, espere ~15 s (P-22). |
-| **Resumo fica provisório com internet** | "Resumo provisório" depois de religar a rede | Toque "Tentar enviar agora". Se continuar, siga para o próximo passo e volte no fim. |
-| **Simulação não mostra "Conquista provável"** | Todas as zonas perto já foram conquistadas nos ensaios | Rode `npx supabase db reset` antes da apresentação. Na hora, a corrida ainda pontua; mostre o resumo com os pontos. |
-| **Qualquer travamento** | — | "Vou mostrar a gravação do mesmo fluxo." Não depure na frente da banca. |
+| **Sem internet na sala** | — | O modo demonstração não precisa de rede. Se o mapa-base não carregar, as regiões das zonas continuam aparecendo |
+| **Expo não sobe ou o pacote quebra** | Tela branca ou erro do Metro | `npx expo start --web --clear` de novo. Se não voltar em 1 minuto, mostre o vídeo ou as capturas de `docs/melhoria/capturas/depois/` |
+| **App abre sem o selo "Demonstração"** | Pede servidor ou mostra "Backend não configurado" | O `EXPO_PUBLIC_DEMO=1` não entrou: reinicie com `--clear`. No app publicado, vá em **Entrar → Ver demonstração** |
+| **Tela errada no começo** | Abre já no Mapa, sem cadastro | O cenário veio errado: corrija a URL para `?cenario=primeira-abertura` e recarregue |
+| **Servidor fora do ar (opção C)** | "Sem conexão…" com a rede funcionando | Confira `npm run db:start` e `npm run functions:serve`, ou se o projeto da nuvem foi pausado. Se não voltar, siga na demonstração |
+| **Login travado na nuvem** | "Muitas tentativas seguidas…" (429) | Suba o limite em **Authentication → Rate Limits**; vale na hora |
+| **Qualquer travamento** | — | "Vou mostrar a gravação do mesmo fluxo." Não depure na frente da banca |
 
 ---
 
 ## 8. Depois da apresentação
 
-- [ ] Opção B: voltar o limite de login para **3** e conferir com `npx supabase config diff` (P-09).
-- [ ] Opção B: trocar as senhas das contas de demonstração ou apagar o projeto, se o seed foi para a nuvem.
-- [ ] `npx supabase db reset` no banco local, se for continuar desenvolvendo.
+- [ ] Nuvem: voltar o limite de login para **3** e conferir com `npx supabase config diff`.
+- [ ] Nuvem: trocar de novo as senhas das contas de demonstração, ou apagar o projeto se o seed foi só para a apresentação.
+- [ ] Local: `npx supabase db reset`, se for continuar desenvolvendo.

@@ -1,7 +1,7 @@
 # Contrato da API (app ↔ Supabase)
 
 > Dono: **Backend (A2)**. O app (frontend e GPS) programa contra este contrato. Qualquer mudança aqui precisa de registro em `DECISOES_TECNICAS.md` e aviso no `PROGRESSO.md`.
-> Última revisão: 2026-10-23 (Fase 7, onda 1 da E9 — contrato v2 atrás de flags: `server_info`, `game_config`, livro de XP, baú do dia, cosméticos e medalhas, Raid, Liga, missões e trilha; seção **Contrato v2** no fim). Anterior: 2026-10-22 (Fase 4 do A2, correções do QA — D-50: convite de crew só para membros e `public_crews`, `ghostPace` só na Fuga, `/zones` com até 2.000, `avatar_url` só do bucket, conta inativa barrada no PostgREST, limites de pontos/corridas abertas, `endedAt`, staff por `staff_profiles`, exclusão com senha, cidade no cadastro). Anterior: 2026-10-20 (Fase 3, D-39 a D-44).
+> Última revisão: 2026-10-28 (Fase 7, fechamento F6 — contrato v2 completo, das ondas 1 a 3 e das correções da revisão; índice em **Contrato v2: onde está cada parte**). Anterior: 2026-10-23 (Fase 7, onda 1 da E9 — contrato v2 atrás de flags: `server_info`, `game_config`, livro de XP, baú do dia, cosméticos e medalhas, Raid, Liga, missões e trilha). Anterior: 2026-10-22 (Fase 4 do A2, correções do QA — D-50: convite de crew só para membros e `public_crews`, `ghostPace` só na Fuga, `/zones` com até 2.000, `avatar_url` só do bucket, conta inativa barrada no PostgREST, limites de pontos/corridas abertas, `endedAt`, staff por `staff_profiles`, exclusão com senha, cidade no cadastro). Anterior: 2026-10-20 (Fase 3, D-39 a D-44).
 
 Base das functions: `${EXPO_PUBLIC_SUPABASE_URL}/functions/v1/<nome>`. Todas exigem `Authorization: Bearer <JWT do usuário>` (o servidor confere o token no Auth a cada chamada; conta excluída ou banida recebe 401).
 Erros: HTTP 4xx/5xx com corpo `{ "error": { "code": "<CODIGO>", "message": "<texto em pt-BR>", "details"?: { ... } } }`. O campo `details` é opcional (hoje só `lastSeq`, ver ingest/finish).
@@ -201,6 +201,31 @@ Erros de RPC chegam do PostgREST com `message = "CODIGO: texto em pt-BR"` (separ
 | `job_season_rollover` | dia 1, 00:15 | RN-006: abre a temporada, influência × 0,30, devolve o congelamento mensal |
 | `job_raid_tick` (v2) | a cada 10 min | D-67: fecha o chefão que fugiu (domingo 21:00), premia uma vez, sorteia os pontos fracos do dia (fase ≥ 2) e abre a semana (segunda 06:00, só com `features.raid`) |
 | `job_close_league` (v2) | segunda 03:20 | D-68: fecha os grupos da semana (idempotente), sobe/desce, notifica e reserva os grupos da semana seguinte |
+| `job_fade_cells` (v2) | todo dia 03:00 | D-62: desbota 1 camada dos trechos sem passada do time há 7 dias, reavalia o dono e limpa `paint_marks`. Com `territory_rule = 'v2'`, substitui `job_decay_zones` e `job_fortify_zones` (que passam a rodar só na v1) |
+| `job_telemetry_retention` (v2) | todo dia 03:40 | D-82: apaga eventos de telemetria com mais de 30 dias |
+
+Nomes no `cron.job`: `nomaderun-fortify-zones`, `-decay-zones`, `-close-week`, `-season-rollover`, `-raid-tick`, `-close-league`, `-fade-cells` e `-telemetry-retention` (horários gravados em UTC = Brasília + 3 h).
+
+## Contrato v2: onde está cada parte
+
+Tudo é aditivo e fica atrás de `server_info().features` (todas `false` por padrão) ou de `territory_rule`. App novo com servidor antigo: `server_info` responde `PGRST202` e as telas novas mostram "indisponível". App antigo com servidor novo: não vê diferença enquanto as flags estiverem desligadas.
+
+| Parte | Flag | Leitura / ação do app | Gravação (servidor) | Realtime | Seção |
+|---|---|---|---|---|---|
+| Contrato e flags | — | `server_info()` | `game_config` (só os autores) | — | onda 1 |
+| Território por pintura (D-62) | `territory_rule = 'v2'` | `zone_paint_near` (+ `paintedToday`) | `finish-activity` → `extras.paint`; `job_fade_cells`; virada por trigger | `zones` | ondas 2 e 3 |
+| Raid (D-67) | `raid` | `raid_current` | `finish-activity` → `extras.raid`; `job_raid_tick` | `raids` | onda 1 |
+| Liga (D-68) | `league` | `league_current` | `finish-activity` → `extras.league`; `job_close_league` | — | onda 1 |
+| XP, níveis, missões, trilha (D-64, D-65) | `missions`, `track` | `my_engagement`, `my_missions`, `reroll_mission`, `claim_mission`, `my_track`, `claim_track_step`, `xp_history`, `equip_cosmetic`, `unequip_cosmetic` | `finish-activity` → `extras.engagement` | — | ondas 1 e 2 |
+| Baú do dia (D-66) | `dailyChest` | `my_daily_chest`, `open_daily_chests` | `extras.engagement.dailyChests` | — | onda 1 |
+| Sequência e pausa de saúde (D-63) | `streakV2` | `my_engagement().streak` (+ `pauseAvailable`), `start_health_pause`, `end_health_pause` | `job_close_week` | — | ondas 1 e 3 |
+| Recordes e parciais | `records` | `my_records` | `extras.records`; `activity_stats`, `personal_records` | — | onda 2 |
+| Feed da crew e aplausos (D-79) | `feed` | `crew_feed`, `react_feed_item`, `feed_item_kudos`, `delete_feed_item`, `my_feed_settings`, `set_feed_settings` | `extras.feed` | `feed_kudos_counts` | onda 2 e revisão (M1, M3, M4) |
+| Missões sociais | `missions` | `record_share`, `record_ranking_opened` | — | — | onda 1 |
+| Minha semana (recap) | — | `POST /weekly-recap` (ou `rpc('weekly_recap')`, sem rotas) | — | — | onda 3 e revisão (M5) |
+| Telemetria opt-in (D-82) | `telemetry` + consentimento | `my_telemetry_consent`, `set_telemetry_consent`, `track_events` | `job_telemetry_retention` | — | onda 3 e revisão (M2) |
+| LGPD v2 | — | `GET /account-export` (`account_export_v2`), `POST /account-delete` | cascata em todas as tabelas novas | — | ondas 2 e 3 |
+| Zonas de privacidade (D-87) | — | (sem RPC nova) | máscara estável em `zone_paint_near` e no percurso da staff | — | revisão (A1) |
 
 ## Contrato v2 (Fase 7, onda 1 da E9) — tudo atrás de flags
 
