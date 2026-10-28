@@ -3,25 +3,31 @@ import { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import { EmptyArt, TeamEmblem } from '@/components/art';
 import { Button } from '@/components/button';
 import { TeamBadge } from '@/components/team-badge';
 import { CountUp, RevealText, Stagger, useParallax } from '@/components/motion';
+import { SectionHeader } from '@/components/section-header';
 import { EmptyState, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { ErrorNotice, TextField } from '@/features/auth/form-ui';
+import { InviteCard } from '@/features/social/invite/invite-card';
 import { CREW_MAX_MEMBERS, createCrew, getMyCrew, joinCrew, leaveCrew, normalizeCrewTag, removeCrewMember, validateCrewName, validateCrewTag, validateInviteCode } from '@/services/api/crews-repo';
 import { useSession } from '@/store/session-store';
-import { factions, radius, space } from '@/theme/tokens';
+import { factions, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-import { SectionTitle } from './game-motion';
 import { useResource } from './use-resource';
 
-/** Gestão da crew (RF-011, RN-011): criar, entrar por código, sair, membros e ranking interno. */
+/**
+ * Gestão da crew (RF-011, RN-011): criar, entrar por código, sair, membros e ranking interno.
+ * T7.3.3 (E6c): emblema do time no topo, convite da E8 (`InviteCard`) no lugar da caixa do código e textos curtos.
+ */
 export function CrewScreen() {
   const { colors } = useTheme();
   const userId = useSession((s) => s.session?.userId ?? null);
   const faction = useSession((s) => s.profile?.faction ?? null);
+  const city = useSession((s) => s.profile?.city ?? null);
   const { data, error, loading, reload } = useResource(() => getMyCrew(userId ?? ''), [userId]);
   const [name, setName] = useState('');
   const [tag, setTag] = useState('');
@@ -83,8 +89,9 @@ export function CrewScreen() {
         <ActivityIndicator color={colors.action} />
       ) : error && data === null ? (
         <EmptyState
-          title={error.code === 'NETWORK' ? 'Sem internet' : 'Não foi possível carregar'}
-          body={error.code === 'NETWORK' ? 'Confira a conexão e toque em "Tentar de novo".' : error.message}
+          art={<EmptyArt kind="sem-conexao" size={150} />}
+          title={error.code === 'NETWORK' ? 'Sem internet' : 'Não deu para carregar'}
+          body={error.code === 'NETWORK' ? 'Confira a conexão.' : error.message}
           action={<Button testID="crew-tentar" label="Tentar de novo" kind="secondary" onPress={reload} />}
         />
       ) : data ? (
@@ -92,33 +99,21 @@ export function CrewScreen() {
           <Animated.View style={parallax.headerStyle} onLayout={(e) => setHeaderH(Math.round(e.nativeEvent.layout.height))}>
             <Surface>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
-                <TeamBadge faction={data.crew.faction} size={40} />
+                {data.crew.faction ? <TeamEmblem team={data.crew.faction} size={72} /> : <TeamBadge faction={null} size={48} />}
                 <View style={{ flex: 1 }}>
                   <RevealText variant="headline" testID="crew-nome">
                     {data.crew.name}
                   </RevealText>
-                  <Text muted>
-                    [{data.crew.tag}] · {data.members.length} de {CREW_MAX_MEMBERS} corredores
-                  </Text>
+                  <Text muted>{`[${data.crew.tag}] · ${data.members.length} de ${CREW_MAX_MEMBERS} corredores`}</Text>
                 </View>
-              </View>
-              <View style={{ padding: space[3], borderRadius: radius.md, backgroundColor: colors.surfaceSunken, gap: 2 }}>
-                <Text variant="caption" muted>
-                  Código de convite
-                </Text>
-                <Text variant="title" selectable testID="crew-codigo">
-                  {data.crew.inviteCode}
-                </Text>
-                <Text variant="small" muted>
-                  Só corredores dos {data.crew.faction ? factions[data.crew.faction].name : 'mesmo time'} podem entrar.
-                </Text>
               </View>
             </Surface>
           </Animated.View>
 
+          <InviteCard kind="crew" crewName={data.crew.name} code={data.crew.inviteCode} faction={data.crew.faction} city={city} testID="crew-convite" />
+
           <View style={{ gap: space[3] }}>
-            <SectionTitle title="Ranking da crew" />
-            <Text muted>Pontos de cada membro na temporada atual.</Text>
+            <SectionHeader title="Temporada" testID="crew-ranking" />
             <Surface>
               <Stagger delay={150} gap={space[1]}>
                 {data.members.map((m, i) => (
@@ -138,7 +133,7 @@ export function CrewScreen() {
                         </Text>
                       ) : null}
                     </View>
-                    <CountUp value={m.rp} variant="body" unit="RP" delay={250} accessibilityLabel={`${m.rp.toLocaleString('pt-BR')} RP`} />
+                    <CountUp value={m.rp} variant="body" unit="pts" delay={250} accessibilityLabel={`${m.rp.toLocaleString('pt-BR')} pontos`} />
                     {data.isLeader && m.userId !== userId ? (
                       <Button
                         testID={`crew-remover-${m.username}`}
@@ -159,10 +154,10 @@ export function CrewScreen() {
               <Text variant="bodyBold">Sair da crew?</Text>
               <Text variant="small" muted>
                 {data.isLeader && data.members.length > 1
-                  ? 'O membro mais antigo vira o novo líder.'
+                  ? 'O mais antigo vira líder.'
                   : data.members.length === 1
-                    ? 'Você é o único membro: a crew será apagada.'
-                    : 'Você pode entrar em outra crew depois.'}
+                    ? 'Só você: a crew some.'
+                    : 'Dá para entrar em outra depois.'}
               </Text>
               <Button
                 testID="crew-sair-confirmar"
@@ -179,11 +174,9 @@ export function CrewScreen() {
         </>
       ) : (
         <>
-          <Text muted>
-            Uma crew reúne até {CREW_MAX_MEMBERS} corredores do mesmo time{faction ? ` (${factions[faction].name})` : ''}. Você pode estar em uma crew por vez.
-          </Text>
+          <EmptyState art={<EmptyArt kind="sem-crew" team={faction ?? undefined} size={160} />} title={`Até ${CREW_MAX_MEMBERS} corredores ${faction ? `dos ${factions[faction].name}` : 'do seu time'}`} body="Uma crew por vez." compact />
           <View style={{ gap: space[3] }}>
-            <SectionTitle title="Entrar com código" />
+            <SectionHeader title="Entrar com código" testID="crew-secao-entrar" />
             <View style={{ gap: space[3] }}>
               <TextField
                 testID="crew-codigo-convite"
@@ -199,9 +192,9 @@ export function CrewScreen() {
             </View>
           </View>
           <View style={{ gap: space[3] }}>
-            <SectionTitle title="Criar uma crew" delay={100} />
+            <SectionHeader title="Criar uma crew" testID="crew-secao-criar" />
             <View style={{ gap: space[3] }}>
-              <TextField testID="crew-criar-nome" label="Nome da crew" value={name} onChangeText={setName} maxLength={30} error={nameError} help="De 3 a 30 caracteres." />
+              <TextField testID="crew-criar-nome" label="Nome da crew" value={name} onChangeText={setName} maxLength={30} error={nameError} help="3 a 30 caracteres." />
               <TextField
                 testID="crew-criar-sigla"
                 label="Sigla"
@@ -211,7 +204,7 @@ export function CrewScreen() {
                 autoCorrect={false}
                 maxLength={5}
                 error={tagError}
-                help="De 3 a 5 letras, aparece ao lado do seu nome nos rankings."
+                help="3 a 5 letras, ao lado do seu nome."
               />
               <Button testID="crew-criar" label={busy === 'criar' ? 'Criando…' : 'Criar crew'} disabled={busy !== null} onPress={create} />
             </View>

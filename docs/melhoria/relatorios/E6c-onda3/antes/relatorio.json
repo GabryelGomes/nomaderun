@@ -1,0 +1,222 @@
+{
+  "resumo": {
+    "geradoEm": "2026-10-28T11:12:48.575Z",
+    "relogioDaDemonstracao": "2026-10-23T12:00:00.000Z",
+    "export": "/tmp/claude-0/-home-user-nomaderun/fc6c6825-489b-5478-95eb-ab2a4c07f1ba/scratchpad/e6c-onda3/antes-dist",
+    "capturas": 5,
+    "refeitasNestaExecucao": 5,
+    "minutos": 0.2,
+    "bytesDestaExecucao": {
+      "before": 322026,
+      "after": 105595
+    },
+    "bytesNaPasta": 105595,
+    "paginasComErro": [],
+    "pedidosAoServidor": 0,
+    "pedidosExternosBloqueados": []
+  },
+  "capturas": [
+    {
+      "file": "arena__cheio__390.png",
+      "route": "/arena",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/arena?cenario=cheio",
+      "loadMs": 2448,
+      "fcpMs": 904,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 153
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__cheio__390.png",
+      "route": "/clube",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/clube?cenario=cheio",
+      "loadMs": 2804,
+      "fcpMs": 1324,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-season",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-week",
+            "w": 80,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-geral",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-cidade",
+            "w": 98,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-time",
+            "w": 87,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-distrito",
+            "w": 130,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 285
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube-crew__cheio__390.png",
+      "route": "/clube/crew",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/clube/crew?cenario=cheio",
+      "loadMs": 2774,
+      "fcpMs": 1084,
+      "screens": [
+        "tela-crew"
+      ],
+      "audit": {
+        "interactive": 6,
+        "small": [],
+        "unlabeled": [],
+        "words": 65
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "arena__vazio__390.png",
+      "route": "/arena",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/arena?cenario=vazio",
+      "loadMs": 2408,
+      "fcpMs": 764,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 153
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__vazio__390.png",
+      "route": "/clube",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/clube?cenario=vazio",
+      "loadMs": 2705,
+      "fcpMs": 852,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-season",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-periodo-week",
+            "w": 80,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-geral",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-cidade",
+            "w": 98,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-time",
+            "w": 87,
+            "h": 36
+          },
+          {
+            "id": "ranking-escopo-distrito",
+            "w": 102,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 293
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    }
+  ]
+}
