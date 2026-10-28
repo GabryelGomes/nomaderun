@@ -1,0 +1,43 @@
+# T7.3.3 (E6c): Arena (chefão, "?" com a regra em 3 cartões, grade de modos) e Clube (crew, ranking com 1 linha de filtro).
+# Os toques nas abas usam o texto (o testID das abas nativas não chega ao Maestro no Android).
+appId: ${APP_ID}
+name: Arena e Clube
+tags: [t7-3-3, arena, clube]
+---
+- runFlow: subflows/entrar-demo.yaml
+- tapOn:
+    text: "Arena"
+- extendedWaitUntil:
+    visible:
+      id: "tela-arena"
+    timeout: 15000
+- tapOn:
+    id: "arena-ajuda-abrir"
+- extendedWaitUntil:
+    visible:
+      id: "arena-ajuda"
+    timeout: 10000
+- tapOn:
+    id: "arena-ajuda-fechar"
+- tapOn:
+    id: "arena-modo-fuga"
+- extendedWaitUntil:
+    visible:
+      id: "corrida-comecar"
+    timeout: 15000
+- tapOn:
+    id: "corrida-fechar"
+- tapOn:
+    text: "Clube"
+- extendedWaitUntil:
+    visible:
+      id: "tela-clube"
+    timeout: 15000
+- tapOn:
+    id: "ranking-quadro-cidades"
+- tapOn:
+    id: "clube-crew"
+- extendedWaitUntil:
+    visible:
+      id: "tela-crew"
+    timeout: 15000

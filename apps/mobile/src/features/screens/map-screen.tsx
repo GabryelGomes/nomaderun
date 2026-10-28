@@ -182,7 +182,7 @@ export function MapScreen({ today }: MapScreenProps = {}) {
   const attacked = useMemo(() => zonesUnderAttack(zones, faction, now), [zones, faction, now]);
   const mission = today?.mission ?? welcomeMission(runCount);
   const dayToday: MapToday = { ...today, mission };
-  const chips: DailyItem[] = todayChips(dayToday, streakWeeks);
+  const chips: DailyItem[] = todayChips(dayToday, streakWeeks).map(({ href, ...c }) => (href ? { ...c, onPress: () => router.push(href) } : c));
   const candidates = mapAlerts({
     attacked,
     zoneName: (id) => displayZoneName(id, meta[id]?.name),
@@ -266,10 +266,8 @@ export function MapScreen({ today }: MapScreenProps = {}) {
           )}
         </View>
 
-        {/* Faixa de hoje: só os chips verdadeiros (sem dado, o chip não existe). Deixa espaço à direita para o sino. */}
-        <View style={{ marginRight: 56 }}>
-          <DailyStrip items={chips} testID="mapa-hoje" />
-        </View>
+        {/* Faixa de hoje: só os chips verdadeiros (sem dado, o chip não existe). O sino fica abaixo (mapControlsTop). */}
+        <DailyStrip items={chips} testID="mapa-hoje" />
 
         {changes && !changesGone ? (
           <FadeUp distance={-12} duration={400}>
@@ -326,7 +324,7 @@ export function MapScreen({ today }: MapScreenProps = {}) {
               done={mission.done}
               reward={mission.reward}
               demo={today?.demo}
-              onPress={() => router.push('/corrida')}
+              onPress={() => router.push(mission.href ?? '/corrida')}
             />
           </FadeUp>
         ) : top ? (

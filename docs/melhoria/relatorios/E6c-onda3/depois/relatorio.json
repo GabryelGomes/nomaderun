@@ -1,0 +1,272 @@
+{
+  "resumo": {
+    "geradoEm": "2026-10-28T17:23:05.634Z",
+    "relogioDaDemonstracao": "2026-10-23T12:00:00.000Z",
+    "export": "/tmp/claude-0/-home-user-nomaderun/fc6c6825-489b-5478-95eb-ab2a4c07f1ba/scratchpad/e6c-onda3/depois-dist",
+    "capturas": 5,
+    "refeitasNestaExecucao": 5,
+    "minutos": 0.2,
+    "bytesDestaExecucao": {
+      "before": 359818,
+      "after": 119969
+    },
+    "bytesNaPasta": 601275,
+    "paginasComErro": [],
+    "pedidosAoServidor": 0,
+    "pedidosExternosBloqueados": []
+  },
+  "capturas": [
+    {
+      "file": "arena__cheio__390.png",
+      "route": "/arena",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/arena?cenario=cheio",
+      "loadMs": 2669,
+      "fcpMs": 1500,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 72
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__cheio__390.png",
+      "route": "/clube",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/clube?cenario=cheio",
+      "loadMs": 2660,
+      "fcpMs": 900,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 29,
+        "small": [
+          {
+            "id": "feed-feed-demo-colega-1-bora",
+            "w": 104,
+            "h": 40
+          },
+          {
+            "id": "feed-feed-demo-colega-1-fogo",
+            "w": 57,
+            "h": 40
+          },
+          {
+            "id": "feed-feed-demo-colega-1-raio",
+            "w": 52,
+            "h": 40
+          },
+          {
+            "id": "feed-feed-demo-colega-1-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-quem",
+            "w": 65,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-1-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-2-bora",
+            "w": 104,
+            "h": 40
+          },
+          {
+            "id": "feed-feed-demo-colega-2-fogo",
+            "w": 52,
+            "h": 40
+          },
+          {
+            "id": "feed-feed-demo-colega-2-raio",
+            "w": 52,
+            "h": 40
+          },
+          {
+            "id": "feed-feed-demo-colega-2-quem",
+            "w": 55,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-2-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-colega-3-bora",
+            "w": 104,
+            "h": 40
+          },
+          {
+            "id": "feed-feed-demo-colega-3-fogo",
+            "w": 57,
+            "h": 40
+          },
+          {
+            "id": "feed-feed-demo-colega-3-raio",
+            "w": 52,
+            "h": 40
+          },
+          {
+            "id": "feed-feed-demo-colega-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-quem",
+            "w": 66,
+            "h": 36
+          },
+          {
+            "id": "feed-feed-demo-corrida-3-tirar",
+            "w": 85,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-cidades",
+            "w": 81,
+            "h": 36
+          },
+          {
+            "id": "ranking-filtros",
+            "w": 135,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 279
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube-crew__cheio__390.png",
+      "route": "/clube/crew",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/clube/crew?cenario=cheio",
+      "loadMs": 2566,
+      "fcpMs": 892,
+      "screens": [
+        "tela-crew"
+      ],
+      "audit": {
+        "interactive": 9,
+        "small": [],
+        "unlabeled": [],
+        "words": 83
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "arena__vazio__390.png",
+      "route": "/arena",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/arena?cenario=vazio",
+      "loadMs": 2485,
+      "fcpMs": 880,
+      "screens": [
+        "tela-arena"
+      ],
+      "audit": {
+        "interactive": 14,
+        "small": [],
+        "unlabeled": [],
+        "words": 69
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "clube__vazio__390.png",
+      "route": "/clube",
+      "state": "vazio",
+      "scenario": "vazio",
+      "width": 390,
+      "finalUrl": "/clube?cenario=vazio",
+      "loadMs": 2487,
+      "fcpMs": 816,
+      "screens": [
+        "tela-clube"
+      ],
+      "audit": {
+        "interactive": 11,
+        "small": [
+          {
+            "id": "ranking-quadro-individual",
+            "w": 99,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-crews",
+            "w": 70,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-faccoes",
+            "w": 69,
+            "h": 36
+          },
+          {
+            "id": "ranking-quadro-cidades",
+            "w": 81,
+            "h": 36
+          },
+          {
+            "id": "ranking-filtros",
+            "w": 135,
+            "h": 36
+          }
+        ],
+        "unlabeled": [],
+        "words": 152
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    }
+  ]
+}

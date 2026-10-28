@@ -14,19 +14,40 @@ import type { AppNotification } from '@/services/api/notifications-repo';
  */
 export type MapToday = {
   /** Sequência semanal (D-63): atividades feitas na semana e a meta (2). */
-  streak?: { done: number; goal: number; atRisk?: boolean } | null;
+  streak?: { done: number; goal: number; atRisk?: boolean; paused?: boolean } | null;
   /** Baú do dia (D-66): créditos acumulados (0..3) e, se houver, a distância até o baú mais perto. */
   chest?: { credits: number; meters?: number | null } | null;
   /** Chefão da semana (D-67): nome e vida (0..1). */
   boss?: { name: string; hp: number } | null;
   /** Missão em destaque (boas-vindas, volta ou a do dia). */
   mission?: MapMission | null;
+  /** Chip da missão aberta mais adiantada (E7: "40%" ou "Feitas"). */
+  featured?: { value: string; label: string } | null;
   demo?: boolean;
 };
 
-export type MapMission = { id: string; title: string; steps: readonly string[]; done: number; eyebrow?: string; reward?: string };
+export type MapMission = {
+  id: string;
+  title: string;
+  steps: readonly string[];
+  done: number;
+  eyebrow?: string;
+  reward?: string;
+  /** Para onde o cartão leva (padrão: Correr). As missões da E7 abrem `/missoes`. */
+  href?: '/corrida' | '/missoes';
+};
 
-export type TodayChip = { key: 'streak' | 'chest' | 'boss'; testID: string; icon: IconName; value: string; label: string; tone: 'action' | 'villain' | 'neutral' };
+export type TodayHref = '/recompensas' | '/missoes' | '/arena';
+export type TodayChip = {
+  key: 'streak' | 'chest' | 'boss' | 'mission';
+  testID: string;
+  icon: IconName;
+  value: string;
+  label: string;
+  tone: 'action' | 'villain' | 'neutral';
+  /** Tela que o chip abre (só quando o dado veio do engajamento/Raid). */
+  href?: TodayHref;
+};
 
 /**
  * Faixa de hoje: até 3 chips (sequência, baú do dia, chefão), só os verdadeiros. A sequência v1 (semanas,
@@ -35,16 +56,19 @@ export type TodayChip = { key: 'streak' | 'chest' | 'boss'; testID: string; icon
 export function todayChips(today: MapToday | null | undefined, streakWeeks: number): TodayChip[] {
   const out: TodayChip[] = [];
   if (today?.streak && today.streak.goal > 0) {
-    out.push({ key: 'streak', testID: 'mapa-hoje-sequencia', icon: 'fire', value: `${Math.max(0, today.streak.done)}/${today.streak.goal}`, label: 'Semana', tone: 'action' });
+    const s = today.streak;
+    out.push({ key: 'streak', testID: 'mapa-hoje-sequencia', icon: 'fire', value: s.paused ? 'Pausa' : `${Math.min(Math.max(0, s.done), s.goal)}/${s.goal}`, label: 'Semana', tone: 'action', href: '/recompensas' });
   } else if (streakWeeks > 0) {
     out.push({ key: 'streak', testID: 'mapa-hoje-sequencia', icon: 'fire', value: String(streakWeeks), label: streakWeeks === 1 ? 'semana' : 'semanas', tone: 'action' });
   }
   if (today?.chest && today.chest.credits > 0) {
-    out.push({ key: 'chest', testID: 'mapa-hoje-bau', icon: 'chest', value: today.chest.credits > 1 ? `${today.chest.credits}×` : '1', label: 'Baú do dia', tone: 'action' });
+    out.push({ key: 'chest', testID: 'mapa-hoje-bau', icon: 'chest', value: String(today.chest.credits), label: today.chest.credits > 1 ? 'Baús' : 'Baú', tone: 'action', href: '/recompensas' });
   }
   if (today?.boss && Number.isFinite(today.boss.hp)) {
-    out.push({ key: 'boss', testID: 'mapa-hoje-chefao', icon: 'raid', value: `${Math.round(Math.max(0, Math.min(1, today.boss.hp)) * 100)}%`, label: 'Chefão', tone: 'villain' });
+    out.push({ key: 'boss', testID: 'mapa-hoje-chefao', icon: 'raid', value: `${Math.round(Math.max(0, Math.min(1, today.boss.hp)) * 100)}%`, label: 'Chefão', tone: 'villain', href: '/arena' });
   }
+  // A missão em destaque entra se sobrar espaço (a faixa mostra no máximo 3 chips).
+  if (today?.featured) out.push({ key: 'mission', testID: 'mapa-hoje-missao', icon: 'trophy', value: today.featured.value, label: today.featured.label, tone: 'action', href: '/missoes' });
   return out;
 }
 
@@ -89,7 +113,7 @@ export function mapAlerts(input: {
   const b = input.today?.boss;
   if (b && b.hp > 0 && b.hp < 0.2) out.push({ id: 'chefao', kind: 'boss', title: `${b.name} com ${Math.round(b.hp * 100)}% de vida`, body: 'Seu próximo km pode derrubar' });
   const s = input.today?.streak;
-  if (s && s.atRisk && s.done < s.goal) {
+  if (s && s.atRisk && !s.paused && s.done < s.goal) {
     const left = s.goal - s.done;
     out.push({ id: 'sequencia', kind: 'streak', title: `${left} corrida${left > 1 ? 's' : ''} mantém a sequência`, body: 'A semana fecha domingo' });
   }

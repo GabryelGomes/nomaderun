@@ -79,6 +79,17 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-28 — Fase 7: segunda pausa a pedido do dono (Coordenador)
+- **Feito antes da pausa:**
+  - merge da `main` (artigo científico);
+  - CI corrigida (D-86) e **verde nos 4 jobs** (app, Deno, banco e export web).
+- **Onda 3:** foi relançada (T7.3.1 a T7.3.8) a partir de `092497c` e **parada no meio**, a pedido do dono. **Nada dela foi integrado.** O trabalho parcial de cada frente ficou num commit "WIP" na branch da worktree (`.claude/worktrees/agent-*`). Só serve se o contêiner ainda for o mesmo.
+- **Revisor (onda 4):** a revisão da lógica e da segurança (`docs/melhoria/relatorios/revisor-onda4-logica.md`) foi parada antes de produzir resultado.
+- **Para continuar:**
+  - relançar a onda 3 do `docs/melhoria/PLANO-MESTRE.md` §2. Se as worktrees ainda existirem, cada frente pode partir do próprio WIP: conferir, terminar e testar;
+  - em seguida, a revisão da lógica e a onda 4 (QA);
+  - por fim, o fechamento (F6).
+
 ### 2026-10-23 — Fase 7: pausa a pedido do dono (Coordenador)
 - **Estado:** ondas 1 e 2 integradas e enviadas (branch em `7dbdbba`). A **onda 3 foi interrompida** logo depois de começar, a pedido do dono, e **nada dela foi integrado**.
 - **Para continuar:** relançar a onda 3 do `docs/melhoria/PLANO-MESTRE.md` §2 (T7.3.1 a T7.3.8) a partir da branch atual; depois, a onda 4 (QA) e o fechamento. As worktrees parciais em `.claude/worktrees/` (se ainda existirem) não devem ser aproveitadas.

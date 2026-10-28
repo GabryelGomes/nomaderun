@@ -135,6 +135,8 @@ type EngState = {
   lifetimeBase: number;
   processed: Set<string>;
   seq: number;
+  /** Fatos declarados pelo app (`engagement_marks`): compartilhou o card, abriu o ranking (1 por tipo por dia). */
+  marks: { kind: 'share' | 'ranking_opened'; day: string; at: number }[];
 };
 
 const STATES = new WeakMap<DemoDb, Map<string, EngState>>();
@@ -209,8 +211,9 @@ function context(db: DemoDb, userId: string, at: number, exclude?: string): Miss
   };
 }
 
-function evidence(db: DemoDb, userId: string, at: number): MissionEvidence {
-  return { activities: scoredActs(db, userId, at), inCrew: !!db.crewOf(userId), leaguePoints: 0 };
+function evidence(db: DemoDb, st: EngState, userId: string, at: number): MissionEvidence {
+  const marks = (kind: EngState['marks'][number]['kind']) => st.marks.filter((m) => m.kind === kind && m.at <= at).map((m) => m.at);
+  return { activities: scoredActs(db, userId, at), inCrew: !!db.crewOf(userId), leaguePoints: 0, sharedAt: marks('share'), rankingOpenedAt: marks('ranking_opened') };
 }
 
 const nextId = (st: EngState, prefix: string) => `demo-${prefix}-${(st.seq += 1).toString(36)}`;
@@ -270,7 +273,7 @@ type Completed = { id: string; userMissionId: string; cadence: string; text: str
 
 /** `settleMission` nas atribuições abertas; a conclusão paga na hora (XP, baú bônus, cosmético). */
 function settleOpen(db: DemoDb, st: EngState, userId: string, at: number, live: boolean): Completed[] {
-  const ev = evidence(db, userId, at);
+  const ev = evidence(db, st, userId, at);
   const out: Completed[] = [];
   for (const a of st.assignments) {
     if (a.completedAt !== null) continue;
@@ -457,6 +460,7 @@ function stateOf(db: DemoDb, userId: string, exclude?: string): EngState {
     lifetimeBase: veteran ? CHEIO_LIFETIME_BASE_M : 0,
     processed: new Set(),
     seq: 0,
+    marks: [],
   };
   byUser.set(userId, st);
   for (const a of db.tables.activities.filter((x) => x.user_id === userId && x.status !== 'recording' && x.id !== exclude).sort((x, y) => (msOf(x.ended_at) ?? 0) - (msOf(y.ended_at) ?? 0))) {
@@ -617,6 +621,13 @@ function engagementJson(db: DemoDb, st: EngState, userId: string, now: number) {
   };
 }
 
+/** Guarda o fato (1 por tipo por dia, como `engagement_marks`) e paga as missões que ele concluir. */
+function mark(db: DemoDb, st: EngState, userId: string, kind: EngState['marks'][number]['kind'], now: number) {
+  const day = dayOf(now);
+  if (!st.marks.some((m) => m.kind === kind && m.day === day)) st.marks.push({ kind, day, at: now });
+  return settleOpen(db, st, userId, now, true).map(({ slot: _slot, ...c }) => c);
+}
+
 function open(db: DemoDb, userId: string | null) {
   requireUser(db, userId);
   const st = stateOf(db, userId!);
@@ -673,6 +684,20 @@ export const ENGAGEMENT_RPC_HANDLERS: Record<string, RpcHandler> = {
     if (!a) throw raise('NOT_FOUND: missão não encontrada');
     if (a.completedAt === null) throw raise('MISSION_NOT_COMPLETED: a missão ainda não foi concluída');
     return { id: a.id, claimed: false, alreadyClaimed: true, xp: missionById(a.missionId)?.xp ?? 0, claimedAt: a.claimedAt };
+  },
+
+  // Passo 7 da primeira semana (E7 vale sobre o par da E8, D-85): o compartilhamento conta para as missões.
+  record_share: (db, userId, args) => {
+    const { st, now, uid } = open(db, userId);
+    const act = db.tables.activities.find((a) => a.id === args.p_activity && a.user_id === uid && a.status !== 'recording');
+    if (!act) throw raise('NOT_FOUND: corrida não encontrada');
+    return { completed: mark(db, st, uid, 'share', now) };
+  },
+
+  // Alternativa do passo 6 sem liga real: "Veja o ranking do seu time".
+  record_ranking_opened: (db, userId) => {
+    const { st, now, uid } = open(db, userId);
+    return { completed: mark(db, st, uid, 'ranking_opened', now) };
   },
 
   my_daily_chest: (db, userId) => {

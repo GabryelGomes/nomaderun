@@ -11,6 +11,7 @@ import { DemoPgError, iso, msOf, raise, type ChestRow, type DemoDb, type Row } f
 import { DEMO_GAME_V2_RPC_HANDLERS } from './game-v2';
 import { DEMO_SOCIAL_RPC_HANDLERS } from './social';
 import { ENGAGEMENT_RPC_HANDLERS } from './engagement';
+import { DEMO_TELEMETRY_RPC_HANDLERS } from './telemetry';
 
 type RpcHandler = (db: DemoDb, userId: string | null, args: Row) => unknown;
 
@@ -154,6 +155,8 @@ export const DEMO_RPC_HANDLERS: Record<string, RpcHandler> = {
   ...DEMO_SOCIAL_RPC_HANDLERS,
   // Engajamento v2 (E7, T7.2.4): missões, baú do dia, trilha e pausa de saúde.
   ...ENGAGEMENT_RPC_HANDLERS,
+  // Telemetria opt-in (E7, T7.3.6): consentimento e eventos em lote.
+  ...DEMO_TELEMETRY_RPC_HANDLERS,
 };
 
 /** Nomes das RPCs que o servidor de demonstração atende (o teste de contrato confere contra os repositórios). */

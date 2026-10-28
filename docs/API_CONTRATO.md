@@ -352,3 +352,84 @@ Regras da gravação v2 (todas com o domain, D-02):
 | `job_fade_cells(now)` | diário 03:00 BRT: desbotar, temporada da pintura, dono reavaliado, limpeza de `paint_marks` |
 | `job_territory_switch(now)` / trigger em `game_config` | virada v1 → v2 com herança (3 trechos virtuais do dono por 7 dias) |
 | `private.domain_constants()` | constantes do domain repetidas no SQL (teste Deno `parity.test.ts`) |
+
+## Contrato v2 — onda 3 da E9 (T7.3.8)
+
+Tudo aditivo: campos novos em RPCs que já existem, uma RPC e uma Edge Function de leitura e a telemetria opt-in.
+Servidor antigo: o campo novo não vem (o app trata ausente como "não informado"); RPC nova responde `PGRST202` e a
+function nova responde 404 — o app trata como indisponível.
+
+### Campos novos em RPCs existentes
+
+| RPC | Campo novo | Conteúdo |
+|---|---|---|
+| `zone_paint_near(p_lat, p_lng, p_radius_m)` | `paintedToday: string[]` | ids (H3 res 11) dos trechos que **a própria pessoa** pintou hoje (Brasília), no mesmo raio e com o mesmo corte de zonas de privacidade de `cells`, ordenados. Sem hora, sem autor de ninguém. Sempre lista (vazia = nada). Trecho que já sumiu de `zone_cells` não vem |
+| `my_engagement()` | `streak.pauseAvailable: boolean \| null` | `true` = a pausa de saúde pode ser usada agora (sem pausa valendo e sem pausa usada nesta temporada); `false` = indisponível; `null` = sequência v2 desligada (`start_health_pause` responderia `FEATURE_DISABLED`) |
+
+**Preferências de notificação (`profiles.notification_prefs`):** só valores **booleanos** (CHECK novo
+`profiles_notification_prefs_boolean`; antes, um valor como `"abc"` derrubava a transação de outra pessoa). Chave
+ausente = ligada. Chaves que o servidor lê hoje: `invasion` e `conquest` (v1), `streak`, `league`, `raid` e `kudos` (v2).
+As chaves `chests`, `season`, `recap` e `comeback` do app são aceitas e guardadas, mas só os lembretes locais as usam.
+**`kudos` (aplausos) não está no `NotificationPrefs` do app:** sem a chave, a notificação de aplauso fica sempre ligada.
+
+### Resumo da semana (card "Minha semana", E8)
+
+| Endpoint | Entrada | Retorno | Erros |
+|---|---|---|---|
+| `POST /weekly-recap` (ou `GET ?weekStart=`) — **o app usa este** | `{ weekStart?: "AAAA-MM-DD" }` (segunda-feira; ausente = semana atual; até 52 semanas atrás) | `WeeklyRecap` (abaixo) com `routes` | 400 `VALIDATION`, 401 `UNAUTHORIZED` / `ACCOUNT_INACTIVE`, 404 `NOT_AVAILABLE` (servidor antigo) |
+| `rpc('weekly_recap', { p_week_start })` | idem (`null` = semana atual) | `WeeklyRecap` com `routes: []` | `VALIDATION`, `UNAUTHORIZED`, `ACCOUNT_INACTIVE` |
+
+```ts
+type WeeklyRecap = {
+  weekStart: string;        // "AAAA-MM-DD" (segunda)
+  weekEnd: string;          // domingo
+  final: boolean;           // a semana já acabou
+  days: number[];           // 7 inteiros, metros por dia, segunda primeiro (dia do início da corrida, Brasília)
+  meters: number; runs: number; movingSeconds: number;
+  zones: number;            // zonas conquistadas (distintas) na semana
+  streakWeeks: number; isDemo: boolean;
+  routes: { pieces: string[]; routeHidden: boolean }[];  // até 3 (as corridas mais longas)
+};
+```
+Contam as corridas `scored` com status `valid` ou `partial`. **Sem horário** em lugar nenhum. Cada rota é feita como a
+do feed: só os trechos válidos → `clipRouteForSharing` com **semente nova a cada chamada** → até 80 pontos →
+polylines de **precisão 4** → conferência (nada dentro de zona de privacidade nem a menos de ~135 m das pontas; se
+falhar, a rota fica de fora). Decodificar como o `route` do feed; o app precisa de um adaptador próprio para o card
+(`SharedRoute` só nasce do `clipRouteForSharing` local).
+
+### Telemetria opt-in (D-82) — para a E7
+
+Desligada por padrão em dois níveis: `server_info().features.telemetry` (flag do servidor) e o consentimento da
+pessoa (sem linha = sem consentimento). O cliente não lê nem escreve as tabelas; só as RPCs:
+
+| RPC | Parâmetros | Retorno | Erros |
+|---|---|---|---|
+| `my_telemetry_consent` | — | `{ optedIn, policyVersion, enabled }` (`enabled` = flag do servidor) | `UNAUTHORIZED` |
+| `set_telemetry_consent` | `p_opt_in` (boolean), `p_policy_version` (1–100, padrão 1) | `{ optedIn, policyVersion, deletedEvents }` — **retirar apaga na hora** todos os eventos da pessoa | `VALIDATION` |
+| `track_events` | `p_events`: lista de 1 a 50 `{ event, day?, props?, appVersion?, platform? }` | `{ accepted, dropped }` | `TELEMETRY_CONSENT` (sem consentimento: nada é gravado), `FEATURE_DISABLED`, `VALIDATION` (o lote inteiro é recusado) |
+
+- **`event` (lista fechada):** `app_open` (abrir; 1 por dia, o resto vira `dropped`), `run_finish` (correr), `zone_conquer`
+  (conquistar), `share` (compartilhar), `mission_complete` (missão concluída).
+- **`day`:** `"AAAA-MM-DD"` de hoje ou até 2 dias atrás (fila offline); ausente = hoje. Não há horário.
+- **`props`** (opcional, ≤ 256 bytes, até 6 chaves): só `model`, `format`, `withRoute`, `kind`, `source`, `missionId`,
+  `count`; valor booleano, inteiro de 0 a 100.000 ou texto `^[a-z0-9_-]{1,32}$` (sem ponto, vírgula ou espaço: nada de
+  coordenada nem texto livre). Ex.: `share` → `{ model: "run", format: "stories", withRoute: true }`.
+- **`appVersion`:** `^[0-9A-Za-z.+-]{1,20}$`; **`platform`:** `ios | android | web`.
+- **Tetos:** 200 eventos por pessoa por dia (o excedente é descartado e contado em `dropped`, para o app não reenviar).
+- **Retenção:** 30 dias (`job_telemetry_retention`, 03:40 BRT). **LGPD:** `telemetryConsent` e `telemetryEvents` no
+  `account_export_v2`; exclusão da conta apaga em cascata.
+
+### Tabelas novas (onda 3; o cliente não lê nem escreve)
+
+| Tabela | Colunas |
+|---|---|
+| `telemetry_consent` | `user_id` (PK), `opted_in`, `policy_version`, `updated_at` |
+| `telemetry_events` | `id`, `user_id`, `event`, `day`, `props`, `app_version`, `platform` (sem horário, sem localização) |
+
+### Funções do servidor (onda 3; só `service_role` / `private`)
+
+| Função | Uso |
+|---|---|
+| `svc_weekly_recap(user, week_start)` | números + `routeIds` (até 3) + `privacyZones`, só para a function `weekly-recap` (que remove os dois) |
+| `job_telemetry_retention(today)` | diário 03:40 BRT (`nomaderun-telemetry-retention`), apaga eventos com mais de 30 dias |
+| `private.cell_in_privacy_zone(lat, lng)` | o corte de privacidade de `zone_paint_near` (`cells` e `paintedToday`) |

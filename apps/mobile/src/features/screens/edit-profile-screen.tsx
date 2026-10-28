@@ -16,6 +16,7 @@ import { DEFAULT_NOTIFICATION_PREFS, type DistanceUnit, type NotificationPrefs }
 import { useSession } from '@/store/session-store';
 
 import { pickAndUploadAvatar } from './avatar-picker';
+import { initialsOf } from './profile-screen.model';
 import { factions, fonts, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
@@ -31,13 +32,7 @@ const UNITS: { id: DistanceUnit; label: string }[] = [
   { id: 'mi', label: 'Milhas (mi)' },
 ];
 
-export function initialsOf(name: string): string {
-  const parts = name.replace(/[_.]+/g, ' ').trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  const first = parts[0][0] ?? '';
-  const second = parts.length > 1 ? parts[1][0] : (parts[0][1] ?? '');
-  return (first + second).toUpperCase();
-}
+export { initialsOf };
 
 /** Editar perfil (RF-002): nome de usuário, cidade natal, unidade e preferências de notificação. */
 export function EditProfileScreen() {
