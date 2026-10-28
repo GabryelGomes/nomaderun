@@ -65,12 +65,12 @@ family(
 // ---------------------------------------------------------------- estados vazios novos
 family(
   'vazios',
-  'Estados vazios novos · sem medalhas (revisto), sem liga, sem chefão na semana, feed vazio e volte amanhã · 240 pt',
+  'Estados vazios novos · sem medalhas (revisto), sem liga, sem chefão na semana, feed vazio, volte amanhã e sem endereço (zonas de privacidade) · 300 pt',
   3,
   () => {
     const e = art('empty/empty-art.ts');
     const out = [];
-    for (const k of ['sem-medalhas', 'sem-liga', 'sem-chefao', 'feed-vazio', 'volte-amanha']) out.push(piece(e.emptyNodes(k, ART.orange, 'owls'), e.EMPTY_BOX, 300, { label: `${e.EMPTY_LABELS[k]} · ${k}` }));
+    for (const k of ['sem-medalhas', 'sem-liga', 'sem-chefao', 'feed-vazio', 'volte-amanha', 'sem-endereco']) out.push(piece(e.emptyNodes(k, ART.orange, 'owls'), e.EMPTY_BOX, 300, { label: `${e.EMPTY_LABELS[k]} · ${k}` }));
     out.push(piece(e.emptyNodes('volte-amanha', ART.orange, 'coyotes'), e.EMPTY_BOX, 300, { label: 'volte amanhã · com o Faro (Coyotes)' }));
     return out;
   },
@@ -84,8 +84,8 @@ family(
   () => {
     const e = art('empty/empty-art.ts');
     const out = [];
-    for (const k of ['sem-medalhas', 'sem-liga', 'sem-chefao', 'feed-vazio', 'volte-amanha']) out.push(piece(e.emptyNodes(k, ART.orange, 'striders'), e.EMPTY_BOX, 160, { label: `${e.EMPTY_LABELS[k]} · 160 pt` }));
-    for (const k of ['sem-medalhas', 'sem-liga', 'sem-chefao', 'feed-vazio', 'volte-amanha']) out.push(piece(e.emptyNodes(k, ART.orange, 'volt'), e.EMPTY_BOX, 120, { label: `120 pt` }));
+    for (const k of ['sem-medalhas', 'sem-liga', 'sem-chefao', 'feed-vazio', 'volte-amanha', 'sem-endereco']) out.push(piece(e.emptyNodes(k, ART.orange, 'striders'), e.EMPTY_BOX, 160, { label: `${e.EMPTY_LABELS[k]} · 160 pt` }));
+    for (const k of ['sem-medalhas', 'sem-liga', 'sem-chefao', 'feed-vazio', 'volte-amanha', 'sem-endereco']) out.push(piece(e.emptyNodes(k, ART.orange, 'volt'), e.EMPTY_BOX, 120, { label: `120 pt` }));
     for (const t of TEAMS) out.push(piece(e.emptyNodes('volte-amanha', ART.orange, t), e.EMPTY_BOX, 160, { label: `volte amanhã · ${t}` }));
     out.push(piece(e.emptyNodes('feed-vazio', ART.orange, 'coyotes'), e.EMPTY_BOX, 160, { label: 'feed vazio · coyotes' }));
     return out;
@@ -113,7 +113,7 @@ family(
 // ---------------------------------------------------------------- baú raro: conferência de cor
 family(
   'bau-raro-cor',
-  'Baú raro · conferência de cor contra os 4 times e o violeta dos vilões (ΔE2000 na legenda)',
+  'Baú raro · conferência de cor contra os 4 times e o violeta dos vilões (números ΔE2000 no relatório)',
   4,
   () => {
     const c = art('chest/chest-art.ts');

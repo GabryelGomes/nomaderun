@@ -1,6 +1,6 @@
 /**
- * Estados vazios (12) — 4 portados de `docs/melhoria/F1/arte/fonte/itens.cjs`, 4 novos na onda 1 e 4 na onda 3
- * (sem liga, sem chefão na semana, feed vazio e volte amanhã; o "sem medalhas" foi redesenhado).
+ * Estados vazios (13) — 4 portados de `docs/melhoria/F1/arte/fonte/itens.cjs`, 4 novos na onda 1 e 5 na onda 3
+ * (sem liga, sem chefão na semana, feed vazio, volte amanhã e sem endereço; o "sem medalhas" foi redesenhado).
  * viewBox 240 × 160. Regra da tela (E6): 1 ilustração + 1 frase + 1 ação; o texto fica fora do SVG.
  * Quando faz sentido, o mascote do time da pessoa aparece (o vazio vira personalidade). Puro.
  */
@@ -22,7 +22,8 @@ export type EmptyKind =
   | 'sem-liga'
   | 'sem-chefao'
   | 'feed-vazio'
-  | 'volte-amanha';
+  | 'volte-amanha'
+  | 'sem-endereco';
 export const EMPTY_KINDS: readonly EmptyKind[] = [
   'sem-corridas',
   'sem-crew',
@@ -36,6 +37,7 @@ export const EMPTY_KINDS: readonly EmptyKind[] = [
   'sem-chefao',
   'feed-vazio',
   'volte-amanha',
+  'sem-endereco',
 ];
 export const EMPTY_LABELS: Record<EmptyKind, string> = {
   'sem-corridas': 'Sem corridas',
@@ -50,6 +52,7 @@ export const EMPTY_LABELS: Record<EmptyKind, string> = {
   'sem-chefao': 'Sem chefão na semana',
   'feed-vazio': 'Feed vazio',
   'volte-amanha': 'Volte amanhã',
+  'sem-endereco': 'Sem endereço protegido',
 };
 /** Estados que usam o mascote do time (a prop `team`). */
 export const EMPTY_USES_TEAM: readonly EmptyKind[] = ['sem-notificacoes', 'sem-localizacao', 'volte-amanha'];
@@ -281,6 +284,29 @@ function semLocalizacao(a: string, team?: FactionId): ArtNode[] {
   return out;
 }
 
+/**
+ * Sem endereço protegido (zonas de privacidade, pedido da E6a): a casa no meio de um **raio tracejado** laranja;
+ * as ruas do mapa param na borda do raio (dentro dele, nada aparece para os outros). A porta tem cadeado.
+ */
+function semEndereco(a: string): ArtNode[] {
+  return [
+    // Ruas apagadas, cortadas na borda do raio (centro 120,84; raio 58).
+    neon(['M0 44 L 64 66', 'M176 70 L 240 88', 'M18 160 L 74 120', 'M164 122 L 206 160', 'M128 0 L 124 26'], ART.ink2, 2, { glow: 0, hot: 0, opacity: 0.4 }),
+    neon({ tag: 'circle', cx: 120, cy: 84, r: 58 }, a, 2, { fill: a, glow: 0, hot: 0, opacity: 0.06 }),
+    neon({ tag: 'circle', cx: 120, cy: 84, r: 58 }, a, 2.6, { glow: 0.8, hot: 0, dash: '7 6' }),
+    // A casa.
+    neon('M90 114 L 90 82 L 120 58 L 150 82 L 150 114 Z', ART.ink, 3.2, { fill: true, tint: 0.06 }),
+    neon('M84 86 L 120 56 L 156 86', ART.ink, 3.2, { glow: 0.8, hot: 0.4 }),
+    neon('M138 66 L 138 54 L 146 54 L 146 72', ART.ink2, 2.2, { glow: 0.3, hot: 0 }),
+    neon({ tag: 'rect', x: 111, y: 92, width: 18, height: 22, rx: 3 }, a, 2.4, { fill: true, tint: 0.14 }),
+    glowFill('M120 100 m -2.6 0 a 2.6 2.6 0 1 0 5.2 0 a 2.6 2.6 0 1 0 -5.2 0 M118.8 101.5 L 118 107 L 122 107 L 121.2 101.5 Z', ART.ink, { w: 0.5, glow: 0.6 }),
+    neon({ tag: 'rect', x: 96, y: 88, width: 10, height: 10, rx: 1.5 }, ART.ink2, 1.8, { glow: 0.2, hot: 0 }),
+    neon('M70 114 L 170 114', ART.ink2, 1.8, { glow: 0, hot: 0, dash: '2 6', opacity: 0.7 }),
+    spark(186, 30, 5, ART.ink),
+    spark(48, 132, 4, a),
+  ];
+}
+
 const cache = new Map<string, ArtNode[]>();
 
 /** `color` é o acento (padrão laranja); `team` escolhe o mascote nos estados que o usam. */
@@ -311,6 +337,8 @@ export function emptyNodes(kind: EmptyKind, color: string = ART.orange, team?: F
         return feedVazio(color);
       case 'volte-amanha':
         return volteAmanha(color, team ?? 'owls');
+      case 'sem-endereco':
+        return semEndereco(color);
     }
   });
 }
