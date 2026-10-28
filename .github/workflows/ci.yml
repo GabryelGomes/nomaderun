@@ -90,13 +90,14 @@ jobs:
         run: grep -q 'demonstracao@nomaderun.invalid' dist-web/_expo/static/js/web/entry-*.js
 
       - name: Tamanho do bundle (orçamento)
+        # D-86: orçamento revisto depois das ondas 1 e 2 (arte, motion, cards, engajamento): 1,25 MB gzip.
+        # Era 980 KB (linha de base + 10%); o export da onda 2 deu 1,127 MB. A onda 4 procura reduzir.
         # Linha de base 2026-10-23: entry 3.464.108 B (889.454 B gzip); com o modo demonstração, 909.056 B gzip.
-        # Orçamento: +10% sobre a linha de base.
         run: |
           f=$(ls dist-web/_expo/static/js/web/entry-*.js)
           raw=$(stat -c%s "$f"); gz=$(gzip -9c "$f" | wc -c)
           echo "entry: ${raw} B (${gz} B gzip)" | tee -a "$GITHUB_STEP_SUMMARY"
-          test "$gz" -le 980000 || { echo "::error::bundle web acima do orçamento (${gz} B gzip > 980000)"; exit 1; }
+          test "$gz" -le 1250000 || { echo "::error::bundle web acima do orçamento (${gz} B gzip > 1250000)"; exit 1; }
 
   functions:
     name: Edge Functions (Deno) e ponte do domain
@@ -124,21 +125,29 @@ jobs:
   db:
     name: Banco (migrations, seed e pgTAP sem Docker)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    env:
+      # Nenhum prompt: debconf não interativo e o needrestart do Ubuntu 24.04 reiniciando sozinho
+      # (a instalação ficou 15 min parada sem saída em 2026-10-23).
+      DEBIAN_FRONTEND: noninteractive
+      NEEDRESTART_MODE: a
     steps:
       - uses: actions/checkout@v4
 
       - name: Postgres 16 com PostGIS, pgTAP e pg_cron (apt)
+        timeout-minutes: 10
         shell: bash
         run: |
-          sudo apt-get update -qq
+          # -E leva o env acima para o apt; espera curta pela trava do apt; arquivos de configuração sem pergunta.
+          APT="sudo -E apt-get -o DPkg::Lock::Timeout=120 -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold"
+          $APT update -q
           # O banco-local.sh espera o Postgres 16 (/usr/lib/postgresql/16). Se o ubuntu-latest trouxer outra
           # versão como padrão, o repositório oficial do Postgres (PGDG) tem o 16 para todas as versões do Ubuntu.
           if ! apt-cache show postgresql-16-cron >/dev/null 2>&1; then
-            sudo apt-get install -y -qq postgresql-common
-            sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+            $APT install -y -q --no-install-recommends postgresql-common
+            sudo -E /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           fi
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+          $APT install -y -q --no-install-recommends \
             postgresql-16 postgresql-16-postgis-3 postgresql-16-pgtap postgresql-16-cron libtap-parser-sourcehandler-pgtap-perl
           ls /usr/share/postgresql/16/extension/{postgis,pgtap,pg_cron}.control
 

@@ -536,3 +536,13 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
   - **Coordenador:** o `paint-repo` aceita `cells`/`zones` como mapa (formato do servidor) ou lista.
 - **Consequências:** quem discordar abre uma decisão nova.
 
+### D-86 — Orçamento do bundle web revisto e instalação do banco na CI sem prompt
+2026-10-28 · Coordenador da Fase 7
+- **Contexto:** a CI ficou vermelha depois da onda 2 por dois motivos.
+  - O bundle web do modo demonstração chegou a 1.126.568 B gzip, acima do orçamento de 980.000 B (linha de base da onda 1 + 10%). A arte, as animações, os cards e o engajamento entraram de propósito.
+  - A instalação do Postgres 16 pelo apt no runner ficou 15 min parada, sem saída (`-qq`), e foi cancelada.
+- **Decisão:**
+  - **Bundle:** o orçamento passa a 1.250.000 B gzip. A onda 4 (QA) procura reduzir: rotas de desenvolvimento e de moderação carregadas sob demanda, e geometria repetida da arte.
+  - **Banco na CI:** o job `db` roda com `DEBIAN_FRONTEND=noninteractive`, `NEEDRESTART_MODE=a`, `sudo -E`, espera de trava do apt, `--no-install-recommends`, saída visível (`-q`) e limite de 10 min na instalação.
+- **Consequências:** nenhuma mudança no app.
+
