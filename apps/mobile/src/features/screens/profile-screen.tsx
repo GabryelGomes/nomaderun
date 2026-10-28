@@ -1,186 +1,154 @@
+import { Image } from 'expo-image';
 import { router, type Href } from 'expo-router';
-import { Switch, View } from 'react-native';
+import { View } from 'react-native';
 
-import { TeamBadge } from '@/components/team-badge';
-import { Icon } from '@/components/icon';
-import { CountUp, FadeUp, Pressable, RevealText, Stagger } from '@/components/motion';
+import { Mascot, Medal } from '@/components/art';
+import { FadeUp, ProgressRing, Stagger } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
-import { SectionHeader, Surface } from '@/components/surface';
+import { SectionHeader } from '@/components/section-header';
+import { SettingsRow } from '@/components/settings-row';
+import { PlayerCard } from '@/components/player-card';
+import { StatTile } from '@/components/stat-tile';
 import { Text } from '@/components/text';
-import { ProgressBar } from '@/components/territory-bar';
-import { levelFromXp } from '@/domain/games';
-import { trustLevel } from '@/domain/trust';
-import { signOut } from '@/features/auth/session-controller';
-import { canModerate } from '@/features/moderation/guard';
+import { districtsExploration, levelFromXp } from '@/domain/games';
+import { formatKm } from '@/domain/geo';
+import { titleForLevel } from '@/domain/progression';
+import { useEngagementData } from '@/features/engagement';
+import { mergeHistory } from '@/features/run/history-model';
+import { useNow } from '@/features/use-now';
+import { listMyActivities } from '@/services/api/activities-repo';
 import { useGame } from '@/store/game-store';
-import { selectUnreadCount, useNotifications } from '@/store/notifications-store';
 import { useSession } from '@/store/session-store';
-import { factions, space } from '@/theme/tokens';
+import { neonTeam } from '@/theme/neon';
+import { factions, fonts, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-const ACHIEVEMENTS = [
-  { title: 'Primeiros passos', body: 'Termine uma corrida', done: (runs: number) => runs >= 1 },
-  { title: 'Primeira zona', body: 'Conquiste uma zona', done: (_: number, zones: number) => zones >= 1 },
-  { title: 'Explorador', body: 'Revele 100 células da neblina', done: (_: number, __: number, fog: number) => fog >= 100 },
-];
+import { conqueredZones, initialsOf, medalShelf, weekKm } from './profile-screen.model';
+import { useResource } from './use-resource';
 
+/** Rotas da aba "Você" (D-73). */
+export const VOCE_ROUTES = { ajustes: '/perfil/ajustes', corridas: '/perfil/atividades', time: '/perfil/time' } as const;
+
+const RING = 72;
+const AVATAR = 56;
+
+/**
+ * "Você" (T7.3.1, wireframe 13): o cartão de jogador é o herói (anel de nível, título e mascote), depois 3 números
+ * grandes, a estante de medalhas e os atalhos. Os ajustes moram atrás da engrenagem do cabeçalho.
+ * Nenhum número é inventado: tudo sai das corridas, das zonas e do Atlas reais (D-76).
+ */
 export function ProfileScreen() {
   const { colors } = useTheme();
-  const s = useGame();
-  const faction = s.faction ?? 'striders';
-  const lvl = levelFromXp(s.xp);
-  // Histórico oficial do servidor (A4 mantém `serverRuns` no game-store).
-  const runs = s.serverRuns.length;
-  const conquered = s.serverRuns.reduce((n, r) => n + (r.result?.zones ?? []).filter((z) => z.outcome === 'conquered').length, 0);
-  const trust = trustLevel(s.trust);
-  const unread = useNotifications(selectUnreadCount);
-  const staff = useSession((x) => canModerate(x.profile?.role));
+  const name = useGame((s) => s.name);
+  const gameFaction = useGame((s) => s.faction);
+  const xp = useGame((s) => s.xp);
+  const fog = useGame((s) => s.fog);
+  const streakWeeks = useGame((s) => s.streakWeeks);
+  const serverRuns = useGame((s) => s.serverRuns);
+  const localRuns = useGame((s) => s.localRuns);
+  const profile = useSession((s) => s.profile);
+  const userId = useSession((s) => s.session?.userId ?? null);
+  const now = useNow(60_000);
+  const { track } = useEngagementData();
+  // Histórico inteiro só para os números desta tela (o store guarda o período escolhido nas Corridas).
+  const all = useResource(() => listMyActivities({ limit: 200 }), [userId]);
+
+  const faction = gameFaction ?? profile?.faction ?? 'striders';
+  const team = factions[faction];
+  const display = name || profile?.username || 'Corredor';
+  const lvl = levelFromXp(xp);
+  const runsSource = all.data ?? serverRuns;
+  const history = mergeHistory(runsSource, localRuns);
+  const counted = history.filter((h) => h.counts);
+  const zones = conqueredZones(runsSource);
+  const totalKm = history.filter((h) => h.tag !== 'rejeitada' && h.tag !== 'erro').reduce((s, h) => s + h.meters, 0);
+  const week = weekKm(history, now);
+  const atlas = districtsExploration(fog)[0]?.pct ?? 0;
+  const shelf = medalShelf({ runs: counted.length, zones, atlasCells: fog.length, streakWeeks });
+  const season = track.data;
+
+  const avatar = profile?.avatarUrl ? (
+    <Image testID="perfil-avatar-foto" source={{ uri: profile.avatarUrl }} style={{ width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2 }} contentFit="cover" />
+  ) : (
+    <View style={{ width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: team.color }}>
+      <Text style={{ fontFamily: fonts.display, fontSize: 22, lineHeight: 26 }} color={team.onColor} maxFontSizeMultiplier={1}>
+        {initialsOf(display)}
+      </Text>
+    </View>
+  );
 
   return (
     <ScreenScroll testID="tela-perfil" edges={[]} contentInsetAdjustmentBehavior="automatic" gap={space[6]}>
-      <Surface>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[4] }}>
-          <TeamBadge faction={faction} size={64} />
-          <View style={{ flex: 1 }}>
-            {/* Momento herói do perfil: o nome sobe de dentro da máscara (D-54). */}
-            <RevealText testID="perfil-nome">{s.name || 'Corredor'}</RevealText>
-            <FadeUp delay={150}>
-              <Text muted>
-                {factions[faction].name}, nível {lvl.level}
-              </Text>
-            </FadeUp>
-          </View>
-        </View>
-        <ProgressBar value={lvl.intoLevel / lvl.needed} color={factions[faction].color} />
-        <View>
-          <CountUp
-            testID="perfil-xp"
-            value={lvl.intoLevel}
-            delay={250}
-            variant="small"
-            muted
-            format={(n) => `${Math.round(n).toLocaleString('pt-BR')} de ${lvl.needed.toLocaleString('pt-BR')} XP para o nível ${lvl.level + 1}.`}
-            accessibilityLabel={`${lvl.intoLevel} de ${lvl.needed} XP para o nível ${lvl.level + 1}.`}
-          />
-          {/* R-4 (E10): "Cada nível libera uma cor de rastro ou moldura" prometia algo que não existe; saiu até a E7 entregar. */}
-        </View>
-      </Surface>
+      <FadeUp>
+        <PlayerCard
+          testID="perfil-cartao"
+          name={display}
+          faction={faction}
+          level={lvl.level}
+          xp={{ into: lvl.intoLevel, needed: lvl.needed }}
+          title={titleForLevel(lvl.level).name}
+          avatar={avatar}
+          ring={
+            <ProgressRing
+              testID="perfil-anel-nivel"
+              value={lvl.needed > 0 ? lvl.intoLevel / lvl.needed : 0}
+              size={RING}
+              stroke={5}
+              color={neonTeam[faction]}
+              trackColor={colors.surfaceSunken}
+              delay={200}
+              accessibilityLabel={`Nível ${lvl.level}: ${lvl.intoLevel} de ${lvl.needed} XP`}
+            />
+          }
+          mascot={<Mascot team={faction} pose="parado" size={72} animated />}
+          onPress={() => router.push('/recompensas' as Href)}
+        />
+      </FadeUp>
 
-      <Stagger delay={150} style={{ flexDirection: 'row', gap: space[3] }} itemStyle={{ flex: 1 }}>
-        <Surface style={{ flex: 1 }}>
-          <Icon name="fog" size={22} color={colors.text} />
-          <CountUp testID="perfil-celulas" value={s.fog.length} delay={250} variant="headline" accessibilityLabel={`${s.fog.length} células reveladas`} />
-          <Text variant="small" muted>
-            células reveladas
-          </Text>
-        </Surface>
-        <Surface style={{ flex: 1 }}>
-          <Icon name="territory" size={22} color={colors.text} />
-          <CountUp testID="perfil-zonas" value={conquered} delay={300} variant="headline" accessibilityLabel={`${conquered} zonas conquistadas`} />
-          <Text variant="small" muted>
-            zonas conquistadas
-          </Text>
-        </Surface>
+      <Stagger delay={120} style={{ flexDirection: 'row', gap: space[2] }} itemStyle={{ flex: 1 }}>
+        <StatTile testID="perfil-km" label="Distância" value={formatKm(totalKm, totalKm >= 100_000 ? 0 : 1)} unit="km" />
+        <StatTile testID="perfil-zonas" label="Zonas" value={String(zones)} accent={neonTeam[faction]} />
+        <StatTile testID="perfil-atlas" label="Atlas" value={String(atlas)} unit="% do bairro" />
       </Stagger>
-      <Stagger delay={250} gap={space[6]}>
 
-        <View style={{ gap: space[3] }}>
-          <SectionHeader title="Conquistas" />
-          <Surface>
-            {ACHIEVEMENTS.map((a) => {
-              const done = a.done(runs, conquered, s.fog.length);
-              return (
-                <View key={a.title} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
-                  <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: done ? colors.action : colors.surfaceSunken }}>
-                    <Icon name={done ? 'check' : 'lock'} size={16} color={done ? colors.onAction : colors.textSecondary} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text variant="bodyBold">{a.title}</Text>
-                    <Text variant="small" muted>
-                      {a.body}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
-          </Surface>
-        </View>
-
-        <View style={{ gap: space[3] }}>
-          <SectionHeader title="Corrida Segura" />
-          <Surface>
-            <Row testID="perfil-escolta" title="Escolta ao vivo" body={s.contacts.length > 0 ? `${s.contacts.join(' e ')} veem sua localização durante a corrida.` : 'Cadastre contatos de segurança para eles verem sua localização durante a corrida.'} value={s.escortOn} onChange={s.toggleEscort} />
-            <Row testID="perfil-alerta-parada" title="Alerta de parada" body="Se você ficar parado por 10 minutos, perguntamos se está tudo bem e avisamos seus contatos." value={s.stopAlertOn} onChange={s.toggleStopAlert} />
-            <Text variant="small" muted>
-              Seu início e fim de corrida perto de casa ficam escondidos dos outros corredores.
+      <FadeUp delay={200} style={{ gap: space[2] }}>
+        <SectionHeader
+          testID="perfil-medalhas-titulo"
+          title="Medalhas"
+          action={
+            <Text testID="perfil-medalhas-contagem" variant="bodyBold" color={colors.accentText} tabular>
+              {shelf.earned} de {shelf.total}
             </Text>
-          </Surface>
+          }
+        />
+        <View testID="perfil-medalhas" style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: space[1] }}>
+          {shelf.medals.map((m) => (
+            <Medal key={m.kind} kind={m.kind} tier={m.tier} locked={m.locked} size={64} quality="leve" />
+          ))}
         </View>
+      </FadeUp>
 
-        <Surface>
-          <Text variant="bodyBold">Índice de confiança: {s.trust}</Text>
-          <Text variant="small" muted>
-            {trust === 'ok'
-              ? 'Suas corridas contam normalmente.'
-              : trust === 'review'
-                ? 'Suas próximas corridas passam por revisão antes de pontuar.'
-                : 'Sua participação na competição está suspensa por 30 dias.'}
-          </Text>
-        </Surface>
-
-        <View style={{ gap: space[3] }}>
-          <SectionHeader title="Conta" />
-          <Surface>
-            <LinkRow testID="perfil-editar" title="Editar perfil" body="Nome de usuário, foto, cidade, unidade e notificações." onPress={() => router.push('/perfil/editar')} />
-            <LinkRow testID="perfil-time" title="Meu time" body="Ver seu time e trocar uma vez por temporada." onPress={() => router.push('/perfil/time' as Href)} />
-            <LinkRow
-              testID="perfil-notificacoes"
-              title="Notificações"
-              body={unread > 0 ? `${unread === 1 ? '1 não lida' : `${unread} não lidas`}. Invasões, conquistas e moderação.` : 'Invasões, conquistas e resultados da moderação.'}
-              onPress={() => router.push('/notificacoes')}
-            />
-            <LinkRow testID="perfil-contatos-seguranca" title="Contatos de segurança" body="Até 5 pessoas avisadas pela Corrida Segura." onPress={() => router.push('/contatos-seguranca' as Href)} />
-            <LinkRow
-              testID="perfil-zonas-privacidade"
-              title="Zonas de privacidade"
-              body="Até 3 endereços que não aparecem no seu percurso para outras pessoas."
-              onPress={() => router.push('/zonas-privacidade' as Href)}
-            />
-            {staff ? <LinkRow testID="perfil-moderacao" title="Painel de moderação" body="Corridas em revisão e contas." onPress={() => router.push('/moderacao')} /> : null}
-            <LinkRow testID="perfil-conta" title="Conta e privacidade" body="Exportar seus dados, excluir a conta, termos." onPress={() => router.push('/perfil/conta')} />
-            <LinkRow testID="perfil-sair" title="Sair" body="Desconectar deste aparelho." onPress={() => signOut()} />
-          </Surface>
+      <FadeUp delay={260}>
+        <View style={{ borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, overflow: 'hidden' }}>
+          <SettingsRow
+            testID="voce-atividades"
+            icon="activities"
+            title="Corridas"
+            value={week.total > 0 ? `${formatKm(week.total * 1000, 1)} km na semana` : undefined}
+            accessibilityLabel={week.total > 0 ? `Corridas, ${formatKm(week.total * 1000, 1)} quilômetros nesta semana` : 'Corridas'}
+            onPress={() => router.push(VOCE_ROUTES.corridas as Href)}
+          />
+          <SettingsRow testID="perfil-time" icon="flag" title="Meu time" value={team.name} onPress={() => router.push(VOCE_ROUTES.time as Href)} />
+          <SettingsRow testID="perfil-missoes" icon="trophy" title="Missões" onPress={() => router.push('/missoes' as Href)} />
+          <SettingsRow
+            testID="perfil-recompensas"
+            icon="chest"
+            title="Recompensas"
+            value={season ? `degrau ${season.step} de ${season.steps}` : undefined}
+            onPress={() => router.push('/recompensas' as Href)}
+          />
         </View>
-      </Stagger>
+      </FadeUp>
     </ScreenScroll>
-  );
-}
-
-function LinkRow({ title, body, onPress, testID }: { title: string; body: string; onPress: () => void; testID: string }) {
-  const { colors } = useTheme();
-  return (
-    <Pressable testID={testID} accessibilityLabel={title} hitSlop={0} onPress={onPress} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
-      <View style={{ flex: 1 }}>
-        <Text variant="bodyBold">{title}</Text>
-        <Text variant="small" muted>
-          {body}
-        </Text>
-      </View>
-      <Icon name="chevron" size={18} color={colors.textSecondary} />
-    </Pressable>
-  );
-}
-
-function Row({ title, body, value, onChange, testID }: { title: string; body: string; value: boolean; onChange: () => void; testID: string }) {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
-      <View style={{ flex: 1 }}>
-        <Text variant="bodyBold">{title}</Text>
-        <Text variant="small" muted>
-          {body}
-        </Text>
-      </View>
-      <Switch testID={testID} value={value} onValueChange={onChange} accessibilityLabel={title} />
-    </View>
   );
 }

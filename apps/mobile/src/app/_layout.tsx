@@ -20,6 +20,7 @@ import { resolveRouteGroup, type RouteGroup } from '@/features/auth/route-guard'
 import { useSessionBootstrap } from '@/features/auth/session-controller';
 import { canModerate } from '@/features/moderation/guard';
 import { useUserDataBootstrap } from '@/features/notifications/controller';
+import { useReminderPlanner } from '@/features/notifications/use-reminder-planner';
 import { useOfflineSync } from '@/features/run/use-offline-sync';
 import { useSession } from '@/store/session-store';
 import { fonts } from '@/theme/tokens';
@@ -35,8 +36,9 @@ export default function RootLayout() {
   useUserDataBootstrap();
   // Pedido do A4 (T2.2): sincroniza a fila de corridas ao abrir, ao voltar a conexão e ao primeiro plano.
   useOfflineSync();
-  // Lembretes locais da E7 (D-69, T7.2.4): montar aqui o `useReminderPlanner()` (replaneja ao abrir, ao sincronizar
-  // e ao correr). O hook ainda não existe nesta base (onda 2 em paralelo): o coordenador liga na integração.
+  // Lembretes locais da E7 (D-69): replaneja ao abrir, ao voltar ao primeiro plano, ao sincronizar uma corrida e
+  // quando as preferências mudam; ao sair da conta, cancela os lembretes deste aparelho.
+  useReminderPlanner();
   // Modo demonstração (D-77): o interruptor da E10 (`@/services/demo-mode`) zera as stores pelo ouvinte de
   // `session-controller.ts`; aqui só o selo acompanha o modo.
   const staff = useSession((s) => canModerate(s.profile?.role));
@@ -113,6 +115,9 @@ export default function RootLayout() {
             {/* Arquivo da rota criado pelo A4 (Corrida Segura, T2.5). */}
             <Stack.Screen name="contatos-seguranca" options={{ ...pushHeader, ...push, title: 'Contatos de segurança' }} />
             <Stack.Screen name="zonas-privacidade" options={{ ...pushHeader, ...push, title: 'Zonas de privacidade' }} />
+            {/* Engajamento (E7): missões do dia e da semana, trilha da temporada e baús. */}
+            <Stack.Screen name="missoes" options={{ ...pushHeader, ...push, title: 'Missões' }} />
+            <Stack.Screen name="recompensas" options={{ ...pushHeader, ...push, title: 'Recompensas' }} />
             {/* D-73: Atividades moraram para "Você"; o endereço antigo só redireciona. */}
             <Stack.Screen name="atividades" options={fade} />
             {/* D-78/D-79 (E8): compartilhar a corrida e o feed da crew precisam de sessão. */}

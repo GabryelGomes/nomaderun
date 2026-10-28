@@ -43,7 +43,6 @@ describe('RNF-011 — reduzir movimento', () => {
     expect(names).toEqual(
       expect.arrayContaining([
         'features/screens/run-screen.tsx',
-        'components/capture-celebration.tsx',
         'components/motion/reveal-text.tsx',
         'components/motion/fade-up.tsx',
         'components/motion/screen-enter.tsx',

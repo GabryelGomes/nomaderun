@@ -3,7 +3,8 @@
  * - `useTodayStrip()` → faixa de hoje do Mapa (E6b);
  * - `useRunRewards(official)` → bloco "Recompensas" do resumo (E6b);
  * - `useWelcomeBack()` → "Bem-vindo de volta" depois de 14+ dias (E6 liga o gatilho);
- * - `useEngagementData()` → as 4 partes do store, carregando na primeira vez.
+ * - `useEngagementData()` → as 4 partes do store, carregando na primeira vez;
+ * - `useFirstConquestEver()` / `getFirstConquestEver()` → "Sua 1ª zona!" no HUD da corrida (E6b, T7.3.6).
  */
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -12,10 +13,10 @@ import type { DailyItem } from '@/components/daily-strip';
 import { useNow } from '@/features/use-now';
 import { isDemoMode } from '@/services/api/env';
 import { parseRunEngagement, type RunEngagement } from '@/services/api/engagement-repo';
-import { useEngagement } from '@/store/engagement-store';
+import { selectFirstConquestEver, useEngagement } from '@/store/engagement-store';
 import { useSession } from '@/store/session-store';
 
-import { recordRunResult, refreshEngagement } from './controller';
+import { ensureConquestHistory, recordRunResult, refreshEngagement } from './controller';
 import { readLocal, writeLocal } from './local-store';
 import { todayData, type TodayCoach, type TodayData } from './today';
 import { daysAway, shouldWelcomeBack, welcomeBackCards, type WelcomeCard } from './welcome-back';
@@ -91,6 +92,25 @@ export type WelcomeBack = {
   /** Fecha e não mostra de novo nesta ausência. */
   dismiss: () => void;
 };
+
+/**
+ * `true` só quando o servidor confirmou que a pessoa **nunca** conquistou zona (T7.3.6). A tela da corrida lê
+ * na largada e passa para `createLiveTracker({ firstConquestEver })`; sem dado, `false` (nada de promessa falsa).
+ */
+export function useFirstConquestEver(): boolean {
+  const signedIn = useSession((s) => s.status === 'signedIn');
+  const known = useEngagement((s) => s.everConquered !== null);
+  const first = useEngagement(selectFirstConquestEver);
+  useEffect(() => {
+    if (signedIn && !known) void ensureConquestHistory();
+  }, [signedIn, known]);
+  return first;
+}
+
+/** O mesmo valor fora de componente (ex.: no `setTimeout` da largada em `use-run-session`). */
+export function getFirstConquestEver(): boolean {
+  return selectFirstConquestEver(useEngagement.getState());
+}
 
 const SEEN_KEY = 'welcome-back-seen';
 

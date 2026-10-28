@@ -8,10 +8,12 @@ import { FadeUp, Pressable, RevealText, Stagger } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
+import { trustLevel } from '@/domain/trust';
 import { ErrorNotice, InfoNotice, TextField } from '@/features/auth/form-ui';
 import { signOut, signOutAfterDeletion } from '@/features/auth/session-controller';
 import { saveAndShareJson } from '@/lib/share-json';
 import { DELETE_CONFIRMATION, deleteMyAccount, exportMyData, isWrongPasswordError } from '@/services/api/account-repo';
+import { useGame } from '@/store/game-store';
 import { useSession } from '@/store/session-store';
 import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
@@ -20,6 +22,7 @@ import { useTheme } from '@/theme/use-theme';
 export function AccountScreen() {
   const { colors } = useTheme();
   const email = useSession((s) => s.session?.email);
+  const trust = useGame((s) => s.trust);
   const [exporting, setExporting] = useState(false);
   const [exportMsg, setExportMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -86,6 +89,20 @@ export function AccountScreen() {
           </Text>
           <Text variant="bodyBold" selectable>
             {email ?? '—'}
+          </Text>
+        </Surface>
+
+        {/* Saiu do perfil (F1 §5.8): o índice de confiança fica aqui e no resumo, quando cai. */}
+        <Surface>
+          <Text testID="conta-confianca" variant="bodyBold">
+            Índice de confiança: {trust}
+          </Text>
+          <Text variant="small" muted>
+            {trustLevel(trust) === 'ok'
+              ? 'Suas corridas contam normalmente.'
+              : trustLevel(trust) === 'review'
+                ? 'Suas corridas passam por revisão antes de pontuar.'
+                : 'Competição suspensa por 30 dias.'}
           </Text>
         </Surface>
 

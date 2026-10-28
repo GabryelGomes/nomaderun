@@ -6,12 +6,16 @@
  *   (dono de cada zona, herança de 3 trechos virtuais na virada da D-62, bloqueio e ataque). Sem trechos
  *   pintados: o retrato com trechos (`zone_paint_near`) chega com o repositório de pintura da E3/E9.
  * - `hudFor`: o que o cartão da zona mostra (anel, "faltam X m", zona do time, conquista provável).
- * - `toastForEvent` + `enqueueToast`: os avisos de recompensa durante a corrida, com o nível de cada evento.
+ * - `liveEffects` + `toastForCelebration` + `enqueueToast`: aviso, vibração e voz de cada evento, a partir do
+ *   `createLiveFeedback` da E5 (nível da E3, ritmo de 10 s).
+ * - O retrato com os trechos pintados (`zone_paint_near`) entra pelo `createPaintedLiveTracker` (`live-paint.ts`).
  */
+import type { CelebrationEvent, LiveFeedback } from '@/components/celebration';
 import { isUnderAttackAt, type Zone } from '@/domain/territory';
-import type { CelebrationLevel as LiveLevel, LiveEvent, LiveSnapshot, LiveZoneState } from '@/domain/live-events';
+import type { LiveEvent, LiveSnapshot, LiveZoneState } from '@/domain/live-events';
 import { PAINT_INHERIT_CELLS } from '@/domain/paint';
 import type { FactionId } from '@/domain/types';
+import type { HapticPattern } from '@/theme/motion';
 
 /** Nome curto de zona vindo do servidor; sem nome, a tela usa o nome local. */
 export type ZoneNames = Readonly<Record<string, { name?: string | null } | undefined>>;
@@ -70,48 +74,61 @@ export function hudFor(current: LiveZoneState | null, faction: FactionId, conque
   return { kind: 'gap', zoneId: current.zoneId, owner: current.owner, progress, gapMeters: current.gapMeters, mine };
 }
 
-/** Escala da E5 (`RewardToast`): o nível da E3 traduzido. */
+/** Escala da E5 (`RewardToast`). */
 export type ToastSize = 'small' | 'medium' | 'epic';
-export const TOAST_SIZE: Readonly<Record<LiveLevel, ToastSize | null>> = { micro: null, pequena: 'small', media: 'medium', epica: 'epic' };
 
 export type RunToast = {
   id: string;
   /** Pequeno ou médio: durante a corrida não há épico. */
   size: Exclude<ToastSize, 'epic'>;
-  /** A vibração do toast: entrar em zona rival já vibra com o aviso da faixa (1 vibração por fato). */
+  /** O aviso não vibra sozinho: a vibração vem do `createLiveFeedback` (E5), com o ritmo de 10 s da E3. */
   haptics: boolean;
   /** Borda da tela acende na cor (conquista). */
   edgeGlow: boolean;
   title: string;
   subtitle?: string;
-  /** Cor: time do corredor (conquista, defesa, progresso) ou do rival (entrou na zona dele). */
+  /** Cor: o time do corredor. */
   faction: FactionId;
 };
 
 const PCT_TEXT: Record<25 | 50 | 75, string> = { 25: '25% da zona', 50: 'Metade da zona', 75: '75% da zona' };
 
 /**
- * Evento ao vivo → aviso de recompensa. Eventos `micro` (trecho pintado, "faltam X m") só atualizam o HUD.
- * `name` resolve o nome da zona (servidor ou local).
+ * Celebração ao vivo (do `createLiveFeedback` da E5) → aviso do HUD. Durante a corrida nada pesado: o épico
+ * (1ª conquista da vida) vira médio com a borda acesa e o título "Sua 1ª zona!".
  */
-export function toastForEvent(e: LiveEvent, faction: FactionId, name: (zoneId: string, fromEvent: string | null) => string): RunToast | null {
-  const level = TOAST_SIZE[e.level];
-  if (!level) return null;
-  // Durante a corrida nada pesado (E5): o épico (1ª conquista da vida) vira médio com a borda acesa.
-  const size: RunToast['size'] = level === 'epic' ? 'medium' : level;
-  const id = `${e.type}-${'zoneId' in e ? e.zoneId : ''}-${e.t}`;
-  switch (e.type) {
-    case 'zona_conquistada':
-      return { id, size, haptics: true, edgeGlow: true, title: e.first ? 'Sua 1ª zona!' : 'Zona conquistada', subtitle: name(e.zoneId, e.name), faction };
-    case 'zona_defendida':
-      return { id, size, haptics: true, edgeGlow: false, title: 'Zona defendida', subtitle: name(e.zoneId, e.name), faction };
-    case 'zona_progresso':
-      return { id, size, haptics: true, edgeGlow: false, title: PCT_TEXT[e.pct], subtitle: `Faltam ${e.gapMeters} m`, faction };
-    case 'zona_rival_entrou':
-      return { id, size, haptics: false, edgeGlow: false, title: 'Zona rival', subtitle: name(e.zoneId, e.name), faction: e.owner };
+export function toastForCelebration(c: CelebrationEvent, faction: FactionId): RunToast | null {
+  const size: RunToast['size'] = c.level === 'micro' || c.level === 'small' ? 'small' : 'medium';
+  const base = { id: c.id, size, haptics: false, faction };
+  switch (c.kind) {
+    case 'zone-captured':
+      return { ...base, edgeGlow: true, title: c.level === 'epic' ? 'Sua 1ª zona!' : 'Zona conquistada', subtitle: c.payload.zone };
+    case 'zone-defended':
+      return { ...base, edgeGlow: false, title: 'Zona defendida', subtitle: c.payload.zone };
+    case 'zone-milestone': {
+      const pct = Math.round(c.payload.fraction * 100) as 25 | 50 | 75;
+      const gap = c.payload.gapMeters;
+      return { ...base, edgeGlow: false, title: PCT_TEXT[pct] ?? `${pct}% da zona`, subtitle: gap ? `Faltam ~${gap} m` : undefined };
+    }
     default:
       return null;
   }
+}
+
+export type LiveEffects = { toast: RunToast | null; haptic: HapticPattern | null; voice: string | null };
+
+/**
+ * O que a tela faz com cada evento ao vivo, a partir do `createLiveFeedback` (E5): aviso, vibração (já no
+ * ritmo de 10 s) e voz. Entrar em zona rival não vibra nem fala aqui: a faixa do HUD já vibra e o Guia por voz
+ * já fala ("Território dos …"), 1 aviso por fato.
+ */
+export function liveEffects(e: LiveEvent, f: LiveFeedback, faction: FactionId): LiveEffects {
+  const rival = e.type === 'zona_rival_entrou';
+  return {
+    toast: f.celebration ? toastForCelebration(f.celebration, faction) : null,
+    haptic: rival ? null : f.haptic,
+    voice: rival ? null : f.voice,
+  };
 }
 
 const RANK: Record<RunToast['size'], number> = { small: 0, medium: 1 };

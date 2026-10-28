@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedProps,
   useAnimatedStyle,
@@ -13,6 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Defs, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 
+import { usePausedWhenHidden } from '@/components/motion/use-paused-when-hidden';
 import { easings } from '@/theme/motion';
 import { neon } from '@/theme/neon';
 
@@ -30,19 +32,33 @@ const COMET = 90;
  * manchas de luz laranja que respiram e uma rota neon que se desenha (2,8 s, expo.out), depois um
  * "corredor" de luz percorre a rota sem parar. Puramente decorativo: escondido do leitor de tela e sem
  * toque. "Reduzir movimento": tudo estático, rota já desenhada, sem corredor e sem respiração.
+ * Os laços (corredor e respiração) param com o app no fundo, com a tela fora de foco (E5,
+ * `usePausedWhenHidden`) ou quando a tela pede (`paused`, ex.: enquanto o roteiro do resumo toca).
  */
-export function NeonBackdrop() {
+export function NeonBackdrop({ paused: pausedByScreen = false }: { paused?: boolean } = {}) {
   const reduced = useReducedMotion();
+  const paused = usePausedWhenHidden({ paused: pausedByScreen });
   const drawn = useSharedValue(reduced ? 1 : 0);
   const comet = useSharedValue(0);
   const breathe = useSharedValue(reduced ? 0.85 : 0.6);
 
+  // A rota se desenha 1 vez; os laços recomeçam do início quando a tela volta a aparecer.
   useEffect(() => {
     if (reduced) return;
     drawn.set(withDelay(200, withTiming(1, { duration: neon.routeDrawMs, easing: easings.reveal })));
-    comet.set(withDelay(neon.routeDrawMs, withRepeat(withTiming(1, { duration: 5200, easing: Easing.linear }), -1, false)));
+  }, [reduced, drawn]);
+
+  useEffect(() => {
+    if (reduced || paused) return;
+    const wait = drawn.get() >= 1 ? 0 : neon.routeDrawMs;
+    comet.set(0);
+    comet.set(withDelay(wait, withRepeat(withTiming(1, { duration: 5200, easing: Easing.linear }), -1, false)));
     breathe.set(withRepeat(withSequence(withTiming(1, { duration: neon.pulseMs }), withTiming(0.6, { duration: neon.pulseMs })), -1, false));
-  }, [reduced, drawn, comet, breathe]);
+    return () => {
+      cancelAnimation(comet);
+      cancelAnimation(breathe);
+    };
+  }, [reduced, paused, drawn, comet, breathe]);
 
   const routeProps = useAnimatedProps(() => ({ strokeDashoffset: ROUTE_LENGTH * (1 - drawn.get()) }));
   const cometProps = useAnimatedProps(() => ({
