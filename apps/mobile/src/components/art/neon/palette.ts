@@ -6,6 +6,11 @@ import { factions, type TeamShape } from '@/theme/tokens';
 export const VILLAIN: string = neon.villain;
 /** Laranja em brasa do chefão furioso. */
 export const EMBER = '#FF4A1C';
+/**
+ * Azul-gelo do congelamento da sequência (T7.3.4): bem mais claro e menos saturado que o azul dos Striders
+ * (ΔE2000 ≈ 23 em visão normal), e o estado lê pela forma (cristal hexagonal), não só pela cor.
+ */
+export const ICE = '#BFEFFF';
 
 /**
  * Cores da arte. Tudo vem do Pit Lane Neon (`theme/neon.ts`), menos o violeta dos vilões, a brasa e os

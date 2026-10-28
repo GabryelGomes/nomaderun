@@ -1,6 +1,7 @@
 /**
- * T7.1.11 e T7.2.8 (E4) — galeria do sistema de arte, só para desenvolvimento (revisão e capturas do QA).
+ * T7.1.11, T7.2.8 e T7.3.4 (E4) — galeria do sistema de arte, só para desenvolvimento (revisão e capturas do QA).
  * Onda 2: logo, líderes, mascotes em corrida, partes para a E5 e a arte dentro do SVG do card (E8).
+ * Onda 3 (T7.3.4): chama e gelo da sequência, ícone da aba Correr e 4 estados vazios novos.
  * Visível em `__DEV__` ou na web; num build de produção nativo, redireciona para o início.
  */
 import { Redirect } from 'expo-router';
@@ -38,6 +39,11 @@ import {
   MODE_ICON_KINDS,
   MODE_ICON_LABELS,
   ModeIcon,
+  RUN_TAB_VARIANTS,
+  RunTabIcon,
+  STREAK_LABELS,
+  STREAK_STATES,
+  StreakArt,
   TAB_BACKGROUND_KINDS,
   TAB_BACKGROUND_LABELS,
   TabBackground,
@@ -294,7 +300,41 @@ function ArtGallery() {
         ))}
       </Section>
 
-      <Section title="Estados vazios · 8">
+      <Section title="Sequência · chama e gelo" note="Acesa (semana garantida), fraca (falta 1 atividade) e gelo (congelamento usado). Com a animação, a chama tremula e o gelo cintila.">
+        {STREAK_STATES.map((st) => (
+          <Cell key={st} label={STREAK_LABELS[st]}>
+            <StreakArt state={st} size={96} quality={quality} animated={animated} testID={`dev-arte-sequencia-${st}`} />
+          </Cell>
+        ))}
+        <Cell label="camadas: chama + gelo">
+          <View style={{ width: 96, height: 112 }}>
+            <StreakArt state="gelo" layer="chama" size={96} quality={quality} style={{ position: 'absolute' }} />
+            <StreakArt state="gelo" layer="gelo" size={96} quality={quality} animated={animated} style={{ position: 'absolute' }} />
+          </View>
+        </Cell>
+        {[56, 32].map((s) => (
+          <Cell key={s} label={`${s} pt`}>
+            <View style={{ flexDirection: 'row', gap: space[1] }}>
+              {STREAK_STATES.map((st) => (
+                <StreakArt key={st} state={st} size={s} quality={quality} />
+              ))}
+            </View>
+          </Cell>
+        ))}
+      </Section>
+
+      <Section title="Ícone da aba Correr" note="Sempre laranja (PNG com renderingMode original no nativo): contorno quando não selecionada, cheio quando selecionada.">
+        {RUN_TAB_VARIANTS.map((v) => (
+          <Cell key={v} label={v === 'padrao' ? 'padrão' : 'selecionado'}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+              <RunTabIcon variant={v} size={28} />
+              <RunTabIcon variant={v} size={56} />
+            </View>
+          </Cell>
+        ))}
+      </Section>
+
+      <Section title={`Estados vazios · ${EMPTY_KINDS.length}`}>
         {EMPTY_KINDS.map((k) => (
           <Cell key={k} label={EMPTY_LABELS[k]}>
             <EmptyArt kind={k} team={team} size={160} quality={quality} />

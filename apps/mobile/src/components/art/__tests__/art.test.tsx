@@ -186,13 +186,14 @@ describe('mode-icons — ícones dos modos', () => {
 });
 
 describe('empty — estados vazios', () => {
-  it('8 estados renderizam, decorativos; o mascote usa a cor do time', () => {
-    expect(EMPTY_KINDS).toHaveLength(8);
+  it('13 estados (8 da onda 1 e 5 da onda 3) renderizam, decorativos; o mascote usa a cor do time', () => {
+    expect(EMPTY_KINDS).toHaveLength(13);
     for (const kind of EMPTY_KINDS) {
       const r = render(<EmptyArt kind={kind} size={200} color="#ABABAB" team="volt" />);
       expect(svgOf(r).props.width).toBe(200);
       expect(frame(r).props['aria-hidden']).toBe(true);
       if (kind === 'sem-notificacoes') expect(strokes(r, ART.team.volt)).toBeGreaterThan(0);
+      else if (kind === 'sem-chefao') expect(strokes(r, ART.villain)).toBeGreaterThan(0);
       else expect(strokes(r, '#ABABAB')).toBeGreaterThan(0);
     }
   });
