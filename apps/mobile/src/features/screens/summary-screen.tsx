@@ -23,7 +23,7 @@ import { notificationPermissionStatus, requestNotificationPermission, shouldAskN
 import { RouteDraw } from '@/features/run/route-draw';
 import { ROUTE_DRAW_MS } from '@/features/run/route-draw.math';
 import { summaryCelebrations, summaryIntro } from '@/features/run/summary-celebration';
-import { invalidReasons } from '@/features/run/summary-model';
+import { invalidReasons, type RunSummary } from '@/features/run/summary-model';
 import { useRunRecord } from '@/features/run/use-run-record';
 import { getInvalidStretches } from '@/services/api/track-repo';
 import { useGame } from '@/store/game-store';
@@ -81,7 +81,7 @@ export type SummaryScreenProps = {
   /** Encaixe do bloco "Recompensas" da E7 (missões, baú, XP da semana). */
   rewards?: ReactNode;
   /** Encaixe do `<ShareButton>` da E8 (card com imagem). Sem ele, compartilha o texto. */
-  renderShare?: (ctx: { runId: string; onShared?: () => void }) => ReactNode;
+  renderShare?: (ctx: { runId: string; status: RunSummary['status'] | null; onShared?: () => void }) => ReactNode;
 };
 
 /**
@@ -198,7 +198,7 @@ export function SummaryScreen({ rewards, renderShare }: SummaryScreenProps = {})
         background={highlight ? <NeonBackdrop /> : undefined}
         footer={
           <View style={{ gap: space[1] }}>
-            {renderShare ? renderShare({ runId }) : <Button testID="resumo-compartilhar" label="Compartilhar" icon="share" size="lg" wide onPress={share} />}
+            {renderShare ? renderShare({ runId, status: official ? r.status : null }) : <Button testID="resumo-compartilhar" label="Compartilhar" icon="share" size="lg" wide onPress={share} />}
             <Button testID="resumo-concluir" label="Concluir" kind="ghost" wide onPress={() => (router.canDismiss() ? router.dismissAll() : router.replace('/atividades'))} />
           </View>
         }>

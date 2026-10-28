@@ -35,7 +35,7 @@ describe('todayChips (faixa de hoje)', () => {
     const chips = todayChips({ streak: { done: 1, goal: 2 }, chest: { credits: 2 }, boss: { name: 'Soneca', hp: 0.364 } }, 5);
     expect(chips.map((c) => [c.key, c.value, c.tone])).toEqual([
       ['streak', '1/2', 'action'],
-      ['chest', '2×', 'action'],
+      ['chest', '2', 'action'], // T7.3.2: "2 Baús" (o "2× Baú do dia" cortava na faixa de 3 chips)
       ['boss', '36%', 'villain'],
     ]);
     expect(chips.map((c) => c.testID)).toEqual(['mapa-hoje-sequencia', 'mapa-hoje-bau', 'mapa-hoje-chefao']);

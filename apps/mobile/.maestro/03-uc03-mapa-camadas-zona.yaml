@@ -29,13 +29,20 @@ tags: [uc-03, rf-007]
     visible:
       id: "tela-zona"
     timeout: 15000
+- assertVisible:
+    id: "zona-nome"
+- assertVisible:
+    id: "zona-correr"
+# histórico e maiores corredores ficam recolhidos (folha da zona v2, T7.3.2)
+- extendedWaitUntil:
+    visible:
+      id: "zona-historico"
+    timeout: 15000
+- tapOn:
+    id: "zona-historico"
 - extendedWaitUntil:
     visible:
       id: "zona-corredores"
     timeout: 15000
 - assertVisible:
-    id: "zona-nome"
-- assertVisible:
     id: "zona-eventos"
-- assertVisible:
-    id: "zona-correr"
