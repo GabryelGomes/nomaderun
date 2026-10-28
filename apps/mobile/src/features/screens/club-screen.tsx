@@ -1,5 +1,5 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -15,6 +15,7 @@ import { TeamBadge } from '@/components/team-badge';
 import { Text } from '@/components/text';
 import { districtOf } from '@/domain/grid';
 import type { FactionId } from '@/domain/types';
+import { markRankingOpened } from '@/features/engagement';
 import { CrewFeed } from '@/features/social/feed';
 import { InviteCard } from '@/features/social/invite/invite-card';
 import { getMyCrew, type MyCrew } from '@/services/api/crews-repo';
@@ -248,6 +249,10 @@ function Rankings({ userId, city, faction }: { userId: string | null; city: stri
   const [scope, setScope] = useState<Scope>('geral');
   const [period, setPeriod] = useState<Period>('week');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // E7: abrir o ranking conta para a missão "veja o ranking" (encaixe da onda 3).
+  useEffect(() => {
+    void markRankingOpened();
+  }, []);
   const district = useResource(() => loadMyDistrict(userId), [userId]);
   const districtId = district.data?.id ?? null;
   const me: Me = { id: userId, city, faction, district: districtId };
