@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import { Pressable, View } from 'react-native';
 import Animated, { cancelAnimation, useAnimatedProps, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
@@ -9,6 +8,7 @@ import { motion } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { Icon } from './icon';
+import { haptic } from './motion/haptics';
 import { Text } from './text';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -30,7 +30,7 @@ export function HoldButton({ label, onConfirm, testID }: { label: string; onConf
   const reduced = useReducedMotion();
 
   const confirm = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    haptic('success');
     onConfirm();
   };
 

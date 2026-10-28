@@ -59,6 +59,12 @@ export function PlayerCard({ name, faction, level, xp, title, avatar, mascot, ri
           <Text variant="small" muted numberOfLines={1}>
             {factions[faction].name} · nível {level}
           </Text>
+          {/* Com o anel, o XP vira uma linha curta aqui (sem anel, a barra embaixo mostra o mesmo). */}
+          {ring ? (
+            <Text variant="caption" muted tabular numberOfLines={1}>
+              {xp.into.toLocaleString('pt-BR')} / {xp.needed.toLocaleString('pt-BR')} XP
+            </Text>
+          ) : null}
         </View>
         {mascot ? (
           <View aria-hidden importantForAccessibility="no-hide-descendants" style={{ width: 72, height: 72 }}>

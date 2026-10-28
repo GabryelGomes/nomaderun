@@ -157,3 +157,12 @@ jobs:
         run: |
           npm run db:test:local 2>&1 | tee banco-local.log
           { echo '### Banco (pgTAP)'; grep -E '^(Arquivos|Migrations aplicadas|Result):' banco-local.log; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Seed v2 de demonstração aplicado 2 vezes (idempotente) + teste do seed
+        shell: bash
+        env:
+          NR_EXTRA_SQL: supabase/seed_v2_demo.sql supabase/seed_v2_demo.sql
+          NR_EXTRA_TESTS: supabase/tests/seed/seed_v2_demo.test.sql
+        run: |
+          npm run db:test:local 2>&1 | tee banco-seed-v2.log
+          { echo '### Banco + seed v2 (pgTAP)'; grep -E '^(Arquivos|Migrations aplicadas|Result):' banco-seed-v2.log; } >> "$GITHUB_STEP_SUMMARY"

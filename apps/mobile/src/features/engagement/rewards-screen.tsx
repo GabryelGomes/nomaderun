@@ -25,7 +25,7 @@ import { claimSeasonStep, openStoredChests } from './controller';
 import { COSMETICS, howToEarn, SHOWN_SLOTS, SLOT_LABELS } from './cosmetics';
 import { HealthPauseSheet } from './health-pause-sheet';
 import { useEngagementData } from './hooks';
-import { chestRefusal, fmtInt, oddsRows, pauseActive, pityLabel, RARITY_LABEL, shortDate, storedLabel, trackItemLabel } from './model';
+import { chestRefusal, fmtInt, oddsRows, pauseActive, pityLabel, RARITY_LABEL, shortDate, storedLabel, trackItemLabel, trackWindow } from './model';
 
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const monthOf = (seasonId: string) => MONTHS[Number(seasonId.slice(5, 7)) - 1] ?? 'mês';
@@ -53,7 +53,7 @@ function LevelCard({ s, now, onPause }: { s: EngagementStatus; now: number; onPa
         </View>
         <ProgressBar value={s.isMax ? 1 : s.intoLevel / Math.max(1, s.needed)} color={colors.action} trackColor={colors.surfaceSunken} height={10} glow accessibilityLabel={`Progresso do nível: ${fmtInt(s.intoLevel)} de ${fmtInt(s.needed)} XP`} />
         <Text variant="caption" muted>
-          {s.isMax ? 'Nível máximo. Cada XP vira estrela na trilha.' : `Faltam ${fmtInt(s.needed - s.intoLevel)} XP para o nível ${s.level + 1}.`}
+          {s.isMax ? 'Nível máximo. Cada XP vira estrela na trilha.' : `${fmtInt(s.needed - s.intoLevel)} XP para o nível ${s.level + 1}`}
         </Text>
       </View>
       {s.band ? (
@@ -136,7 +136,7 @@ function ChestSection({ slot, ranToday, onOpened }: { slot: Slot<DailyChestState
                 {storedLabel(c)}
               </Text>
               <Text variant="caption" muted>
-                {c.openedToday ? 'Amanhã tem mais 1. Guarda até 3.' : `1 por dia, guarda até ${c.maxStored}. Abre com 1 km.`}
+                {c.openedToday ? 'Amanhã tem mais 1.' : `Guarda até ${c.maxStored}. Abre com 1 km.`}
               </Text>
             </View>
           </View>
@@ -152,7 +152,7 @@ function ChestSection({ slot, ranToday, onOpened }: { slot: Slot<DailyChestState
         ) : null}
         <View testID="recompensas-chances" accessible accessibilityLabel={`Chances do baú: ${oddsRows(c).map((o) => `${o.label} ${o.chance}, ${o.xp}${o.cosmetic ? `, ${o.cosmetic}` : ''}`).join('; ')}`} style={{ gap: space[1], padding: space[3], borderRadius: radius.md, backgroundColor: colors.surfaceSunken }}>
           <Text variant="label" muted style={{ textTransform: 'uppercase' }}>
-            Chances de cada baú
+            Chances
           </Text>
           {oddsRows(c).map((o) => (
             <View key={o.rarity} style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
@@ -166,8 +166,8 @@ function ChestSection({ slot, ranToday, onOpened }: { slot: Slot<DailyChestState
               <Text variant="small" muted tabular style={{ minWidth: 56, textAlign: 'right' }}>
                 {o.xp}
               </Text>
-              <Text variant="caption" muted style={{ minWidth: 72, textAlign: 'right' }}>
-                {o.cosmetic ?? '—'}
+              <Text variant="caption" muted style={{ minWidth: 64, textAlign: 'right' }}>
+                {o.cosmetic ? o.cosmetic.replace(' de item', ' item') : '—'}
               </Text>
             </View>
           ))}
@@ -232,6 +232,7 @@ function StepCard({ step, current, onClaim, busy }: { step: TrackStep; current: 
 function TrackSection({ slot }: { slot: Slot<SeasonTrack> }) {
   const { colors } = useTheme();
   const scroller = useRef<ScrollView>(null);
+  const [all, setAll] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const t = slot.data;
@@ -259,7 +260,7 @@ function TrackSection({ slot }: { slot: Slot<SeasonTrack> }) {
       <Text variant="caption" muted>
         {t.step >= t.steps
           ? `Trilha completa! ${t.prestigeStars} ${t.prestigeStars === 1 ? 'estrela' : 'estrelas'} extra.`
-          : `Degrau ${t.step} de ${t.steps} · ${t.intoStep} de ${t.stepXp} XP para o próximo`}
+          : `Degrau ${t.step} de ${t.steps} · faltam ${t.stepXp - t.intoStep} XP`}
         {pending > 0 ? ` · ${pending} para resgatar` : ''}
       </Text>
       <ScrollView
@@ -267,12 +268,13 @@ function TrackSection({ slot }: { slot: Slot<SeasonTrack> }) {
         horizontal
         showsHorizontalScrollIndicator={false}
         // Abre perto do degrau atual (o próximo a alcançar fica à vista).
-        onLayout={() => scroller.current?.scrollTo({ x: Math.max(0, (t.step - 1) * 120), animated: false })}
+        onLayout={() => all && scroller.current?.scrollTo({ x: Math.max(0, (t.step - 1) * 120), animated: false })}
         contentContainerStyle={{ gap: space[2], paddingVertical: space[1] }}>
-        {t.rewards.map((r) => (
+        {(all ? t.rewards : trackWindow(t.rewards, t.step)).map((r) => (
           <StepCard key={r.step} step={r} current={r.step === t.step + 1} onClaim={claim} busy={busy} />
         ))}
       </ScrollView>
+      <Button testID="recompensas-trilha-ver-toda" label={all ? 'Mostrar menos' : `Ver os ${t.steps} degraus`} kind="ghost" onPress={() => setAll((v) => !v)} />
       {message ? (
         <Text testID="recompensas-trilha-mensagem" variant="small" accessibilityLiveRegion="polite" color={colors.textSecondary}>
           {message}
@@ -283,15 +285,28 @@ function TrackSection({ slot }: { slot: Slot<SeasonTrack> }) {
 }
 
 function CosmeticsSection({ owned }: { owned: Set<string> | null }) {
-  const { colors } = useTheme();
+  const [open, setOpen] = useState(false);
+  const shown = COSMETICS.filter((c) => SHOWN_SLOTS.includes(c.slot));
+  const mine = owned ? shown.filter((c) => owned.has(c.id)).length : null;
   return (
     <View testID="recompensas-cosmeticos" style={{ gap: space[3] }}>
       <SectionHeader title="Cosméticos" testID="recompensas-cosmeticos-titulo" />
-      {owned === null ? (
-        <Text variant="caption" muted>
-          Seus itens aparecem aqui quando o servidor liberar.
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+        <Text testID="recompensas-cosmeticos-resumo" variant="small" style={{ flex: 1 }}>
+          {mine === null ? 'Seus itens aparecem quando o servidor liberar.' : `${mine} de ${shown.length} são seus`}
         </Text>
-      ) : null}
+        <Button testID="recompensas-cosmeticos-ver-todos" label={open ? 'Mostrar menos' : 'Ver todos'} kind="secondary" onPress={() => setOpen((v) => !v)} />
+      </View>
+      {open ? <CosmeticsCatalog owned={owned} /> : null}
+    </View>
+  );
+}
+
+/** Catálogo completo, atrás de "Ver todos" (cada item com "como ganhar"). */
+function CosmeticsCatalog({ owned }: { owned: Set<string> | null }) {
+  const { colors } = useTheme();
+  return (
+    <View testID="recompensas-cosmeticos-catalogo" style={{ gap: space[3] }}>
       {SHOWN_SLOTS.map((slot) => {
         const items = COSMETICS.filter((c) => c.slot === slot);
         const mine = owned ? items.filter((c) => owned.has(c.id)).length : 0;
