@@ -131,7 +131,8 @@ select is((select array_agg(k order by k) from snap, jsonb_object_keys(s -> 'cel
   array['8ba90128e380fff', '8ba90128e381fff', '8ba90128e382fff'], 'só trechos vivos e fora de zonas de privacidade');
 select is((select s -> 'cells' -> '8ba90128e382fff' from snap), '{"faction": "striders", "layers": 2}'::jsonb,
   'camadas efetivas (3 pintadas há 8 dias = 2), só time e camadas');
-select ok((select s::text !~ '(painted|user|_at|lat|lng|e9e9e9e9)' from snap), 'nenhum autor, hora ou coordenada no retrato');
+-- onda 3: a única ocorrência permitida de "painted" é o NOME da chave paintedToday (ids de trechos da própria pessoa)
+select ok((select replace(s::text, '"paintedToday"', '') !~ '(painted|user|_at|lat|lng|e9e9e9e9)' from snap), 'nenhum autor, hora ou coordenada no retrato');
 select is((select s -> 'zones' -> '89a90128e3bffff' from snap),
   '{"owner": "coyotes", "name": "Zona POA 1", "inherited": 3, "blocked": false, "underAttack": true}'::jsonb,
   'zona no retrato: dono, nome, herança, bloqueio e ataque');

@@ -59,10 +59,12 @@ describe('PlayerCard', () => {
     expect(r.text()).toContain('340 / 500 XP');
   });
 
-  it('com o anel da E5, a barra de XP sai; com onPress, vira botão', () => {
+  it('com o anel da E5, a barra de XP sai e o XP vira 1 linha curta; com onPress, vira botão', () => {
     const r = render(<PlayerCard testID="jogador" {...base} ring={<RNText testID="anel">anel</RNText>} onPress={noop} />);
     expect(r.has('anel')).toBe(true);
-    expect(r.text()).not.toContain('XP');
+    // E6a (onda 3): o "Você" usa o anel, e o XP continua visível numa linha (antes sumia junto com a barra).
+    expect(r.text().match(/XP/g)).toHaveLength(1);
+    expect(r.text()).toContain('340 / 500 XP');
     expect(r.host('jogador').props.accessibilityRole).toBe('button');
   });
 });
