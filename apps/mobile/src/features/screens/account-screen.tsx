@@ -8,10 +8,10 @@ import { FadeUp, Pressable, RevealText, Stagger } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
+import { trustLevel } from '@/domain/trust';
 import { ErrorNotice, InfoNotice, TextField } from '@/features/auth/form-ui';
 import { signOut, signOutAfterDeletion } from '@/features/auth/session-controller';
 import { saveAndShareJson } from '@/lib/share-json';
-import { trustLevel } from '@/domain/trust';
 import { DELETE_CONFIRMATION, deleteMyAccount, exportMyData, isWrongPasswordError } from '@/services/api/account-repo';
 import { useGame } from '@/store/game-store';
 import { useSession } from '@/store/session-store';
@@ -101,8 +101,8 @@ export function AccountScreen() {
             {trustLevel(trust) === 'ok'
               ? 'Suas corridas contam normalmente.'
               : trustLevel(trust) === 'review'
-                ? 'Suas próximas corridas passam por revisão antes de pontuar.'
-                : 'Sua participação na competição está suspensa por 30 dias.'}
+                ? 'Suas corridas passam por revisão antes de pontuar.'
+                : 'Competição suspensa por 30 dias.'}
           </Text>
         </Surface>
 

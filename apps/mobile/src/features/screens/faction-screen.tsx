@@ -2,12 +2,15 @@ import { Stack } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
+import { EmptyArt, Mascot } from '@/components/art';
 import { Button } from '@/components/button';
+import { EmptyState } from '@/components/empty-state';
 import { Icon } from '@/components/icon';
 import { FadeUp, haptic, Pressable, Stagger } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader, Surface } from '@/components/surface';
 import { TeamBadge } from '@/components/team-badge';
+import { TEAM_STORY } from '@/components/team-identity';
 import { Text } from '@/components/text';
 import { factionChange } from '@/domain/season';
 import { FACTION_IDS, type FactionId } from '@/domain/types';
@@ -57,26 +60,34 @@ export function FactionScreen() {
       <Stagger gap={space[6]}>
         {current ? (
           <Surface>
-            <Text variant="caption" muted>
-              Seu time agora
-            </Text>
+            {/* Herói: o mascote do time (E4) no lugar do selo; o líder e o lema em 2 linhas curtas. */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[4] }}>
-              <TeamBadge faction={current} size={52} />
-              <View style={{ flex: 1 }}>
+              <View aria-hidden importantForAccessibility="no-hide-descendants">
+                <Mascot team={current} pose="parado" size={104} animated />
+              </View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text variant="caption" muted>
+                  Seu time
+                </Text>
                 <Text variant="title" testID="faccao-atual">
                   {factions[current].name}
                 </Text>
                 <Text variant="small" muted>
+                  {TEAM_STORY[current].mascot} · líder {TEAM_STORY[current].leader}
+                </Text>
+                <Text variant="small" color={neonTeam[current]}>
                   {factions[current].motto}
                 </Text>
               </View>
             </View>
           </Surface>
-        ) : null}
+        ) : (
+          <EmptyState testID="faccao-sem-time" art={<EmptyArt kind="sem-crew" size={200} />} title="Sem time ainda" body="Escolha um abaixo." />
+        )}
 
         {done ? (
           <FadeUp>
-            <InfoNotice testID="faccao-trocada" title={`Agora você corre pelos ${factions[done].name}`} body="Sua próxima corrida já pinta a cidade com a cor do novo time." />
+            <InfoNotice testID="faccao-trocada" title={`Agora você corre pelos ${factions[done].name}`} body="Sua próxima corrida já pinta com a nova cor." />
           </FadeUp>
         ) : null}
 
@@ -89,14 +100,14 @@ export function FactionScreen() {
               </Text>
             </View>
             <Text variant="small" muted testID="faccao-bloqueada">
-              Você já trocou de time este mês. A próxima troca fica liberada em {rule.nextAt}, quando a nova temporada começa.
+              Próxima troca em {rule.nextAt}, na nova temporada.
             </Text>
           </Surface>
         ) : (
           <View style={{ gap: space[3] }}>
             <SectionHeader title="Trocar de time" />
             <Text variant="small" muted style={{ paddingHorizontal: space[1] }}>
-              Você pode trocar uma vez por temporada. Escolha o novo time:
+              1 troca por temporada.
             </Text>
             {others.map((f) => {
               const on = choice === f;
