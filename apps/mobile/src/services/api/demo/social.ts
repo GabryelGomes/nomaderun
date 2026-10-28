@@ -14,7 +14,8 @@
  * (`postgres_changes` em `kudos`, como no servidor real). Para a demonstração ficar viva, ~4 s depois da
  * 1ª abertura do feed um colega da crew manda um "Bora!" na corrida mais recente do corredor (uma vez por
  * banco). O `crew_feed` seguinte já devolve o contador novo: tela e servidor contam a mesma coisa.
- * Também aqui: o par de `weekly_recap` (recap semanal, contrato da E8 §5 / E9 onda 3).
+ * Também aqui: o recap semanal (`weeklyRecapDemo`), servido como a Edge Function `weekly-recap` (o app não usa
+ * o `rpc('weekly_recap')`, então ele não tem par: o teste de contrato não aceita par órfão).
  */
 import { distanceMeters } from '@/domain/geo';
 import { zoneOf } from '@/domain/grid';
@@ -267,6 +268,54 @@ function scheduleLiveKudo(db: DemoDb, userId: string, items: StoredItem[]) {
   (timer as { unref?: () => void }).unref?.();
 }
 
+/**
+ * Recap semanal de demonstração (contrato da E9, "Resumo da semana"): corridas pontuadas da pessoa, semana de
+ * segunda a domingo em Brasília, sem horário. Com `withRoutes`, as até 3 mais longas vão como a rota do feed:
+ * `clipRouteForSharing` com as zonas de privacidade da pessoa → ≤ 80 pontos → polylines de precisão 4.
+ */
+export function weeklyRecapDemo(db: DemoDb, userId: string | null, weekStartArg: unknown, withRoutes: boolean): Row {
+  const profile = requireUser(db, userId);
+  const asked = typeof weekStartArg === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(weekStartArg) ? weekStartArg : db.brToday();
+  const noon = Date.parse(`${asked}T12:00:00Z`);
+  if (!Number.isFinite(noon)) throw raise('VALIDATION: semana inválida');
+  const back = (new Date(noon).getUTCDay() + 6) % 7;
+  const weekStart = new Date(noon - back * DAY_MS).toISOString().slice(0, 10);
+  const weekEnd = new Date(noon + (6 - back) * DAY_MS).toISOString().slice(0, 10);
+  const from = Date.parse(`${weekStart}T03:00:00Z`); // 00:00 em Brasília
+  const runs = db.tables.activities.filter((a) => {
+    const t = msOf(a.started_at) ?? 0;
+    return a.user_id === userId && (a.status === 'valid' || a.status === 'partial') && t >= from && t < from + 7 * DAY_MS;
+  });
+  const days = [0, 0, 0, 0, 0, 0, 0];
+  for (const a of runs) days[Math.floor(((msOf(a.started_at) ?? from) - from) / DAY_MS)] += Number(a.meters) || 0;
+  const ids = new Set(runs.map((a) => a.id));
+  const longest = [...runs].sort((a, b) => (Number(b.meters) || 0) - (Number(a.meters) || 0)).slice(0, 3);
+  const zones: PrivacyCircle[] = db.tables.privacy_zones.filter((z) => z.user_id === userId).map((z) => ({ lat: Number(z.lat), lng: Number(z.lng), radiusM: Number(z.radius_m) }));
+  const routes = withRoutes
+    ? longest
+        .map((a, i) => {
+          const pts = db.pointsOf(String(a.id)).map((p) => ({ lat: Number(p.lat), lng: Number(p.lng) }));
+          // semente nova a cada chamada, como no servidor real
+          const clipped = clipRouteForSharing(pts, zones, { seed: (seedOf(String(a.id)) ^ (db.now() + i)) >>> 0, hideEnds: true });
+          return clipped.mode === 'route' ? { pieces: thinPieces(clipped.pieces).map((p) => encodePolyline(p)), routeHidden: true } : null;
+        })
+        .filter((r): r is { pieces: string[]; routeHidden: boolean } => r !== null)
+    : [];
+  return {
+    weekStart,
+    weekEnd,
+    final: db.brToday() > weekEnd,
+    days: days.map(Math.round),
+    meters: Math.round(days.reduce((n, m) => n + m, 0)),
+    runs: runs.length,
+    movingSeconds: runs.reduce((n, a) => n + (Number(a.moving_seconds) || 0), 0),
+    zones: new Set(db.tables.activity_zones.filter((z) => ids.has(z.activity_id) && z.outcome === 'conquered').map((z) => z.zone_id)).size,
+    streakWeeks: Number(profile.streak_weeks) || 0,
+    isDemo: true,
+    routes,
+  };
+}
+
 export const DEMO_SOCIAL_RPC_HANDLERS: Record<string, RpcHandler> = {
   crew_feed: (db, userId, args) => {
     requireUser(db, userId);
@@ -342,35 +391,6 @@ export const DEMO_SOCIAL_RPC_HANDLERS: Record<string, RpcHandler> = {
     };
     stateOf(db).settings.set(userId!, next);
     return next;
-  },
-
-  /** Recap semanal (contrato no `recap-repo.ts`): só as corridas pontuadas da pessoa, semana de segunda a domingo em Brasília. */
-  weekly_recap: (db, userId, args) => {
-    const profile = requireUser(db, userId);
-    const asked = typeof args.p_week_start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(args.p_week_start) ? args.p_week_start : db.brToday();
-    const noon = Date.parse(`${asked}T12:00:00Z`);
-    const back = (new Date(noon).getUTCDay() + 6) % 7;
-    const weekStart = new Date(noon - back * DAY_MS).toISOString().slice(0, 10);
-    const from = Date.parse(`${weekStart}T03:00:00Z`); // 00:00 em Brasília
-    const runs = db.tables.activities.filter((a) => {
-      const t = msOf(a.started_at) ?? 0;
-      return a.user_id === userId && (a.status === 'valid' || a.status === 'partial') && t >= from && t < from + 7 * DAY_MS;
-    });
-    const days = [0, 0, 0, 0, 0, 0, 0];
-    for (const a of runs) days[Math.floor(((msOf(a.started_at) ?? from) - from) / DAY_MS)] += Number(a.meters) || 0;
-    const ids = new Set(runs.map((a) => a.id));
-    return {
-      weekStart,
-      days: days.map(Math.round),
-      runs: runs.length,
-      meters: Math.round(days.reduce((n, m) => n + m, 0)),
-      movingSeconds: runs.reduce((n, a) => n + (Number(a.moving_seconds) || 0), 0),
-      zones: db.tables.activity_zones.filter((z) => ids.has(z.activity_id) && z.outcome === 'conquered').length,
-      zonesHeld: null,
-      streakWeeks: Number(profile.streak_weeks) || 0,
-      activityIds: [...runs].sort((a, b) => (Number(b.meters) || 0) - (Number(a.meters) || 0)).slice(0, 3).map((a) => String(a.id)),
-      isDemo: true,
-    };
   },
 
   record_share: (db, userId, args) => {

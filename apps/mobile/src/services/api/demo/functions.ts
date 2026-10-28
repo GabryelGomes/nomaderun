@@ -7,6 +7,7 @@ import type { FunctionName } from '../functions';
 
 import type { DemoDb, Row } from './db';
 import { withEngagementExtras } from './engagement';
+import { weeklyRecapDemo } from './social';
 import { accountDelete, accountExport, DemoHttpError, finishActivity, ingestPoints, moderateActivity, registerDevice, zoneDetail, zonesInBbox } from './server';
 
 export type FunctionRequest = { method: string; query: URLSearchParams; body: Row };
@@ -21,6 +22,7 @@ export const DEMO_FUNCTION_HANDLERS: Record<FunctionName, FunctionHandler> = {
   'moderate-activity': (db, userId, req) => moderateActivity(db, userId, req.body),
   'account-export': (db, userId) => accountExport(db, userId),
   'account-delete': (db, userId, req) => accountDelete(db, userId, req.body),
+  'weekly-recap': (db, userId, req) => weeklyRecapDemo(db, userId, req.body.weekStart ?? req.query.get('weekStart'), true),
 };
 
 /** Nomes das functions que o servidor de demonstração atende (o teste de contrato confere). */

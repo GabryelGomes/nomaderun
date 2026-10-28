@@ -22,6 +22,7 @@ import { layout, ScreenScroll } from '@/components/screen';
 import { Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import type { PrivacyCircle } from '@/domain/share-privacy';
+import { trackTelemetry } from '@/features/engagement';
 import { useRunRecord } from '@/features/run/use-run-record';
 import { listMyActivities, type ActivitySummary } from '@/services/api/activities-repo';
 import { isDemoMode } from '@/services/api/env';
@@ -83,6 +84,8 @@ export function ShareScreen() {
   const share = useShareCard({
     onShared: () => {
       haptic('success');
+      // Telemetria opt-in da E7 (D-82): só conta se a pessoa ligou; o evento não leva nada além do nome.
+      trackTelemetry('share');
       if (id && record.state === 'official') void recordShare(id);
     },
   });

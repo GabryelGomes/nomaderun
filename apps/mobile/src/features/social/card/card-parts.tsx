@@ -6,11 +6,11 @@
 import { useId, type ReactNode } from 'react';
 import { Circle, ClipPath, Defs, Ellipse, G, Line, LinearGradient, Mask, Path, Polygon, RadialGradient, Rect, Stop, Text as SvgText } from 'react-native-svg';
 
-import type { SharedRoute } from '@/domain/share-privacy';
 import type { FactionId } from '@/domain/types';
 import { neon, neonTeam } from '@/theme/neon';
 import { dark, factions, type TeamShape } from '@/theme/tokens';
 
+import type { CardRoute } from './card-route';
 import { cardFonts, measureText, type CardFont } from './font-metrics';
 import { frameRoutes, type Box, type CardRegion } from './route-geometry';
 
@@ -276,7 +276,7 @@ type MapPanelProps = {
   /** Área onde a rota precisa caber. */
   fitBox?: Box;
   /** Só rotas já cortadas pelo domain. */
-  routes: readonly SharedRoute[];
+  routes: readonly CardRoute[];
   regions?: readonly CardRegion[];
   highlight?: FactionId | null;
   pad?: number;

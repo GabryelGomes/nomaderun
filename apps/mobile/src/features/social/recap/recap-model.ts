@@ -2,14 +2,18 @@
  * T7.3.7 — recap semanal (modelo 5), parte pura: semana (segunda a domingo), link da tela, recap montado das
  * próprias corridas (quando o servidor não tem o `weekly_recap`) e a entrada do card (`ShareWeekInput`).
  *
- * Privacidade: as mini-rotas só saem pelo corte do domain (`clipRouteForSharing`) com as zonas da pessoa e
- * semente nova; sem as zonas (sem internet, erro) o card vai **sem rotas**, com aviso. A data vai sem hora.
+ * Privacidade: as mini-rotas vêm de um dos dois cortes do mesmo `clipRouteForSharing`:
+ *  - do servidor (`weekly-recap`): polylines já cortadas → `ownRouteFromServer` (adaptador; não corta de novo);
+ *  - do aparelho (recap local, servidor antigo): pontos das corridas + zonas da pessoa + semente nova. Sem as
+ *    zonas (sem internet, erro), o card vai **sem rotas**, com aviso.
+ * A data vai sem hora.
  */
-import { clipRouteForSharing, type PrivacyCircle, type SharedRoute } from '@/domain/share-privacy';
+import { clipRouteForSharing, type PrivacyCircle } from '@/domain/share-privacy';
 import type { FactionId, LatLng } from '@/domain/types';
 import type { WeeklyRecap } from '@/services/api/recap-repo';
 
 import type { CardDate, ShareWeekInput } from '../card/card-model';
+import { ownRouteFromServer, type CardRoute } from '../card/card-route';
 import { PRIVACY_NOTICE_NO_ZONES } from '../share/share-input';
 
 const DAY_MS = 86_400_000;
@@ -76,15 +80,18 @@ export function recapFromActivities(activities: readonly RecapActivity[], weekSt
     const i = Math.round((weekStartMs(isoOf(new Date(a.startedAt))) - from) / DAY_MS);
     if (i >= 0 && i < 7) dayMeters[i] += Math.max(0, a.meters);
   }
+  const weekEnd = addDaysIso(weekStart, 6);
   return {
     weekStart,
+    weekEnd,
+    final: isoOf(new Date()) > weekEnd,
     dayMeters,
     runs: runs.length,
     meters: dayMeters.reduce((s, m) => s + m, 0),
     movingSeconds: runs.reduce((s, a) => s + Math.max(0, a.movingSeconds), 0),
     zones: runs.reduce((s, a) => s + Math.max(0, a.conquered), 0),
-    zonesHeld: null,
     streakWeeks: Math.max(0, streakWeeks),
+    routes: [],
     activityIds: [...runs].sort((a, b) => b.meters - a.meters).slice(0, 3).map((a) => a.id),
     isDemo,
   };
@@ -92,9 +99,9 @@ export function recapFromActivities(activities: readonly RecapActivity[], weekSt
 
 export type RecapSource = {
   recap: WeeklyRecap;
-  /** Pontos de cada corrida do recap (por id). Corrida sem pontos fica sem mini-rota. */
+  /** Recap local: pontos de cada corrida (por id). Corrida sem pontos fica sem mini-rota. */
   paths: ReadonlyMap<string, readonly LatLng[]>;
-  /** Zonas de privacidade; `null` = não deu para carregar (as rotas não saem). */
+  /** Recap local: zonas de privacidade; `null` = não deu para carregar (as rotas não saem). */
   privacyZones: readonly PrivacyCircle[] | null;
   seed: number;
   faction: FactionId;
@@ -103,31 +110,36 @@ export type RecapSource = {
   isDemo: boolean;
 };
 
-/** Recap → entrada do card da semana, com as mini-rotas cortadas no aparelho. */
+/** Recap → entrada do card da semana. Rotas do servidor passam pelo adaptador; as locais, pelo corte. */
 export function buildRecapWeekInput(src: RecapSource): { input: ShareWeekInput; notice: string | null } {
+  if (src.recap.routes.length) {
+    const routes = src.recap.routes.map(ownRouteFromServer).filter((r): r is NonNullable<typeof r> => r !== null);
+    return { input: weekInput(src, routes), notice: null };
+  }
   const zonesKnown = src.privacyZones !== null;
-  const routes: SharedRoute[] = zonesKnown
+  const routes: CardRoute[] = zonesKnown
     ? src.recap.activityIds
         .slice(0, 3)
         .map((id, i) => clipRouteForSharing(src.paths.get(id) ?? [], src.privacyZones ?? [], { seed: (src.seed + i * 0x9e3779b1) >>> 0, hideEnds: true }))
         .filter((r) => r.mode === 'route')
     : [];
   const hasPaths = src.recap.activityIds.some((id) => (src.paths.get(id)?.length ?? 0) >= 2);
+  return { input: weekInput(src, routes), notice: !zonesKnown && hasPaths ? PRIVACY_NOTICE_NO_ZONES : null };
+}
+
+function weekInput(src: RecapSource, routes: CardRoute[]): ShareWeekInput {
   return {
-    input: {
-      faction: src.faction,
-      weekStart: cardDateOfIso(src.recap.weekStart),
-      dayMeters: src.recap.dayMeters,
-      runs: src.recap.runs,
-      movingSeconds: src.recap.movingSeconds,
-      zones: src.recap.zones,
-      streakWeeks: src.recap.streakWeeks,
-      routes,
-      city: src.city,
-      username: src.username,
-      isDemo: src.isDemo || src.recap.isDemo,
-    },
-    notice: !zonesKnown && hasPaths ? PRIVACY_NOTICE_NO_ZONES : null,
+    faction: src.faction,
+    weekStart: cardDateOfIso(src.recap.weekStart),
+    dayMeters: src.recap.dayMeters,
+    runs: src.recap.runs,
+    movingSeconds: src.recap.movingSeconds,
+    zones: src.recap.zones,
+    streakWeeks: src.recap.streakWeeks,
+    routes,
+    city: src.city,
+    username: src.username,
+    isDemo: src.isDemo || src.recap.isDemo,
   };
 }
 

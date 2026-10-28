@@ -11,3 +11,4 @@ export { ShareSticker, STICKER_SIZE } from './sticker-card';
 export { RunCard, ZoneCard } from './run-cards';
 export { LevelCard, BossCard } from './moment-cards';
 export { WeekCard } from './week-card';
+export { isCardRoute, isOwnServerRoute, ownRouteFromServer, type CardRoute, type OwnServerRoute } from './card-route';

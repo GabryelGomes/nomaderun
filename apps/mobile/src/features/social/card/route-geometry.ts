@@ -1,10 +1,11 @@
 /**
- * T7.1.9 — enquadramento da rota no card (puro). Só aceita `SharedRoute` (a rota já cortada) e enquadra
+ * T7.1.9 — enquadramento da rota no card (puro). Só aceita `CardRoute` (a rota já cortada, ver `card-route.ts`) e enquadra
  * **só a parte visível**, para o recorte não "apontar" para o trecho escondido. Regiões dos times
  * (opcionais) usam a mesma projeção e já chegam suavizadas: o card nunca desenha hexágonos.
  */
-import { isSharedRoute, type SharedRoute } from '@/domain/share-privacy';
+import { isCardRoute, type CardRoute } from './card-route';
 import type { FactionId, LatLng } from '@/domain/types';
+
 
 export type Box = { x: number; y: number; w: number; h: number };
 
@@ -16,7 +17,7 @@ export type RouteFrame = {
   scale: number;
   toPoint(p: LatLng): [number, number];
   /** Caminho SVG de todos os pedaços visíveis da rota. */
-  routePath(route: SharedRoute): string;
+  routePath(route: CardRoute): string;
   /** Caminho SVG (fechado) dos anéis de uma região. */
   regionPath(region: CardRegion): string;
 };
@@ -29,12 +30,12 @@ const MIN_SPAN_M = 60;
 const MIN_STEP_PX = 1.5;
 
 /** Só as rotas com algo visível e que saíram de verdade do corte. */
-export function visibleRoutes(routes: readonly (SharedRoute | null | undefined)[]): SharedRoute[] {
-  return routes.filter((r): r is SharedRoute => !!r && isSharedRoute(r) && r.mode === 'route' && r.pieces.length > 0);
+export function visibleRoutes(routes: readonly (CardRoute | null | undefined)[]): CardRoute[] {
+  return routes.filter((r): r is CardRoute => !!r && isCardRoute(r) && r.mode === 'route' && r.pieces.length > 0);
 }
 
 /** Enquadra as rotas em `box` com `pad` de folga. `null` quando não há nada visível. */
-export function frameRoutes(routes: readonly (SharedRoute | null | undefined)[], box: Box, pad = 0): RouteFrame | null {
+export function frameRoutes(routes: readonly (CardRoute | null | undefined)[], box: Box, pad = 0): RouteFrame | null {
   const shown = visibleRoutes(routes);
   const points = shown.flatMap((r) => r.pieces.flat());
   if (!points.length) return null;
@@ -81,7 +82,7 @@ export function frameRoutes(routes: readonly (SharedRoute | null | undefined)[],
   return {
     scale,
     toPoint,
-    routePath: (route) => (isSharedRoute(route) && route.mode === 'route' ? route.pieces.map((piece) => polyline(piece, false)).join('') : ''),
+    routePath: (route) => (isCardRoute(route) && route.mode === 'route' ? route.pieces.map((piece) => polyline(piece, false)).join('') : ''),
     regionPath: (region) => region.rings.filter((ring) => ring.length > 2).map((ring) => polyline(ring, true)).join(''),
   };
 }

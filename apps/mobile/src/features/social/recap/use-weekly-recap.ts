@@ -1,7 +1,7 @@
 /**
- * T7.3.7 — carrega o recap semanal para o card: `weekly_recap` da E9 (ou, se o servidor não tiver, o recap
- * montado das próprias corridas), as zonas de privacidade e os pontos das até 3 corridas das mini-rotas.
- * O corte das rotas fica na tela (`buildRecapWeekInput`), com a semente da abertura.
+ * T7.3.7 — carrega o recap semanal para o card: a Edge Function `weekly-recap` da E9 (rotas já cortadas no
+ * servidor). Servidor antigo: o recap montado das próprias corridas, com as zonas de privacidade e os pontos
+ * das até 3 corridas mais longas (o corte, nesse caso, fica na tela com a semente da abertura).
  *
  * Sem semana pedida: a semana atual; se ela ainda não tem corrida (segunda cedo), a anterior.
  */
@@ -36,9 +36,9 @@ export type WeeklyRecapDeps = {
   now?: () => number;
 };
 
-async function loadWeek(weekStart: string, deps: WeeklyRecapDeps): Promise<Result<{ recap: WeeklyRecap; source: 'server' | 'local' }>> {
-  const server = await getWeeklyRecap(weekStart);
-  if (server.ok) return { ok: true, data: { recap: server.data, source: 'server' } };
+async function loadWeek(weekStart: string, deps: WeeklyRecapDeps, askServer: string | null): Promise<Result<{ recap: WeeklyRecap; source: 'server' | 'local' }>> {
+  const server = await getWeeklyRecap(askServer);
+  if (server.ok) return { ok: true, data: { recap: server.data.weekStart ? server.data : { ...server.data, weekStart }, source: 'server' } };
   if (!isRecapUnavailable(server.error)) return server;
   const acts = await listMyActivities({ from: weekStartMs(weekStart), to: weekStartMs(addDaysIso(weekStart, 7)) });
   if (!acts.ok) return acts;
@@ -54,20 +54,25 @@ async function loadWeek(weekStart: string, deps: WeeklyRecapDeps): Promise<Resul
 }
 
 export function useWeeklyRecap(weekStart: string | null, deps: WeeklyRecapDeps) {
-  const [state, setState] = useState<WeeklyRecapState>({ status: 'loading' });
   const [attempt, setAttempt] = useState(0);
+  // O resultado fica preso ao pedido (semana + tentativa): pedido novo = "carregando" sem setState no efeito.
+  const key = `${weekStart ?? ''}|${attempt}`;
+  const [stored, setStored] = useState<{ key: string; value: WeeklyRecapState } | null>(null);
+  const setState = useCallback((value: WeeklyRecapState) => setStored({ key, value }), [key]);
   const depsRef = useRef(deps);
-  depsRef.current = deps;
+  useEffect(() => {
+    depsRef.current = deps;
+  });
 
   useEffect(() => {
     let alive = true;
-    setState({ status: 'loading' });
     void (async () => {
       const d = depsRef.current;
       const current = mondayOf((d.now ?? Date.now)());
-      let week = await loadWeek(weekStart ?? current, d);
+      let week = await loadWeek(weekStart ?? current, d, weekStart);
       if (!weekStart && week.ok && week.data.recap.runs === 0) {
-        const prev = await loadWeek(addDaysIso(current, -7), d);
+        const prevStart = addDaysIso(week.data.recap.weekStart, -7);
+        const prev = await loadWeek(prevStart, d, prevStart);
         if (prev.ok && prev.data.recap.runs > 0) week = prev;
       }
       if (!alive) return;
@@ -75,21 +80,24 @@ export function useWeeklyRecap(weekStart: string | null, deps: WeeklyRecapDeps) 
         setState({ status: 'error', message: week.error.message });
         return;
       }
-      const [zonesRes, ...pathRes] = await Promise.all([listPrivacyZones(), ...week.data.recap.activityIds.map((id) => getActivityPath(id))]);
+      // Rotas do servidor já vêm cortadas: zonas e pontos só fazem falta no recap local.
+      const local = week.data.source === 'local' && week.data.recap.activityIds.length > 0;
+      const [zonesRes, ...pathRes] = local ? await Promise.all([listPrivacyZones(), ...week.data.recap.activityIds.map((id) => getActivityPath(id))]) : [null];
       if (!alive) return;
       const paths = new Map<string, readonly LatLng[]>();
       week.data.recap.activityIds.forEach((id, i) => {
         const r = pathRes[i];
         if (r?.ok && r.data.length >= 2) paths.set(id, r.data);
       });
-      const zones = zonesRes.ok ? zonesRes.data.map((z) => ({ lat: z.lat, lng: z.lng, radiusM: z.radiusM })) : null;
+      const zones = zonesRes?.ok ? zonesRes.data.map((z) => ({ lat: z.lat, lng: z.lng, radiusM: z.radiusM })) : null;
       setState({ status: 'ready', recap: week.data.recap, source: week.data.source, paths, zones });
     })();
     return () => {
       alive = false;
     };
-  }, [weekStart, attempt]);
+  }, [weekStart, setState]);
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
+  const state: WeeklyRecapState = stored && stored.key === key ? stored.value : { status: 'loading' };
   return { state, retry };
 }

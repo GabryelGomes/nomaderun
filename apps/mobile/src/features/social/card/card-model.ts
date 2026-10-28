@@ -13,6 +13,8 @@ import type { SharedRoute } from '@/domain/share-privacy';
 import type { FactionId } from '@/domain/types';
 import { factions } from '@/theme/tokens';
 
+import type { CardRoute } from './card-route';
+
 export type CardKind = 'run' | 'zone' | 'level' | 'boss' | 'week';
 export type ShareCardFormat = 'stories' | 'feed';
 
@@ -75,8 +77,8 @@ export type ShareWeekInput = {
   movingSeconds: number;
   zones: number;
   streakWeeks: number;
-  /** Até 3 rotas da semana, já cortadas. */
-  routes: readonly SharedRoute[];
+  /** Até 3 rotas da semana, já cortadas (no aparelho ou no servidor: `CardRoute`). */
+  routes: readonly CardRoute[];
   city?: string | null;
   username?: string | null;
   isDemo: boolean;
@@ -149,7 +151,7 @@ export type WeekCardModel = CardBase & {
   totals: readonly { value: string; label: string }[];
   streakChip: string | null;
   /** Rotas com algo visível (no máximo 3); vazio = só barras e números. */
-  routes: readonly SharedRoute[];
+  routes: readonly CardRoute[];
 };
 
 export type CardModel = RunCardModel | ZoneCardModel | LevelCardModel | BossCardModel | WeekCardModel;

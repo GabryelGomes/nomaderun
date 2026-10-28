@@ -207,7 +207,7 @@ describe('arte por props', () => {
     const noRoute = render(<ShareCard model={buildRunCard(input, { ...DEFAULT_CARD_CHOICES, withRoute: false })} format="stories" />);
     expect(noRoute.root.findAllByType(MascotSvgArt)).toHaveLength(1);
     // a arte é vetor dentro do SVG do card: nenhum <Image> (sairia em branco no toDataURL)
-    for (const r of [level, boss, noRoute]) expect(r.root.findAll((n) => n.type === 'Image' || (typeof n.type === 'function' && n.type.name === 'Image'))).toHaveLength(0);
+    for (const r of [level, boss, noRoute]) expect(r.root.findAll((n) => String(n.type) === 'Image' || (typeof n.type === 'function' && n.type.name === 'Image'))).toHaveLength(0);
   });
 
   it('nome do chefão → arte da E4 (com temporada, sem acento, desconhecido)', () => {
