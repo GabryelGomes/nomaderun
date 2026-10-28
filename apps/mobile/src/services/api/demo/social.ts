@@ -9,6 +9,12 @@
  * O feed da crew de demonstração tem 6 corridas: as 3 mais recentes do corredor de demonstração (as do
  * banco, incluindo a que ele acabou de correr) e 3 de colegas da crew, geradas sobre a rota do lago.
  * Estado (reações) guardado fora do `DemoDb`, por banco, para não mexer nas tabelas da E10.
+ *
+ * T7.3.7 — Realtime dos aplausos: cada reação muda a "tabela" `kudos` e sai pelo canal de demonstração
+ * (`postgres_changes` em `kudos`, como no servidor real). Para a demonstração ficar viva, ~4 s depois da
+ * 1ª abertura do feed um colega da crew manda um "Bora!" na corrida mais recente do corredor (uma vez por
+ * banco). O `crew_feed` seguinte já devolve o contador novo: tela e servidor contam a mesma coisa.
+ * Também aqui: o par de `weekly_recap` (recap semanal, contrato da E8 §5 / E9 onda 3).
  */
 import { distanceMeters } from '@/domain/geo';
 import { zoneOf } from '@/domain/grid';
@@ -52,14 +58,19 @@ type SocialState = {
   deleted: Set<string>;
   /** `user_settings` de demonstração (padrão: tudo ligado). */
   settings: Map<string, { shareRunsToFeed: boolean; feedShowMap: boolean }>;
+  /** O "Bora!" ao vivo do colega já foi agendado neste banco. */
+  liveScheduled: boolean;
 };
+
+/** Quanto tempo depois da 1ª abertura do feed o colega aplaude ao vivo. */
+export const DEMO_LIVE_KUDO_MS = 4000;
 
 const states = new WeakMap<DemoDb, SocialState>();
 
 function stateOf(db: DemoDb): SocialState {
   let s = states.get(db);
   if (!s) {
-    s = { kudos: new Map(), given: new Map(), routes: new Map(), mates: null, deleted: new Set(), settings: new Map() };
+    s = { kudos: new Map(), given: new Map(), routes: new Map(), mates: null, deleted: new Set(), settings: new Map(), liveScheduled: false };
     states.set(db, s);
   }
   return s;
@@ -183,7 +194,8 @@ function visibleItems(db: DemoDb, userId: string): { crewId: string | null; item
   const crewMates = db.tables.crew_members.filter((m) => m.crew_id === crewId && m.user_id !== userId).map((m) => String(m.user_id)).sort();
   own.forEach((item, k) => {
     if (s.kudos.has(item.id)) return;
-    const n = Math.max(0, crewMates.length - k);
+    // Falta 1 colega em cada (o último da lista): é ele quem aplaude ao vivo a corrida mais recente.
+    const n = Math.max(0, crewMates.length - 1 - k);
     s.kudos.set(item.id, new Map(crewMates.slice(0, n).map((m, i) => [m, i === 0 && k === 0 ? 'raio' : i % 3 === 2 ? 'fogo' : 'bora'])));
   });
   return { crewId, items: [...own, ...mates].filter((i) => !s.deleted.has(i.id)).sort((a, b) => b.createdAt - a.createdAt) };
@@ -220,6 +232,41 @@ function itemRow(db: DemoDb, item: StoredItem, userId: string): Row {
   };
 }
 
+/**
+ * Manda a mudança de `kudos` pelo Realtime de demonstração. O `DemoDb.emit` só tipa `zones` e
+ * `notifications` (arquivo da E10); o canal filtra pelo nome da tabela, então `kudos` passa igual.
+ */
+function emitKudos(db: DemoDb, event: 'INSERT' | 'UPDATE' | 'DELETE', itemId: string, userId: string, reaction: FeedReaction | null) {
+  const emit = db.emit.bind(db) as unknown as (table: string, event: string, row: Row) => void;
+  emit('kudos', event, event === 'DELETE' ? { id: `${itemId}|${userId}` } : { id: `${itemId}|${userId}`, feed_item_id: itemId, user_id: userId, reaction, day: db.brToday() });
+}
+
+/** Agenda (uma vez por banco) o "Bora!" ao vivo do colega que ainda não aplaudiu a corrida mais recente. */
+function scheduleLiveKudo(db: DemoDb, userId: string, items: StoredItem[]) {
+  const s = stateOf(db);
+  if (s.liveScheduled) return;
+  const crewId = db.crewOf(userId);
+  const target = items.find((i) => i.actorId === userId);
+  if (!crewId || !target) return;
+  const mate = db.tables.crew_members
+    .filter((m) => m.crew_id === crewId && m.user_id !== userId)
+    .map((m) => String(m.user_id))
+    .sort()
+    .find((m) => !s.kudos.get(target.id)?.has(m));
+  if (!mate) return;
+  s.liveScheduled = true;
+  const timer = setTimeout(() => {
+    if (s.deleted.has(target.id)) return;
+    const kudos = s.kudos.get(target.id) ?? new Map<string, FeedReaction>();
+    s.kudos.set(target.id, kudos);
+    if (kudos.has(mate)) return;
+    kudos.set(mate, 'bora');
+    emitKudos(db, 'INSERT', target.id, mate, 'bora');
+  }, DEMO_LIVE_KUDO_MS);
+  // Não segura o processo (testes e Node) só por causa do aplauso de demonstração.
+  (timer as { unref?: () => void }).unref?.();
+}
+
 export const DEMO_SOCIAL_RPC_HANDLERS: Record<string, RpcHandler> = {
   crew_feed: (db, userId, args) => {
     requireUser(db, userId);
@@ -230,6 +277,7 @@ export const DEMO_SOCIAL_RPC_HANDLERS: Record<string, RpcHandler> = {
     const from = args.p_before ? items.findIndex((i) => i.id === args.p_before) + 1 : 0;
     const page = from > 0 || !args.p_before ? items.slice(from, from + limit) : [];
     const more = from + page.length < items.length && page.length > 0;
+    scheduleLiveKudo(db, userId!, items);
     return {
       crew: crew ? { id: crew.id, name: crew.name, tag: crew.tag, faction: crew.faction } : null,
       items: page.map((i) => itemRow(db, i, userId!)),
@@ -247,13 +295,17 @@ export const DEMO_SOCIAL_RPC_HANDLERS: Record<string, RpcHandler> = {
     const s = stateOf(db);
     const kudos = s.kudos.get(item.id) ?? new Map<string, FeedReaction>();
     s.kudos.set(item.id, kudos);
-    if (reaction === null) kudos.delete(userId!);
-    else if (kudos.get(userId!) !== reaction) {
+    const had = kudos.get(userId!) ?? null;
+    if (reaction === null) {
+      kudos.delete(userId!);
+      if (had) emitKudos(db, 'DELETE', item.id, userId!, null);
+    } else if (had !== reaction) {
       const key = `${userId}|${db.brToday()}`;
       const given = s.given.get(key) ?? 0;
       if (given >= FEED_DAILY_REACTIONS) throw raise('KUDOS_LIMIT: limite de reações do dia atingido');
       s.given.set(key, given + 1);
       kudos.set(userId!, reaction);
+      emitKudos(db, had ? 'UPDATE' : 'INSERT', item.id, userId!, reaction);
     }
     return itemRow(db, item, userId!);
   },

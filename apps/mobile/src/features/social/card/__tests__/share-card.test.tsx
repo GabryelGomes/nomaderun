@@ -2,7 +2,7 @@
  * T7.1.9 — renderização dos cards (react-native-svg): 5 modelos × 2 formatos, com e sem rota, adesivo,
  * selo de demonstração, arte por props e privacidade (nenhuma coordenada desenhada dentro de zona).
  */
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import type { ReactElement } from 'react';
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from 'react-test-renderer';
 import Svg, { Circle } from 'react-native-svg';
@@ -13,12 +13,21 @@ import type { LatLng } from '@/domain/types';
 
 import { buildCarousel, buildWeekCarousel } from '../pick-models';
 import { buildBossCard, buildLevelCard, buildRunCard, buildWeekCard, buildZoneCard, DEFAULT_CARD_CHOICES, type CardModel, type RunCardModel, type ShareCardFormat } from '../card-model';
-import { CARD_FORMATS, CARD_SLOGAN_FEED, CARD_SLOGAN_STORIES } from '../card-frame';
+import { LogoSvgArt, MascotSvgArt, BossSvgArt } from '@/components/art';
+
+import { bossIdOf } from '../card-art';
+import { CARD_FORMATS, CARD_SLOGAN_FEED, CARD_SLOGAN_STORIES, cardLogoLayout, STORIES_SAFE } from '../card-frame';
 import { cardColors, DEMO_STAMP } from '../card-parts';
 import { frameRoutes } from '../route-geometry';
 import { ShareCard } from '../share-card';
 import { ShareSticker } from '../sticker-card';
 import { DEMO_ROUTE, demoRunInput, demoWeekInput } from './fixtures';
+
+/* eslint-disable @typescript-eslint/no-require-imports -- fábricas do jest.mock só podem usar require */
+// T7.3.7: a arte da E4 (logo, mascote, chefão) passa pelo render animável, que importa o Reanimated.
+jest.mock('react-native-reanimated', () => require('@/components/motion/__tests__/render-mocks').reanimated);
+jest.mock('react-native-worklets', () => require('@/components/motion/__tests__/render-mocks').worklets);
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 function render(el: ReactElement): ReactTestRenderer {
   let r: ReactTestRenderer | undefined;
@@ -60,7 +69,12 @@ describe('ShareCard — 5 modelos × 2 formatos', () => {
         // no feed, o recap com mini-rotas não tem espaço para a ficha da sequência (só no Stories)
         const expected = model.kind === 'week' && format === 'feed' ? EXPECTED.week.filter((s) => !s.startsWith('Sequência')) : EXPECTED[model.kind];
         for (const s of expected) expect(t).toContain(s);
-        expect(t).toEqual(expect.arrayContaining(['NOMADE', 'RUN', 'NEON STRIDERS', DEMO_STAMP, format === 'stories' ? CARD_SLOGAN_STORIES : CARD_SLOGAN_FEED]));
+        expect(t).toEqual(expect.arrayContaining(['NEON STRIDERS', DEMO_STAMP, format === 'stories' ? CARD_SLOGAN_STORIES : CARD_SLOGAN_FEED]));
+        // T7.3.7: o logo é o oficial da E4 (traço, sem <text>), não mais o logotipo provisório em texto.
+        const logos = r.root.findAllByType(LogoSvgArt);
+        expect(logos).toHaveLength(1);
+        expect(logos[0].props.variant).toBe('horizontal');
+        expect(t).not.toContain('NOMADE');
       });
     }
   }
@@ -170,13 +184,53 @@ describe('arte por props', () => {
     };
     const level = render(<ShareCard model={buildLevelCard(input)!} format="stories" art={art} />);
     expect(level.root.findAllByProps({ testID: 'mascote-e4' }).length).toBeGreaterThan(0);
-    expect(boxes[0]).toEqual({ cx: 540 + 300 * 0.71, cy: 790 + 300 * 0.71, size: 124 });
+    expect(boxes[0]).toEqual({ cx: 540 + 300 * 0.8, cy: 790 + 300 * 0.66, size: 230 });
     const boss = render(<ShareCard model={buildBossCard(input)!} format="feed" art={art} />);
     expect(boss.root.findAllByProps({ testID: 'chefao-e4' }).length).toBeGreaterThan(0);
     const noRoute = render(<ShareCard model={buildRunCard(input, { ...DEFAULT_CARD_CHOICES, withRoute: false })} format="feed" art={art} />);
     expect(noRoute.root.findAllByProps({ testID: 'mascote-e4' }).length).toBeGreaterThan(0);
     const zone = render(<ShareCard model={buildZoneCard(input, { ...DEFAULT_CARD_CHOICES, withRoute: false })!} format="stories" art={art} />);
     expect(zone.root.findAllByProps({ testID: 'mascote-e4' }).length).toBeGreaterThan(0);
+  });
+
+  it('sem art por props: mascote e chefão da E4 (nenhum marcador provisório)', () => {
+    const level = render(<ShareCard model={buildLevelCard(input)!} format="stories" />);
+    const mascot = level.root.findAllByType(MascotSvgArt);
+    expect(mascot).toHaveLength(1);
+    expect(mascot[0].props).toMatchObject({ team: 'striders', pose: 'vitoria' });
+    const boss = render(<ShareCard model={buildBossCard(input)!} format="feed" />);
+    expect(boss.root.findAllByType(BossSvgArt)[0].props).toMatchObject({ id: 'mormaco', state: 'derrotado', dano: 2 });
+    // chefão desconhecido: o card não inventa um chefão, mostra o mascote comemorando
+    const other = render(<ShareCard model={{ ...buildBossCard(input)!, bossName: 'Chefão Novo' }} format="stories" />);
+    expect(other.root.findAllByType(BossSvgArt)).toHaveLength(0);
+    expect(other.root.findAllByType(MascotSvgArt)).toHaveLength(1);
+    const noRoute = render(<ShareCard model={buildRunCard(input, { ...DEFAULT_CARD_CHOICES, withRoute: false })} format="stories" />);
+    expect(noRoute.root.findAllByType(MascotSvgArt)).toHaveLength(1);
+    // a arte é vetor dentro do SVG do card: nenhum <Image> (sairia em branco no toDataURL)
+    for (const r of [level, boss, noRoute]) expect(r.root.findAll((n) => n.type === 'Image' || (typeof n.type === 'function' && n.type.name === 'Image'))).toHaveLength(0);
+  });
+
+  it('nome do chefão → arte da E4 (com temporada, sem acento, desconhecido)', () => {
+    expect(bossIdOf('Mormaço de Outubro')).toBe('mormaco');
+    expect(bossIdOf('mormaco')).toBe('mormaco');
+    expect(bossIdOf('Rei Buzina')).toBe('rei-buzina');
+    expect(bossIdOf('  Paredão da Serra ')).toBe('paredao');
+    expect(bossIdOf('Sonecas')).toBeNull();
+    expect(bossIdOf('')).toBeNull();
+    expect(bossIdOf(null)).toBeNull();
+  });
+
+  it('logo dos Stories dentro da área segura; @ e pílula alinhados ao símbolo', () => {
+    const st = cardLogoLayout('stories');
+    const k = st.box.size / 640;
+    const boxTop = st.box.cy - (200 * k) / 2;
+    expect(boxTop + 14 * k).toBeGreaterThanOrEqual(STORIES_SAFE.top - 2); // topo do símbolo
+    expect(boxTop + 186 * k).toBeLessThan(400);
+    expect(st.box.cx - st.box.size / 2 + 8 * k).toBeCloseTo(72, 5); // símbolo na margem
+    expect(st.userX).toBeGreaterThan(72 + 180 * k); // o @ não cai sobre o símbolo
+    const r = render(<ShareCard model={{ ...buildRunCard(input), username: '@gabryel' }} format="stories" />);
+    const user = r.root.findAll((n) => n.props.children === '@gabryel' && typeof n.props.y === 'number')[0];
+    expect(user.props.x).toBeCloseTo(st.userX, 5);
   });
 
   it('nome longo de zona e de chefão reduz o corpo em vez de vazar', () => {
@@ -195,7 +249,9 @@ describe('ShareSticker (adesivo transparente)', () => {
     const svg = r.root.find((n) => n.type === Svg && n.props.testID === 'adesivo');
     expect(svg.props.viewBox).toBe('0 0 1080 1080');
     expect(svg.props.accessibilityLabel).toMatch(/^Adesivo\. Card de corrida/);
-    expect(texts(r)).toEqual(expect.arrayContaining(['2,02 km', '10:29 · 5:12 /km · +183 pontos', 'NOMADE RUN', DEMO_STAMP]));
+    expect(texts(r)).toEqual(expect.arrayContaining(['2,02 km', '10:29 · 5:12 /km · +183 pontos', DEMO_STAMP]));
+    // logotipo da E4 (sombra + traço), sem texto "NOMADE RUN"
+    expect(r.root.findAllByType(LogoSvgArt).map((n) => n.props.variant)).toEqual(['logotipo', 'logotipo']);
     expect(routePaths(r)).toHaveLength(1);
     expect(r.root.findAll((n) => n.props.fill === cardColors.bg)).toHaveLength(0);
   });

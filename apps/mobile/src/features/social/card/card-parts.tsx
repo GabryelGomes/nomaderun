@@ -122,25 +122,6 @@ export function TeamPill({ faction, right, cy, scale = 1 }: { faction: FactionId
   );
 }
 
-/** Logotipo provisório "NOMADE RUN" (o logo oficial é pedido à E4). */
-export function Wordmark({ x, y, size, anchor = 'start', fill = cardColors.ink }: { x: number; y: number; size: number; anchor?: 'start' | 'middle'; fill?: string }) {
-  const ls = size * 0.06;
-  const w1 = measureText('NOMADE', cardFonts.display, size, ls);
-  const gap = size * 0.28;
-  const total = w1 + gap + measureText('RUN', cardFonts.display, size, ls);
-  const x0 = anchor === 'middle' ? x - total / 2 : x;
-  return (
-    <G>
-      <CardText x={x0} y={y} font={cardFonts.display} size={size} ls={ls} fill={fill}>
-        NOMADE
-      </CardText>
-      <CardText x={x0 + w1 + gap} y={y} font={cardFonts.display} size={size} ls={ls} fill={cardColors.orange}>
-        RUN
-      </CardText>
-    </G>
-  );
-}
-
 export const DEMO_STAMP = 'DADOS DE DEMONSTRAÇÃO';
 
 export function DemoStamp({ x, y, anchor = 'middle', size = 22, fill = cardColors.ink2 }: { x: number; y: number; anchor?: 'start' | 'middle' | 'end'; size?: number; fill?: string }) {
@@ -361,7 +342,7 @@ export function MapPanel({ id, box, fitBox, routes, regions = [], highlight, pad
 }
 
 /** Arte da versão "sem rota": pista oval genérica + raios do time + selo. Nada de geografia. */
-export function NoRouteArt({ id, box, faction, mascot }: { id: string; box: Box; faction: FactionId; mascot: ReactNode }) {
+export function NoRouteArt({ id, box, faction, mascot, labelDy = 92 }: { id: string; box: Box; faction: FactionId; mascot: ReactNode; labelDy?: number }) {
   const cx = box.x + box.w / 2;
   const cy = box.y + box.h / 2;
   const r = box.h * 0.3;
@@ -374,7 +355,7 @@ export function NoRouteArt({ id, box, faction, mascot }: { id: string; box: Box;
       ))}
       <NeonPath d={oval} />
       {mascot}
-      <CardText x={cx} y={cy + 92} size={22} fill={cardColors.ink2} ls={6} anchor="middle">
+      <CardText x={cx} y={cy + labelDy} size={22} fill={cardColors.ink2} ls={6} anchor="middle">
         ROTA PROTEGIDA
       </CardText>
     </G>

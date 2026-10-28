@@ -14,7 +14,7 @@
  */
 import type { FactionId, LatLng } from '@/domain/types';
 
-import { AppError, attempt, type Result } from './errors';
+import { AppError, attempt, fail, ok, toAppError, type Result } from './errors';
 import { requireSupabase } from './supabase';
 
 export const FEED_REACTIONS = ['bora', 'fogo', 'raio'] as const;
@@ -304,4 +304,59 @@ export async function setFeedSettings(patch: Partial<FeedSettings>): Promise<Res
     return toSettings(data);
   });
   return asUnavailable(res);
+}
+
+// -----------------------------------------------------------------------------------------------
+// Realtime dos aplausos (T7.3.7)
+// -----------------------------------------------------------------------------------------------
+
+/**
+ * Uma mudança na tabela `kudos` que chegou pelo Realtime. A RLS vale na assinatura: só chegam reações de itens
+ * que a pessoa vê. No `DELETE` (e no `UPDATE` sem "replica identity full") o Postgres não manda a linha
+ * antiga inteira, então `itemId`/`reaction` podem vir `null`: quem ouve recarrega os contadores.
+ */
+export type KudosChange = {
+  event: 'INSERT' | 'UPDATE' | 'DELETE';
+  itemId: string | null;
+  userId: string | null;
+  reaction: FeedReaction | null;
+};
+
+export function toKudosChange(payload: unknown): KudosChange | null {
+  const p = obj(payload);
+  const event = p.eventType;
+  if (event !== 'INSERT' && event !== 'UPDATE' && event !== 'DELETE') return null;
+  const row = event === 'DELETE' ? obj(p.old) : obj(p.new);
+  return {
+    event,
+    itemId: str(row.feed_item_id) || null,
+    userId: str(row.user_id) || null,
+    reaction: isFeedReaction(row.reaction) ? row.reaction : null,
+  };
+}
+
+export type KudosSubscription = { unsubscribe: () => void };
+
+let kudosTopic = 0;
+
+/**
+ * Assina as reações (`kudos`, contrato v2 onda 2: `postgres_changes`, evento `*`). `onStatus` recebe
+ * `SUBSCRIBED`, `CHANNEL_ERROR`, `TIMED_OUT` ou `CLOSED` (fora do ar, a tela segue com o "puxar para atualizar").
+ * Cada assinatura tem um tópico próprio: o feed pode estar aberto no Clube e na tela cheia ao mesmo tempo.
+ */
+export function subscribeKudos(onChange: (change: KudosChange) => void, onStatus?: (status: string) => void): Result<KudosSubscription> {
+  try {
+    const supabase = requireSupabase();
+    kudosTopic += 1;
+    const channel = supabase
+      .channel(`kudos-${kudosTopic}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kudos' }, (payload: unknown) => {
+        const change = toKudosChange(payload);
+        if (change) onChange(change);
+      })
+      .subscribe((status: string) => onStatus?.(status));
+    return ok({ unsubscribe: () => void supabase.removeChannel(channel) });
+  } catch (e) {
+    return fail(toAppError(e));
+  }
 }

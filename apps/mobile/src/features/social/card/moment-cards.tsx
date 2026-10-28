@@ -1,12 +1,12 @@
 /**
  * T7.1.9 — modelos 3 (Nível novo) e 4 (Chefão derrotado). Não têm rota (o momento é a arte).
- * O mascote e o chefão entram por props (`art`); sem eles, marcadores simples no mesmo traço.
+ * O mascote e o chefão são a arte da E4 (`mascotSlot`/`bossSlot`); `art` por props troca a arte.
  */
 import { Circle, G, Line, Rect } from 'react-native-svg';
 
 import { factions } from '@/theme/tokens';
 
-import { BossPlaceholder, MascotPlaceholder, renderArt, type ShareCardArt } from './card-art';
+import { defaultBoss, defaultMascot, renderArt, type ShareCardArt } from './card-art';
 import { CARD_FORMATS, CardFrame, type CardSurfaceProps } from './card-frame';
 import type { BossCardModel, LevelCardModel, ShareCardFormat } from './card-model';
 import { CardText, cardColors, CardChip, Hero, LightPool, Rays, teamColor, useCardIds } from './card-parts';
@@ -27,8 +27,8 @@ export function LevelCard({ model, format, art, ...surface }: Props<LevelCardMod
     const r1 = R - (i % 5 === 0 ? 78 : 62);
     return { i, x1: cx + Math.cos(a) * r0, y1: cy + Math.sin(a) * r0, x2: cx + Math.cos(a) * r1, y2: cy + Math.sin(a) * r1 };
   });
-  const mascotR = st ? 62 : 50;
-  const mascotBox = { cx: cx + R * 0.71, cy: cy + R * 0.71, size: mascotR * 2 };
+  // O mascote "sai" do anel embaixo à direita, grande o bastante para ler no Stories (T7.3.7).
+  const mascotBox = { cx: cx + R * 0.8, cy: cy + R * 0.66, size: st ? 230 : 176 };
   let y = cy + R + (st ? 165 : 120);
   const titleY = y;
   y += st ? 104 : 80;
@@ -64,7 +64,7 @@ export function LevelCard({ model, format, art, ...surface }: Props<LevelCardMod
       <CardText x={cx} y={cy + R * 0.4} font={cardFonts.display} size={st ? 310 : 240} anchor="middle">
         {String(model.level)}
       </CardText>
-      {renderArt(art?.mascot, mascotBox, () => <MascotPlaceholder faction={model.faction} box={mascotBox} />)}
+      {renderArt(art?.mascot, mascotBox, defaultMascot(model.faction))}
       <CardText x={cx} y={titleY} size={st ? 32 : 26} fill={cardColors.orangeText} ls={10} anchor="middle">
         NÍVEL NOVO
       </CardText>
@@ -116,7 +116,7 @@ export function BossCard({ model, format, art, ...surface }: Props<BossCardModel
   return (
     <CardFrame format={format} faction={model.faction} isDemo={model.isDemo} username={model.username} statusTag={model.statusTag} a11yLabel={model.a11yLabel} bgId={id('bg')} bg={{ teamOpacity: 0.05, orangeOpacity: 0.3 }} {...surface}>
       <Rays id={id('rays')} cx={cx} cy={cy} r0={R * 0.8} r1={R * 3.6} n={32} color={cardColors.orange} opacity={0.14} />
-      {renderArt(art?.boss, bossBox, () => <BossPlaceholder id={id('boss')} box={bossBox} />)}
+      {renderArt(art?.boss, bossBox, defaultBoss(model.bossName, model.faction))}
       <G transform={`rotate(-6 ${cx} ${sy})`}>
         <Rect x={cx - sw / 2} y={sy - sh / 2} width={sw} height={sh} rx={16} fill={cardColors.bg} stroke={cardColors.ink} strokeWidth={5} />
         <CardText x={cx} y={sy + sh * 0.24} font={cardFonts.display} size={st ? 62 : 52} anchor="middle" ls={8}>

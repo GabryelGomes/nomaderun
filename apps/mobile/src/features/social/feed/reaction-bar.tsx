@@ -3,16 +3,18 @@
  * 1 reação por pessoa por item (tocar de novo tira; tocar em outra troca). Trava de 300 ms contra toque
  * repetido. O próprio item mostra só os contadores (ninguém reage a si mesmo).
  *
- * Momento do "Bora!" (enquanto o da E5 não existe): 6 faíscas na cor do time, "+1" subindo e vibração `tap`.
- * Com "Reduzir movimento", só o contador muda (as primitivas da E5 já respeitam a preferência).
+ * T7.3.7: o momento é o `BoraReaction` da E5 (pulo com mola curta, 6 faíscas e vibração leve ao mandar;
+ * tirar é silencioso; "Reduzir movimento" fica só com o fade). As 3 reações usam o mesmo componente, como a
+ * E5 previu, e o contador muda ao vivo quando chega aplauso pelo Realtime.
  */
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { View } from 'react-native';
 
+import { BoraReaction } from '@/components/celebration/bora';
 import { Icon, type IconName } from '@/components/icon';
-import { Burst, FloatingNumber, haptic, PressableScale } from '@/components/motion';
 import { Text } from '@/components/text';
 import { FEED_REACTIONS, type FeedReaction } from '@/services/api/feed-repo';
+import { neon } from '@/theme/neon';
 import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
@@ -26,15 +28,18 @@ export type ReactionBarProps = {
   myReaction: FeedReaction | null;
   /** Item da própria pessoa: só leitura. */
   readOnly?: boolean;
-  /** Cor do momento "Bora!" (neon do time de quem correu). */
-  color: string;
   onReact: (reaction: FeedReaction) => void;
 };
 
-export function ReactionBar({ itemId, reactions, myReaction, readOnly, color, onReact }: ReactionBarProps) {
+/** Texto para o leitor de tela: "Mandar Bora! (aplauso), 3" / "Tirar Bora!, 4" (o total sempre no fim). */
+export function reactionA11yLabel(r: FeedReaction, count: number, mine: boolean): string {
+  const what = mine ? `Tirar ${REACTION_LABEL[r]}` : `Mandar ${REACTION_LABEL[r]} (${REACTION_HINT[r]})`;
+  return `${what}${count ? `, ${count}` : ''}`;
+}
+
+export function ReactionBar({ itemId, reactions, myReaction, readOnly, onReact }: ReactionBarProps) {
   const { colors } = useTheme();
   const locked = useRef(false);
-  const [moment, setMoment] = useState(0);
 
   const press = (r: FeedReaction) => {
     if (locked.current) return;
@@ -42,67 +47,41 @@ export function ReactionBar({ itemId, reactions, myReaction, readOnly, color, on
     setTimeout(() => {
       locked.current = false;
     }, REACTION_LOCK_MS);
-    if (r === 'bora' && myReaction !== 'bora') {
-      setMoment((n) => n + 1);
-      haptic('tap');
-    } else haptic('selection');
     onReact(r);
   };
 
   return (
-    <View style={{ flexDirection: 'row', gap: space[2] }}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
       {FEED_REACTIONS.map((r) => {
         const mine = myReaction === r;
         const count = reactions[r];
-        const label = `${REACTION_LABEL[r]}${count ? `, ${count}` : ''}`;
-        const body = (
-          <>
-            <Icon name={ICON[r]} size={18} color={mine ? colors.onAction : colors.text} />
-            <Text variant={r === 'bora' ? 'bodyBold' : 'small'} color={mine ? colors.onAction : colors.text} tabular>
-              {r === 'bora' ? REACTION_LABEL.bora : ''}
-              {count ? `${r === 'bora' ? ' ' : ''}${count}` : ''}
-            </Text>
-          </>
-        );
-        const style = {
-          minHeight: 40,
-          minWidth: r === 'bora' ? 88 : 52,
-          paddingHorizontal: space[3],
-          borderRadius: radius.pill,
-          flexDirection: 'row' as const,
-          alignItems: 'center' as const,
-          justifyContent: 'center' as const,
-          gap: space[1],
-          backgroundColor: mine ? colors.action : colors.surfaceSunken,
-          borderWidth: 1,
-          borderColor: mine ? colors.action : colors.line,
-        };
         if (readOnly) {
           return count ? (
-            <View key={r} testID={`feed-${itemId}-${r}-total`} accessible accessibilityLabel={`${count} ${REACTION_HINT[r]}${count > 1 ? 's' : ''}`} style={style}>
-              {body}
+            <View
+              key={r}
+              testID={`feed-${itemId}-${r}-total`}
+              accessible
+              accessibilityLabel={`${count} ${REACTION_HINT[r]}${count > 1 ? 's' : ''}`}
+              style={{ minHeight: 44, paddingHorizontal: space[3], borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', gap: space[1] }}>
+              <Icon name={ICON[r]} size={16} color={colors.textSecondary} />
+              <Text variant="small" tabular>
+                {r === 'bora' ? `${REACTION_LABEL.bora} ` : ''}
+                {count}
+              </Text>
             </View>
           ) : null;
         }
         return (
-          <View key={r}>
-            <PressableScale
-              testID={`feed-${itemId}-${r}`}
-              accessibilityLabel={label}
-              accessibilityHint={mine ? 'Toque para tirar a reação' : `Reagir com ${REACTION_HINT[r]}`}
-              accessibilityState={{ selected: mine }}
-              onPress={() => press(r)}
-              hitSlop={4}
-              style={style}>
-              {body}
-            </PressableScale>
-            {r === 'bora' && moment > 0 ? (
-              <View key={moment} pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
-                <Burst count={6} color={color} distance={34} length={10} seed={moment} />
-                <FloatingNumber text="+1" color={color} size={22} rise={36} />
-              </View>
-            ) : null}
-          </View>
+          <BoraReaction
+            key={r}
+            testID={`feed-${itemId}-${r}`}
+            active={mine}
+            count={count || undefined}
+            label={REACTION_LABEL[r]}
+            icon={<Icon name={ICON[r]} size={18} color={mine ? neon.orangeText : colors.text} />}
+            accessibilityLabel={reactionA11yLabel(r, count, mine)}
+            onPress={() => press(r)}
+          />
         );
       })}
     </View>

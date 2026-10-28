@@ -5,12 +5,15 @@
  */
 import Svg, { G } from 'react-native-svg';
 
+import { LogoSvgArt } from '@/components/art';
+
 import { A11Y_GROUP, type CardSurfaceProps } from './card-frame';
 import type { RunCardModel } from './card-model';
+import { STICKER_SIZE } from './card-sizes';
 import { CardText, cardColors, DEMO_STAMP, MapPanel, useCardIds } from './card-parts';
 import { cardFonts, type CardFont } from './font-metrics';
 
-export const STICKER_SIZE = 1080;
+export { STICKER_SIZE };
 
 function Shaded({ x, y, text, font, size, fill, ls }: { x: number; y: number; text: string; font: CardFont; size: number; fill: string; ls?: number }) {
   return (
@@ -36,7 +39,9 @@ export function ShareSticker({ model, width, svgRef, testID }: CardSurfaceProps 
       {model.route ? <MapPanel id={id('map')} box={{ x: 140, y: 40, w: 800, h: 560 }} routes={[model.route]} dots={false} fade={false} pad={30} /> : null}
       <Shaded x={W / 2} y={top + 800} text={`${model.km} km`} font={cardFonts.display} size={170} fill={cardColors.orange} ls={-3} />
       <Shaded x={W / 2} y={top + 900} text={line} font={cardFonts.display} size={50} fill={cardColors.white} />
-      <Shaded x={W / 2} y={top + 1000} text="NOMADE RUN" font={cardFonts.display} size={40} fill={cardColors.white} ls={6} />
+      {/* T7.3.7: logotipo oficial da E4, com a mesma sombra leve do texto (lê em foto clara). */}
+      <LogoSvgArt variant="logotipo" mono={cardColors.shadow} opacity={0.35} box={{ cx: W / 2, cy: top + 990, size: 360 }} quality="leve" />
+      <LogoSvgArt variant="logotipo" box={{ cx: W / 2, cy: top + 986, size: 360 }} quality="completo" />
       {model.isDemo ? <Shaded x={W / 2} y={top + 1050} text={DEMO_STAMP} font={cardFonts.bold} size={22} fill={cardColors.white} ls={4} /> : null}
     </Svg>
   );

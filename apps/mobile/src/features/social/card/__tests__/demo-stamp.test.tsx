@@ -2,7 +2,7 @@
  * T7.2.5 — selo "DADOS DE DEMONSTRAÇÃO" dentro da área segura dos Stories (a barra do Instagram cobre o
  * topo e o rodapé). Antes ficava em y = 1830.
  */
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
 import { buildCarousel } from '../pick-models';
@@ -10,6 +10,12 @@ import { CARD_FORMATS, STORIES_SAFE, storiesDemoStampY } from '../card-frame';
 import { DEMO_STAMP } from '../card-parts';
 import { ShareCard } from '../share-card';
 import { demoRunInput } from './fixtures';
+
+/* eslint-disable @typescript-eslint/no-require-imports -- fábricas do jest.mock só podem usar require */
+// T7.3.7: a arte da E4 (logo, mascote, chefão) passa pelo render animável, que importa o Reanimated.
+jest.mock('react-native-reanimated', () => require('@/components/motion/__tests__/render-mocks').reanimated);
+jest.mock('react-native-worklets', () => require('@/components/motion/__tests__/render-mocks').worklets);
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 function stampY(r: ReactTestRenderer): number[] {
   // O `CardText` e o `<Text>` do SVG dentro dele levam o mesmo `y`: 1 posição distinta = 1 selo.

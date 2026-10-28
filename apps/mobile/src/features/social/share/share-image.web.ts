@@ -7,7 +7,7 @@
  */
 import type Svg from 'react-native-svg';
 
-import { cardFonts } from '../card';
+import { cardFonts } from '../card/font-metrics';
 import { ShareError, type ShareOutcome } from './share-flow';
 
 export type PreparedImage = { blob: Blob; fileName: string };

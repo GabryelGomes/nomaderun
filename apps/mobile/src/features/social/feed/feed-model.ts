@@ -4,7 +4,7 @@
  */
 import { formatDuration, formatKm, formatPace, paceSecPerKm } from '@/domain/geo';
 import type { LatLng } from '@/domain/types';
-import type { FeedHighlight, FeedItem, FeedReaction, ServerClippedRoute } from '@/services/api/feed-repo';
+import type { FeedHighlight, FeedItem, FeedReaction, KudosChange, ServerClippedRoute } from '@/services/api/feed-repo';
 
 export const REACTION_LABEL: Record<FeedReaction, string> = { bora: 'Bora!', fogo: 'Fogo', raio: 'Raio' };
 export const REACTION_HINT: Record<FeedReaction, string> = { bora: 'aplauso', fogo: 'ritmo forte', raio: 'conquista' };
@@ -66,6 +66,38 @@ export function toggleReaction(item: Pick<FeedItem, 'kudos' | 'myReaction'>, rea
 }
 
 export const totalReactions = (r: FeedItem['kudos']) => r.bora + r.fogo + r.raio;
+
+/** Espera depois do último aplauso ao vivo antes de conferir os contadores com o servidor (junta rajadas). */
+export const KUDOS_SYNC_MS = 1500;
+
+/**
+ * T7.3.7 — aplauso que chegou pelo Realtime → contadores na tela. Só o `INSERT` de outra pessoa soma na hora
+ * (+1 na reação dela); o da própria pessoa já entrou pelo otimista. `UPDATE`/`DELETE` não trazem a reação
+ * antiga, então só pedem a conferência (`sync`). Item que não está carregado é ignorado.
+ */
+export function applyKudosChange<T extends Pick<FeedItem, 'id' | 'kudos'>>(items: readonly T[], change: KudosChange, me: string | null): { items: readonly T[]; sync: boolean } {
+  const known = change.itemId === null || items.some((i) => i.id === change.itemId);
+  if (!known) return { items, sync: false };
+  if (change.event !== 'INSERT' || !change.itemId || !change.reaction || (me !== null && change.userId === me)) return { items, sync: true };
+  const reaction = change.reaction;
+  return {
+    items: items.map((i) => (i.id === change.itemId ? { ...i, kudos: { ...i.kudos, [reaction]: i.kudos[reaction] + 1 } } : i)),
+    sync: true,
+  };
+}
+
+/**
+ * Conferência com o servidor: os contadores (e a minha reação) passam a ser os da página nova. Itens com
+ * reação minha ainda a caminho (`pending`) ficam como estão, para não piscar o otimista.
+ */
+export function mergeKudos<T extends Pick<FeedItem, 'id' | 'kudos' | 'myReaction'>>(items: readonly T[], fresh: readonly Pick<FeedItem, 'id' | 'kudos' | 'myReaction'>[], pending: ReadonlySet<string>): T[] {
+  const byId = new Map(fresh.map((f) => [f.id, f]));
+  return items.map((i) => {
+    const f = byId.get(i.id);
+    if (!f || pending.has(i.id)) return i;
+    return { ...i, kudos: { ...f.kudos }, myReaction: f.myReaction };
+  });
+}
 
 /**
  * Pedaços da rota → caminhos SVG numa caixa `width × height` com margem, mantendo a proporção (projeção

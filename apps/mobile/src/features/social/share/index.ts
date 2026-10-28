@@ -6,4 +6,4 @@ export { useExportGpx, type ExportGpxState, type UseExportGpx } from './use-expo
 export { setShareExtras, getShareExtras, type ShareExtras } from './share-extras';
 export { buildShareRunInput, shareCaption, cardDateOf, PRIVACY_NOTICE_NO_ZONES } from './share-input';
 export * from './share-flow';
-export { cardArtFor, bossIdOf } from './card-art-e4';
+export { cardArtFor, bossIdOf } from '../card';

@@ -3,7 +3,7 @@ export * from './card-model';
 export * from './pick-models';
 export { cardFonts, fitFontSize, measureText, truncateToWidth, type CardFont } from './font-metrics';
 export { frameRoutes, visibleRoutes, type Box, type CardRegion, type RouteFrame } from './route-geometry';
-export type { ArtBox, CardArtSlot, ShareCardArt } from './card-art';
+export { bossIdOf, cardArtFor, defaultBoss, defaultMascot, type ArtBox, type CardArtSlot, type ShareCardArt } from './card-art';
 export { CARD_FORMATS, type CardSurfaceProps } from './card-frame';
 export { DEMO_STAMP } from './card-parts';
 export { ShareCard, type ShareCardProps } from './share-card';

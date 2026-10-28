@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import { CARD_FORMATS, STICKER_SIZE } from '../../card';
+import { CARD_FORMATS, STICKER_SIZE } from '../../card/card-sizes';
 import {
   cleanBase64,
   doneMessage,

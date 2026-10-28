@@ -79,7 +79,8 @@ describe('<CrewFeed> no modo demonstração', () => {
     const after = String(byId(r, `feed-${mateId}-bora`)[0].props.accessibilityLabel);
     const n = (s: string) => Number(/(\d+)$/.exec(s)?.[1] ?? 0);
     expect(n(after)).toBe(n(before) + 1);
-    expect(byId(r, `feed-${mateId}-bora`)[0].props.accessibilityState).toEqual({ selected: true });
+    expect(byId(r, `feed-${mateId}-bora`)[0].props.accessibilityState).toMatchObject({ selected: true });
+    expect(after).toMatch(/^Tirar Bora!/);
   });
 
   it('"Tirar do feed" no próprio item e "quem reagiu" sob demanda', async () => {

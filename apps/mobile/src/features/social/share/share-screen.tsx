@@ -32,9 +32,8 @@ import { useSession } from '@/store/session-store';
 import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-import { buildCarousel, buildRunCard, CARD_FORMATS, CARD_KIND_LABEL, DEFAULT_CARD_CHOICES, pickCardModels, ShareCard, ShareSticker, STICKER_SIZE, type CardChoices, type CardModel } from '../card';
+import { buildCarousel, buildRunCard, CARD_FORMATS, CARD_KIND_LABEL, cardArtFor, DEFAULT_CARD_CHOICES, pickCardModels, ShareCard, ShareSticker, STICKER_SIZE, type CardChoices, type CardModel } from '../card';
 import { copyText } from '../clipboard';
-import { cardArtFor } from './card-art-e4';
 import { demoMoments, getShareExtras } from './share-extras';
 import { doneMessage, primaryLabel, SHARE_FAILURE_TEXT, SHARE_FORMAT_KEY, SHARE_FORMAT_LABEL, SHARE_FORMATS, SHARE_TEXT, shareSize, type ShareFormat } from './share-flow';
 import { buildShareRunInput, randomSeed, shareCaption } from './share-input';

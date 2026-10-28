@@ -4,7 +4,7 @@ import { forAll } from '@/domain/__tests__/prop';
 import { distanceMeters, offset } from '@/domain/geo';
 import type { RunSummary } from '@/features/run/summary-model';
 
-import { buildCarousel, pickCardModels } from '../../card';
+import { buildCarousel, pickCardModels } from '../../card/pick-models';
 import { DEMO_HOME, DEMO_ROUTE } from '../../card/__tests__/fixtures';
 import { buildShareRunInput, cardDateOf, PRIVACY_NOTICE_NO_ZONES, randomSeed, shareCaption, type ShareSource } from '../share-input';
 

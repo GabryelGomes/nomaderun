@@ -6,7 +6,7 @@ import { Circle, G, Path } from 'react-native-svg';
 
 import { factions } from '@/theme/tokens';
 
-import { renderArt, MascotPlaceholder, type ShareCardArt } from './card-art';
+import { defaultMascot, renderArt, type ShareCardArt } from './card-art';
 import { CARD_FORMATS, CardFrame, type CardSurfaceProps } from './card-frame';
 import type { RunCardModel, ShareCardFormat, ZoneCardModel } from './card-model';
 import { CardText, cardColors, CardChip, Divider, Hero, LightPool, MapPanel, NoRouteArt, Rays, Stat, teamColor, TeamGlyph, useCardIds } from './card-parts';
@@ -43,7 +43,8 @@ export function RunCard({ model, format, art, regions, ...surface }: Props<RunCa
   const cols = model.points ? [W / 2 - 330, W / 2, W / 2 + 330] : [W / 2 - 200, W / 2 + 200];
   const dateSize = fitFontSize(model.dateLabel, cardFonts.bold, st ? 28 : 24, W - 160, 18, 0.21);
   const noRouteBox = st ? { x: 0, y: 330, w: W, h: 820 } : { x: 0, y: 150, w: W, h: 620 };
-  const mascotBox = { cx: W / 2, cy: noRouteBox.y + noRouteBox.h / 2 - 18, size: 124 };
+  // T7.3.7: o mascote da E4 em destaque no centro da "rota protegida".
+  const mascotBox = { cx: W / 2, cy: noRouteBox.y + noRouteBox.h / 2 - (st ? 34 : 26), size: st ? 210 : 156 };
   return (
     <CardFrame format={format} faction={model.faction} isDemo={model.isDemo} username={model.username} statusTag={model.statusTag} a11yLabel={model.a11yLabel} bgId={id('bg')} {...surface}>
       {model.route ? (
@@ -57,7 +58,7 @@ export function RunCard({ model, format, art, regions, ...surface }: Props<RunCa
           fadeStops={MAP_FADE[format]}
         />
       ) : (
-        <NoRouteArt id={id('nr')} box={noRouteBox} faction={model.faction} mascot={renderArt(art?.mascot, mascotBox, () => <MascotPlaceholder faction={model.faction} box={mascotBox} />)} />
+        <NoRouteArt id={id('nr')} box={noRouteBox} faction={model.faction} mascot={renderArt(art?.mascot, mascotBox, defaultMascot(model.faction))} labelDy={st ? 122 : 92} />
       )}
       <CardText x={W / 2} y={yLabel} size={dateSize} fill={cardColors.orangeText} ls={dateSize * 0.21} anchor="middle">
         {model.dateLabel}
@@ -120,7 +121,7 @@ export function ZoneCard({ model, format, art, regions, ...surface }: Props<Zone
           <LightPool id={id('pool')} cx={W / 2} cy={cy} rx={R * 1.8} ry={R * 1.8} color={to} opacity={0.22} />
           <Circle cx={W / 2} cy={cy} r={R + 30} fill="none" stroke={to} strokeOpacity={0.18} strokeWidth={34} />
           <Circle cx={W / 2} cy={cy} r={R} fill={cardColors.bg} stroke={to} strokeWidth={10} />
-          {renderArt(art?.mascot, artBox, () => <TeamGlyph shape={factions[model.to].shape} cx={W / 2} cy={cy} r={R * 0.45} fill={to} />)}
+          {renderArt(art?.mascot, artBox, defaultMascot(model.to))}
         </G>
       )}
       <CardText x={W / 2} y={titleY} size={st ? 32 : 28} fill={cardColors.orangeText} ls={10} anchor="middle">
