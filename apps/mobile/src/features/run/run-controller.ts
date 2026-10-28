@@ -23,6 +23,7 @@ import { useGame, type LocalRun, type MissionId } from '@/store/game-store';
 import { useSession } from '@/store/session-store';
 import { useZones } from '@/store/zones-store';
 
+import { rememberOfficial } from './official-cache';
 import { officialSummary, provisionalSummary, simplifyPath, type RunSummary } from './summary-model';
 
 /** Quanto a tela espera o servidor antes de mostrar o resumo provisório. */
@@ -144,6 +145,7 @@ export async function confirmRun(runId: string, waitMs = FINISH_WAIT_MS): Promis
   });
   const out = await Promise.race([p.catch(() => null), timeout]);
   clearTimeout(timer);
+  if (out?.official) rememberOfficial(runId, out.official);
   if (out?.run) useGame.getState().upsertLocalRun(toLocalRun(out.run));
   return out;
 }
@@ -214,6 +216,7 @@ let unsubscribe: (() => void) | null = null;
 export function wireSyncEvents() {
   if (unsubscribe) return unsubscribe;
   unsubscribe = getSyncEngine().subscribe((run, official) => {
+    if (official) rememberOfficial(run.id, official);
     const local = toLocalRun(run);
     useGame.getState().upsertLocalRun(local);
     if (official) void applyOfficialEffects(local);
