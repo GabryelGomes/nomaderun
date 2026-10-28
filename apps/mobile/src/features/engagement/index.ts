@@ -6,8 +6,11 @@
  * - Pausa (E6, conta): `<HealthPauseSheet visible onClose />`;
  * - Rotas próprias: `/missoes` e `/recompensas`.
  */
-export { refreshEngagement, recordRunResult, rerollDailyMission, openStoredChests, claimSeasonStep, startPause, endPause } from './controller';
-export { useEngagementData, useRunRewards, useTodayStrip, useWelcomeBack, type TodayStrip, type WelcomeBack } from './hooks';
+export { refreshEngagement, recordRunResult, rerollDailyMission, openStoredChests, claimSeasonStep, startPause, endPause, markRankingOpened, ensureConquestHistory } from './controller';
+export { useEngagementData, useRunRewards, useTodayStrip, useWelcomeBack, useFirstConquestEver, getFirstConquestEver, type TodayStrip, type WelcomeBack } from './hooks';
+export { trackTelemetry, flushTelemetry, setTelemetryOptIn, loadTelemetryConsent, telemetryAllowed } from './telemetry';
+export { TELEMETRY_EVENTS, type TelemetryEventName } from './telemetry-model';
+export { TelemetryConsentSheet, TelemetrySettingsSection, type TelemetryConsentSheetProps } from './telemetry-consent';
 export { RunRewardsBlock, type RunRewardsBlockProps } from './run-rewards-block';
 export { HealthPauseSheet, type HealthPauseSheetProps } from './health-pause-sheet';
 export { WelcomeBackGate, WelcomeBackSheet, type WelcomeBackSheetProps } from './welcome-back-sheet';

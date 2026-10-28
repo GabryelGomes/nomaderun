@@ -25,6 +25,8 @@ export type NotificationPrefs = {
   recap?: boolean;
   /** Volta depois de 7, 14, 21 e 30 dias (depois, silêncio). */
   comeback?: boolean;
+  /** Aplausos ("Bora!") da crew, agrupados em 1 aviso por dia (D-69; o servidor lê a chave `kudos`). */
+  kudos?: boolean;
 };
 
 export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = { invasions: true, conquests: true, missions: true, moderation: true };
@@ -76,6 +78,7 @@ const PREF_DB_KEYS: Record<keyof NotificationPrefs, string> = {
   season: 'season',
   recap: 'recap',
   comeback: 'comeback',
+  kudos: 'kudos',
 };
 
 /**

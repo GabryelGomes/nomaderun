@@ -1,5 +1,5 @@
-import { Stack } from 'expo-router';
-import { useState } from 'react';
+import { router, Stack, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { RefreshControl, View } from 'react-native';
 
 import { EmptyArt, ModeIcon, type ModeIconKind } from '@/components/art';
@@ -14,13 +14,25 @@ import { SectionHeader } from '@/components/section-header';
 import { Text } from '@/components/text';
 import { ftueBarProgress } from '@/domain/missions';
 import type { EngagementMission } from '@/services/api/engagement-repo';
+import { useEngagement } from '@/store/engagement-store';
+import { useGame } from '@/store/game-store';
 import { neon } from '@/theme/neon';
 import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-import { rerollDailyMission } from './controller';
+import { markRankingOpened, refreshEngagement, rerollDailyMission } from './controller';
 import { useEngagementData } from './hooks';
-import { canReroll, ftueDoneCount, ftueRows, missionA11y, missionProgressLabel, missionRatio, pct, TIER_LABEL, unlockLabel, type FtueRow } from './model';
+import { canReroll, FTUE_PRIZE, ftueAction, ftueComplete, ftueDoneCount, ftueRows, missionA11y, missionProgressLabel, missionRatio, pct, TIER_LABEL, unlockLabel, type FtueAction, type FtueRow } from './model';
+
+/** Volta à tela depois de fazer um passo (compartilhou, entrou na crew): relê se o dado tem mais de 15 s. */
+const STALE_MS = 15_000;
+
+/** Leva ao lugar onde o passo se faz de verdade; quem conta o passo é o servidor. */
+export function goToFtueStep(a: FtueAction) {
+  if (a.mode) useGame.getState().setMission(a.mode);
+  if (a.ranking) void markRankingOpened();
+  router.push(a.href);
+}
 
 const FTUE_ICON: Record<string, ModeIconKind | null> = {
   'f1-dominio': 'dominio',
@@ -81,6 +93,7 @@ function FtueStepRow({ row, now }: { row: FtueRow; now: number }) {
   const icon = FTUE_ICON[row.id] ?? null;
   const locked = row.status === 'locked';
   const done = row.status === 'done';
+  const action = ftueAction(row);
   const label = `Passo ${row.step}: ${row.title}. ${done ? 'Feito' : locked ? unlockLabel(row, now) : `Aberto, +${row.xp} XP`}`;
   return (
     <View
@@ -99,7 +112,30 @@ function FtueStepRow({ row, now }: { row: FtueRow; now: number }) {
           {done ? 'Feito' : locked ? unlockLabel(row, now) : `Hoje · ${row.mission ? missionProgressLabel(row.mission) : ''}`}
         </Text>
       </View>
-      <Text variant="small" color={done ? colors.textSecondary : colors.accentText} tabular>{`+${row.xp} XP`}</Text>
+      <View style={{ alignItems: 'flex-end', gap: space[1] }}>
+        <Text variant="small" color={done ? colors.textSecondary : colors.accentText} tabular>{`+${row.xp} XP`}</Text>
+        {action ? <Button testID={`primeira-semana-ir-${row.step}`} label={action.label} kind="secondary" onPress={() => goToFtueStep(action)} /> : null}
+      </View>
+    </View>
+  );
+}
+
+/** Os 7 passos feitos: o prêmio "Primeira Semana" (moldura dada pelo servidor no 7º passo). */
+function FtuePrizeCard({ owned }: { owned: boolean | null }) {
+  const { colors } = useTheme();
+  return (
+    <View
+      testID="missoes-primeira-semana-premio"
+      accessible
+      accessibilityLabel={`Primeira semana completa. Prêmio: moldura ${FTUE_PRIZE.name}${owned === false ? ', chegando' : ', já é sua'}.`}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[3], borderRadius: radius.lg, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.action, backgroundColor: neon.activeFill }}>
+      <Icon name="trophy" size={28} color={colors.accentText} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text variant="bodyBold">Primeira semana completa!</Text>
+        <Text variant="caption" muted>
+          {owned === false ? `Moldura ${FTUE_PRIZE.name} a caminho.` : `Moldura ${FTUE_PRIZE.name} é sua.`}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -108,6 +144,13 @@ function FtueStepRow({ row, now }: { row: FtueRow; now: number }) {
 export function MissionsScreen() {
   const { colors } = useTheme();
   const { missions, now, refresh, demo } = useEngagementData();
+  const owned = useEngagement((s) => (s.status.data?.cosmetics ? s.status.data.cosmetics.some((c) => c.id === FTUE_PRIZE.cosmeticId) : null));
+  useFocusEffect(
+    useCallback(() => {
+      const at = useEngagement.getState().loadedAt;
+      if (at !== null && Date.now() - at > STALE_MS) void refreshEngagement(Date.now());
+    }, []),
+  );
   const [refreshing, setRefreshing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -129,6 +172,7 @@ export function MissionsScreen() {
 
   const rows = data ? ftueRows(data, now) : [];
   const ftueOpen = rows.length > 0 && ftueDoneCount(rows) < rows.length;
+  const ftueDone = ftueComplete(rows);
   const ftueValue = ftueBarProgress(rows.map((r) => ({ id: r.id, step: r.step, status: r.status, unlocksAt: r.unlocksAt, completedAt: null })));
 
   return (
@@ -169,13 +213,15 @@ export function MissionsScreen() {
               <SectionHeader title="Primeira semana" testID="missoes-primeira-semana-titulo" />
               <ProgressBar value={ftueValue} color={colors.action} trackColor={colors.surfaceSunken} height={8} milestones={[]} accessibilityLabel={`Primeira semana: ${ftueDoneCount(rows)} de ${rows.length} passos`} />
               <Text variant="caption" muted>
-                Um passo libera por dia. Nenhum expira.
+                {`Um passo por dia, sem prazo. No fim: moldura ${FTUE_PRIZE.name}.`}
               </Text>
               {rows.map((r) => (
                 <FtueStepRow key={r.id} row={r} now={now} />
               ))}
             </View>
           ) : null}
+
+          {ftueDone ? <FtuePrizeCard owned={owned} /> : null}
 
           <View style={{ gap: space[2] }}>
             <SectionHeader title="Hoje" testID="missoes-hoje-titulo" />

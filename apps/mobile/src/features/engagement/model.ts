@@ -109,6 +109,47 @@ export function ftueRows(m: Pick<EngagementMissions, 'ftue' | 'ftueStartedAt'>, 
 
 export const ftueDoneCount = (rows: readonly FtueRow[]) => rows.filter((r) => r.status === 'done').length;
 
+/** Prêmio da primeira semana (o servidor dá ao concluir o 7º passo, que só abre depois dos outros 6). */
+export const FTUE_PRIZE = { cosmeticId: 'moldura-primeira-semana', name: 'Primeira Semana' } as const;
+
+/** Os 7 passos feitos. */
+export const ftueComplete = (rows: readonly FtueRow[]) => rows.length === FTUE_STEP_IDS.length && rows.every((r) => r.status === 'done');
+
+export type FtueActionHref = '/corrida' | '/arena' | '/clube' | '/clube/crew' | '/perfil/atividades';
+
+/** Onde cada passo aberto se faz de verdade (o atalho leva à tela; quem conta é o servidor). */
+export type FtueAction = {
+  label: string;
+  href: FtueActionHref;
+  /** Modo já escolhido na tela Correr. */
+  mode?: 'livre' | 'caca' | 'fuga';
+  /** O destino mostra o ranking do time: o atalho avisa o servidor (`record_ranking_opened`). */
+  ranking?: boolean;
+};
+
+export function ftueAction(row: Pick<FtueRow, 'id' | 'status' | 'mission'>): FtueAction | null {
+  if (row.status !== 'open') return null;
+  const fallback = row.mission?.variant === 'fallback';
+  switch (row.id) {
+    case 'f1-dominio':
+      return { label: 'Correr', href: '/corrida', mode: 'livre' };
+    case 'f2-caca':
+      return { label: 'Caçar', href: '/corrida', mode: 'caca' };
+    case 'f3-fuga':
+      return { label: 'Fugir', href: '/corrida', mode: 'fuga' };
+    case 'f4-raid':
+      return fallback ? { label: 'Correr', href: '/corrida', mode: 'livre' } : { label: 'Ver chefão', href: '/arena' };
+    case 'f5-crew':
+      return { label: 'Ver crews', href: '/clube/crew' };
+    case 'f6-liga':
+      return fallback ? { label: 'Ver ranking', href: '/clube', ranking: true } : { label: 'Ver liga', href: '/arena' };
+    case 'f7-compartilhar':
+      return { label: 'Escolher corrida', href: '/perfil/atividades' };
+    default:
+      return null;
+  }
+}
+
 /** "Libera amanhã" para o passo seguinte ao feito hoje; os outros, "Depois do passo N". */
 export function unlockLabel(row: FtueRow, now: number): string {
   if (row.unlocksAt !== null && row.unlocksAt > now) {
@@ -166,6 +207,22 @@ export function trackItemLabel(i: TrackItem): string {
     case 'freeze':
       return '+1 congelamento';
   }
+}
+
+/**
+ * Recorte curto da trilha para a tela (T7.3.6, ≤ 120 palavras): até 2 degraus prontos para resgatar e os
+ * próximos a alcançar, até `size`. Quando nada falta resgatar e a trilha acabou, os últimos degraus.
+ */
+export function trackWindow<T extends { step: number; unlocked: boolean; claimed: boolean }>(rewards: readonly T[], step: number, size = 4): T[] {
+  const sorted = [...rewards].sort((a, b) => a.step - b.step);
+  const pending = sorted.filter((r) => r.unlocked && !r.claimed).slice(0, 2);
+  const ahead = sorted.filter((r) => r.step > step && !pending.includes(r));
+  const picked = [...pending, ...ahead].slice(0, size);
+  if (picked.length < size) {
+    const rest = sorted.filter((r) => !picked.includes(r)).slice(-(size - picked.length));
+    picked.push(...rest);
+  }
+  return picked.sort((a, b) => a.step - b.step);
 }
 
 /* ---------- Pausa de saúde ---------- */

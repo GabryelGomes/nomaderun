@@ -550,6 +550,51 @@ export async function fetchOwnedCosmetics(): Promise<OwnedCosmetic[] | null> {
 }
 
 /**
+ * A pessoa já conquistou alguma zona? (`activity_zones` com `outcome = 'conquered'`, só as próprias linhas.)
+ * Serve para o "Sua 1ª zona!" do HUD (E6b): `false` só quando o servidor responde que não há nenhuma.
+ * `null` = não deu para saber (sem rede, servidor sem a tabela): o HUD não promete "1ª zona".
+ */
+export async function fetchEverConquered(userId: string): Promise<boolean | null> {
+  const res = await attempt(async () => {
+    const { data, error } = await requireSupabase().from('activity_zones').select('activity_id').eq('user_id', userId).eq('outcome', 'conquered').limit(1);
+    if (error) throw error;
+    return Array.isArray(data) ? data.length > 0 : null;
+  });
+  if (res.ok && res.data === true) return true;
+  // Confere também o resultado das corridas (`result.zones[].outcome`): cobre conquista que ainda não virou linha.
+  const runs = await listMyActivities({ limit: EVER_CONQUERED_RUNS });
+  if (!runs.ok) return null;
+  if (runs.data.some((r) => (r.result?.zones ?? []).some((z) => z.outcome === 'conquered'))) return true;
+  // Só "nunca" quando as duas fontes responderam e o histórico inteiro coube na leitura.
+  return res.ok && res.data === false && runs.data.length < EVER_CONQUERED_RUNS ? false : null;
+}
+
+const EVER_CONQUERED_RUNS = 200;
+
+/** Missões que o servidor concluiu agora por um fato declarado (`record_share`, `record_ranking_opened`). */
+export type StateMissionsCompleted = { completed: { id: string; cadence: MissionCadence | null; xp: number }[] };
+
+const parseCompleted = (data: unknown): StateMissionsCompleted => ({
+  completed: arr(obj(data).completed)
+    .map((c) => ({ id: str(c.id ?? c.defId), cadence: oneOf(CADENCES, c.cadence ?? c.kind), xp: Math.max(0, num(c.xp)) }))
+    .filter((c) => c.id.length > 0),
+});
+
+/**
+ * "Veja o ranking do seu time" (passo 6 da primeira semana sem liga real): o app avisa ao abrir o ranking.
+ * O servidor guarda 1 por dia (`engagement_marks`) e conclui a missão se ela estiver aberta.
+ */
+export async function recordRankingOpened(): Promise<Result<Maybe<StateMissionsCompleted>>> {
+  return asMaybe(
+    await attempt(async () => {
+      const { data, error } = await requireSupabase().rpc('record_ranking_opened');
+      if (error) throw error;
+      return parseCompleted(data);
+    }),
+  );
+}
+
+/**
  * Nível, título, faixa, sequência, pausa e temporada (`my_engagement`, E9 onda 2), mais os cosméticos. Nunca
  * "indisponível": sem a RPC, usa o perfil v1. A semana e a última atividade saem das corridas.
  */
