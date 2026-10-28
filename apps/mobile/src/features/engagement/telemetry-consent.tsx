@@ -128,8 +128,8 @@ export function TelemetrySettingsSection({ testID = 'telemetria' }: { testID?: s
   const on = consent.status === 'ready' && consent.data?.optIn === true;
   const caption = unavailable
     ? 'Ainda não disponível no servidor. Nada é enviado.'
-    : on && consent.data?.decidedAt
-      ? `Ligado desde ${consentDate(consent.data.decidedAt)}. Só 5 eventos, apagados em ${consent.data.retentionDays ?? TELEMETRY_RETENTION_DAYS} dias.`
+    : on
+      ? `${consent.data?.decidedAt ? `Ligado em ${consentDate(consent.data.decidedAt)}` : 'Ligado'}. Só 5 eventos, apagados em ${TELEMETRY_RETENTION_DAYS} dias.`
       : 'Desligado. Nada é enviado.';
 
   const toggle = async (next: boolean) => {

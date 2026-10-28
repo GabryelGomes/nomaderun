@@ -13,7 +13,6 @@
  */
 import { AppState, type NativeEventSubscription } from 'react-native';
 
-import { brtCalendar } from '@/domain/progression';
 import { AppError, fail, ok, type Result } from '@/services/api/errors';
 import * as repo from '@/services/api/telemetry-repo';
 import { selectTelemetryOn, useEngagement } from '@/store/engagement-store';
@@ -21,10 +20,12 @@ import { useSession } from '@/store/session-store';
 
 import {
   enqueue,
+  freshEvents,
   sanitizeEvent,
+  toWire,
   TELEMETRY_BATCH_MAX,
-  TELEMETRY_CONSENT_VERSION,
   TELEMETRY_FLUSH_AT,
+  TELEMETRY_POLICY_VERSION,
   TELEMETRY_QUEUE_MAX,
   type TelemetryEvent,
   type TelemetryEventName,
@@ -79,7 +80,7 @@ export function trackTelemetry(name: TelemetryEventName, props?: Readonly<Record
     owner = uid;
   }
   if (name === 'app_open') {
-    const day = brtCalendar.clock(now).dayId;
+    const day = ev.day;
     if (openedDay?.user === uid && openedDay.day === day) return false;
     openedDay = { user: uid, day };
   }
@@ -90,7 +91,7 @@ export function trackTelemetry(name: TelemetryEventName, props?: Readonly<Record
 }
 
 /** Envia o que está na fila (em lotes de até 20). Sem consentimento, só esvazia. */
-export function flushTelemetry(): Promise<void> {
+export function flushTelemetry(now: number = Date.now()): Promise<void> {
   if (flushing) return flushing;
   if (!telemetryAllowed() || owner !== currentUser()) {
     clearQueue();
@@ -100,21 +101,25 @@ export function flushTelemetry(): Promise<void> {
   flushing = (async () => {
     try {
       while (queue.length > 0 && telemetryAllowed()) {
+        // O servidor aceita só hoje e até 2 dias atrás: evento mais velho não viaja.
+        queue = freshEvents(queue, now);
+        if (queue.length === 0) break;
         const batch = queue.slice(0, TELEMETRY_BATCH_MAX);
         queue = queue.slice(batch.length);
-        const res = await repo.sendTelemetryEvents(batch);
+        const res = await repo.sendTelemetryEvents(batch.map((e) => toWire(e, process.env.EXPO_OS)));
         if (res.ok && res.data.available) continue;
         if (res.ok) {
           // Servidor sem telemetria (flag desligada): nada fica guardado no aparelho.
           clearQueue();
           break;
         }
-        if (res.error.detail === 'TELEMETRY_OFF') {
+        if (res.error.detail === 'TELEMETRY_CONSENT') {
           // O servidor não tem o consentimento (desligado em outro aparelho): desliga aqui também.
           clearQueue();
           void loadTelemetryConsent();
           break;
         }
+        // Só a falta de rede volta para a fila; recusa de formato (VALIDATION) descarta o lote.
         if (res.error.code === 'NETWORK' && telemetryAllowed()) queue = [...batch, ...queue].slice(0, TELEMETRY_QUEUE_MAX);
         break;
       }
@@ -150,14 +155,15 @@ export async function loadTelemetryConsent(): Promise<void> {
 export async function setTelemetryOptIn(optIn: boolean, now: number = Date.now()): Promise<Result<repo.TelemetryConsent>> {
   const uid = currentUser();
   if (!uid) return fail(new AppError('UNAUTHORIZED', 'Entre de novo para mudar esta opção.'));
+  useEngagement.getState().setUser(uid);
   const s = useEngagement.getState();
   if (!optIn) {
     clearQueue();
     pendingRevoke = uid;
     const prev = s.telemetry.data;
-    s.setReady('telemetry', { optIn: false, version: prev?.version ?? null, decidedAt: now, retentionDays: prev?.retentionDays ?? repo.DEFAULT_RETENTION_DAYS });
+    s.setReady('telemetry', { optIn: false, policyVersion: prev?.policyVersion ?? TELEMETRY_POLICY_VERSION, decidedAt: now, deletedEvents: null });
   }
-  const res = await repo.setTelemetryConsent(optIn, TELEMETRY_CONSENT_VERSION);
+  const res = await repo.setTelemetryConsent(optIn, TELEMETRY_POLICY_VERSION, now);
   if (currentUser() !== uid) return fail(new AppError('UNAUTHORIZED', 'A conta mudou. Tente de novo.'));
   if (!res.ok) return res;
   if (!res.data.available) {

@@ -59,7 +59,7 @@ export function refreshEngagement(now: number = Date.now()): Promise<void> {
       useEngagement.getState().setLoadedAt(now);
       // Telemetria (D-82): só sai com o consentimento ligado; sem ele, `trackTelemetry` não guarda nada.
       trackTelemetry('app_open', undefined, now);
-      void flushTelemetry();
+      void flushTelemetry(now);
     } finally {
       inflight = null;
       if (again) {
@@ -132,10 +132,10 @@ export function recordRunResult(official: unknown, now: number = Date.now()): re
   const conquered = conqueredZones(official);
   if (conquered > 0) useEngagement.getState().setEverConquered(true);
   if (typeof id === 'string') {
-    trackTelemetry('run_finished', undefined, now);
-    if (conquered > 0) trackTelemetry('zone_conquered', { count: conquered }, now);
-    for (const m of block?.missions ?? []) trackTelemetry('mission_completed', { cadence: m.cadence }, now);
-    void flushTelemetry();
+    trackTelemetry('run_finish', undefined, now);
+    if (conquered > 0) trackTelemetry('zone_conquer', { count: conquered }, now);
+    for (const m of block?.missions ?? []) trackTelemetry('mission_complete', { kind: m.cadence, missionId: m.id }, now);
+    void flushTelemetry(now);
   }
   void refreshEngagement(now);
   return block;
@@ -165,7 +165,7 @@ export async function markRankingOpened(now: number = Date.now()): Promise<Resul
     return res;
   }
   if (res.data.completed.length > 0) {
-    for (const m of res.data.completed) trackTelemetry('mission_completed', m.cadence ? { cadence: m.cadence } : undefined, now);
+    for (const m of res.data.completed) trackTelemetry('mission_complete', { kind: m.cadence ?? undefined, missionId: m.id }, now);
     void refreshEngagement(now);
   }
   return res;
