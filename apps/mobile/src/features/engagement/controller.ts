@@ -7,6 +7,8 @@ import { AppError, fail, ok, type Result } from '@/services/api/errors';
 import { useEngagement, type SlotKey } from '@/store/engagement-store';
 import { useSession } from '@/store/session-store';
 
+import { flushTelemetry, loadTelemetryConsent, trackTelemetry } from './telemetry';
+
 const currentUser = () => {
   const s = useSession.getState();
   return s.status === 'signedIn' ? (s.session?.userId ?? null) : null;
@@ -39,19 +41,25 @@ export function refreshEngagement(now: number = Date.now()): Promise<void> {
   (['status', 'missions', 'chest', 'track'] as const).forEach((k) => s.setLoading(k));
   inflight = (async () => {
     try {
-      const [status, missions, chest, track] = await Promise.all([
+      const [status, missions, chest, track, conquered] = await Promise.all([
         repo.fetchEngagementStatus(userId, now),
         repo.fetchMissions(),
         repo.fetchDailyChest(),
         repo.fetchTrack(),
+        repo.fetchEverConquered(userId),
+        loadTelemetryConsent(),
       ]);
       if (useEngagement.getState().userId !== userId) return; // trocou de conta no meio
+      useEngagement.getState().setEverConquered(conquered);
       if (status.ok) useEngagement.getState().setReady('status', status.data);
       else useEngagement.getState().setError('status', status.error);
       store('missions', missions);
       store('chest', chest);
       store('track', track);
       useEngagement.getState().setLoadedAt(now);
+      // Telemetria (D-82): só sai com o consentimento ligado; sem ele, `trackTelemetry` não guarda nada.
+      trackTelemetry('app_open', undefined, now);
+      void flushTelemetry();
     } finally {
       inflight = null;
       if (again) {
@@ -121,6 +129,65 @@ export function recordRunResult(official: unknown, now: number = Date.now()): re
   const block = repo.parseRunEngagement(official);
   const id = (official as { activityId?: unknown } | null)?.activityId;
   if (block && typeof id === 'string') useEngagement.getState().setLastRun(id, block);
+  const conquered = conqueredZones(official);
+  if (conquered > 0) useEngagement.getState().setEverConquered(true);
+  if (typeof id === 'string') {
+    trackTelemetry('run_finished', undefined, now);
+    if (conquered > 0) trackTelemetry('zone_conquered', { count: conquered }, now);
+    for (const m of block?.missions ?? []) trackTelemetry('mission_completed', { cadence: m.cadence }, now);
+    void flushTelemetry();
+  }
   void refreshEngagement(now);
   return block;
+}
+
+/** Zonas conquistadas no resultado oficial (`zones[].outcome`). */
+export function conqueredZones(official: unknown): number {
+  const zones = (official as { zones?: unknown } | null)?.zones;
+  return Array.isArray(zones) ? zones.filter((z) => (z as { outcome?: unknown } | null)?.outcome === 'conquered').length : 0;
+}
+
+let rankingMarked: { user: string; day: string } | null = null;
+
+/**
+ * A pessoa abriu o ranking do time (passo 6 da primeira semana sem liga real). 1 aviso por dia; se concluiu
+ * missão, recarrega as missões. A tela do ranking (E6c) chama ao montar; o atalho da primeira semana também.
+ */
+export async function markRankingOpened(now: number = Date.now()): Promise<Result<repo.StateMissionsCompleted>> {
+  const userId = currentUser();
+  if (!userId) return fail(new AppError('UNAUTHORIZED', 'Entre de novo.'));
+  const day = new Date(now - 3 * 3_600_000).toISOString().slice(0, 10);
+  if (rankingMarked?.user === userId && rankingMarked.day === day) return ok({ completed: [] });
+  rankingMarked = { user: userId, day };
+  const res = unwrap(await repo.recordRankingOpened());
+  if (!res.ok) {
+    if (res.error.detail !== 'FEATURE_DISABLED') rankingMarked = null;
+    return res;
+  }
+  if (res.data.completed.length > 0) {
+    for (const m of res.data.completed) trackTelemetry('mission_completed', m.cadence ? { cadence: m.cadence } : undefined, now);
+    void refreshEngagement(now);
+  }
+  return res;
+}
+
+let conquestInflight: Promise<void> | null = null;
+
+/** Lê só o "já conquistou?" quando ainda não se sabe (a tela da corrida pode abrir antes do Mapa). */
+export function ensureConquestHistory(): Promise<void> {
+  const userId = currentUser();
+  if (!userId) return Promise.resolve();
+  if (conquestInflight) return conquestInflight;
+  const s = useEngagement.getState();
+  s.setUser(userId);
+  if (useEngagement.getState().everConquered !== null) return Promise.resolve();
+  conquestInflight = (async () => {
+    try {
+      const v = await repo.fetchEverConquered(userId);
+      if (useEngagement.getState().userId === userId) useEngagement.getState().setEverConquered(v);
+    } finally {
+      conquestInflight = null;
+    }
+  })();
+  return conquestInflight;
 }

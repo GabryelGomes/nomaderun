@@ -109,6 +109,47 @@ export function ftueRows(m: Pick<EngagementMissions, 'ftue' | 'ftueStartedAt'>, 
 
 export const ftueDoneCount = (rows: readonly FtueRow[]) => rows.filter((r) => r.status === 'done').length;
 
+/** Prêmio da primeira semana (o servidor dá ao concluir o 7º passo, que só abre depois dos outros 6). */
+export const FTUE_PRIZE = { cosmeticId: 'moldura-primeira-semana', name: 'Primeira Semana' } as const;
+
+/** Os 7 passos feitos. */
+export const ftueComplete = (rows: readonly FtueRow[]) => rows.length === FTUE_STEP_IDS.length && rows.every((r) => r.status === 'done');
+
+export type FtueActionHref = '/corrida' | '/arena' | '/clube' | '/clube/crew' | '/perfil/atividades';
+
+/** Onde cada passo aberto se faz de verdade (o atalho leva à tela; quem conta é o servidor). */
+export type FtueAction = {
+  label: string;
+  href: FtueActionHref;
+  /** Modo já escolhido na tela Correr. */
+  mode?: 'livre' | 'caca' | 'fuga';
+  /** O destino mostra o ranking do time: o atalho avisa o servidor (`record_ranking_opened`). */
+  ranking?: boolean;
+};
+
+export function ftueAction(row: Pick<FtueRow, 'id' | 'status' | 'mission'>): FtueAction | null {
+  if (row.status !== 'open') return null;
+  const fallback = row.mission?.variant === 'fallback';
+  switch (row.id) {
+    case 'f1-dominio':
+      return { label: 'Correr', href: '/corrida', mode: 'livre' };
+    case 'f2-caca':
+      return { label: 'Caçar', href: '/corrida', mode: 'caca' };
+    case 'f3-fuga':
+      return { label: 'Fugir', href: '/corrida', mode: 'fuga' };
+    case 'f4-raid':
+      return fallback ? { label: 'Correr', href: '/corrida', mode: 'livre' } : { label: 'Ver chefão', href: '/arena' };
+    case 'f5-crew':
+      return { label: 'Ver crews', href: '/clube/crew' };
+    case 'f6-liga':
+      return fallback ? { label: 'Ver ranking', href: '/clube', ranking: true } : { label: 'Ver liga', href: '/arena' };
+    case 'f7-compartilhar':
+      return { label: 'Escolher corrida', href: '/perfil/atividades' };
+    default:
+      return null;
+  }
+}
+
 /** "Libera amanhã" para o passo seguinte ao feito hoje; os outros, "Depois do passo N". */
 export function unlockLabel(row: FtueRow, now: number): string {
   if (row.unlocksAt !== null && row.unlocksAt > now) {
