@@ -7,7 +7,7 @@
 
 - **Fase:** **7 — Reformulação v2: ondas 1 a 4 integradas e documentação fechada (F6)** (`docs/melhoria/PLANO-MESTRE.md`). Falta só o que depende dos autores: deploy do backend v2 e das flags, push final e prévia web. Slides da v2 prontos (P-41). Fases 0–6 concluídas (MVP + visual neon).
 - **Requisitos (61):** 39 ✅ · 17 🟡 · 3 ⬜ · 2 ➖. Nenhum P0 sem fazer (P0: 18 ✅, 7 🟡). Detalhes em `REQUISITOS.md` (o resumo antigo, 32/22, tinha um erro de soma).
-- **Testes (2026-10-28, branch `claude/affectionate-gauss-e8gm77`, banco local sem Docker):** app Jest **1.419 ✅** (26 de integração pulados sem `NOMADE_IT`) · `typecheck` ok · eslint 0 · pgTAP **832/832** em 29 arquivos · Deno **87 ok, 1 ignorado** · `demo-mode-flow` **21/21** (0 pedidos ao servidor) · 165 capturas "depois" sem erro de página · bundle web **1.186.919 B gzip** (orçamento 1.250.000). Não rodados aqui (precisam do Supabase local com Docker): `demo-flow`, `auth-flow`, e2e, segurança HTTP (`run.sh`, `run-v2.sh`).
+- **Testes (2026-10-28, branch `claude/affectionate-gauss-e8gm77`, banco local sem Docker):** app Jest **1.423 ✅** (26 de integração pulados sem `NOMADE_IT`) · `typecheck` ok · eslint 0 · pgTAP **846/846** em 30 arquivos · Deno **88 ok, 1 ignorado** · `demo-mode-flow` **21/21** (0 pedidos ao servidor) · 165 capturas "depois" sem erro de página · bundle web **1.186.919 B gzip** (orçamento 1.250.000). Não rodados aqui (precisam do Supabase local com Docker): `demo-flow`, `auth-flow`, e2e, segurança HTTP (`run.sh`, `run-v2.sh`).
 - **Como rodar e apresentar:** `README.md` (modo demonstração, instalação e testes), `docs/COMO_APRESENTAR.md` (roteiro da v2 em 10 min, cenários `?cenario=`, banca, plano B), `apps/mobile/README.md`, `supabase/DEPLOY.md` §10 (deploy da v2).
 - **O que falta para a equipe humana:** A-1 (senhas das contas demo no Cloud), deploy do backend v2 e flags (`DEPLOY.md` §10), nomes dos mascotes e líderes (D-70), validar em aparelho (P-05, P-07, P-17, P-21, P-28, P-45 e os itens da v2), `npx expo install --fix` (P-37), revisão do ERS (P-02 → `ERS-ALTERACOES-PROPOSTAS.md`, agora v1.1 + v1.2).
 - **Backend local:** API `http://127.0.0.1:54321` · chaves com `npx supabase status -o env` · e-mails em `http://127.0.0.1:54324` (`npm run mail`). Banco resetado no fim da Fase 5 (estado do seed).
@@ -78,6 +78,12 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 ```
 
 ## Log
+
+### 2026-10-29 — Fase 7: rodada final antes do deploy (Coordenador)
+- **Feito:** Vercel pronta (`apps/mobile/vercel.json` + `supabase/DEPLOY.md` §11); texto final de Resumo, Zona, Corrida, Meu time, Quiz, Conta e Editar perfil dentro da meta (0 telas de jogo acima); servidor: B1 (corridas simultâneas sem XP em dobro), B2 (`paintedToday` perto de casa só para a própria pessoa), B3 (reações da demo iguais ao servidor), meta semanal de km da crew (**D-88**, `crew_week_goal()`), liga no app antes do fechamento de segunda 03:20.
+- **Testes:** app Jest 1.423 ✅ (26 pulados) · typecheck ok · eslint 0 · pgTAP 846/846 em 30 arquivos · Deno 88 ok, 1 ignorado. Slide "Entregas", PDF e página web regerados com esses números.
+- **Entrega:** pull request da branch `claude/affectionate-gauss-e8gm77` para a `main`.
+- **Depende dos autores:** A-1, deploy do backend v2 (`DEPLOY.md` §10, 16 migrations), Vercel (§11), nomes dos mascotes, testes em aparelho, `demo-flow`/`auth-flow` com Supabase local.
 
 ### 2026-10-29 — Fase 7 — Editar perfil dentro da meta de texto (E6 UX)
 - **Feito:** Editar perfil 102 → 67 palavras (meta 80). Mudanças: avisos com ícone e 4 palavras; ajudas de usuário e de cidade numa linha só, mantendo "1 troca por temporada" e os formatos e o limite de 2 MB da foto; "Tudo salvo." no aviso de salvar. A captura do quiz foi refeita com "Refazer quiz". A tela de moderação (só da equipe) ficou como estava.
