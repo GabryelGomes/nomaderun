@@ -15,6 +15,7 @@
  *   node docs/melhoria/F1/ux/medir-texto.mjs --json          # JSON
  *   node docs/melhoria/F1/ux/medir-texto.mjs --salvar antes  # grava medicao-antes.json/.md
  *   node docs/melhoria/F1/ux/medir-texto.mjs --comparar antes # antes × agora, com a meta
+ *   node docs/melhoria/F1/ux/medir-texto.mjs --detalhe resumo # cada fatia de texto (arquivo:linha) das telas
  *
  * Como ler o número:
  *   - "palavras" soma TODOS os estados que o código pode mostrar (carregando, vazio, erro,
@@ -276,7 +277,7 @@ function measure(screen) {
   const longos = slots.filter((s) => s.text.length > LIMITE_BLOCO || sentences(s.text) > 1);
   // "Imagem" = mapa ou ilustração de verdade (o que o dono sente falta). Número e barra contam à parte.
   const heroi = visual.mapa + visual.ilustracao > 0;
-  return { rota: screen.rota, tipo: screen.tipo, palavras: words, blocos: slots.length, longos: longos.length, exemplosLongos: longos.slice(0, 3).map((s) => `${s.file}:${s.line}`), visual, heroi, meta: screen.meta ?? META[screen.tipo] };
+  return { rota: screen.rota, tipo: screen.tipo, palavras: words, blocos: slots.length, longos: longos.length, exemplosLongos: longos.slice(0, 3).map((s) => `${s.file}:${s.line}`), visual, heroi, meta: screen.meta ?? META[screen.tipo], slots };
 }
 
 // ---------------------------------------------------------------- cobertura das rotas
@@ -334,12 +335,21 @@ const flag = (f) => {
   return i >= 0 ? args[i + 1] : null;
 };
 
-if (args.includes('--json')) {
-  console.log(JSON.stringify({ geradoEm: new Date().toISOString(), cobertura: cov, telas: rows }, null, 2));
+// `slots` (cada fatia de texto com arquivo:linha) só sai no --detalhe; não entra nos JSON salvos.
+const semSlots = (r) => Object.fromEntries(Object.entries(r).filter(([k]) => k !== 'slots'));
+
+if (flag('--detalhe')) {
+  // node medir-texto.mjs --detalhe resumo  → cada fatia de texto da tela, maior primeiro
+  for (const r of rows.filter((x) => x.rota.includes(flag('--detalhe')))) {
+    console.log(`\n## ${r.rota} — ${r.palavras} palavras (meta ${r.meta})`);
+    for (const s of [...r.slots].sort((a, b) => b.words - a.words)) console.log(`${String(s.words).padStart(3)}  ${s.file}:${s.line}  ${s.text.slice(0, 100)}`);
+  }
+} else if (args.includes('--json')) {
+  console.log(JSON.stringify({ geradoEm: new Date().toISOString(), cobertura: cov, telas: rows.map(semSlots) }, null, 2));
 } else if (flag('--salvar')) {
   const name = flag('--salvar');
   const json = join(HERE, `medicao-${name}.json`);
-  writeFileSync(json, JSON.stringify({ geradoEm: new Date().toISOString(), cobertura: cov, telas: rows }, null, 2) + '\n');
+  writeFileSync(json, JSON.stringify({ geradoEm: new Date().toISOString(), cobertura: cov, telas: rows.map(semSlots) }, null, 2) + '\n');
   writeFileSync(join(HERE, `medicao-${name}.md`), `# Medição de texto — ${name}\n\nGerado por \`medir-texto.mjs\` em ${new Date().toISOString().slice(0, 10)}.\n\n${toMarkdown(rows)}\n`);
   console.log(`Gravado: ${relative(ROOT, json)} e .md`);
 } else if (flag('--comparar')) {

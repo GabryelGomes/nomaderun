@@ -43,9 +43,9 @@ import { useTheme } from '@/theme/use-theme';
 
 // D-74: 1 linha curta por modo (antes, 13 palavras cada).
 const MISSIONS: { id: MissionId; title: string; body: string; icon: IconName }[] = [
-  { id: 'livre', title: 'Corrida livre', body: 'Só correr e pintar a cidade.', icon: 'activities' },
-  { id: 'fuga', title: 'Fuga', body: 'Vença o fantasma no seu ritmo.', icon: 'ghost' },
-  { id: 'caca', title: 'Caça', body: 'Passe a 25 m de um baú para abrir.', icon: 'chest' },
+  { id: 'livre', title: 'Corrida livre', body: 'Corra e pinte a cidade.', icon: 'activities' },
+  { id: 'fuga', title: 'Fuga', body: 'Vença o seu fantasma.', icon: 'ghost' },
+  { id: 'caca', title: 'Caça', body: 'Abra baús a 25 m.', icon: 'chest' },
 ];
 
 /** Ritmos do fantasma oferecidos na Fuga (s/km). */
@@ -354,7 +354,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
               {defending ? 'Defendendo seu território' : rival ? `Território dos ${factions[owner!].name}` : ''}
             </Text>
             <Text variant="caption" color={bannerInk}>
-              {defending ? 'Pontos em dobro nesta zona' : rival ? 'Pinte as ruas para virar' : ''}
+              {defending ? 'Pontos em dobro aqui' : rival ? 'Pinte as ruas para virar' : ''}
             </Text>
           </View>
         </Animated.View>
@@ -459,19 +459,25 @@ function ActiveRun({ mode }: { mode: RunMode }) {
               <Text variant="small" muted numberOfLines={2} accessibilityLiveRegion="polite" testID="corrida-zona-status">
                 {/* E-01: previsão do aparelho com a regra de pintura (E3); quem decide é o servidor. */}
                 {hud.kind === 'conquered'
-                  ? 'Conquista provável: o servidor confirma ao terminar'
+                  ? 'Conquista provável: confirma no fim'
                   : hud.kind === 'mine'
-                    ? 'Zona do seu time. Cada rua reforça.'
+                    ? 'Seu time: cada rua reforça'
                     : hud.kind === 'gap'
                       ? `Faltam ~${hud.gapMeters} m para conquistar`
-                      : 'Comece a correr para pintar'}
+                      : 'Corra para pintar'}
               </Text>
             </View>
           </View>
           {s.ghost !== null ? (
-            <Text variant="small" accessibilityLiveRegion="polite">
-              {ghost === 'ahead' ? `${Math.round(s.ghost)} m à frente do fantasma` : ghost === 'tied' ? 'Lado a lado com o fantasma' : `Fantasma ${Math.round(-s.ghost)} m à frente`}
-            </Text>
+            // Ícone do fantasma + 2 palavras; o leitor de tela recebe a frase inteira.
+            <View
+              accessible
+              accessibilityLiveRegion="polite"
+              accessibilityLabel={ghost === 'ahead' ? `${Math.round(s.ghost)} metros à frente do fantasma` : ghost === 'tied' ? 'Lado a lado com o fantasma' : `Fantasma ${Math.round(-s.ghost)} metros à frente`}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+              <Icon name="ghost" size={16} color={ghost === 'caught' ? colors.textSecondary : neonTeam[faction]} />
+              <Text variant="small">{ghost === 'ahead' ? `Você +${Math.round(s.ghost)} m` : ghost === 'tied' ? 'Lado a lado' : `Fantasma +${Math.round(-s.ghost)} m`}</Text>
+            </View>
           ) : null}
           {s.mission === 'caca' ? (
             <Text variant="small">
@@ -486,7 +492,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
 
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-around' }}>
           <View style={{ width: 88, alignItems: 'center', paddingTop: 10 }}>
-            <IconButton testID="corrida-voz" icon={s.voice ? 'speaker' : 'mute'} label={s.voice ? 'Silenciar o Guia' : 'Ativar o Guia'} tone="sunken" size={56} onPress={s.toggleVoice} />
+            <IconButton testID="corrida-voz" icon={s.voice ? 'speaker' : 'mute'} label={s.voice ? 'Silenciar Guia' : 'Ativar Guia'} tone="sunken" size={56} onPress={s.toggleVoice} />
           </View>
           <HoldButton testID="corrida-encerrar" label="Segure para encerrar" onConfirm={finish} />
           <View style={{ width: 88, alignItems: 'center', paddingTop: 6 }}>
@@ -506,7 +512,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
         <Pressable
           testID="corrida-aviso-seguranca"
           accessibilityRole="alert"
-          accessibilityLabel="Fechar aviso"
+          accessibilityLabel={`${safety.notice.result.message} Toque para fechar o aviso.`}
           onPress={safety.dismissNotice}
           style={{
             position: 'absolute',
@@ -519,11 +525,15 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             gap: 2,
             boxShadow: floating,
           }}>
-          <Text variant="bodyBold" color={safety.notice.kind === 'escort' ? colors.text : colors.onDanger}>
-            {safety.notice.kind === 'sos' ? 'SOS com sua localização' : safety.notice.kind === 'stop' ? 'Alerta de parada enviado' : 'Escolta: localização compartilhada'}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+            <Text variant="bodyBold" color={safety.notice.kind === 'escort' ? colors.text : colors.onDanger} style={{ flex: 1 }}>
+              {safety.notice.kind === 'sos' ? 'SOS com sua localização' : safety.notice.kind === 'stop' ? 'Alerta de parada enviado' : 'Escolta: localização compartilhada'}
+            </Text>
+            {/* O "x" substitui o "Toque para fechar." (o aviso inteiro fecha no toque). */}
+            <Icon name="close" size={18} color={safety.notice.kind === 'escort' ? colors.text : colors.onDanger} />
+          </View>
           <Text variant="small" color={safety.notice.kind === 'escort' ? colors.text : colors.onDanger}>
-            {safety.notice.result.message} Toque para fechar.
+            {safety.notice.result.message}
           </Text>
         </Pressable>
       ) : null}
@@ -544,7 +554,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             boxShadow: floating,
           }}>
           <Text variant="title">Está tudo bem?</Text>
-          <Text muted>Você está parado há mais de 10 minutos. Sem resposta em {safety.asking.secondsLeft} s, avisamos seus contatos com a sua localização.</Text>
+          <Text muted>Parado há 10 min: sem resposta em {safety.asking.secondsLeft} s, seus contatos recebem sua localização.</Text>
           <Button testID="corrida-alerta-estou-bem" label="Estou bem" icon="check" size="lg" wide onPress={() => safety.confirmOk()} />
         </View>
       ) : null}
@@ -556,7 +566,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
           <ShimmerSkeleton shape="circle" width={56} height={56} accessibilityLabel="Enviando" />
           <Text variant="title">Enviando sua corrida…</Text>
           <Text muted style={{ textAlign: 'center' }}>
-            Sem internet? Confirmamos depois.
+            Sem internet, enviamos depois.
           </Text>
         </View>
       ) : null}

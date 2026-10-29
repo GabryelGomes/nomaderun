@@ -5,7 +5,7 @@ import { View } from 'react-native';
 import { EmptyArt, Mascot } from '@/components/art';
 import { Button } from '@/components/button';
 import { EmptyState } from '@/components/empty-state';
-import { Icon } from '@/components/icon';
+import { Icon, type IconName } from '@/components/icon';
 import { FadeUp, haptic, Pressable, Stagger } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader, Surface } from '@/components/surface';
@@ -87,7 +87,7 @@ export function FactionScreen() {
 
         {done ? (
           <FadeUp>
-            <InfoNotice testID="faccao-trocada" title={`Agora você corre pelos ${factions[done].name}`} body="Sua próxima corrida já pinta com a nova cor." />
+            <InfoNotice testID="faccao-trocada" title={`Agora você corre pelos ${factions[done].name}`} body="A próxima corrida já pinta nessa cor." />
           </FadeUp>
         ) : null}
 
@@ -100,7 +100,7 @@ export function FactionScreen() {
               </Text>
             </View>
             <Text variant="small" muted testID="faccao-bloqueada">
-              Próxima troca em {rule.nextAt}, na nova temporada.
+              Próxima troca em {rule.nextAt}.
             </Text>
           </Surface>
         ) : (
@@ -154,11 +154,12 @@ export function FactionScreen() {
         {choice && rule.allowed ? (
           <FadeUp>
             <Surface>
-              <Text variant="bodyBold">Antes de trocar para {factions[choice].name}</Text>
+              <Text variant="bodyBold">Ao trocar:</Text>
+              {/* As 3 consequências obrigatórias, curtas e com ícone; o leitor de tela ouve a frase completa. */}
               <View style={{ gap: space[2] }}>
-                <Consequence text="Seus pontos de território desta temporada voltam a zero." />
-                <Consequence text="Você sai da sua crew, se estiver em uma." />
-                <Consequence text="Só dá para trocar de novo na próxima temporada." />
+                <Consequence icon="territory" text="Pontos da temporada zeram" a11y="Seus pontos de território desta temporada voltam a zero." />
+                <Consequence icon="club" text="Você sai da sua crew" a11y="Você sai da sua crew, se estiver em uma." />
+                <Consequence icon="lock" text="Nova troca só na próxima temporada" a11y="Só dá para trocar de novo na próxima temporada." />
               </View>
               <Button testID="faccao-confirmar" label={saving ? 'Trocando…' : `Trocar para ${factions[choice].name}`} wide disabled={saving} onPress={confirm} />
               <Button testID="faccao-cancelar" label="Cancelar" kind="ghost" wide disabled={saving} onPress={() => setChoice(null)} />
@@ -171,12 +172,12 @@ export function FactionScreen() {
   );
 }
 
-function Consequence({ text }: { text: string }) {
+function Consequence({ icon, text, a11y }: { icon: IconName; text: string; a11y: string }) {
   const { colors } = useTheme();
   return (
-    <View style={{ flexDirection: 'row', gap: space[3], alignItems: 'flex-start' }}>
-      <Icon name="warning" size={16} color={colors.textSecondary} />
-      <Text variant="small" muted style={{ flex: 1 }}>
+    <View accessible accessibilityLabel={a11y} style={{ flexDirection: 'row', gap: space[3], alignItems: 'center' }}>
+      <Icon name={icon} size={18} color={colors.textSecondary} />
+      <Text variant="small" style={{ flex: 1 }}>
         {text}
       </Text>
     </View>
