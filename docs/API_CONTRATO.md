@@ -457,7 +457,7 @@ pessoa (sem linha = sem consentimento). O cliente não lê nem escreve as tabela
 |---|---|
 | `svc_weekly_recap(user, week_start)` | números + `routeIds` (até 3) + `privacyZones`, só para a function `weekly-recap` (que remove os dois) |
 | `job_telemetry_retention(today)` | diário 03:40 BRT (`nomaderun-telemetry-retention`), apaga eventos com mais de 30 dias |
-| `private.cell_in_privacy_zone(lat, lng)` | o corte de privacidade de `zone_paint_near` (`cells` e `paintedToday`) |
+| `private.cell_in_privacy_zone(lat, lng)` | o corte de privacidade de `zone_paint_near` (`cells`; o `paintedToday` deixou de usar na B2, `20261029120000`) |
 
 ## Correções da revisão da lógica v2 (revisor-onda4-logica.md: A1, M1–M5, B4)
 
@@ -474,3 +474,30 @@ Migration `20261028120000_review_fixes` (aditiva). O que muda para o app:
 | **B4** | `league_current` mostra a semana anterior até o fechamento (segunda 03:20) |
 
 Tabelas novas: `kudos_log` (`user_id`, `day`, `feed_item_id`; cliente não lê; entra no `account_export_v2` como `kudosLog`, guarda 2 dias) e `feed_kudos_counts` (leitura pela crew, Realtime).
+
+## Ajustes finais (revisor-onda4-logica.md B1–B4; meta da crew D-88)
+
+Migration `20261029120000_final_fixes` (aditiva; pgTAP `30_final_fixes`). O que muda:
+
+| Item | Mudança |
+|---|---|
+| **B1** | `svc_v2_context` devolve **`stamp`** (número de gravações v2 da pessoa, lido antes do resto do contexto); a function o repete no plano e `svc_apply_v2`, com o perfil travado, recusa plano com carimbo velho: `ZONE_CONFLICT: outra corrida sua foi gravada durante o cálculo` (a function já repete com um contexto novo, até 3 vezes). Duas corridas da mesma pessoa finalizadas juntas não pagam mais o XP do dia em dobro nem gravam missão com evidência velha. Plano **sem** `stamp` (function antiga) é aceito como antes. Só `service_role` |
+| **B2** | `zone_paint_near().paintedToday` não corta mais as zonas de privacidade: a lista só tem os trechos **da própria pessoa** (ela vê os próprios trechos perto de casa; ninguém mais recebe a lista). `cells` continua cortado pela máscara (D-87). Formato igual |
+| **B3** | Par de demonstração de `react_feed_item` e `set_feed_settings` igual ao servidor: teto de 200 **itens** por dia (`kudos_log`), trocar/tirar a reação não gasta nem devolve o teto, ordem dos erros `VALIDATION` → `NOT_FOUND` → `KUDOS_SELF`; desligar "mostrar minhas corridas" apaga os itens publicados (religar não os traz) e desligar o mapa tira a rota dos itens existentes |
+| **B4 (app)** | `leagueWeek(now)` (domain) devolve a semana que ainda não fechou: entre segunda 00:00 e 03:20 é a anterior, igual a `league_current()` |
+| **D-88** | RPC nova **`crew_week_goal()`** (`authenticated`, `security definer`): meta semanal de km da crew de quem chama |
+
+### `crew_week_goal()` → `jsonb | null`
+
+`null` quando a pessoa não tem crew. Só totais da crew (nada por pessoa):
+
+```json
+{ "crewId": "uuid", "weekStart": "2026-10-26", "weekEnd": "2026-11-01", "members": 4, "ran": 3,
+  "meters": 18250, "goalMeters": 40000, "progress": 0.4563, "reached": false }
+```
+
+- **Meta** (`goalMeters`): 10 km por membro atual, piso 20 km, teto 300 km (`private.crew_week_goal_m`, mesma conta de `crewWeekGoalMeters` em `src/domain/crew-goal.ts`).
+- **Progresso**: soma de `meters` das corridas **aceitas** (pontuadas, `valid`/`partial`) dos membros **atuais** que terminaram na semana de Brasília (segunda 00:00 a domingo 23:59). `progress` = `meters / goalMeters`, entre 0 e 1 (4 casas). `ran` = membros com pelo menos 1 corrida aceita na semana.
+- Erros: `UNAUTHORIZED`, `ACCOUNT_INACTIVE`. Sem tabela nova, sem Realtime, nada novo no export LGPD (só leitura do que já existe).
+- App: `getCrewWeekGoal()` em `crews-repo.ts`; a barra do herói do Clube usa `progress` (km ÷ meta). Servidor antigo (sem a RPC): o Clube volta para a conta pelo `ranking_runners` (quem correu ÷ membros).
+
