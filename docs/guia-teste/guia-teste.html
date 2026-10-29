@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>NOMADE RUN — Como testar o app</title>
+<style>
+  @page { size: A4; margin: 18mm 18mm 18mm 18mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1b1b1f; margin: 0; }
+  header { background: #070708; color: #fff; padding: 14pt 16pt; border-radius: 8pt; margin-bottom: 14pt; }
+  header h1 { margin: 0; font-size: 20pt; letter-spacing: .5pt; }
+  header h1 span { color: #FF6A13; }
+  header p { margin: 4pt 0 0; color: #c9c9d1; font-size: 10pt; }
+  h2 { font-size: 13pt; margin: 12pt 0 5pt; padding-bottom: 3pt; border-bottom: 2pt solid #FF6A13; }
+  h3 { font-size: 11pt; margin: 10pt 0 4pt; }
+  .tag { display: inline-block; font-size: 8.5pt; font-weight: bold; padding: 1pt 6pt; border-radius: 8pt; vertical-align: middle; margin-left: 6pt; }
+  .easy { background: #e3f6e8; color: #17692f; }
+  .dev { background: #fff0e6; color: #a6420b; }
+  ol, ul { margin: 4pt 0 6pt; padding-left: 18pt; }
+  li { margin: 2pt 0; }
+  code, pre { font-family: "Courier New", monospace; font-size: 9.5pt; }
+  code { background: #f1f1f4; padding: 0 3pt; border-radius: 3pt; }
+  pre { background: #f1f1f4; border-left: 3pt solid #FF6A13; padding: 6pt 9pt; margin: 4pt 0 8pt; white-space: pre-wrap; border-radius: 3pt; }
+  .box { border: 1pt solid #d9d9e0; border-radius: 6pt; padding: 8pt 11pt; margin: 8pt 0; background: #fafafc; }
+  .warn { border-color: #FF6A13; background: #fff6f0; }
+  table { width: 100%; border-collapse: collapse; margin: 6pt 0; font-size: 9.5pt; }
+  th, td { border: 1pt solid #d9d9e0; padding: 4pt 6pt; text-align: left; vertical-align: top; }
+  th { background: #f1f1f4; }
+  footer { margin-top: 8pt; font-size: 8.5pt; color: #777; text-align: center; }
+  .avoid { break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>NOMADE <span>RUN</span> — como testar o app</h1>
+  <p>Guia rápido para colegas e professores · TCC de Gabryel Gomes Bahmad Camapum e Mateus Augusto de Faria Brito</p>
+</header>
+
+<p>O NOMADE RUN é um app de corrida em que cada corrida conquista zonas da cidade para a sua facção. Há duas formas de testar:</p>
+
+<table>
+  <tr><th style="width:30%">Forma</th><th>Para quem</th><th style="width:30%">Precisa de</th></tr>
+  <tr><td><b>A. Expo Go</b> (recomendada)</td><td>Quem só quer usar o app no celular</td><td>Celular Android ou iPhone e o link/QR do app</td></tr>
+  <tr><td><b>B. Código-fonte (zip)</b></td><td>Quem vai rodar ou mexer no código</td><td>PC com Node.js 20+, Expo Go no celular e a chave pública do backend</td></tr>
+</table>
+
+<h2>A. Pelo Expo Go <span class="tag easy">mais fácil · 2 minutos</span></h2>
+<ol>
+  <li>Instale o <b>Expo Go</b> pela Play Store (Android) ou App Store (iPhone).</li>
+  <li>Abra o <b>link ou QR code do NOMADE RUN</b> enviado pelos autores:
+    <ul>
+      <li><b>Android:</b> escaneie o QR pelo próprio Expo Go (botão <i>Scan QR code</i>).</li>
+      <li><b>iPhone:</b> escaneie com a câmera do celular e toque em “Abrir no Expo Go”.</li>
+    </ul>
+  </li>
+  <li>Na primeira vez o app demora alguns segundos para baixar. Depois, abre direto pela lista de projetos do Expo Go.</li>
+</ol>
+<div class="box">Funciona em qualquer rede (Wi-Fi ou 4G) e <b>não depende de nenhum computador ligado</b>: o app e o servidor estão na nuvem.</div>
+
+<h2>Primeiros passos no app</h2>
+<ol>
+  <li><b>Crie sua conta</b> em “Criar conta” com e-mail e senha (é preciso ter 16 anos ou mais e aceitar a política de privacidade).</li>
+  <li><b>Escolha sua facção.</b> Cada facção tem cor e símbolo próprios no mapa.</li>
+  <li><b>Permita a localização</b> quando o app pedir: é ela que mede a distância e mostra em que zona você está.</li>
+  <li>No <b>Mapa</b>, toque em <b>Correr</b>, escolha a missão e toque em <b>Começar</b>. Para terminar, <b>segure o botão de encerrar</b>. O resumo mostra os pontos (RP) e as zonas que você ajudou a conquistar.</li>
+  <li>Explore as abas <b>Mapa</b> (território de cada facção), <b>Arena</b> (disputa e ranking), <b>Atividades</b> (suas corridas), <b>Clube</b> (crews) e <b>Perfil</b>.</li>
+</ol>
+<div class="box warn"><b>Atenção:</b> regiões e jogadores marcados como <b>“demonstração”</b> são dados fictícios para mostrar o funcionamento. Corridas muito curtas, rápidas demais (ex.: de carro) ou com GPS ruim podem ir para revisão e não pontuar: é o antifraude funcionando.</div>
+
+<div class="avoid">
+<h2>B. Pelo código-fonte (zip) <span class="tag dev">para desenvolvedores</span></h2>
+<p>Funciona no Windows (PowerShell), Linux, macOS ou WSL. <b>O PC precisa ficar ligado</b> enquanto você testa, porque o celular baixa o app dele.</p>
+<h3>1. Instale</h3>
+<ul>
+  <li><b>Node.js 20 ou mais novo</b> (nodejs.org, versão LTS).</li>
+  <li><b>Expo Go</b> no celular.</li>
+</ul>
+<h3>2. Configure o backend</h3>
+<p>Extraia o zip e, na pasta <code>nomaderun/apps/mobile</code>, crie um arquivo chamado <code>.env</code> com:</p>
+<pre>EXPO_PUBLIC_SUPABASE_URL=https://rbdxksunpfbaxkelnsob.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=&lt;chave pública enviada pelos autores&gt;</pre>
+<p>Peça a chave aos autores. Ela é a chave <b>pública</b> (anon/publishable). Nunca use a chave secreta.</p>
+<h3>3. Rode</h3>
+<pre>cd nomaderun/apps/mobile
+npm install
+npx expo start --tunnel</pre>
+<p>Escaneie o QR code que aparece no terminal com o Expo Go (no iPhone, pela câmera). Se o terminal perguntar se pode instalar o <code>@expo/ngrok</code>, responda <b>sim</b>.</p>
+</div>
+
+<div class="avoid">
+<h3>Problemas comuns</h3>
+<table>
+  <tr><th style="width:38%">Sintoma</th><th>O que fazer</th></tr>
+  <tr><td>Tela “Backend não configurado”</td><td>O <code>.env</code> está faltando, com outro nome (ex.: <code>.env.txt</code>) ou na pasta errada. Corrija e rode <code>npx expo start --tunnel --clear</code>.</td></tr>
+  <tr><td>QR abre e fica carregando para sempre</td><td>Use <code>--tunnel</code> (evita bloqueio do Wi-Fi/firewall) e confira se o PC tem internet.</td></tr>
+  <tr><td>Expo Go pede login</td><td>Entre com uma conta Expo gratuita (expo.dev) ou use a forma A.</td></tr>
+  <tr><td>Erro de versão do Node</td><td>Instale o Node 20+ e rode <code>npm install</code> de novo.</td></tr>
+  <tr><td>Scripts <code>npm run celular</code>, <code>publicar</code> e <code>apk</code> não rodam no Windows</td><td>Eles são para Linux/WSL e usados pelos autores. No Windows, use só <code>npx expo start --tunnel</code>.</td></tr>
+</table>
+</div>
+
+<h2>Retorno</h2>
+<p>Encontrou um erro ou tem sugestão? Mande para os autores um print da tela, o modelo do celular e o que você estava fazendo:<br>
+<b>byelgomys@gmail.com</b> · <b>mateusbrito07@gmail.com</b></p>
+
+<footer>NOMADE RUN · Engenharia de Software — UNIFAN · Projeto de Desenvolvimento de Software (PDS)</footer>
+</body>
+</html>
