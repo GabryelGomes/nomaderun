@@ -216,3 +216,18 @@ Resumo das seções 7 a 9 mais as correções da revisão (`20261028120000_revie
 | 10 | Conferir | `select jobname, schedule from cron.job;` (8 jobs), `npx supabase db advisors --linked` e o `curl` do `weekly-recap` (§9) |
 
 **Para desligar a v2 de uma vez** (o que já foi gravado fica): `update public.game_config set value = (select jsonb_object_agg(k, false) from jsonb_object_keys(value) k) where key = 'features';` e `territory_rule = 'v1'`.
+
+## 11. Versão web na Vercel
+
+A Vercel hospeda só as telas (o export web do Expo). O servidor continua no Supabase Cloud (§10). A configuração está em `apps/mobile/vercel.json`.
+
+| Passo | O quê | Observação |
+|---|---|---|
+| 1 | Branch | A Vercel publica a `main` em produção: a v2 precisa estar nela (pull request da branch da Fase 7). Outras branches viram prévia. |
+| 2 | Projeto | Importar o repositório na Vercel com **Root Directory = `apps/mobile`**. O `vercel.json` já define instalação (`npm ci`), build (`npx expo export -p web`) e saída (`dist`). Node 22, como na CI. |
+| 3 | Variáveis | `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_ANON_KEY` do projeto na nuvem (as mesmas do `.env.production`; a anon key é pública por natureza, a `service_role` **nunca** vai aqui). Opcional: `EXPO_PUBLIC_AUTH_PROVIDERS`. As `EXPO_PUBLIC_*` entram no build: mudou uma, faça redeploy. |
+| 4 | Prévia só de demonstração | Num projeto ou ambiente separado, `EXPO_PUBLIC_DEMO=1` abre o app sem servidor, com o selo "Demonstração" em toda tela (cenários com `?cenario=`). **Nunca** em produção. |
+| 5 | Auth | No Supabase (Authentication → URL Configuration), acrescente o domínio da Vercel em *Site URL*/*Redirect URLs*, senão os links de e-mail (confirmação e nova senha) voltam para o endereço antigo. |
+| 6 | Conferir | Abrir `/`, `/entrar`, `/privacidade` e um link com parâmetro, como `/zona/<id>` e `/compartilhar/convite/<codigo>`: as rotas com parâmetro dependem dos `rewrites` do `vercel.json` (o export gera `zona/[id].html` etc.). Se alguma der 404, confira o nome do arquivo em `dist/` e ajuste o `rewrites`. |
+
+Testado aqui: `npx expo export -p web --clear` gera as 4 páginas com parâmetro (`zona/[id]`, `compartilhar/[id]`, `compartilhar/convite/[codigo]`, `moderacao/[id]`). O roteamento na Vercel em si só dá para conferir depois do primeiro deploy (passo 6).
