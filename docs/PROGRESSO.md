@@ -79,6 +79,11 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-29 — Fase 7 — Editar perfil dentro da meta de texto (E6 UX)
+- **Feito:** Editar perfil 102 → 67 palavras (meta 80). Mudanças: avisos com ícone e 4 palavras; ajudas de usuário e de cidade numa linha só, mantendo "1 troca por temporada" e os formatos e o limite de 2 MB da foto; "Tudo salvo." no aviso de salvar. A captura do quiz foi refeita com "Refazer quiz". A tela de moderação (só da equipe) ficou como estava.
+- **Arquivos:** `apps/mobile/src/features/screens/edit-profile-screen.tsx`; capturas `perfil-editar__cheio__390.png`, `perfil-editar-fim__390.png` (antes/depois) e `quiz-resultado__390.png` (depois) em `docs/melhoria/capturas/e6-texto-*`.
+- **Testes:** typecheck ok; ESLint 0 problemas; `npx jest src/features/screens src/__tests__` → 16 suítes, 114 testes, 0 falhas.
+
 ### 2026-10-29 — Fase 7 — Ajuste final de texto em 6 telas (E6 UX)
 - **Feito:** as 6 telas que passavam da meta da régua (`docs/melhoria/F1/ux/medir-texto.mjs --comparar antes`) ficaram dentro dela: Resumo 76 → 59 (meta 60), Zona 76 → 44 (50), Corrida ativa 109 → 87 (90), Meu time 72 → 53 (60), Quiz do time 71 → 44 (45), Conta e privacidade 84 → 73 (80). Blocos longos nessas telas: 6 → 0. Frases viraram ícone + 2–3 palavras (fantasma no resumo e na corrida, escudo na contagem da defesa, selo do time em cada acontecimento da zona, ícone em cada resposta do quiz e em cada consequência da troca de time); o texto completo continua no `accessibilityLabel`. As 3 consequências da troca de time, o alerta de parada da Corrida Segura, o que o export contém e o que a exclusão apaga continuam na tela (mais curtos). A régua ganhou `--detalhe <tela>` (cada fatia de texto com arquivo:linha).
 - **Arquivos:** `apps/mobile/src/features/screens/{summary-screen,zone-sheet,run-screen,faction-screen,account-screen}.tsx`, `onboarding/{quiz.ts,team-quiz.tsx}`, `apps/mobile/.maestro/05-uc01-corrida-simulada.yaml` (texto novo da conquista provável), `docs/melhoria/F1/ux/medir-texto.mjs`, capturas em `docs/melhoria/capturas/e6-texto-{antes,depois}/`.

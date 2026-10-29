@@ -1,16 +1,16 @@
 {
   "resumo": {
-    "geradoEm": "2026-10-29T11:11:02.998Z",
+    "geradoEm": "2026-10-29T11:22:24.268Z",
     "relogioDaDemonstracao": "2026-10-23T12:00:00.000Z",
-    "export": "/tmp/claude-0/-home-user-nomaderun/fc6c6825-489b-5478-95eb-ab2a4c07f1ba/scratchpad/demo-depois",
-    "capturas": 5,
-    "refeitasNestaExecucao": 5,
-    "minutos": 0.2,
+    "export": "/tmp/claude-0/-home-user-nomaderun/fc6c6825-489b-5478-95eb-ab2a4c07f1ba/scratchpad/demo-depois2",
+    "capturas": 6,
+    "refeitasNestaExecucao": 1,
+    "minutos": 0,
     "bytesDestaExecucao": {
-      "before": 447012,
-      "after": 145796
+      "before": 89961,
+      "after": 27383
     },
-    "bytesNaPasta": 145796,
+    "bytesNaPasta": 368619,
     "paginasComErro": [],
     "pedidosAoServidor": 0,
     "pedidosExternosBloqueados": []
@@ -136,6 +136,52 @@
         "sealOverlap": [],
         "lowContrast": [],
         "contrastChecked": 12
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-editar__cheio__390.png",
+      "route": "/perfil/editar",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/editar?cenario=cheio",
+      "loadMs": 2436,
+      "fcpMs": 1000,
+      "screens": [
+        "tela-editar-perfil"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 71,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 22
       },
       "errors": [],
       "serverRequests": [],
