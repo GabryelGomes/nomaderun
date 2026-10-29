@@ -21,7 +21,8 @@
     "domain:copy:restore": "node supabase/scripts/domain-copy.mjs --restore",
     "deploy": "bash supabase/scripts/deploy.sh",
     "celular": "bash scripts/dev-celular.sh",
-    "publicar": "bash scripts/publicar.sh"
+    "publicar": "bash scripts/publicar.sh",
+    "apk": "bash scripts/apk.sh"
   },
   "devDependencies": {
     "supabase": "2.121.0"

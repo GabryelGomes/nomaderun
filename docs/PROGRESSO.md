@@ -79,6 +79,11 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-29 — APK para testes no Android (A1 Arquiteto)
+- **Feito:** `apps/mobile/eas.json` (perfil `preview`: APK, distribuição interna, canal `demo` do EAS Update, ambiente `preview`) e `npm run apk` (`scripts/apk.sh`): valida `.env.production` como o `publicar`, grava URL e chave anon no ambiente `preview` do EAS (`eas env:set`) e roda `eas build -p android --profile preview` na nuvem.
+- **Testes:** `bash -n` no script; o build em si precisa da conta EAS dos autores (não roda no container).
+- **Próximo:** na primeira vez o EAS pergunta o `android.package` e cria a keystore (aceitar o padrão). iPhone não instala APK: para iOS segue o Expo Go + EAS Update.
+
 ### 2026-10-21 — Correções da revisão nº 1 (A1 Arquiteto)
 - **Feito:** A-2 mapa centraliza na posição real (`services/location/current.ts`, testado) e, sem localização, mostra Goiânia rotulada como demonstração; A-3 `npm run publicar` (`scripts/publicar.sh`) publica no EAS Update sempre com `apps/mobile/.env.production` (recusa URL local e chave secreta), `.env.production.example`; M-1 folga de 14 pt para o brilho dos chips (`GLOW_ROOM`) nas linhas roláveis e nos filtros do mapa; docs: aviso das senhas demo só locais + como trocar na nuvem (README, COMO_APRESENTAR §1 com a opção C), RNF-010 como desvio (D-59), RNF-011 atualizado.
 - **A-1 (Alta) depende dos autores:** trocar as senhas de `admin.demo` e `moderador.demo` no Supabase Cloud (SQL em `COMO_APRESENTAR.md` §1).
