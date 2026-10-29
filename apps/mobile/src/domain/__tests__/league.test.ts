@@ -34,6 +34,26 @@ describe('semana da liga', () => {
     expect(leagueWeek(brt(2026, 10, 21, 12))).toEqual({ startsAt: brt(2026, 10, 19), closesAt: brt(2026, 10, 26, 3, 20) });
   });
 
+  it('entre segunda 00:00 e 03:20 a semana anterior ainda vale (igual ao league_current do servidor)', () => {
+    const prev = { startsAt: brt(2026, 10, 19), closesAt: brt(2026, 10, 26, 3, 20) };
+    const next = { startsAt: brt(2026, 10, 26), closesAt: brt(2026, 11, 2, 3, 20) };
+    expect(leagueWeek(brt(2026, 10, 26, 0))).toEqual(prev);
+    expect(leagueWeek(brt(2026, 10, 26, 3, 19))).toEqual(prev);
+    expect(leagueWeek(brt(2026, 10, 26, 3, 20))).toEqual(next);
+    expect(leagueWeek(brt(2026, 10, 25, 23, 59))).toEqual(prev);
+    // propriedade: o instante sempre cai dentro da semana devolvida, antes do fechamento dela
+    forAll(
+      (r) => brt(2026, 1, 1) + r.int(0, 400 * 86_400_000),
+      (now) => {
+        const w = leagueWeek(now);
+        expect(w.startsAt).toBeLessThanOrEqual(now);
+        expect(now).toBeLessThan(w.closesAt);
+        expect(w.closesAt - w.startsAt).toBe(7 * 86_400_000 + (3 * 60 + 20) * 60_000);
+        expect(now - w.startsAt).toBeGreaterThanOrEqual((3 * 60 + 20) * 60_000);
+      },
+    );
+  });
+
   it('pontos da semana = soma dos pontos das corridas', () => {
     expect(leagueWeekPoints([10, -5, NaN, 20.4, Infinity])).toBe(30);
     expect(leagueWeekPoints([])).toBe(0);

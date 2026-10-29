@@ -19,7 +19,7 @@ jest.mock('@/services/api/env', () => {
 import { deleteFeedItem, getFeedSettings, listCrewFeed, listFeedItemKudos, reactToFeedItem, setFeedSettings, type FeedPage } from '../../feed-repo';
 import { recordShare } from '../../share-repo';
 import { createDemoClient, setDemoClient } from '..';
-import { FEED_ROUTE_MAX_POINTS, thinPieces } from '../social';
+import { demoKudosLog, FEED_ROUTE_MAX_POINTS, thinPieces } from '../social';
 /* eslint-enable import/first */
 
 const NOW = Date.parse('2026-10-23T12:00:00Z');
@@ -120,11 +120,26 @@ describe('feed da crew de demonstração', () => {
     expect(!missing.ok && missing.error.code).toBe('NOT_FOUND');
   });
 
-  it('teto de 200 reações por dia (KUDOS_LIMIT)', async () => {
-    const mate = page.items.find((i) => !i.you)!;
-    let last: Awaited<ReturnType<typeof reactToFeedItem>> | null = null;
-    for (let i = 0; i < 205 && (!last || last.ok); i++) last = await reactToFeedItem(mate.id, i % 2 ? 'bora' : 'raio');
-    expect(last && !last.ok && last.error.detail).toBe('KUDOS_LIMIT');
+  it('teto de 200 itens por dia (KUDOS_LIMIT), contado como o kudos_log do servidor', async () => {
+    const mates = page.items.filter((i) => !i.you);
+    // trocar e tirar a reação do mesmo item não gasta o teto (antes: cada troca contava)
+    for (let i = 0; i < 205; i++) expectOk(await reactToFeedItem(mates[0].id, i % 3 === 2 ? null : i % 2 ? 'bora' : 'raio'));
+    const log = demoKudosLog(client.db).get(`${DEMO_USER_ID}|${client.db.brToday()}`)!;
+    expect(log.has(mates[0].id)).toBe(true);
+    // o dia já tem 200 itens aplaudidos: item novo dá KUDOS_LIMIT; o item que já está no dia continua livre
+    const other = mates.find((m) => !log.has(m.id))!;
+    for (let i = 0; log.size < 200; i++) log.add(`feed-ficticio-${i}`);
+    const blocked = await reactToFeedItem(other.id, 'bora');
+    expect(!blocked.ok && blocked.error.detail).toBe('KUDOS_LIMIT');
+    expect(expectOk(await reactToFeedItem(mates[0].id, 'fogo')).myReaction).toBe('fogo');
+    // desfazer não devolve o teto
+    expectOk(await reactToFeedItem(mates[0].id, null));
+    const still = await reactToFeedItem(other.id, 'bora');
+    expect(!still.ok && still.error.detail).toBe('KUDOS_LIMIT');
+    // reação inválida é recusada antes de procurar o item (mesma ordem do servidor)
+    const bad = await reactToFeedItem('feed-que-nao-existe', 'palmas' as never);
+    expect(!bad.ok && bad.error.code).toBe('VALIDATION');
+    log.clear();
   });
 
   it('paginação por cursor', async () => {
@@ -158,6 +173,10 @@ describe('preferências do feed e tirar do feed', () => {
     expect(expectOk(await deleteFeedItem(mine.id))).toBe(true);
     expect(expectOk(await listCrewFeed()).items.map((i) => i.id)).not.toContain(mine.id);
     await setFeedSettings({ shareRunsToFeed: false });
+    expect(expectOk(await listCrewFeed()).items.filter((i) => i.you)).toHaveLength(0);
+    // como no servidor (set_feed_settings apaga os itens): religar não traz as corridas antigas de volta,
+    // e religar o mapa não devolve a rota que já saiu
+    await setFeedSettings({ shareRunsToFeed: true, feedShowMap: true });
     expect(expectOk(await listCrewFeed()).items.filter((i) => i.you)).toHaveLength(0);
   });
 });

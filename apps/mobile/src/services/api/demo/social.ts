@@ -4,7 +4,8 @@
  *  - só a crew vê o feed; o item não traz hora nem coordenada fora da rota cortada;
  *  - a rota sai cortada pelo mesmo `clipRouteForSharing` do domain (zonas de privacidade do autor e
  *    pontas escondidas) e vai como polyline de precisão 4, no máximo 80 pontos por item;
- *  - reações `bora | fogo | raio`, 1 por pessoa por item, `KUDOS_SELF` e `KUDOS_LIMIT` (200 por dia).
+ *  - reações `bora | fogo | raio`, 1 por pessoa por item, `KUDOS_SELF` e `KUDOS_LIMIT` (200 itens por dia,
+ *    contados como o `kudos_log` do servidor: trocar ou tirar a reação não libera o teto).
  *
  * O feed da crew de demonstração tem 6 corridas: as 3 mais recentes do corredor de demonstração (as do
  * banco, incluindo a que ele acabou de correr) e 3 de colegas da crew, geradas sobre a rota do lago.
@@ -50,8 +51,11 @@ type StoredItem = {
 type SocialState = {
   /** itemId → (userId → reação). */
   kudos: Map<string, Map<string, FeedReaction>>;
-  /** `${userId}|${dia}` → reações dadas no dia. */
-  given: Map<string, number>;
+  /**
+   * `kudos_log` de demonstração: `${userId}|${dia}` → itens aplaudidos no dia (revisão M1/B3). O teto conta
+   * itens, não ações: trocar ou tirar a reação não gasta nem devolve o teto.
+   */
+  log: Map<string, Set<string>>;
   /** Rotas já cortadas por item (o corte é estável dentro da sessão). */
   routes: Map<string, string[] | null>;
   mates: StoredItem[] | null;
@@ -71,11 +75,14 @@ const states = new WeakMap<DemoDb, SocialState>();
 function stateOf(db: DemoDb): SocialState {
   let s = states.get(db);
   if (!s) {
-    s = { kudos: new Map(), given: new Map(), routes: new Map(), mates: null, deleted: new Set(), settings: new Map(), liveScheduled: false };
+    s = { kudos: new Map(), log: new Map(), routes: new Map(), mates: null, deleted: new Set(), settings: new Map(), liveScheduled: false };
     states.set(db, s);
   }
   return s;
 }
+
+/** `kudos_log` de demonstração do banco (testes: preencher o dia sem gerar 200 itens). */
+export const demoKudosLog = (db: DemoDb) => stateOf(db).log;
 
 function requireUser(db: DemoDb, userId: string | null): Row {
   const p = db.profile(userId);
@@ -334,13 +341,16 @@ export const DEMO_SOCIAL_RPC_HANDLERS: Record<string, RpcHandler> = {
     };
   },
 
+  // Mesma ordem e mesma regra do `react_feed_item` do servidor (20261028120000_review_fixes.sql, M1):
+  // VALIDATION → NOT_FOUND → KUDOS_SELF; tirar a reação não mexe no teto; o teto (200) conta os itens
+  // aplaudidos no dia (`kudos_log`), e reagir de novo ao mesmo item (trocar ou refazer) não conta outra vez.
   react_feed_item: (db, userId, args) => {
     requireUser(db, userId);
-    const item = visibleItems(db, userId!).items.find((i) => i.id === args.p_item);
-    if (!item) throw raise('NOT_FOUND: item do feed não encontrado');
-    if (item.actorId === userId) throw raise('KUDOS_SELF: não dá para reagir à própria corrida');
     const reaction = args.p_reaction ?? null;
     if (reaction !== null && !isFeedReaction(reaction)) throw raise('VALIDATION: reação inválida');
+    const item = visibleItems(db, userId!).items.find((i) => i.id === args.p_item);
+    if (!item) throw raise('NOT_FOUND: item do feed não encontrado');
+    if (item.actorId === userId) throw raise('KUDOS_SELF: não dá para aplaudir a própria corrida');
     const s = stateOf(db);
     const kudos = s.kudos.get(item.id) ?? new Map<string, FeedReaction>();
     s.kudos.set(item.id, kudos);
@@ -348,11 +358,16 @@ export const DEMO_SOCIAL_RPC_HANDLERS: Record<string, RpcHandler> = {
     if (reaction === null) {
       kudos.delete(userId!);
       if (had) emitCounts(db, item.id);
-    } else if (had !== reaction) {
-      const key = `${userId}|${db.brToday()}`;
-      const given = s.given.get(key) ?? 0;
-      if (given >= FEED_DAILY_REACTIONS) throw raise('KUDOS_LIMIT: limite de reações do dia atingido');
-      s.given.set(key, given + 1);
+      return itemRow(db, item, userId!);
+    }
+    const key = `${userId}|${db.brToday()}`;
+    const today = s.log.get(key) ?? new Set<string>();
+    if (!today.has(item.id)) {
+      if (today.size >= FEED_DAILY_REACTIONS) throw raise(`KUDOS_LIMIT: limite de ${FEED_DAILY_REACTIONS} reações por dia`);
+      today.add(item.id);
+      s.log.set(key, today);
+    }
+    if (had !== reaction) {
       kudos.set(userId!, reaction);
       emitCounts(db, item.id);
     }
@@ -382,14 +397,20 @@ export const DEMO_SOCIAL_RPC_HANDLERS: Record<string, RpcHandler> = {
     return settingsOf(db, userId!);
   },
 
+  // Como o servidor: desligar "mostrar minhas corridas" APAGA os itens já publicados (religar não os traz de
+  // volta; só as corridas novas entram) e desligar o mapa tira a rota dos itens que já existem.
   set_feed_settings: (db, userId, args) => {
     requireUser(db, userId);
+    const s = stateOf(db);
     const cur = settingsOf(db, userId!);
     const next = {
       shareRunsToFeed: typeof args.p_share_runs === 'boolean' ? args.p_share_runs : cur.shareRunsToFeed,
       feedShowMap: typeof args.p_show_map === 'boolean' ? args.p_show_map : cur.feedShowMap,
     };
-    stateOf(db).settings.set(userId!, next);
+    const published = cur.shareRunsToFeed ? ownItems(db, userId!) : [];
+    if (args.p_share_runs === false) for (const i of published) s.deleted.add(i.id);
+    if (args.p_show_map === false) for (const i of published) s.routes.set(i.id, null);
+    s.settings.set(userId!, next);
     return next;
   },
 
