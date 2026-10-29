@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Switch, View } from 'react-native';
 
 import { Button } from '@/components/button';
-import { Icon } from '@/components/icon';
+import { Icon, type IconName } from '@/components/icon';
 import { FadeUp, Pressable, RevealText, Stagger } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader, Surface } from '@/components/surface';
@@ -20,11 +20,12 @@ import { initialsOf } from './profile-screen.model';
 import { factions, fonts, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-const PREFS: { key: keyof NotificationPrefs; title: string; body: string }[] = [
-  { key: 'invasions', title: 'Invasões', body: 'Quando um rival ataca uma zona do seu time.' },
-  { key: 'conquests', title: 'Conquistas', body: 'Quando você conquista ou defende uma zona.' },
-  { key: 'missions', title: 'Missões', body: 'Missões novas, baús e fim de temporada.' },
-  { key: 'moderation', title: 'Moderação', body: 'Resultado da revisão de uma corrida sua.' },
+// Ajuste de texto (E6): ícone + 4 palavras por aviso (antes, frases de até 9).
+const PREFS: { key: keyof NotificationPrefs; title: string; body: string; icon: IconName }[] = [
+  { key: 'invasions', title: 'Invasões', body: 'Rival atacou sua zona', icon: 'warning' },
+  { key: 'conquests', title: 'Conquistas', body: 'Você conquistou ou defendeu', icon: 'flag' },
+  { key: 'missions', title: 'Missões', body: 'Missões, baús e temporada', icon: 'chest' },
+  { key: 'moderation', title: 'Moderação', body: 'Revisão das suas corridas', icon: 'eye' },
 ];
 
 const UNITS: { id: DistanceUnit; label: string }[] = [
@@ -116,7 +117,7 @@ export function EditProfileScreen() {
             <View style={{ flex: 1 }}>
               <Text variant="bodyBold">Foto de perfil</Text>
               <Text variant="small" muted>
-                {uploading ? 'Enviando foto…' : profile?.avatarUrl ? 'Toque na foto para trocar. JPEG, PNG ou WebP até 2 MB.' : 'Toque nas iniciais para enviar uma foto. Sem foto, mostramos suas iniciais na cor do seu time.'}
+                {uploading ? 'Enviando foto…' : profile?.avatarUrl ? 'Toque para trocar · JPEG, PNG ou WebP até 2 MB' : 'Toque nas iniciais para pôr uma foto'}
               </Text>
             </View>
           </View>
@@ -133,9 +134,9 @@ export function EditProfileScreen() {
             autoCorrect={false}
             maxLength={20}
             error={usernameError}
-            help="De 3 a 20 caracteres: letras, números, ponto ou sublinhado."
+            help="3 a 20 letras, números, ponto ou sublinhado"
           />
-          <TextField testID="perfil-cidade" label="Cidade natal" value={city} onChangeText={setCity} placeholder="Ex.: Goiânia" autoComplete="off" maxLength={80} error={cityError} help="Conta pontos para a sua cidade no placar entre cidades. Pode ser trocada uma vez por temporada." />
+          <TextField testID="perfil-cidade" label="Cidade natal" value={city} onChangeText={setCity} placeholder="Ex.: Goiânia" autoComplete="off" maxLength={80} error={cityError} help="Pontua no placar entre cidades · 1 troca por temporada" />
         </View>
 
         <View style={{ gap: space[3] }}>
@@ -170,6 +171,7 @@ export function EditProfileScreen() {
           <Surface>
             {PREFS.map((p) => (
               <View key={p.key} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 44 }}>
+                <Icon name={p.icon} size={20} color={colors.textSecondary} />
                 <View style={{ flex: 1 }}>
                   <Text variant="bodyBold">{p.title}</Text>
                   <Text variant="small" muted>
@@ -192,7 +194,7 @@ export function EditProfileScreen() {
       <ErrorNotice message={error} testID="perfil-erro" />
       {saved ? (
         <FadeUp>
-          <InfoNotice testID="perfil-salvo" title="Perfil atualizado" body="Suas alterações foram salvas." />
+          <InfoNotice testID="perfil-salvo" title="Perfil atualizado" body="Tudo salvo." />
         </FadeUp>
       ) : null}
     </ScreenScroll>
