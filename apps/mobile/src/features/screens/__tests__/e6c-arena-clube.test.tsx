@@ -28,7 +28,7 @@ import { useGame } from '@/store/game-store';
 
 import { ArenaScreen } from '../arena-screen';
 import { atlasPercent, bossLook, hpRatio, percentLabel, timeLeft } from '../arena-screen.model';
-import { crewWeek, emptyRankingText, hasPeriod, scopesFor } from '../club-ranking';
+import { crewWeek, crewWeekFromGoal, emptyRankingText, hasPeriod, scopesFor } from '../club-ranking';
 /* eslint-enable import/first */
 
 const H = 3_600_000;
@@ -168,6 +168,9 @@ describe('regras de apresentação', () => {
     ];
     expect(crewWeek(rows, 'FLR', 4)).toEqual({ meters: 8200, ran: 2, ratio: 0.5 });
     expect(crewWeek([], 'FLR', 0)).toEqual({ meters: 0, ran: 0, ratio: 0 });
+    // D-88: com a meta oficial, a barra é km feitos ÷ meta (não mais quem correu ÷ membros)
+    expect(crewWeekFromGoal({ meters: 8200, ran: 2, goalMeters: 40000 })).toEqual({ meters: 8200, ran: 2, ratio: 0.205, goalMeters: 40000 });
+    expect(crewWeekFromGoal({ meters: 90000, ran: 4, goalMeters: 40000 }).ratio).toBe(1);
   });
 
   it('quadro "Cidades": sem escopo, sem período e com vazio próprio', () => {

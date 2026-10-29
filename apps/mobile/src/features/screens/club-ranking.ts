@@ -1,4 +1,6 @@
+import { crewWeekProgress } from '@/domain/crew-goal';
 import type { FactionId } from '@/domain/types';
+import type { CrewWeekGoal } from '@/services/api/crews-repo';
 import type { IndividualRow, RankingQuery, RankingScope } from '@/services/api/leaderboard-repo';
 
 /**
@@ -43,13 +45,18 @@ export function emptyRankingText(board: Board, scope: Scope, period: Period, me:
 export const hasPeriod = (board: Board) => board !== 'cidades';
 
 /**
- * A semana da crew a partir do ranking semanal de corredores (`ranking_runners`, período `week`): km somados
- * de quem tem a sigla da crew e quantos membros já correram. Dado real; o servidor ainda não tem meta de km
- * da crew, então a "meta da semana" mostrada é "todos correrem" (membros que correram ÷ membros).
+ * Plano B da semana da crew (servidor sem `crew_week_goal`): a partir do ranking semanal de corredores
+ * (`ranking_runners`, período `week`), km somados de quem tem a sigla da crew e quantos membros já correram;
+ * a "meta" mostrada é "todos correrem" (membros que correram ÷ membros).
  */
 export function crewWeek(rows: readonly Pick<IndividualRow, 'crewTag' | 'meters' | 'runs'>[], tag: string, members: number): { meters: number; ran: number; ratio: number } {
   const mine = rows.filter((r) => r.crewTag === tag && (r.runs > 0 || r.meters > 0));
   const meters = mine.reduce((n, r) => n + r.meters, 0);
   const ran = Math.min(members, mine.length);
   return { meters, ran, ratio: members > 0 ? ran / members : 0 };
+}
+
+/** A semana da crew com a meta oficial de km (D-88, `crew_week_goal()`): a barra mostra km feitos ÷ meta. */
+export function crewWeekFromGoal(g: Pick<CrewWeekGoal, 'meters' | 'ran' | 'goalMeters'>): { meters: number; ran: number; ratio: number; goalMeters: number } {
+  return { meters: g.meters, ran: g.ran, ratio: crewWeekProgress(g.meters, g.goalMeters), goalMeters: g.goalMeters };
 }

@@ -6,6 +6,7 @@
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
+import { crewWeekGoalMeters, crewWeekProgress } from '@/domain/crew-goal';
 import { districtOf, zoneOf } from '@/domain/grid';
 import { DEMO_CENTER } from '@/demo/demo-data';
 import { DEMO_USER_ID } from '@/demo/world';
@@ -130,8 +131,17 @@ describe('repositórios contra o servidor de demonstração (roteiro cheio)', ()
     const mine = expectOk(await crews.getMyCrew(DEMO_USER_ID));
     expect(mine?.crew.tag).toBe('FLR');
     expect(mine?.members.some((m) => m.userId === DEMO_USER_ID)).toBe(true);
+    // D-88: meta oficial da semana da crew (par de crew_week_goal), mesma regra do domain
+    const goal = expectOk(await crews.getCrewWeekGoal())!;
+    expect(goal.members).toBe(mine!.members.length);
+    expect(goal.goalMeters).toBe(crewWeekGoalMeters(mine!.members.length));
+    expect(goal.ran).toBeLessThanOrEqual(goal.members);
+    expect(goal.progress).toBeCloseTo(crewWeekProgress(goal.meters, goal.goalMeters), 4);
+    expect(goal.weekStart).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(new Date(`${goal.weekStart}T12:00:00Z`).getUTCDay()).toBe(1);
     expect(expectOk(await crews.leaveCrew())).toBe(true);
     expect(expectOk(await crews.getMyCrew(DEMO_USER_ID))).toBeNull();
+    expect(expectOk(await crews.getCrewWeekGoal())).toBeNull();
     expect(expectOk(await crews.joinCrew('demoflr1')).tag).toBe('FLR');
     expectOk(await crews.leaveCrew());
     const created = expectOk(await crews.createCrew('Crew de Teste', 'tst'));
