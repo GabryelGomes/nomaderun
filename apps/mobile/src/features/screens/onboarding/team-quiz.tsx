@@ -40,7 +40,7 @@ export function TeamQuiz({ onPick, onClose, testID = 'onboarding-quiz' }: TeamQu
         </Text>
         <View style={{ alignSelf: 'stretch', gap: space[2] }}>
           <Button testID={`${testID}-ver`} label={`Ver os ${team.name}`} size="lg" wide onPress={() => onPick(result)} />
-          <Button testID={`${testID}-refazer`} label="Refazer" kind="ghost" wide onPress={() => setAnswers([])} />
+          <Button testID={`${testID}-refazer`} label="Refazer quiz" kind="ghost" wide onPress={() => setAnswers([])} />
         </View>
       </FadeUp>
     );
