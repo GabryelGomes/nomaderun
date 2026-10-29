@@ -242,7 +242,8 @@ function leagueCurrent(db: DemoDb, userId: string | null) {
   const now = db.now();
   const { startsAt, closesAt } = leagueWeek(now);
   const weekStart = mondayOf(startsAt);
-  const joined = scoredRuns(db, userId!, startsAt, now + 1).length > 0;
+  // entre segunda 00:00 e 03:20 a semana que vale é a anterior: só as corridas dela contam
+  const joined = scoredRuns(db, userId!, startsAt, Math.min(now + 1, startsAt + WEEK)).length > 0;
   const lastWeekRuns = scoredRuns(db, userId!, startsAt - WEEK, startsAt);
   const lastResult = lastWeekRuns.length
     ? { weekStart: mondayOf(startsAt - WEEK), division: 0, divisionName: LEAGUE_DIVISIONS[0], finalRank: 4, outcome: 'promoted' }

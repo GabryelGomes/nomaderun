@@ -199,15 +199,15 @@ O script liga as flags da v2 durante o teste e devolve como estavam. A mesma ló
 
 ## 10. Deploy completo da v2 (Fase 7), do zero ao app na nuvem
 
-Resumo das seções 7 a 9 mais as correções da revisão (`20261028120000_review_fixes`), na ordem que não quebra o app que já está publicado no EAS Update. Cada passo pode parar no meio: com as flags desligadas, o app antigo continua igual, e o app novo mostra "indisponível" no que o servidor ainda não tem.
+Resumo das seções 7 a 9 mais as correções da revisão (`20261028120000_review_fixes`) e os ajustes finais (`20261029120000_final_fixes`), na ordem que não quebra o app que já está publicado no EAS Update. Cada passo pode parar no meio: com as flags desligadas, o app antigo continua igual, e o app novo mostra "indisponível" no que o servidor ainda não tem.
 
 | Passo | O quê | Comando / observação |
 |---|---|---|
 | 0 | **A-1: senhas das contas demo** | Troque as senhas de `admin.demo` e `moderador.demo` no projeto da nuvem (SQL em `docs/COMO_APRESENTAR.md` §1). Elas estão no README, e o repositório é público |
 | 1 | Backup | `npx supabase db dump --linked -f backup-<data>.sql` e o mesmo com `--data-only` |
-| 2 | Testes locais | `npm run db:test:local` (**832** pgTAP em 29 arquivos), `npm run functions:test` (Deno: 87 ok, 1 ignorado), `npm run functions:check` e `npm run domain:copy:check` |
-| 3 | Migrations | `npx supabase db push --dry-run` e `npx supabase db push`. Sobem de `20261023120000_v2_contract` a `20261028120000_review_fixes` (15 arquivos, todos aditivos). Jobs novos: `raid-tick`, `close-league`, `fade-cells` e `telemetry-retention`. Realtime ganha `raids` e `feed_kudos_counts` |
-| 4 | Functions | `npx supabase functions deploy` (as 9). Mudaram na v2: `finish-activity`, `moderate-activity`, `account-export` e a nova `weekly-recap` |
+| 2 | Testes locais | `npm run db:test:local` (**846** pgTAP em 30 arquivos), `npm run functions:test` (Deno: 88 ok, 1 ignorado), `npm run functions:check` e `npm run domain:copy:check` |
+| 3 | Migrations | `npx supabase db push --dry-run` e `npx supabase db push`. Sobem de `20261023120000_v2_contract` a `20261029120000_final_fixes` (16 arquivos, todos aditivos). Jobs novos: `raid-tick`, `close-league`, `fade-cells` e `telemetry-retention`. Realtime ganha `raids` e `feed_kudos_counts` |
+| 4 | Functions | `npx supabase functions deploy` (as 9). Mudaram na v2: `finish-activity`, `moderate-activity`, `account-export` e a nova `weekly-recap`. Os ajustes finais (B1) só acrescentam o `stamp` ao plano da gravação v2: function nova com banco antigo ignora o campo, e function antiga com banco novo manda plano sem `stamp`, aceito como antes; mesmo assim, migrations **antes** das functions |
 | 5 | Seed v2 (só para a apresentação) | `psql "$DB_URL" -f supabase/seed_v2_demo.sql`, depois do `seed.sql`. Idempotente, não liga flag e não cria Raid nem Liga (D-76) |
 | 6 | App novo | Confira que o `apps/mobile/.env.production` **não** tem `EXPO_PUBLIC_DEMO=1` (senão o app publicado só abre a demonstração) e rode `npm run publicar -- "v2"` na raiz (branch `demo` do EAS Update) |
 | 7 | Flags, uma por vez | Na ordem da §8.2: `records` → `missions` + `dailyChest` + `track` → `feed` → `raid` → `league` → `streakV2`. Depois de cada uma, uma corrida de teste e `select v2_extras from public.activities order by created_at desc limit 1;` |

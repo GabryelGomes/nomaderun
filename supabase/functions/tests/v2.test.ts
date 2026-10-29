@@ -284,3 +284,33 @@ Deno.test('runV2: repetição devolve o que já foi gravado; conflito de zona te
   );
   assert.equal(failed, null);
 });
+
+Deno.test('B1: o plano leva o carimbo do contexto; a repetição depois do conflito usa o carimbo novo', async () => {
+  const geo = run(3000);
+  const base = { activityId: ACT, userId: USER, faction: 'striders' as const, now: T0, geo, validation: validateActivity(geo), paintCells: [], v1: response(), seed: 1 };
+  assert.equal(planV2({ ...base, ctx: ctx({ flags: flags({ league: true }), stamp: 4 }) }).stamp, 4);
+  // servidor antigo (sem carimbo): o plano sai sem o campo, e o banco antigo nem o conhece
+  assert.equal('stamp' in planV2({ ...base, ctx: ctx({ flags: flags({ league: true }) }) }), false);
+
+  let stamp = 4;
+  const sent: unknown[] = [];
+  const extras = await runV2(
+    { activityId: ACT, userId: USER, points: stored(geo), response: response(), flags: flags({ league: true }) },
+    {
+      rpc: (name: string, args: Record<string, unknown>) => {
+        if (name === 'svc_v2_context') return Promise.resolve(ctx({ flags: flags({ league: true }), stamp }) as never);
+        const p = args.p as { stamp?: number; points: unknown };
+        sent.push(p.stamp);
+        if (p.stamp !== 5) {
+          stamp = 5; // a outra corrida da pessoa terminou no meio
+          return Promise.reject(new DbError('P0001', 'ZONE_CONFLICT: outra corrida sua foi gravada durante o cálculo', 400));
+        }
+        return Promise.resolve({ version: 1, scored: true, points: p.points, league: null } as never);
+      },
+      now: () => T0,
+      seed: () => 1,
+    },
+  );
+  assert.deepEqual(sent, [4, 5]);
+  assert.ok(extras);
+});

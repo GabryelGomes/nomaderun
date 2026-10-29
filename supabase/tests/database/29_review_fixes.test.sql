@@ -96,9 +96,9 @@ select ok((select n.offset_frac = o.offset_frac and n.azimuth = o.azimuth and n.
 update public.privacy_zones set lat = -23.5521 where id = 'e9e9e9e9-4029-4000-8000-000000000001';
 select ok(not has_table_privilege('authenticated', 'private.privacy_zone_masks', 'select')
           and not has_table_privilege('anon', 'private.privacy_zone_masks', 'select'), 'a máscara não sai do banco');
-select ok((select prosrc ~ 'cell_in_privacy_zone\(c\.lat, c\.lng\).*cell_in_privacy_zone\(c\.lat, c\.lng\)'
+select ok((select prosrc ~ 'cell_in_privacy_zone\(c\.lat, c\.lng\)' and prosrc !~ 'cell_in_privacy_zone.*cell_in_privacy_zone'
              from pg_proc where oid = 'public.zone_paint_near(double precision, double precision, integer)'::regprocedure),
-  'zone_paint_near usa a máscara em cells e em paintedToday');
+  'zone_paint_near usa a máscara em cells (paintedToday só tem os trechos da própria pessoa, B2)');
 -- percurso visto pela staff: um ponto fora da zona mas dentro da máscara também some
 select ok(private.in_privacy_zone('e9e9e9e9-0029-4000-8000-00000000000d',
             extensions.st_y(extensions.st_project(pg_temp.geo(-23.5521, -46.6312), 210, (select azimuth from mask1))::extensions.geometry),

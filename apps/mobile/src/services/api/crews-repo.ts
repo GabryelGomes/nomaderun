@@ -111,6 +111,44 @@ export async function joinCrew(code: string): Promise<Result<{ crewId: string; n
   });
 }
 
+/**
+ * D-88 — meta semanal de km da crew, oficial do servidor (`rpc('crew_week_goal')`; regra em `domain/crew-goal.ts`).
+ * Só totais da crew (km somados e quantos correram), nada por pessoa. `null` = sem crew.
+ */
+export type CrewWeekGoal = {
+  crewId: string;
+  /** Segunda-feira da semana (AAAA-MM-DD, Brasília). */
+  weekStart: string;
+  members: number;
+  ran: number;
+  meters: number;
+  goalMeters: number;
+  /** 0 a 1. */
+  progress: number;
+  reached: boolean;
+};
+
+const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : Number(v) || 0);
+
+export async function getCrewWeekGoal(): Promise<Result<CrewWeekGoal | null>> {
+  return attempt(async () => {
+    const { data, error } = await requireSupabase().rpc('crew_week_goal');
+    if (error) throw error;
+    if (!data || typeof data !== 'object') return null;
+    const d = data as Row;
+    return {
+      crewId: String(d.crewId ?? ''),
+      weekStart: String(d.weekStart ?? ''),
+      members: num(d.members),
+      ran: num(d.ran),
+      meters: num(d.meters),
+      goalMeters: num(d.goalMeters),
+      progress: Math.min(1, Math.max(0, num(d.progress))),
+      reached: d.reached === true,
+    };
+  });
+}
+
 export async function leaveCrew(): Promise<Result<boolean>> {
   return attempt(async () => {
     const { data, error } = await requireSupabase().rpc('leave_crew');

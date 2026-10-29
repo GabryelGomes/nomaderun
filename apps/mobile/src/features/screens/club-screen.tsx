@@ -18,7 +18,7 @@ import type { FactionId } from '@/domain/types';
 import { markRankingOpened } from '@/features/engagement';
 import { CrewFeed } from '@/features/social/feed';
 import { InviteCard } from '@/features/social/invite/invite-card';
-import { getMyCrew, type MyCrew } from '@/services/api/crews-repo';
+import { getCrewWeekGoal, getMyCrew, type MyCrew } from '@/services/api/crews-repo';
 import { isDemoMode } from '@/services/api/env';
 import type { Result } from '@/services/api/errors';
 import { getCityRanking, getDistrictLabel, getMyRecentZoneId, rankCrews, rankFactions, rankRunners } from '@/services/api/leaderboard-repo';
@@ -26,7 +26,7 @@ import { useSession } from '@/store/session-store';
 import { factions, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-import { crewWeek, emptyRankingText, hasPeriod, rankingQuery, scopesFor, type Board, type Me, type Period, type Scope } from './club-ranking';
+import { crewWeek, crewWeekFromGoal, emptyRankingText, hasPeriod, rankingQuery, scopesFor, type Board, type Me, type Period, type Scope } from './club-ranking';
 import { GrowPillar, SwapFade } from './game-motion';
 import { podiumOrder } from './game-motion-math';
 import { useResource } from './use-resource';
@@ -120,9 +120,16 @@ async function loadMyDistrict(userId: string | null): Promise<Result<{ id: strin
   return { ok: true, data: { id, label: label.ok ? label.data : 'Meu distrito' } };
 }
 
-/** A semana da crew pelo ranking semanal real (`ranking_runners`, período `week`), no time da crew. */
-async function loadCrewWeek(crew: MyCrew | null): Promise<Result<ReturnType<typeof crewWeek> | null>> {
+type CrewWeekView = ReturnType<typeof crewWeek> & { goalMeters?: number };
+
+/**
+ * A semana da crew com a meta oficial de km (D-88, `crew_week_goal()`). Servidor antigo (sem a RPC): o ranking
+ * semanal real (`ranking_runners`, período `week`), no time da crew, com a meta "todos correrem".
+ */
+async function loadCrewWeek(crew: MyCrew | null): Promise<Result<CrewWeekView | null>> {
   if (!crew) return { ok: true, data: null };
+  const goal = await getCrewWeekGoal();
+  if (goal.ok && goal.data) return { ok: true, data: crewWeekFromGoal(goal.data) };
   const f = crew.crew.faction;
   const res = await rankRunners({ period: 'week', scope: f ? 'faction' : 'general', value: f, limit: 500 });
   return res.ok ? { ok: true, data: crewWeek(res.data, crew.crew.tag, crew.members.length) } : res;
@@ -201,15 +208,16 @@ export function ClubScreen() {
 
 /* ------------------------------------------------------------------ herói da crew */
 
-function CrewHero({ crew, week }: { crew: MyCrew; week: ReturnType<typeof crewWeek> | null }) {
+function CrewHero({ crew, week }: { crew: MyCrew; week: CrewWeekView | null }) {
   const { colors } = useTheme();
   const n = crew.members.length;
   const km = week ? Math.round(week.meters / 100) / 10 : null;
+  const goalKm = week?.goalMeters ? Math.round(week.goalMeters / 1000) : null;
   return (
     <PressableScale
       testID="clube-crew"
       accessibilityRole="button"
-      accessibilityLabel={`Sua crew: ${crew.crew.name}, ${n} corredores.${week ? ` ${km} km nesta semana, ${week.ran} de ${n} já correram.` : ''} Abrir.`}
+      accessibilityLabel={`Sua crew: ${crew.crew.name}, ${n} corredores.${week ? ` ${km} km nesta semana${goalKm ? ` de ${goalKm} km da meta` : ''}, ${week.ran} de ${n} já correram.` : ''} Abrir.`}
       onPress={() => router.push('/clube/crew')}
       style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.line, overflow: 'hidden' }}>
       <View aria-hidden style={{ height: 3, backgroundColor: crew.crew.faction ? factions[crew.crew.faction].color : colors.action }} />
@@ -232,8 +240,8 @@ function CrewHero({ crew, week }: { crew: MyCrew; week: ReturnType<typeof crewWe
               <CountUp testID="clube-crew-km" value={km} decimals={1} variant="metric" accessibilityLabel={`${km} km`} />
               <Text muted>km esta semana</Text>
             </View>
-            <ProgressBar value={week.ratio} color={colors.action} trackColor={colors.surfaceSunken} accessibilityLabel={`${week.ran} de ${n} já correram nesta semana`} testID="clube-crew-meta" />
-            <Text variant="caption" muted>{`${week.ran} de ${n} correram`}</Text>
+            <ProgressBar value={week.ratio} color={colors.action} trackColor={colors.surfaceSunken} accessibilityLabel={goalKm ? `${km} de ${goalKm} km da meta da semana` : `${week.ran} de ${n} já correram nesta semana`} testID="clube-crew-meta" />
+            <Text variant="caption" muted>{goalKm ? `Meta ${goalKm} km · ${week.ran} de ${n} correram` : `${week.ran} de ${n} correram`}</Text>
           </View>
         ) : null}
       </View>

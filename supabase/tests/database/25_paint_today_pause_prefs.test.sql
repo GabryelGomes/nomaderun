@@ -77,8 +77,8 @@ select pg_temp.login('e9e9e9e9-0025-4000-8000-00000000000a');
 create temp table pa as select public.zone_paint_near(-30.0346, -51.2177, 1500) as s;
 grant select on pa to authenticated;
 select ok((select s ?& array['rule', 'cells', 'zones', 'paintedToday'] from pa), 'retrato mantém rule, cells e zones e ganha paintedToday');
-select is((select s -> 'paintedToday' from pa), '["8ba90128e380fff"]'::jsonb,
-  'paintedToday: só os trechos da própria pessoa hoje (sem o de ontem, sem o da zona de privacidade, sem o que sumiu)');
+select is((select s -> 'paintedToday' from pa), '["8ba90128e380fff", "8ba90128e383fff"]'::jsonb,
+  'paintedToday: só os trechos da própria pessoa hoje (sem o de ontem, sem o que sumiu; o da zona de privacidade entra, B2)');
 select is((select s -> 'paintedToday' from (select public.zone_paint_near(-15.79, -47.88, 3000) as s) x), '[]'::jsonb,
   'fora do raio: lista vazia (nunca null)');
 reset role;

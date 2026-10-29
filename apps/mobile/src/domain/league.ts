@@ -49,9 +49,14 @@ const safe = (v: number) => (Number.isFinite(v) ? v : 0);
 /** Sem instante conhecido, fica atrás de quem tem. */
 const reached = (e: LeagueEntry) => (e.reachedAt !== undefined && Number.isFinite(e.reachedAt) ? e.reachedAt : Number.MAX_SAFE_INTEGER);
 
-/** Semana da liga do instante: começa na segunda 00:00 e fecha na segunda seguinte às 03:20 (Brasília). */
+/**
+ * Semana da liga que vale no instante: começa na segunda 00:00 e fecha na segunda seguinte às 03:20 (Brasília).
+ * Entre segunda 00:00 e 03:20 a semana anterior ainda não fechou e é ela que vale (igual a `league_current()`
+ * no servidor, revisão B4).
+ */
 export function leagueWeek(now: number): { startsAt: number; closesAt: number } {
-  const startsAt = weekStartBrt(now);
+  let startsAt = weekStartBrt(now);
+  if (now < startsAt + LEAGUE_V2_CLOSE_OFFSET_MS) startsAt -= WEEK;
   return { startsAt, closesAt: startsAt + WEEK + LEAGUE_V2_CLOSE_OFFSET_MS };
 }
 

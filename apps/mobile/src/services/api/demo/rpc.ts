@@ -2,6 +2,7 @@
  * As 11 RPCs que o app chama (`supabase.rpc(...)`), com as regras das funções SQL do backend
  * (`supabase/migrations/*`), sobre o banco de demonstração. Erros como `RAISE EXCEPTION 'CODIGO: ...'`.
  */
+import { crewWeekGoalMeters, crewWeekProgress } from '@/domain/crew-goal';
 import { CHEST_XP } from '@/domain/games';
 import { districtOf } from '@/domain/grid';
 import { FACTION_IDS } from '@/domain/types';
@@ -64,6 +65,30 @@ export const DEMO_RPC_HANDLERS: Record<string, RpcHandler> = {
     if (db.tables.crew_members.filter((m) => m.crew_id === crew.id).length >= 30) throw raise('CREW_FULL: a crew já tem 30 membros');
     db.tables.crew_members.push({ crew_id: crew.id, user_id: userId, role: 'member', joined_at: iso(db.now()) });
     return { crewId: crew.id, name: crew.name, tag: crew.tag, faction: crew.faction };
+  },
+
+  // Par de `crew_week_goal()` (D-88): a mesma regra do domain sobre a semana de demonstração dos membros.
+  crew_week_goal: (db, userId) => {
+    requireUser(db, userId);
+    const crewId = db.crewOf(userId!);
+    if (!crewId) return null;
+    const ids = db.tables.crew_members.filter((m) => m.crew_id === crewId).map((m) => String(m.user_id));
+    const week = ids.map((id) => db.stats(id, 'week'));
+    const meters = Math.round(week.reduce((n, s) => n + s.meters, 0));
+    const goalMeters = crewWeekGoalMeters(ids.length);
+    const weekStart = new Date(db.weekStart() - 3 * 3600_000).toISOString().slice(0, 10);
+    return {
+      crewId,
+      weekStart,
+      weekEnd: new Date(Date.parse(`${weekStart}T00:00:00Z`) + 6 * 86_400_000).toISOString().slice(0, 10),
+      members: ids.length,
+      ran: week.filter((s) => s.runs > 0 || s.meters > 0).length,
+      meters,
+      goalMeters,
+      progress: Math.round(crewWeekProgress(meters, goalMeters) * 10_000) / 10_000,
+      reached: meters >= goalMeters,
+      isDemo: true,
+    };
   },
 
   leave_crew: (db, userId) => {
