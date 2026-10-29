@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { Mascot } from '@/components/art';
 import { Button } from '@/components/button';
+import { Icon } from '@/components/icon';
 import { FadeUp, PressableScale } from '@/components/motion';
 import { Text } from '@/components/text';
 import type { FactionId } from '@/domain/types';
@@ -39,7 +40,7 @@ export function TeamQuiz({ onPick, onClose, testID = 'onboarding-quiz' }: TeamQu
         </Text>
         <View style={{ alignSelf: 'stretch', gap: space[2] }}>
           <Button testID={`${testID}-ver`} label={`Ver os ${team.name}`} size="lg" wide onPress={() => onPick(result)} />
-          <Button testID={`${testID}-refazer`} label="Responder de novo" kind="ghost" wide onPress={() => setAnswers([])} />
+          <Button testID={`${testID}-refazer`} label="Refazer" kind="ghost" wide onPress={() => setAnswers([])} />
         </View>
       </FadeUp>
     );
@@ -78,6 +79,7 @@ export function TeamQuiz({ onPick, onClose, testID = 'onboarding-quiz' }: TeamQu
               backgroundColor: colors.surface,
             }}>
             {/* Sem a cor nem a forma do time: a resposta é sobre o jeito de correr, não sobre o time. */}
+            <Icon name={o.icon} size={22} color={colors.textSecondary} />
             <Text style={{ flex: 1 }}>{o.label}</Text>
           </PressableScale>
         ))}

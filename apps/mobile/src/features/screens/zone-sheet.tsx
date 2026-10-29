@@ -4,6 +4,7 @@ import { ScrollView, View } from 'react-native';
 
 import { EmptyArt, Mascot } from '@/components/art';
 import { Button } from '@/components/button';
+import { Icon } from '@/components/icon';
 import { TeamBadge } from '@/components/team-badge';
 import { EmptyState } from '@/components/surface';
 import { Text } from '@/components/text';
@@ -25,12 +26,13 @@ import { useResource } from './use-resource';
 import { countdownText, shortTeam, zoneView, type ZoneView } from './zone-sheet.model';
 
 const EVENT_TEXT: Record<ZoneEventType, (f: string, from: string | null) => string> = {
-  captured: (f, from) => (from ? `${f} tomaram a zona dos ${from}` : `${f} conquistaram a zona`),
-  under_attack: (f) => `${f} começaram um ataque`,
-  defended: (f) => `${f} defenderam a zona`,
-  neutralized: (_f, from) => `Zona ficou neutra${from ? ` (era dos ${from})` : ''}`,
-  shield_up: (f) => `Escudo dos ${f} subiu`,
-  shield_down: (f) => `Escudo dos ${f} caiu`,
+  // Ajuste de texto (E6): o selo do time fica ao lado de cada linha; o texto diz só o que aconteceu.
+  captured: (f, from) => (from ? `${f} tomaram dos ${from}` : `${f} conquistaram`),
+  under_attack: (f) => `${f} atacaram`,
+  defended: (f) => `${f} defenderam`,
+  neutralized: (_f, from) => `Neutra${from ? ` (era dos ${from})` : ''}`,
+  shield_up: (f) => `${f}: escudo ligado`,
+  shield_down: (f) => `${f}: escudo caiu`,
 };
 
 const teamName = (f: FactionId | null) => (f ? factions[f].name : 'Rivais');
@@ -158,8 +160,8 @@ export function ZoneSheet() {
     if (error && error.code !== 'NOT_FOUND') {
       return (
         <EmptyState
-          title={error.code === 'NETWORK' ? 'Sem internet' : 'Não deu para abrir a zona'}
-          body={error.code === 'NETWORK' ? 'Confira a conexão e tente de novo.' : error.message}
+          title={error.code === 'NETWORK' ? 'Sem internet' : 'Zona indisponível'}
+          body={error.code === 'NETWORK' ? 'Confira a conexão.' : error.message}
           action={<Button testID="zona-tentar" label="Tentar de novo" kind="secondary" onPress={load} />}
         />
       );
@@ -168,7 +170,7 @@ export function ZoneSheet() {
       <View testID="zona-vazia" style={{ flex: 1, alignItems: 'center', padding: space[6], gap: space[3], backgroundColor: sheetBg }}>
         <EmptyArt kind="sem-zonas" team={faction} size={160} />
         <Text variant="title">Ninguém correu aqui</Text>
-        <Text muted>A 1ª corrida pinta a zona com a sua cor.</Text>
+        <Text muted>A 1ª corrida pinta a zona.</Text>
         <Button testID="zona-vazia-correr" label="Correr aqui" icon="play" size="lg" wide onPress={goRun} />
       </View>
     );
@@ -208,11 +210,12 @@ export function ZoneSheet() {
           accessible
           accessibilityLabel={`Sob ataque dos ${teamName(zone.attacker)}. ${countdownText(view.attackEndsAt, now)} para o fim da defesa`}
           style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[4], borderRadius: radius.md, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.lineControl }}>
+          <Icon name="shield" size={24} color={colors.text} />
           <Text variant="headline" tabular>
             {countdownText(view.attackEndsAt, now)}
           </Text>
           <Text variant="small" muted style={{ flex: 1 }}>
-            para o fim da defesa
+            para defender
           </Text>
         </View>
       ) : null}
@@ -233,16 +236,19 @@ export function ZoneSheet() {
       <Button testID="zona-correr" label={view.cta} icon={view.attackEndsAt !== null && zone.owner === faction ? 'shield' : 'play'} size="lg" wide onPress={goRun} />
 
       {error && error.code === 'NETWORK' ? (
-        <Text variant="small" muted testID="zona-offline">
-          Sem internet: últimos dados salvos.
-        </Text>
+        <View testID="zona-offline" accessible accessibilityLabel="Sem internet: últimos dados salvos" style={{ flexDirection: 'row', alignItems: 'center', gap: space[1] }}>
+          <Icon name="warning" size={14} color={colors.textSecondary} />
+          <Text variant="small" muted>
+            Offline · dados salvos
+          </Text>
+        </View>
       ) : null}
 
       {/* 6. Detalhes sob demanda: maiores corredores e acontecimentos. */}
       {ranked.length > 0 || events.length > 0 ? (
         <Button
           testID="zona-historico"
-          label={history ? 'Esconder histórico' : 'Histórico e maiores corredores'}
+          label={history ? 'Esconder histórico' : 'Ver histórico'}
           kind="ghost"
           icon="activities"
           accessibilityState={{ expanded: history }}
@@ -252,7 +258,7 @@ export function ZoneSheet() {
       {history && ranked.length > 0 ? (
         <View style={{ gap: space[2] }} testID="zona-corredores">
           <Text variant="caption" muted>
-            Maiores corredores da temporada
+            Top da temporada
           </Text>
           <Stagger gap={space[2]}>
             {ranked.map((r, i) => (
@@ -277,7 +283,8 @@ export function ZoneSheet() {
           </Text>
           <Stagger gap={space[2]}>
             {events.slice(0, 5).map((e, i) => (
-              <View key={`${e.at}-${i}`} style={{ flexDirection: 'row', gap: space[2] }}>
+              <View key={`${e.at}-${i}`} style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+                <TeamBadge faction={e.faction} size={16} />
                 <Text variant="small" style={{ flex: 1 }}>
                   {eventText(e)}
                 </Text>

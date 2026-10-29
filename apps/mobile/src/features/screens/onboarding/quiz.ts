@@ -1,3 +1,4 @@
+import type { IconName } from '@/components/icon';
 import type { FactionId } from '@/domain/types';
 
 /**
@@ -5,39 +6,40 @@ import type { FactionId } from '@/domain/types';
  * 4 respostas, cada resposta aponta 1 time. A escolha continua livre: o resultado só **sugere** e pré-seleciona o
  * card. Nenhum time ganha vantagem de pontos (regra de ouro da E1).
  */
-export type QuizOption = { team: FactionId; label: string };
+export type QuizOption = { team: FactionId; label: string; icon: IconName };
 export type QuizQuestion = { id: string; title: string; options: readonly QuizOption[] };
 
+// Ajuste de texto (E6): ícone + 2 ou 3 palavras por resposta (antes, frases de até 8 palavras).
 export const TEAM_QUIZ: readonly QuizQuestion[] = [
   {
     id: 'corrida',
-    title: 'Sua corrida ideal é…',
+    title: 'Sua corrida ideal?',
     options: [
-      { team: 'striders', label: 'Bater o ritmo certinho' },
-      { team: 'volt', label: 'Ir mais longe que na semana passada' },
-      { team: 'owls', label: 'Ver a cidade acesa no fim do dia' },
-      { team: 'coyotes', label: 'Correr com a galera' },
+      { team: 'striders', label: 'Ritmo certinho', icon: 'timer' },
+      { team: 'volt', label: 'Ir mais longe', icon: 'route' },
+      { team: 'owls', label: 'Cidade à noite', icon: 'moon' },
+      { team: 'coyotes', label: 'Em grupo', icon: 'club' },
     ],
   },
   {
     // A ordem gira a cada pergunta: a mesma posição não aponta sempre o mesmo time.
     id: 'fim',
-    title: 'No fim da corrida você…',
+    title: 'No fim, você…',
     options: [
-      { team: 'volt', label: 'Já planeja o próximo longão' },
-      { team: 'owls', label: 'Tira foto da cidade' },
-      { team: 'coyotes', label: 'Espera o grupo e vai tomar café' },
-      { team: 'striders', label: 'Confere as parciais' },
+      { team: 'volt', label: 'Planeja o próximo', icon: 'flag' },
+      { team: 'owls', label: 'Tira foto', icon: 'city' },
+      { team: 'coyotes', label: 'Café em grupo', icon: 'heart' },
+      { team: 'striders', label: 'Confere parciais', icon: 'activities' },
     ],
   },
   {
     id: 'superpoder',
-    title: 'Seu superpoder é…',
+    title: 'Seu superpoder?',
     options: [
-      { team: 'owls', label: 'Olhar' },
-      { team: 'coyotes', label: 'Parceria' },
-      { team: 'striders', label: 'Foco' },
-      { team: 'volt', label: 'Fôlego' },
+      { team: 'owls', label: 'Olhar', icon: 'eye' },
+      { team: 'coyotes', label: 'Parceria', icon: 'invite' },
+      { team: 'striders', label: 'Foco', icon: 'trophy' },
+      { team: 'volt', label: 'Fôlego', icon: 'fire' },
     ],
   },
 ];

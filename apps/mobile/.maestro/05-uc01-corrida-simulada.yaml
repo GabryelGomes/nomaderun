@@ -28,7 +28,7 @@ tags: [uc-01, rf-004, rf-006, rf-008]
 # (E-01: é estimativa; quem confirma é o servidor, no resumo)
 - extendedWaitUntil:
     visible:
-      text: "Conquista provável: o servidor confirma ao terminar"
+      text: "Conquista provável: confirma no fim"
     timeout: 300000
 - longPressOn:
     id: "corrida-encerrar"

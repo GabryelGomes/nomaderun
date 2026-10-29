@@ -163,7 +163,7 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
       <View testID="tela-resumo" style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', padding: space[4] }}>
         <EmptyState
           title={record.state === 'missing' ? 'Corrida não encontrada' : 'Resultado a caminho'}
-          body={record.state === 'missing' ? 'Ela pode ter sido descartada.' : 'O resultado oficial aparece assim que ficar pronto.'}
+          body={record.state === 'missing' ? 'Pode ter sido descartada.' : 'O oficial sai em instantes.'}
           action={<Button testID="resumo-ver-atividades" label="Ver atividades" onPress={() => router.replace('/atividades')} />}
         />
       </View>
@@ -313,10 +313,15 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
           </View>
           {record.simulated ? (
             <Text variant="caption" muted>
-              Corrida simulada (demonstração).
+              Simulação (demonstração)
             </Text>
           ) : null}
-          {r.beatGhost !== null ? <Text variant="bodyBold">{r.beatGhost ? 'Você venceu o fantasma.' : 'O fantasma venceu desta vez.'}</Text> : null}
+          {r.beatGhost !== null ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }} accessible accessibilityLabel={r.beatGhost ? 'Você venceu o fantasma' : 'O fantasma venceu desta vez'}>
+              <Icon name="ghost" size={20} color={r.beatGhost ? neon.orangeText : colors.textSecondary} />
+              <Text variant="bodyBold">{r.beatGhost ? 'Venceu o fantasma!' : 'O fantasma venceu'}</Text>
+            </View>
+          ) : null}
         </View>
 
         {/* 3. As conquistas, uma a uma (E5): só o que o servidor confirmou. "Pular" leva tudo ao fim. */}
@@ -374,7 +379,7 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
                 Território
               </Text>
               {r.zones.length === 0 ? (
-                <Text muted>{r.status === 'review' || r.status === 'rejected' ? 'Nada pontua antes da aprovação.' : 'Nenhuma zona pontuou desta vez.'}</Text>
+                <Text muted>{r.status === 'review' || r.status === 'rejected' ? 'Pontua após a aprovação.' : 'Nenhuma zona pontuou.'}</Text>
               ) : (
                 r.zones.slice(0, 8).map((z) => (
                   <View key={z.zoneId} testID={`resumo-zona-${z.zoneId}`} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 44 }}>
@@ -398,8 +403,8 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
                   Estimativa do aparelho.
                 </Text>
               ) : null}
-              <Text variant="small" muted>
-                +{gained} XP · {r.newFogCells} ruas novas no Atlas
+              <Text variant="small" muted accessibilityLabel={`Mais ${gained} XP e ${r.newFogCells} ruas novas no Atlas`}>
+                +{gained} XP · +{r.newFogCells} ruas
               </Text>
             </Surface>
             {reasons.length > 0 || r.review ? (
@@ -408,7 +413,7 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
                     <Icon name="warning" size={20} color={colors.text} />
                     <Text variant="title" accessibilityRole="header" style={{ flex: 1 }}>
-                      Por que não contou
+                      Não contou
                     </Text>
                   </View>
                   {r.review ? <Text>{r.review.message}</Text> : null}
@@ -417,7 +422,7 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
                   ))}
                   {invalidCount > 0 && r.status !== 'rejected' ? (
                     <Text variant="small" muted>
-                      {invalidCount} trecho{invalidCount > 1 ? 's' : ''} em cinza no mapa.
+                      {invalidCount} trecho{invalidCount > 1 ? 's' : ''} em cinza
                     </Text>
                   ) : null}
                 </View>
@@ -450,7 +455,7 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
             testID="resumo-avisos"
             icon="bell"
             title="Saiba quando atacarem"
-            body="Avisamos quando um rival entrar na sua zona."
+            body="Um aviso a cada invasão."
             ctaLabel="Ativar avisos"
             footnote="Dá para desligar quando quiser."
             onPress={() => {
