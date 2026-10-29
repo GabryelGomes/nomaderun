@@ -88,6 +88,8 @@ type DbMission = {
 export type V2Context = {
   flags: V2Flags;
   done: V2Raw | null;
+  /** B1: carimbo das gravações v2 da pessoa (servidor de 29/10 em diante). Volta no plano; velho → ZONE_CONFLICT. */
+  stamp?: number;
   activity: { status: string; scored: boolean; endedAt: number | null; mission: string };
   day?: string;
   recentPaces?: number[];
@@ -226,6 +228,8 @@ export type V2Plan = {
   missionProgress: Record<string, number> | null;
   records: RunStats | null;
   feed: { route: string[] | null; routeHidden: boolean; highlights: FeedHighlight[] } | null;
+  /** B1: o carimbo do contexto (só quando o servidor mandou). */
+  stamp?: number;
 };
 
 const toZonePaint = (z: DbPaintZone): ZonePaint => ({
@@ -397,6 +401,7 @@ export function planV2(input: {
     missionProgress: null,
     records: null,
     feed: null,
+    ...(typeof ctx.stamp === 'number' && Number.isFinite(ctx.stamp) ? { stamp: ctx.stamp } : {}),
   };
   if (!scored) return plan;
 
