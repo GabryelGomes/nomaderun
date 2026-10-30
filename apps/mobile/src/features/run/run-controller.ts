@@ -167,12 +167,14 @@ export async function applyOfficialEffects(run: LocalRun): Promise<void> {
 export async function loadPlayerProgress(userId: string) {
   const res = await activitiesRepo.getMyProgress(userId);
   if (res.ok) useGame.getState().applyServerProgress(res.data);
+  else useGame.getState().markSyncFailed('progress');
   return res;
 }
 
 export async function loadFog() {
   const res = await activitiesRepo.listMyFogCells();
   if (res.ok) useGame.getState().setFog(res.data);
+  else useGame.getState().markSyncFailed('fog');
   return res;
 }
 
@@ -192,6 +194,7 @@ export async function loadSafetyContacts() {
 export async function loadHistory(opts: { from?: number; to?: number } = {}) {
   const res = await activitiesRepo.listMyActivities(opts);
   if (res.ok) useGame.getState().setServerRuns(res.data);
+  else useGame.getState().markSyncFailed('history');
   return res;
 }
 

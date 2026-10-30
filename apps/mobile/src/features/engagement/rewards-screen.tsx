@@ -7,6 +7,7 @@ import { Button } from '@/components/button';
 import { ChestOpening, RARITY_COLORS } from '@/components/celebration';
 import { DemoBadge } from '@/components/demo-badge';
 import { EmptyState } from '@/components/empty-state';
+import { OfflineNotice } from '@/components/offline-notice';
 import { Icon } from '@/components/icon';
 import { PressableScale, ProgressBar, ShimmerSkeleton } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
@@ -88,7 +89,8 @@ function ChestSection({ slot, ranToday, onOpened }: { slot: Slot<DailyChestState
   if (slot.status === 'unavailable') {
     return <EmptyState compact testID="recompensas-bau-indisponivel" tag="Em breve" title="Baú do dia em breve" art={<Chest rarity="comum" size={72} />} />;
   }
-  if (!c) return <ShimmerSkeleton shape="card" height={160} accessibilityLabel="Carregando o baú do dia" />;
+  // D-95: o esqueleto só enquanto carrega; com erro e sem dado, nada (o aviso do topo explica e tenta de novo).
+  if (!c) return slot.status === 'error' ? null : <ShimmerSkeleton shape="card" height={160} accessibilityLabel="Carregando o baú do dia" />;
   const total = c.stored + c.bonus.length;
   const art: ChestRarity[] = [...c.bonus, ...Array.from({ length: c.stored }, () => 'comum' as const)].slice(0, 4);
   const best = opening?.prizes.reduce<ChestRarity>((r, p) => (RANK[p.rarity] > RANK[r] ? p.rarity : r), 'comum');
@@ -239,7 +241,7 @@ function TrackSection({ slot }: { slot: Slot<SeasonTrack> }) {
   const [message, setMessage] = useState<string | null>(null);
   const t = slot.data;
   if (slot.status === 'unavailable') return <EmptyState compact testID="recompensas-trilha-indisponivel" tag="Em breve" title="Trilha da temporada em breve" art={<Medal kind="temporada" size={72} />} />;
-  if (!t) return <ShimmerSkeleton shape="card" height={200} accessibilityLabel="Carregando a trilha" />;
+  if (!t) return slot.status === 'error' ? null : <ShimmerSkeleton shape="card" height={200} accessibilityLabel="Carregando a trilha" />;
   const claim = async (n: number) => {
     setBusy(true);
     setMessage(null);
@@ -367,6 +369,7 @@ export function RewardsScreen() {
   };
   const owned = status.data?.cosmetics ? new Set(status.data.cosmetics.map((c) => c.id)) : null;
   const allUnavailable = chest.status === 'unavailable' && track.status === 'unavailable' && !status.data;
+  const failed = [status, chest, track].find((sl) => sl.status === 'error' && sl.error)?.error ?? null;
 
   return (
     <ScreenScroll testID="tela-recompensas" edges={['bottom']} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={pull} />}>
@@ -377,13 +380,14 @@ export function RewardsScreen() {
         <EmptyState testID="recompensas-indisponivel" tag="Em breve" title="Recompensas em breve" body="O servidor ainda não liberou baús e trilha." art={<EmptyArt kind="sem-medalhas" size={160} />} />
       ) : null}
 
-      {status.status === 'error' && !status.data ? (
-        <EmptyState testID="recompensas-erro" compact title="Não deu para carregar" body={status.error?.message} action={<Button testID="recompensas-tentar" label="Tentar de novo" onPress={() => void refresh()} />} />
+      {/* D-95: um aviso só (o mesmo das outras telas); as seções sem dado somem em vez de girar para sempre. */}
+      {failed ? (
+        <OfflineNotice testID="recompensas-sem-conexao" code={failed.code} hasData={status.data !== null || chest.data !== null || track.data !== null} onRetry={() => void pull()} busy={refreshing} />
       ) : null}
 
       {status.data ? <LevelCard s={status.data} now={now} onPause={() => setPauseOpen(true)} /> : status.status === 'loading' || status.status === 'idle' ? <ShimmerSkeleton shape="card" height={150} accessibilityLabel="Carregando o nível" /> : null}
 
-      <SectionHeader title="Baú do dia" testID="recompensas-bau-titulo" />
+      {chest.status === 'error' && !chest.data ? null : <SectionHeader title="Baú do dia" testID="recompensas-bau-titulo" />}
       <ChestSection slot={chest} ranToday={status.data?.lastActivityAt != null && brtCalendar.clock(status.data.lastActivityAt).dayId === brtCalendar.clock(now).dayId} onOpened={() => undefined} />
 
       <TrackSection slot={track} />

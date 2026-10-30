@@ -3,7 +3,8 @@ import { router, type Href } from 'expo-router';
 import { View } from 'react-native';
 
 import { Medal, TeamEmblem } from '@/components/art';
-import { FadeUp, ProgressRing, Stagger } from '@/components/motion';
+import { FadeUp, ProgressRing, ShimmerSkeleton, Stagger } from '@/components/motion';
+import { OfflineNotice } from '@/components/offline-notice';
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { SettingsRow } from '@/components/settings-row';
@@ -14,6 +15,7 @@ import { districtsExploration } from '@/domain/games';
 import { formatKm } from '@/domain/geo';
 import { levelProgress, titleForLevel } from '@/domain/progression';
 import { useEngagementData } from '@/features/engagement';
+import { formatInt, NO_DATA } from '@/features/format';
 import { mergeHistory } from '@/features/run/history-model';
 import { useNow } from '@/features/use-now';
 import { listMyActivities } from '@/services/api/activities-repo';
@@ -47,6 +49,10 @@ export function ProfileScreen() {
   const serverRuns = useGame((s) => s.serverRuns);
   const localRuns = useGame((s) => s.localRuns);
   const profile = useSession((s) => s.profile);
+  const profileError = useSession((s) => s.profileError);
+  const profileSavedAt = useSession((s) => s.profileSavedAt);
+  const historySync = useGame((s) => s.sync.history);
+  const fogSync = useGame((s) => s.sync.fog);
   const userId = useSession((s) => s.session?.userId ?? null);
   const now = useNow(60_000);
   const { track } = useEngagementData();
@@ -66,6 +72,17 @@ export function ProfileScreen() {
   const atlas = districtsExploration(fog)[0]?.pct ?? 0;
   const shelf = medalShelf({ runs: counted.length, zones, atlasCells: fog.length, streakWeeks });
   const season = track.data;
+  // D-95: número só quando ele é conhecido (do servidor, agora ou antes); carregando = esqueleto; falhou = "—".
+  const runsKnown = all.data !== null || historySync.at !== null;
+  const runsFailed = !runsKnown && (all.error !== null || historySync.failed);
+  const atlasKnown = fogSync.at !== null;
+  const notice = all.error ?? (profile && profileError ? profileError : null);
+  const noticeSavedAt = all.error ? (all.savedAt ?? historySync.at) : (profileSavedAt ?? null);
+  const tiles: { testID: string; label: string; value: string; unit?: string; accent?: string; known: boolean; failed: boolean }[] = [
+    { testID: 'perfil-km', label: 'Distância', value: formatKm(totalKm, totalKm >= 100_000 ? 0 : 1), unit: 'km', known: runsKnown, failed: runsFailed },
+    { testID: 'perfil-zonas', label: 'Zonas', value: formatInt(zones), accent: neonTeam[faction], known: runsKnown, failed: runsFailed },
+    { testID: 'perfil-atlas', label: 'Atlas', value: String(atlas), unit: '% do bairro', known: atlasKnown, failed: !atlasKnown && (fogSync.failed || notice !== null) },
+  ];
 
   const avatar = profile?.avatarUrl ? (
     <Image testID="perfil-avatar-foto" source={{ uri: profile.avatarUrl }} style={{ width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2 }} contentFit="cover" />
@@ -79,6 +96,16 @@ export function ProfileScreen() {
 
   return (
     <ScreenScroll testID="tela-perfil" edges={[]} contentInsetAdjustmentBehavior="automatic" gap={space[6]}>
+      {notice ? (
+        <OfflineNotice
+          testID="perfil-sem-conexao"
+          code={notice.code}
+          hasData={all.error ? runsKnown : true}
+          savedAt={noticeSavedAt}
+          onRetry={() => void all.reload()}
+          busy={all.loading}
+        />
+      ) : null}
       <FadeUp>
         <PlayerCard
           testID="perfil-cartao"
@@ -106,9 +133,13 @@ export function ProfileScreen() {
       </FadeUp>
 
       <Stagger delay={120} style={{ flexDirection: 'row', gap: space[2] }} itemStyle={{ flex: 1 }}>
-        <StatTile testID="perfil-km" label="Distância" value={formatKm(totalKm, totalKm >= 100_000 ? 0 : 1)} unit="km" />
-        <StatTile testID="perfil-zonas" label="Zonas" value={String(zones)} accent={neonTeam[faction]} />
-        <StatTile testID="perfil-atlas" label="Atlas" value={String(atlas)} unit="% do bairro" />
+        {tiles.map((t) =>
+          t.known || t.failed ? (
+            <StatTile key={t.testID} testID={t.testID} label={t.label} value={t.known ? t.value : NO_DATA} unit={t.known ? t.unit : undefined} accent={t.known ? t.accent : undefined} />
+          ) : (
+            <ShimmerSkeleton key={t.testID} testID={`${t.testID}-carregando`} shape="card" height={88} accessibilityLabel={`Carregando ${t.label.toLowerCase()}`} />
+          ),
+        )}
       </Stagger>
 
       <FadeUp delay={200} style={{ gap: space[2] }}>
@@ -116,16 +147,23 @@ export function ProfileScreen() {
           testID="perfil-medalhas-titulo"
           title="Medalhas"
           action={
-            <Text testID="perfil-medalhas-contagem" variant="bodyBold" color={colors.accentText} tabular>
-              {shelf.earned} de {shelf.total}
-            </Text>
+            // Carregando: nada (o esqueleto está logo abaixo); falhou: "—"; nunca "0 de 4".
+            runsKnown || runsFailed ? (
+              <Text testID="perfil-medalhas-contagem" variant="bodyBold" color={colors.accentText} tabular>
+                {runsKnown ? `${shelf.earned} de ${shelf.total}` : NO_DATA}
+              </Text>
+            ) : undefined
           }
         />
-        <View testID="perfil-medalhas" style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: space[1] }}>
-          {shelf.medals.map((m) => (
-            <Medal key={m.kind} kind={m.kind} tier={m.tier} locked={m.locked} size={64} quality="leve" />
-          ))}
-        </View>
+        {runsKnown ? (
+          <View testID="perfil-medalhas" style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: space[1] }}>
+            {shelf.medals.map((m) => (
+              <Medal key={m.kind} kind={m.kind} tier={m.tier} locked={m.locked} size={64} quality="leve" />
+            ))}
+          </View>
+        ) : runsFailed ? null : (
+          <ShimmerSkeleton testID="perfil-medalhas-carregando" shape="card" height={64} accessibilityLabel="Carregando as medalhas" />
+        )}
       </FadeUp>
 
       <FadeUp delay={260}>

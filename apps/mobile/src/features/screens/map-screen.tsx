@@ -191,6 +191,7 @@ export function MapScreen({ today }: MapScreenProps = {}) {
     zoneName: (id) => displayZoneName(id, meta[id]?.name),
     attackerName: (f) => (f ? factions[f].name : 'Rivais'),
     today: dayToday,
+    now,
   }).filter((a) => !dismissed.includes(a.id));
   const slot: SlotAlert[] = candidates.map((a) => ({
     id: a.id,

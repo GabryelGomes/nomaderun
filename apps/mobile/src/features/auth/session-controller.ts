@@ -31,14 +31,21 @@ function applyToGame(profile: Profile, withProgress: boolean) {
   });
 }
 
-function commitProfile(profile: Profile) {
+function commitProfile(profile: Profile, fromCache?: { savedAt: number | null }) {
   const first = useSession.getState().profile?.id !== profile.id;
-  useSession.getState().setProfile(profile);
+  useSession.getState().setProfile(profile, fromCache ? fromCache.savedAt : undefined);
   applyToGame(profile, first);
-  void writeCachedProfile(profile);
+  // A cópia salva não é regravada: a hora dela ("há 2 h") continua sendo a da última vez que o servidor respondeu.
+  if (!fromCache) void writeCachedProfile(profile);
 }
 
-/** Busca o perfil do servidor; sem internet usa a última cópia salva do mesmo usuário. */
+/**
+ * Erros que não dizem nada sobre a conta (D-95/UX-05): sem internet, servidor fora do ar ou ocupado. Com eles, o app
+ * abre com a última cópia do perfil e um aviso, em vez de travar; a corrida já funciona offline.
+ */
+const TRANSIENT: ReadonlySet<string> = new Set(['NETWORK', 'SERVER', 'RATE_LIMITED', 'UNKNOWN']);
+
+/** Busca o perfil do servidor; sem internet ou com o servidor fora do ar, usa a última cópia salva do mesmo usuário. */
 export async function loadProfile(): Promise<Result<Profile>> {
   const s = useSession.getState();
   const userId = s.session?.userId;
@@ -50,11 +57,14 @@ export async function loadProfile(): Promise<Result<Profile>> {
     commitProfile(res.data);
     return res;
   }
-  if (res.error.code === 'NETWORK') {
+  if (TRANSIENT.has(res.error.code)) {
     const cached = await readCachedProfile(userId);
-    if (cached) {
-      commitProfile(cached);
-      return { ok: true, data: cached };
+    if (cached && useSession.getState().session?.userId === userId) {
+      const { savedAt, ...profile } = cached;
+      commitProfile(profile, { savedAt: typeof savedAt === 'number' ? savedAt : null });
+      // Fica o erro junto do perfil salvo: as telas mostram o `OfflineNotice` com a hora da cópia.
+      useSession.getState().setProfileError(res.error);
+      return { ok: true, data: profile };
     }
   }
   useSession.getState().setProfileError(res.error);

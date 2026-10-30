@@ -8,6 +8,7 @@ import { Button } from '@/components/button';
 import { Chip, ChipRow } from '@/components/chip-row';
 import { DemoBadge } from '@/components/demo-badge';
 import { EmptyState } from '@/components/empty-state';
+import { OfflineNotice } from '@/components/offline-notice';
 import { Icon } from '@/components/icon';
 import { CountUp, PressableScale, ProgressBar, ShimmerSkeleton, Stagger, useParallax } from '@/components/motion';
 import { SectionHeader } from '@/components/section-header';
@@ -16,6 +17,7 @@ import { Text } from '@/components/text';
 import { districtOf } from '@/domain/grid';
 import type { FactionId } from '@/domain/types';
 import { markRankingOpened } from '@/features/engagement';
+import { NO_DATA } from '@/features/format';
 import { CrewFeed } from '@/features/social/feed';
 import { InviteCard } from '@/features/social/invite/invite-card';
 import { getCrewWeekGoal, getMyCrew, type MyCrew } from '@/services/api/crews-repo';
@@ -175,6 +177,8 @@ export function ClubScreen() {
       onScroll={parallax.onScroll}
       scrollEventThrottle={16}
       contentContainerStyle={{ padding: space[4], gap: space[6], paddingBottom: space[12] }}>
+      {/* D-95: o aviso único de "sem conexão" (o do ranking só aparece quando a crew carregou). */}
+      {crew.error ? <OfflineNotice testID="clube-sem-conexao" code={crew.error.code} hasData={myCrew !== null} savedAt={crew.savedAt} onRetry={() => void crew.reload()} busy={crew.loading} /> : null}
       <Animated.View style={parallax.headerStyle} onLayout={(e) => setHeaderH(Math.round(e.nativeEvent.layout.height))}>
         {myCrew ? (
           <CrewHero crew={myCrew} week={week.data} />
@@ -182,12 +186,17 @@ export function ClubScreen() {
           <ShimmerSkeleton shape="card" height={200} accessibilityLabel="Carregando a sua crew" testID="clube-crew-carregando" />
         ) : (
           <View testID="clube-crew" style={{ borderRadius: radius.lg, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.line }}>
-            <EmptyState
-              testID="clube-sem-crew"
-              art={<EmptyArt kind={crew.error ? 'sem-conexao' : 'sem-crew'} team={faction ?? undefined} size={160} />}
-              title={crew.error ? 'Crew indisponível' : 'Corra junto, conquiste mais'}
-              action={<Button testID="clube-crew-abrir" label={crew.error ? 'Tentar de novo' : 'Entrar ou criar crew'} onPress={() => (crew.error ? void crew.reload() : router.push('/clube/crew'))} />}
-            />
+            {crew.error ? (
+              // Sem a resposta do servidor, não dá para dizer se a pessoa tem crew: arte e "—", sem convite falso.
+              <EmptyState testID="clube-crew-sem-dado" art={<EmptyArt kind="sem-crew" team={faction ?? undefined} size={120} />} title="Sua crew" body={`Membros: ${NO_DATA} · Semana: ${NO_DATA}`} compact />
+            ) : (
+              <EmptyState
+                testID="clube-sem-crew"
+                art={<EmptyArt kind="sem-crew" team={faction ?? undefined} size={160} />}
+                title="Corra junto, conquiste mais"
+                action={<Button testID="clube-crew-abrir" label="Entrar ou criar crew" onPress={() => router.push('/clube/crew')} />}
+              />
+            )}
           </View>
         )}
       </Animated.View>
@@ -201,7 +210,7 @@ export function ClubScreen() {
         </View>
       ) : null}
 
-      <Rankings userId={userId} city={city} faction={faction} />
+      <Rankings userId={userId} city={city} faction={faction} offlineShown={crew.error !== null} />
     </Animated.ScrollView>
   );
 }
@@ -251,7 +260,7 @@ function CrewHero({ crew, week }: { crew: MyCrew; week: CrewWeekView | null }) {
 
 /* ------------------------------------------------------------------ ranking: pódio + 1 linha de filtro */
 
-function Rankings({ userId, city, faction }: { userId: string | null; city: string | null; faction: FactionId | null }) {
+function Rankings({ userId, city, faction, offlineShown }: { userId: string | null; city: string | null; faction: FactionId | null; offlineShown: boolean }) {
   const { colors } = useTheme();
   const [board, setBoard] = useState<Board>('individual');
   const [scope, setScope] = useState<Scope>('geral');
@@ -292,13 +301,14 @@ function Rankings({ userId, city, faction }: { userId: string | null; city: stri
       ) : null}
       <SwapFade swapKey={`${board}-${boardScope}-${period}`}>
         {ranking.error && !ranking.data ? (
-          <EmptyState
-            testID="ranking-erro"
-            art={<EmptyArt kind="sem-conexao" size={120} />}
-            title={ranking.error.message}
-            action={<Button testID="ranking-tentar" label="Tentar de novo" kind="secondary" onPress={() => void ranking.reload()} />}
-            compact
-          />
+          // D-95: o mesmo aviso do resto do app (antes, o erro virava um título grande); 1 aviso por tela.
+          offlineShown ? (
+            <Text testID="ranking-sem-dado" muted style={{ textAlign: 'center', paddingVertical: space[4] }}>
+              {`Posições: ${NO_DATA}`}
+            </Text>
+          ) : (
+            <OfflineNotice testID="ranking-sem-conexao" code={ranking.error.code} hasData={false} onRetry={() => void ranking.reload()} busy={ranking.loading} />
+          )
         ) : !ranking.data ? (
           <ShimmerSkeleton shape="card" height={220} accessibilityLabel="Carregando o ranking" testID="ranking-carregando" />
         ) : lines.length === 0 ? (

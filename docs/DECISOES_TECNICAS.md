@@ -435,7 +435,7 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
 - **Decisão:** Boas-vindas (Começar / Já tenho conta) → cadastro enxuto → "A cidade está dividida" (até 6 s) → escolha do time (carrossel com mascote, líder e biografia, e o quiz "Não sei escolher") → confirmação épica (a cor do time inunda a tela em até 600 ms, vibração e frase do líder) → permissão de localização com explicação → Mapa com a missão de boas-vindas. A permissão de notificação é pedida depois da 1ª conquista. Sem o passo "nome", exceto para OAuth sem nome.
 - **Consequências:** meta: chegar ao Mapa em até 90 s.
 
-### D-73 — Abas: Mapa · Arena · Correr · Clube · Você
+### D-73 — Abas: Mapa · Arena · Correr · Clube · Você (substituída pela D-89)
 2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
 - **Contexto:** correr ficava longe de algumas abas e Atividades disputava espaço com o Perfil.
 - **Decisão:** 5 abas: Mapa, Arena, Correr, Clube e Você; Atividades fica dentro de Você. Correr é uma aba comum com ícone laranja (as abas nativas não deixam um botão central elevado).
@@ -559,3 +559,24 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
 - **Decisão:** meta da semana = **10 km por membro atual**, com piso de **20 km** e teto de **300 km** (30 membros, o máximo da crew). Progresso = km das corridas aceitas (pontuadas, `valid`/`partial`) dos membros atuais que terminaram na semana de Brasília. Regra pura em `src/domain/crew-goal.ts` (registrada na ponte das functions); o oficial é o servidor (`crew_week_goal()`, mesma conta em `private.crew_week_goal_m`), que devolve só totais da crew. A demonstração usa o mesmo domain.
 - **Consequências:** quem entra na crew no meio da semana leva os km da semana junto (conta-se o membro atual) e a meta sobe 10 km; quem sai leva os seus. Sem tabela nova nem job. Servidor antigo: o app cai na conta antiga (quem correu ÷ membros).
 
+### D-89 — 4 abas: Mapa · Arena · Clube · Você (substitui a D-73)
+2026-10-30 · Coordenador da Fase 8 (`docs/melhoria/01-PROMPT-FINALIZACAO-100.md` §2); implementação E6 (frente A3, `docs/melhoria/relatorios/F8-A3.md`)
+- **Contexto:** correr estava em 3 lugares: a aba Correr, o CORRER de 72 pt do Mapa e a tela da aba ("Bora pintar a cidade?") com um 3º botão (UX-01, `F8/03` §4.1). A aba abria um modal e deixava uma tela-fantasma; no aparelho, a aba é um ícone comum, mais fraco que o botão do Mapa.
+- **Decisão:**
+  - 4 abas: Mapa, Arena, Clube e Você. O CORRER do Mapa é o único "começar corrida" genérico (1 toque a partir do Mapa, na zona do polegar).
+  - Continuam os pontos de partida com contexto (cada um já escolhe o jogo): "Defender esta zona", Fuga e Caça (Arena), "Ir"/"Correr" das missões, "Correr" dos vazios.
+  - `/correr` (links antigos) redireciona para `/corrida`; fechar a Nova corrida aberta por link volta ao Mapa.
+  - `RunTabScreen` (`components/app-tabs-correr.tsx`) e `app/(tabs)/correr.tsx` foram apagados. O ícone da aba Correr da E4 (`assets/art/aba-correr*`, `components/art/tab-icon`) fica nos assets, sem uso.
+  - `tabBarClearance` revisto: sem o círculo elevado da web, os 16 pt acima da barra (Android e web) e a barra flutuante do iOS continuam valendo.
+- **Consequências:** testes de abas (`tab-bar-clearance.test.ts`), `e2e-web/demo-mode-flow.cjs` (4 abas, `/correr`, 404) e o Maestro (`06-abas-mapa-voce.yaml`) atualizados.
+
+### D-95 — Estados de dado honestos
+2026-10-30 · Coordenador da Fase 8 (§2); implementação E6 (frente A3)
+- **Contexto:** offline e carregando mostravam zeros como se fossem dados ("0,0 km · 0 zonas · 0 de 4"); um 503 travava o app inteiro mesmo com o perfil salvo; havia 5 jeitos de dizer "sem conexão"; o esqueleto de Recompensas não terminava; "Sair" aparecia 2 vezes, sem confirmar (UX-05, UX-36, UX-38).
+- **Decisão:**
+  - **Um componente:** `OfflineNotice` (`components/offline-notice.tsx`) é o único aviso de "sem conexão": "Sem internet" (rede) ou "Servidor fora do ar" (5xx), o que a tela mostra ("Mostrando o último salvo, há 2 h") e "Tentar de novo". Usado em Você, Atividades, Arena, Recompensas, Missões e Clube.
+  - **Carregando = esqueleto; sem dado = "—"; nunca "0".** O store guarda quando cada dado do servidor chegou (`useGame.sync`: histórico, progresso, neblina) e se a última carga falhou; `useResource` devolve `savedAt`. Esqueleto só enquanto carrega; com erro, some.
+  - **Perfil com o servidor fora do ar:** erro de rede, 5xx, limite ou desconhecido + cópia salva = o app abre com a cópia e o aviso (com a hora da cópia, gravada junto no cache). Sem cópia: tela "Não deu para abrir seu perfil" só com "Tentar de novo". Erro da conta (sessão recusada, perfil inexistente) nunca usa a cópia; aí, e só aí, a tela oferece "Sair da conta" (sem ele a pessoa ficaria presa).
+  - **"Sair" só em Ajustes → Conta e privacidade**, sempre com o diálogo "Sair da conta?" (`features/auth/sign-out-dialog.tsx`).
+  - **Formatos únicos** (`features/format`): "+1.130 XP", "+81 pontos", "Nível 5", "Faltam 17 h 30 min" na tela e "até 02h30" só nos avisos, "há 2 h", "—".
+- **Consequências:** a cópia do perfil ganhou o campo `savedAt` (cópias antigas continuam sendo lidas, sem hora). Os textos de aviso do servidor ("Corra lá nas próximas 24h") ainda são da E9 (pendência no relatório F8-A3).

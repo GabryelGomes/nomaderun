@@ -1,0 +1,32 @@
+# D-89: abas Mapa · Arena · Clube · Você. Não há aba Correr: o CORRER grande do Mapa é o único "começar corrida"
+# genérico (1 toque a partir do Mapa). "Você" agrupa o perfil e as Atividades. Os toques nas abas usam o texto
+# (o testID das abas nativas não chega ao Maestro no Android).
+appId: ${APP_ID}
+name: Abas Mapa e Você
+tags: [d-89, navegacao]
+---
+- runFlow: subflows/entrar-demo.yaml
+- tapOn:
+    id: "mapa-correr"
+- extendedWaitUntil:
+    visible:
+      id: "corrida-comecar"
+    timeout: 15000
+- tapOn:
+    id: "corrida-fechar"
+- extendedWaitUntil:
+    visible:
+      id: "mapa-status"
+    timeout: 15000
+- tapOn:
+    text: "Você"
+- extendedWaitUntil:
+    visible:
+      id: "tela-perfil"
+    timeout: 15000
+- tapOn:
+    id: "voce-atividades"
+- extendedWaitUntil:
+    visible:
+      id: "tela-atividades"
+    timeout: 15000

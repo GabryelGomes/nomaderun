@@ -10,7 +10,8 @@ import { SectionHeader, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { trustLevel } from '@/domain/trust';
 import { ErrorNotice, InfoNotice, TextField } from '@/features/auth/form-ui';
-import { signOut, signOutAfterDeletion } from '@/features/auth/session-controller';
+import { signOutAfterDeletion } from '@/features/auth/session-controller';
+import { SignOutDialog } from '@/features/auth/sign-out-dialog';
 import { saveAndShareJson } from '@/lib/share-json';
 import { DELETE_CONFIRMATION, deleteMyAccount, exportMyData, isWrongPasswordError } from '@/services/api/account-repo';
 import { useGame } from '@/store/game-store';
@@ -32,6 +33,7 @@ export function AccountScreen() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [signOutOpen, setSignOutOpen] = useState(false);
 
   const doExport = async () => {
     setExporting(true);
@@ -113,7 +115,7 @@ export function AccountScreen() {
           <Surface>
             {/* O botão já diz "Exportar meus dados": o título repetido saiu (ajuste de texto E6). */}
             <Text variant="small" muted>
-              JSON com perfil, corridas, trajetos de GPS, contatos da Corrida Segura e notificações.
+              Arquivo com perfil, corridas, trajetos, contatos e avisos.
             </Text>
             <Button testID="conta-exportar" label={exporting ? 'Gerando arquivo…' : 'Exportar meus dados'} kind="secondary" icon="share" wide disabled={exporting} onPress={doExport} />
             <ErrorNotice message={error} testID="conta-exportar-erro" />
@@ -131,7 +133,9 @@ export function AccountScreen() {
 
         <View style={{ gap: space[3] }}>
           <SectionHeader title="Sessão" />
-          <Button testID="conta-sair" label="Sair" kind="secondary" size="lg" wide onPress={() => signOut()} />
+          {/* UX-36: o único "Sair" do app, sempre com confirmação. */}
+          <Button testID="conta-sair" label="Sair" icon="logout" kind="secondary" size="lg" wide onPress={() => setSignOutOpen(true)} />
+          <SignOutDialog visible={signOutOpen} onClose={() => setSignOutOpen(false)} testID="conta-sair-dialogo" />
         </View>
 
         <View style={{ gap: space[3] }}>

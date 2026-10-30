@@ -4,7 +4,9 @@ import { Pressable, Switch, useWindowDimensions, View } from 'react-native';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ModeIcon, type ModeIconKind } from '@/components/art';
 import { Button, IconButton } from '@/components/button';
+import { switchColors } from '@/components/switch-colors';
 import { ChipRow } from '@/components/chip-row';
 import { useDemoSealSpace } from '@/components/demo-badge';
 import { RewardToast } from '@/components/celebration';
@@ -41,12 +43,18 @@ import { factions, floating, palette, radius, space } from '@/theme/tokens';
 import { neon, neonTeam } from '@/theme/neon';
 import { useTheme } from '@/theme/use-theme';
 
-// D-74: 1 linha curta por modo (antes, 13 palavras cada).
-const MISSIONS: { id: MissionId; title: string; body: string; icon: IconName }[] = [
-  { id: 'livre', title: 'Corrida livre', body: 'Corra e pinte a cidade.', icon: 'activities' },
-  { id: 'fuga', title: 'Fuga', body: 'Vença o seu fantasma.', icon: 'ghost' },
-  { id: 'caca', title: 'Caça', body: 'Abra baús a 25 m.', icon: 'chest' },
+// D-74: 1 linha curta por modo. UX-08: "Modo" (missão é tarefa, modo é jogo) e os ícones da Arena (`ModeIcon`, E4).
+const MODES: { id: MissionId; title: string; body: string; art: ModeIconKind }[] = [
+  { id: 'livre', title: 'Corrida livre', body: 'Corra e pinte a cidade.', art: 'dominio' },
+  { id: 'fuga', title: 'Fuga', body: 'Vença o seu fantasma.', art: 'fuga' },
+  { id: 'caca', title: 'Caça', body: 'Abra baús a 25 m.', art: 'caca' },
 ];
+
+/** Fecha a Nova corrida; aberta por link (`/correr`, `/corrida`) sem tela embaixo, volta ao Mapa. */
+function closeRun() {
+  if (router.canGoBack()) router.back();
+  else router.replace('/');
+}
 
 /** Ritmos do fantasma oferecidos na Fuga (s/km). */
 const GHOST_PACES = [300, 330, 360, 420];
@@ -60,6 +68,8 @@ export function RunScreen() {
   const setGhostPace = useGame((s) => s.setGhostPace);
   const escortOn = useGame((s) => s.escortOn);
   const toggleEscort = useGame((s) => s.toggleEscort);
+  const stopAlertOn = useGame((s) => s.stopAlertOn);
+  const toggleStopAlert = useGame((s) => s.toggleStopAlert);
   const contacts = useGame((s) => s.contacts);
   const [mode, setMode] = useState<RunMode | null>(null);
   // D-76: o GPS real é o padrão. A simulação só existe no modo demonstração (E10: `isDemoActive`).
@@ -114,15 +124,15 @@ export function RunScreen() {
         <RevealText testID="corrida-titulo" style={{ flex: 1 }}>
           Nova corrida
         </RevealText>
-        <IconButton testID="corrida-fechar" icon="close" label="Fechar" tone="sunken" size={44} onPress={() => router.back()} />
+        <IconButton testID="corrida-fechar" icon="close" label="Fechar" tone="sunken" size={44} onPress={closeRun} />
       </View>
 
       <ScreenEnter delay={120} style={{ gap: space[4] }}>
         <Text variant="title" accessibilityRole="header">
-          Missão
+          Modo
         </Text>
         <Stagger gap={space[2]} delay={80}>
-          {MISSIONS.map((m) => {
+          {MODES.map((m) => {
             const on = mission === m.id;
             return (
               <PressableScale
@@ -146,9 +156,7 @@ export function RunScreen() {
                   borderColor: on ? colors.action : 'transparent',
                   boxShadow: on ? neon.cardGlow : undefined,
                 }}>
-                <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: on ? colors.action : colors.surfaceSunken, alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon name={m.icon} size={22} color={on ? colors.onAction : colors.text} />
-                </View>
+                <ModeIcon kind={m.art} size={48} />
                 <View style={{ flex: 1, gap: 2 }}>
                   <Text variant="bodyBold">{m.title}</Text>
                   <Text variant="small" muted>
@@ -220,22 +228,44 @@ export function RunScreen() {
           </>
         ) : null}
 
+        {/* UX-12: um nome só, "Corrida Segura", com as 2 opções (as mesmas dos Ajustes). */}
         <Text variant="title" accessibilityRole="header" style={{ marginTop: space[2] }}>
-          Segurança
+          Corrida Segura
         </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[4], borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface }}>
-          <Icon name="shield" size={24} color={colors.text} />
-          <View style={{ flex: 1 }}>
-            <Text variant="bodyBold">Corrida Segura</Text>
-            <Text variant="small" muted>
-              {contacts.length === 0 ? 'Adicione alguém de confiança.' : escortOn ? `${contacts.join(' e ')} veem onde você está.` : 'Desligada.'}
-            </Text>
-          </View>
-          <Switch testID="corrida-escolta" value={escortOn} onValueChange={toggleEscort} accessibilityLabel="Corrida Segura" />
+        <View style={{ borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, overflow: 'hidden' }}>
+          <SafetyToggle
+            testID="corrida-escolta"
+            icon="location"
+            title="Compartilhar ao vivo"
+            body={contacts.length === 0 ? 'Adicione alguém de confiança.' : escortOn ? `${contacts.join(' e ')} veem você.` : 'Seus contatos veem você.'}
+            value={escortOn}
+            onChange={toggleEscort}
+          />
+          <View style={{ height: 1, backgroundColor: colors.line, marginHorizontal: space[4] }} />
+          <SafetyToggle testID="corrida-alerta-parada" icon="timer" title="Avisar se eu parar" value={stopAlertOn} onChange={toggleStopAlert} />
         </View>
         <Button testID="corrida-contatos" label="Contatos de segurança" kind="ghost" wide onPress={() => router.push('/contatos-seguranca')} />
       </ScreenEnter>
     </ScreenScroll>
+  );
+}
+
+/** Opção da Corrida Segura: ícone, nome, 1 frase e o interruptor (alvo da linha inteira ≥ 44 pt). */
+function SafetyToggle({ testID, icon, title, body, value, onChange }: { testID: string; icon: IconName; title: string; body?: string; value: boolean; onChange: () => void }) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[4], minHeight: 64 }}>
+      <Icon name={icon} size={22} color={colors.text} />
+      <View style={{ flex: 1 }}>
+        <Text variant="bodyBold">{title}</Text>
+        {body ? (
+          <Text variant="small" muted>
+            {body}
+          </Text>
+        ) : null}
+      </View>
+      <Switch testID={testID} value={value} onValueChange={onChange} accessibilityLabel={`Corrida Segura: ${title}`} {...switchColors(colors)} />
+    </View>
   );
 }
 
@@ -348,13 +378,14 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             transitionDuration: bannerOn ? durations.state : durations.quick,
             transitionTimingFunction: bannerOn ? cssEasings.enter : cssEasings.standard,
           }}>
-          <Icon name={defending ? 'shield' : 'warning'} size={24} color={bannerInk} />
+          {/* UX-13: o emblema do dono da zona (informação neutra), não o ícone de alerta. */}
+          {rival ? <TeamBadge faction={owner} size={32} /> : <Icon name="shield" size={24} color={bannerInk} />}
           <View style={{ flex: 1 }}>
             <Text variant="bodyBold" color={bannerInk} numberOfLines={2}>
-              {defending ? 'Defendendo seu território' : rival ? `Território dos ${factions[owner!].name}` : ''}
+              {defending ? 'Defendendo sua zona' : rival ? `Zona dos ${factions[owner!].name}` : ''}
             </Text>
             <Text variant="caption" color={bannerInk}>
-              {defending ? 'Pontos em dobro aqui' : rival ? 'Pinte as ruas para virar' : ''}
+              {defending ? 'Seus pontos valem em dobro aqui' : rival ? 'Corra aqui para ajudar seu time' : ''}
             </Text>
           </View>
         </Animated.View>
@@ -382,7 +413,9 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             testID="corrida-escolta-alternar"
             accessibilityRole="switch"
             accessibilityState={{ checked: safety.escortOn }}
-            accessibilityLabel={safety.escortOn ? 'Escolta ligada. Toque para desligar' : 'Escolta desligada. Toque para ligar e compartilhar sua localização'}
+            accessibilityLabel={
+              safety.escortOn ? 'Corrida Segura ligada: compartilhando ao vivo. Toque para desligar' : 'Corrida Segura desligada. Toque para compartilhar sua localização ao vivo'
+            }
             onPress={safety.toggleEscort}
             hitSlop={12}
             style={{
@@ -397,7 +430,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
               opacity: safety.escortOn ? 1 : 0.85,
             }}>
             <Icon name="shield" size={14} color={colors.text} />
-            <Text variant="caption">{safety.escortOn ? 'Escolta ligada' : 'Escolta desligada'}</Text>
+            <Text variant="caption">{safety.escortOn ? 'Corrida Segura ligada' : 'Corrida Segura desligada'}</Text>
           </Pressable>
           <IconButton testID="corrida-sos" icon="sos" label="SOS: avisar meus contatos" tone="danger" size={56} onPress={() => void safety.sos()} />
         </View>
@@ -422,7 +455,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
               {s.run.autoPaused ? '  Pausa automática' : s.phase === 'paused' ? '  Pausada' : ''}
             </Text>
             <Text variant="caption" muted>
-              {MISSIONS.find((m) => m.id === s.mission)?.title}
+              {MODES.find((m) => m.id === s.mission)?.title}
             </Text>
           </View>
           <TickerText testID="corrida-tempo" variant="hero" animate={mode === 'gps'} value={timeText} fontSize={timeFontSize(timeText)} accessibilityLabel={`Tempo ${timeText}`} />
@@ -527,7 +560,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
           }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
             <Text variant="bodyBold" color={safety.notice.kind === 'escort' ? colors.text : colors.onDanger} style={{ flex: 1 }}>
-              {safety.notice.kind === 'sos' ? 'SOS com sua localização' : safety.notice.kind === 'stop' ? 'Alerta de parada enviado' : 'Escolta: localização compartilhada'}
+              {safety.notice.kind === 'sos' ? 'SOS com sua localização' : safety.notice.kind === 'stop' ? 'Aviso de parada enviado' : 'Localização compartilhada ao vivo'}
             </Text>
             {/* O "x" substitui o "Toque para fechar." (o aviso inteiro fecha no toque). */}
             <Icon name="close" size={18} color={safety.notice.kind === 'escort' ? colors.text : colors.onDanger} />
@@ -584,7 +617,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             boxShadow: floating,
           }}>
           <Text variant="bodyBold">{finishError}</Text>
-          <Button testID="corrida-curta-fechar" label="Fechar" wide onPress={() => router.back()} />
+          <Button testID="corrida-curta-fechar" label="Fechar" wide onPress={closeRun} />
         </View>
       ) : null}
       {s.error ? (

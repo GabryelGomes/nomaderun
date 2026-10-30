@@ -96,9 +96,9 @@ describe('zoneView', () => {
 });
 
 describe('countdownText', () => {
-  it('h:mm até o fim da defesa, nunca negativo', () => {
-    expect(countdownText(NOW + 17 * 3_600_000 + 27 * 60_000 + 30_000, NOW)).toBe('17:27');
-    expect(countdownText(NOW + 5 * 60_000, NOW)).toBe('0:05');
-    expect(countdownText(NOW - 1, NOW)).toBe('0:00');
+  it('contagem por extenso até o fim da defesa (UX-09), nunca negativo nem "h:mm"', () => {
+    expect(countdownText(NOW + 17 * 3_600_000 + 27 * 60_000 + 30_000, NOW)).toBe('Faltam 17 h 27 min');
+    expect(countdownText(NOW + 5 * 60_000, NOW)).toBe('Faltam 5 min');
+    expect(countdownText(NOW - 1, NOW)).toBe('Prazo encerrado');
   });
 });

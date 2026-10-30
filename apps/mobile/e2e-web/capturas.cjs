@@ -59,7 +59,7 @@ const LOGGED = [
   ['termos', '/termos'],
   ['privacidade', '/privacidade'],
   // Onda 4 (F5): rotas novas das ondas 2 e 3.
-  ['correr', '/correr'],
+  // D-89: a aba Correr saiu; '/correr' só redireciona para a Nova corrida (já capturada em 'corrida').
   ['perfil-ajustes', '/perfil/ajustes'],
   ['perfil-atividades', '/perfil/atividades'],
   ['missoes', '/missoes'],

@@ -209,15 +209,18 @@ export function ZoneSheet() {
         <View
           testID="zona-ataque"
           accessible
-          accessibilityLabel={`Sob ataque dos ${teamName(zone.attacker)}. ${countdownText(view.attackEndsAt, now)} para o fim da defesa`}
+          accessibilityLabel={`Sob ataque dos ${teamName(zone.attacker)}. ${countdownText(view.attackEndsAt, now)} para defender`}
           style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[4], borderRadius: radius.md, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.lineControl }}>
           <Icon name="shield" size={24} color={colors.text} />
-          <Text variant="headline" tabular>
-            {countdownText(view.attackEndsAt, now)}
-          </Text>
-          <Text variant="small" muted style={{ flex: 1 }}>
-            para defender
-          </Text>
+          {/* UX-09: contagem por extenso ("Faltam 17 h 30 min"); "17:30" parecia horário. */}
+          <View style={{ flex: 1 }}>
+            <Text variant="title" tabular>
+              {countdownText(view.attackEndsAt, now)}
+            </Text>
+            <Text variant="small" muted>
+              para defender
+            </Text>
+          </View>
         </View>
       ) : null}
 

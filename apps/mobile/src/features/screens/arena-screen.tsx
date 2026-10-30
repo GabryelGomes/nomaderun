@@ -3,10 +3,10 @@ import { useCallback, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import { Boss, EmptyArt, ModeIcon, type ModeIconKind } from '@/components/art';
-import { Button } from '@/components/button';
+import { Boss, ModeIcon, type ModeIconKind } from '@/components/art';
 import { DemoBadge } from '@/components/demo-badge';
 import { EmptyState } from '@/components/empty-state';
+import { OfflineNotice } from '@/components/offline-notice';
 import { Icon } from '@/components/icon';
 import { PressableScale, ProgressBar, ProgressRing, ShimmerSkeleton, Stagger, useParallax } from '@/components/motion';
 import { SectionHeader } from '@/components/section-header';
@@ -14,6 +14,7 @@ import { StatTile } from '@/components/stat-tile';
 import { Text } from '@/components/text';
 import { formatPace } from '@/domain/geo';
 import { useEngagementData } from '@/features/engagement';
+import { NO_DATA } from '@/features/format';
 import { missionA11y, missionRatio, pct } from '@/features/engagement/model';
 import { useNow } from '@/features/use-now';
 import { isDemoMode } from '@/services/api/env';
@@ -66,8 +67,23 @@ export function ArenaScreen() {
       contentContainerStyle={{ padding: space[4], gap: space[6], paddingBottom: space[12] }}>
       <Stack.Screen options={{ headerRight: () => <ArenaHelpButton onPress={() => setHelpOpen(true)} /> }} />
 
+      {/* D-95: um aviso só para o que falhou (chefão e liga); as seções ficam com "—" ou a arte, nunca com zero. */}
+      {(raid.error && !raid.data) || (league.error && !league.data) ? (
+        <OfflineNotice
+          testID="arena-sem-conexao"
+          code={(raid.error ?? league.error)?.code}
+          hasData={raid.data !== null || league.data !== null}
+          savedAt={raid.savedAt ?? league.savedAt}
+          busy={raid.loading || league.loading}
+          onRetry={() => {
+            void reloadRaid();
+            void reloadLeague();
+          }}
+        />
+      ) : null}
+
       <Animated.View style={parallax.headerStyle} onLayout={(e) => setHeaderH(Math.round(e.nativeEvent.layout.height))}>
-        <RaidHero data={raid.data} failed={raid.error !== null && raid.data === null} onRetry={() => void reloadRaid()} />
+        <RaidHero data={raid.data} failed={raid.error !== null && raid.data === null} />
       </Animated.View>
 
       <TodayMissions />
@@ -77,7 +93,7 @@ export function ArenaScreen() {
         <ModesGrid />
       </View>
 
-      <LeagueStrip data={league.data} />
+      <LeagueStrip data={league.data} failed={league.error !== null && league.data === null} />
 
       <ArenaHelp visible={helpOpen} team={faction ?? 'striders'} onClose={() => setHelpOpen(false)} />
     </Animated.ScrollView>
@@ -86,7 +102,7 @@ export function ArenaScreen() {
 
 /* ------------------------------------------------------------------ herói: o chefão da semana */
 
-function RaidHero({ data, failed, onRetry }: { data: RaidCurrent | Unavailable | null; failed: boolean; onRetry: () => void }) {
+function RaidHero({ data, failed }: { data: RaidCurrent | Unavailable | null; failed: boolean }) {
   const { colors } = useTheme();
   const now = useNow(60_000);
 
@@ -96,14 +112,15 @@ function RaidHero({ data, failed, onRetry }: { data: RaidCurrent | Unavailable |
 
   const boss = data && data.available ? data.raid : null;
   if (!data || !data.available || !boss) {
-    // Sem chefão verdadeiro: o vilão aparece só em silhueta (D-76: nada de vida ou dano inventados).
+    // Sem chefão verdadeiro: o vilão aparece só em silhueta (D-76: nada de vida ou dano inventados). Falhou a carga
+    // (D-95): a mesma silhueta e "—" no lugar da vida; quem explica e tenta de novo é o `OfflineNotice` do topo.
     return (
-      <HeroFrame testID="arena-raid-vazio">
+      <HeroFrame testID={failed ? 'arena-raid-sem-dado' : 'arena-raid-vazio'}>
         <EmptyState
-          art={failed ? <EmptyArt kind="sem-conexao" size={150} /> : <Boss id="soneca" silhouette={neon.villain} size={128} decorative />}
-          tag={failed ? undefined : 'Raid'}
-          title={failed ? 'Sem conexão' : data && data.available ? 'Chefão chega segunda, 6h' : 'O chefão ainda não chegou'}
-          action={failed ? <Button testID="arena-raid-tentar" label="Tentar de novo" kind="secondary" onPress={onRetry} /> : undefined}
+          art={<Boss id="soneca" silhouette={neon.villain} size={128} decorative />}
+          tag="Raid"
+          title={failed ? 'Chefão da semana' : data && data.available ? 'Chefão chega segunda, 6h' : 'O chefão ainda não chegou'}
+          body={failed ? `Vida: ${NO_DATA} · Prazo: ${NO_DATA}` : undefined}
           compact
         />
       </HeroFrame>
@@ -208,15 +225,19 @@ function ModesGrid() {
   const chests = useGame((s) => s.openedChests.length);
   const fog = useGame((s) => s.fog);
   const zones = useGame((s) => s.serverRuns.reduce((n, r) => n + (r.result?.zones ?? []).filter((z) => z.outcome === 'conquered').length, 0));
+  // D-95: zonas e Atlas só com o dado do servidor; antes dele (ou sem conexão), "—" em vez de "0 zonas" e "0%".
+  const zonesKnown = useGame((s) => s.sync.history.at !== null);
+  const fogKnown = useGame((s) => s.sync.fog.at !== null);
   const play = (mission: MissionId) => () => {
     setMission(mission);
     router.push('/corrida');
   };
   const tiles: Tile[] = [
     { kind: 'fuga', title: 'Fuga', status: `Fantasma a ${formatPace(ghostPace)}/km`, hint: 'Corre com este modo', onPress: play('fuga') },
-    { kind: 'caca', title: 'Caça', status: `${chests} baús abertos`, hint: 'Corre com este modo', onPress: play('caca') },
-    { kind: 'dominio', title: 'Domínio', status: `${zones} zonas`, hint: 'Abre o mapa', onPress: () => router.navigate('/') },
-    { kind: 'atlas', title: 'Atlas', status: `${atlasPercent(fog)}% do bairro`, hint: 'Abre o mapa', onPress: () => router.navigate('/') },
+    // D-95: sem baú aberto (ou sem o dado do servidor), a regra do modo em vez de "0 baús abertos".
+    { kind: 'caca', title: 'Caça', status: chests > 0 ? `${chests} ${chests === 1 ? 'baú aberto' : 'baús abertos'}` : 'Abra baús a 25 m', hint: 'Corre com este modo', onPress: play('caca') },
+    { kind: 'dominio', title: 'Domínio', status: zonesKnown ? `${zones} ${zones === 1 ? 'zona' : 'zonas'}` : `${NO_DATA} zonas`, hint: 'Abre o mapa', onPress: () => router.navigate('/') },
+    { kind: 'atlas', title: 'Atlas', status: fogKnown ? `${atlasPercent(fog)}% do bairro` : `${NO_DATA} do bairro`, hint: 'Abre o mapa', onPress: () => router.navigate('/') },
   ];
   return (
     <Stagger delay={120} gap={space[2]} style={{ flexDirection: 'row', flexWrap: 'wrap' }} itemStyle={{ flexBasis: '46%', flexGrow: 1 }}>
@@ -253,8 +274,26 @@ function ModeTile({ tile }: { tile: Tile }) {
 
 /* ------------------------------------------------------------------ faixa da Liga */
 
-function LeagueStrip({ data }: { data: LeagueCurrent | Unavailable | null }) {
+function LeagueStrip({ data, failed }: { data: LeagueCurrent | Unavailable | null; failed: boolean }) {
   const { colors } = useTheme();
+  // D-95: o esqueleto termina. Falhou a carga: a faixa fica com "—" (o aviso do topo explica e tenta de novo).
+  if (data === null && failed) {
+    return (
+      <View
+        testID="arena-liga-sem-dado"
+        accessible
+        accessibilityLabel="Liga: sem dado agora"
+        style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[3], minHeight: 72, borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line }}>
+        <ModeIcon kind="liga" size={44} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text variant="bodyBold">Liga</Text>
+          <Text variant="caption" muted>
+            {`Posição: ${NO_DATA}`}
+          </Text>
+        </View>
+      </View>
+    );
+  }
   if (data === null) return <ShimmerSkeleton shape="row" height={72} accessibilityLabel="Carregando a liga" testID="arena-liga-carregando" />;
   const live = data.available ? data : null;
   const me = live?.me ?? null;

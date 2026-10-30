@@ -8,8 +8,8 @@ import { ScreenScroll } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { SettingsRow } from '@/components/settings-row';
 import { Surface } from '@/components/surface';
+import { switchColors } from '@/components/switch-colors';
 import { Text } from '@/components/text';
-import { signOut } from '@/features/auth/session-controller';
 import { HealthPauseSheet, TelemetrySettingsSection } from '@/features/engagement';
 import { canModerate } from '@/features/moderation/guard';
 import { ReminderSettingsSection } from '@/features/notifications/reminder-settings';
@@ -19,7 +19,7 @@ import { useGame } from '@/store/game-store';
 import { useMotionPrefs } from '@/store/motion-prefs-store';
 import { selectUnreadCount, useNotifications } from '@/store/notifications-store';
 import { useSession } from '@/store/session-store';
-import { radius, space } from '@/theme/tokens';
+import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 /**
@@ -28,7 +28,6 @@ import { useTheme } from '@/theme/use-theme';
  * (E7) e o convite do app (E8). Linhas sem subtítulo (D-74); só a Corrida Segura explica em 1 frase.
  */
 export function SettingsScreen() {
-  const { colors } = useTheme();
   const unread = useNotifications(selectUnreadCount);
   const staff = useSession((s) => canModerate(s.profile?.role));
   const city = useSession((s) => s.profile?.city ?? null);
@@ -54,13 +53,20 @@ export function SettingsScreen() {
             value={unread > 0 ? (unread === 1 ? '1 nova' : `${unread} novas`) : undefined}
             onPress={() => router.push('/notificacoes' as Href)}
           />
-          <SettingsRow testID="perfil-conta" icon="lock" title="Conta e privacidade" onPress={() => router.push('/perfil/conta' as Href)} />
+          <SettingsRow
+            testID="perfil-conta"
+            icon="lock"
+            title="Conta e privacidade"
+            accessibilityLabel="Conta e privacidade: dados, termos e sair da conta"
+            onPress={() => router.push('/perfil/conta' as Href)}
+          />
           {staff ? <SettingsRow testID="perfil-moderacao" icon="shield" title="Moderação" onPress={() => router.push('/moderacao' as Href)} /> : null}
         </Group>
 
-        <Group title="Corrida Segura" note="Seus contatos recebem sua localização no SOS, na Escolta e no alerta.">
-          <ToggleRow testID="perfil-escolta" icon="location" title="Escolta ao vivo" value={escortOn} onChange={toggleEscort} />
-          <ToggleRow testID="perfil-alerta-parada" icon="timer" title="Alerta de parada" value={stopAlertOn} onChange={toggleStopAlert} />
+        {/* UX-12: um nome só ("Corrida Segura") e as mesmas 2 opções da Nova corrida. */}
+        <Group title="Corrida Segura" note="No SOS e nestas opções, seus contatos recebem sua localização.">
+          <ToggleRow testID="perfil-escolta" icon="location" title="Compartilhar ao vivo" value={escortOn} onChange={toggleEscort} />
+          <ToggleRow testID="perfil-alerta-parada" icon="timer" title="Avisar se eu parar" value={stopAlertOn} onChange={toggleStopAlert} />
           <SettingsRow
             testID="perfil-contatos-seguranca"
             icon="shield"
@@ -97,9 +103,7 @@ export function SettingsScreen() {
 
         <InviteCard kind="app" place={city} faction={faction} testID="convite-app" />
 
-        <View style={{ borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, overflow: 'hidden' }}>
-          <SettingsRow testID="perfil-sair" icon="logout" title="Sair" destructive accessibilityLabel="Sair desta conta neste aparelho" onPress={() => void signOut()} />
-        </View>
+        {/* UX-36/D-95: "Sair" mora só em Conta e privacidade, com confirmação (antes, aqui e lá, sem confirmar). */}
       </Stagger>
       <HealthPauseSheet visible={pause} onClose={() => setPause(false)} testID="ajustes-pausa-folha" />
     </ScreenScroll>
@@ -132,7 +136,7 @@ function ToggleRow({ testID, icon, title, value, onChange }: { testID: string; i
       <Text variant="bodyBold" style={{ flex: 1 }}>
         {title}
       </Text>
-      <Switch testID={testID} accessibilityLabel={title} value={value} onValueChange={onChange} trackColor={{ true: colors.action, false: colors.lineControl }} />
+      <Switch testID={testID} accessibilityLabel={title} value={value} onValueChange={onChange} {...switchColors(colors)} />
     </View>
   );
 }
