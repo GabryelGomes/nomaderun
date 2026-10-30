@@ -27,7 +27,10 @@ import { ALERT_PRIORITY, pickAlert } from '@/components/alert-slot';
 import { brtCalendar } from '@/domain/progression';
 import { GUILT_PATTERN } from '@/domain/reminders';
 import { FACTION_IDS } from '@/domain/types';
+import { buildReminderState, newLog, toReminderPrefs } from '@/features/notifications/reminder-state';
+import { reminderRoute } from '@/features/notifications/reminders';
 import { mapAlerts, pickMapMission, welcomeMission } from '@/features/screens/map-screen.model';
+import { toProfile, toProfileRow } from '@/services/api/types';
 
 import { echoNow, echoText } from '../crew-echo';
 import { fillLeaderLine, LEADER_FEAT_KINDS, LEADER_LINE_MAX, LEADER_LINES, leaderLine } from '../leader-lines';
@@ -243,5 +246,26 @@ describe('D-94 — memória do plano no aparelho', () => {
 
     mockMemory.set(PLAN_KEY, { at: 'lixo', askedWeek: 7 });
     expect(await readPlanMemory()).toEqual({ at: null, askedWeek: null });
+  });
+});
+
+describe('plano e eco chegam ao planejador e às preferências', () => {
+  it('o estado do planejador leva o plano e o eco; o toque no eco abre a central', () => {
+    const echo = { mateUsername: 'bia', cells: 2, notifyFrom: WED - 3_600_000, notifyUntil: WED + 3_600_000 };
+    const s = buildReminderState({ status: null, missions: null, chest: null, log: newLog(WED), now: WED, plan: { at: WED + 86_400_000 }, crewEcho: echo });
+    expect(s.plan).toEqual({ at: WED + 86_400_000 });
+    expect(s.crewEcho).toEqual({ mate: 'bia', cells: 2, notifyFrom: echo.notifyFrom, notifyUntil: echo.notifyUntil });
+    expect(buildReminderState({ status: null, missions: null, chest: null, log: newLog(WED), now: WED })).toMatchObject({ plan: null, crewEcho: null });
+    expect(reminderRoute('eco')).toBe('/notificacoes');
+    expect(reminderRoute('plano')).toBe('/');
+  });
+
+  it('cada tipo novo tem a sua preferência, gravada no jsonb (desligar o plano não desliga o resto)', () => {
+    const p = toProfile({ id: 'u', notification_prefs: { invasion: true, conquest: true, missions: true, moderation: true, plan: false, crew_echo: false } });
+    expect(p.notificationPrefs.plan).toBe(false);
+    expect(p.notificationPrefs.crewEcho).toBe(false);
+    expect(toReminderPrefs(p.notificationPrefs, { quietStart: null, quietEnd: null, snoozeUntil: null })).toMatchObject({ plan: false, crewEcho: false, missions: true });
+    const row = toProfileRow({ notificationPrefs: { ...p.notificationPrefs, plan: true } }) as { notification_prefs: Record<string, unknown> };
+    expect(row.notification_prefs).toMatchObject({ plan: true, crew_echo: false });
   });
 });
