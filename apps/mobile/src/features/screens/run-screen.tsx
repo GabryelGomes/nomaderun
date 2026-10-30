@@ -369,7 +369,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             padding: space[3],
             borderRadius: radius.lg,
             borderCurve: 'continuous',
-            backgroundColor: rival ? readableBackground(factions[owner!].color, bannerInk) : defending ? palette.warning : colors.surface,
+            backgroundColor: rival ? readableBackground(neonTeam[owner!], bannerInk) : defending ? palette.warning : colors.surface,
             boxShadow: floating,
             // ERS §6.2: entra de cima em ≤ 3 s (power3.out, 300 ms). Reduzir movimento: só opacidade.
             opacity: bannerOn ? 1 : 0,

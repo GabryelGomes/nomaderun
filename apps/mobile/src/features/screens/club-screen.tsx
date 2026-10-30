@@ -25,6 +25,7 @@ import { isDemoMode } from '@/services/api/env';
 import type { Result } from '@/services/api/errors';
 import { getCityRanking, getDistrictLabel, getMyRecentZoneId, rankCrews, rankFactions, rankRunners } from '@/services/api/leaderboard-repo';
 import { useSession } from '@/store/session-store';
+import { neonTeam } from '@/theme/neon';
 import { factions, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
@@ -229,7 +230,7 @@ function CrewHero({ crew, week }: { crew: MyCrew; week: CrewWeekView | null }) {
       accessibilityLabel={`Sua crew: ${crew.crew.name}, ${n} corredores.${week ? ` ${km} km nesta semana${goalKm ? ` de ${goalKm} km da meta` : ''}, ${week.ran} de ${n} já correram.` : ''} Abrir.`}
       onPress={() => router.push('/clube/crew')}
       style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.line, overflow: 'hidden' }}>
-      <View aria-hidden style={{ height: 3, backgroundColor: crew.crew.faction ? factions[crew.crew.faction].color : colors.action }} />
+      <View aria-hidden style={{ height: 3, backgroundColor: crew.crew.faction ? neonTeam[crew.crew.faction] : colors.action }} />
       <View style={{ padding: space[4], gap: space[3] }}>
         {/* Selo numa linha própria: ao lado do nome, ele espremia o nome da crew em 360–390 pt. */}
         {isDemoMode() ? <DemoBadge testID="clube-crew-demonstracao" /> : null}

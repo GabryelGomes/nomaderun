@@ -31,7 +31,7 @@ import { getInvalidStretches } from '@/services/api/track-repo';
 import { useGame } from '@/store/game-store';
 import { useZones } from '@/store/zones-store';
 import { neon, neonTeam } from '@/theme/neon';
-import { factions, radius, space } from '@/theme/tokens';
+import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 const OUTCOME_LABEL = { conquered: 'Conquistada', defended: 'Defendida', influence: 'Mais domínio', none: 'Sem pontos' } as const;
@@ -352,7 +352,7 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
               </View>
               <ProgressBar
                 value={lvl.needed > 0 ? lvl.intoLevel / lvl.needed : 0}
-                color={factions[faction].color}
+                color={neonTeam[faction]}
                 ghost={false}
                 height={10}
                 delay={at(150)}

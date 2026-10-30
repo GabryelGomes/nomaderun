@@ -2,6 +2,7 @@ import { View } from 'react-native';
 
 import type { Influence } from '@/domain/territory';
 import { FACTION_IDS } from '@/domain/types';
+import { neonTeam } from '@/theme/neon';
 import { factions, radius } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
@@ -26,7 +27,7 @@ export function TerritoryBar({ influence, height = 10 }: { influence: Influence;
         gap: total ? 2 : 0,
       }}>
       {parts.map((f) => (
-        <View key={f} style={{ flex: influence[f], backgroundColor: factions[f].color }} />
+        <View key={f} style={{ flex: influence[f], backgroundColor: neonTeam[f] }} />
       ))}
     </View>
   );

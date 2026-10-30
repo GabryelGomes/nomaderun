@@ -17,7 +17,8 @@ import { useSession } from '@/store/session-store';
 
 import { pickAndUploadAvatar } from './avatar-picker';
 import { initialsOf } from './profile-screen.model';
-import { factions, fonts, space } from '@/theme/tokens';
+import { neonTeam } from '@/theme/neon';
+import { fonts, palette, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 // Ajuste de texto (E6): ícone + 4 palavras por aviso (antes, frases de até 9).
@@ -105,11 +106,11 @@ export function EditProfileScreen() {
               accessibilityLabel={profile?.avatarUrl ? 'Foto de perfil. Toque para trocar.' : `Foto de perfil: iniciais ${initialsOf(username)}. Toque para enviar uma foto.`}
               disabled={uploading}
               onPress={changePhoto}
-              style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: factions[faction].color, overflow: 'hidden' }}>
+              style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: neonTeam[faction], overflow: 'hidden' }}>
               {profile?.avatarUrl ? (
                 <Image testID="perfil-foto-imagem" source={{ uri: profile.avatarUrl }} style={{ width: 64, height: 64 }} contentFit="cover" />
               ) : (
-                <Text style={{ fontFamily: fonts.display, fontSize: 24, lineHeight: 28 }} color={factions[faction].onColor}>
+                <Text style={{ fontFamily: fonts.display, fontSize: 24, lineHeight: 28 }} color={palette.ink}>
                   {initialsOf(username)}
                 </Text>
               )}
