@@ -79,6 +79,14 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-30 — Fase 8: auditoria de arte e sistema de identidade dos times (E4 direção de arte)
+- **Feito:** toda a arte atual renderizada em folhas de contato (`docs/melhoria/F8/arte/atual/`, 12 famílias, com o selo antigo reproduzido 1:1 e em contexto); veredito por peça em `docs/melhoria/F8/02-direcao-de-arte.md`; **sistema de identidade dos times** (cabeça do mascote dentro da forma, `mini`/`medio`/`grande`/`mono`/`neutro`) prototipado em 3 rodadas (`arte/proposta/emblemas-r1..r3.png`, `contexto-r3.png`, `antes-depois.png`, SVGs por time); capa do time para a escolha e "Meu time" (`capas.png`, `capa-meu-time.png`) com lema e bio por time; avaliação de Lottie/Skia/Rive/HyperFrames; plano de produção com estimativas e checklist de 10 itens.
+- **Arquivos:** só `docs/melhoria/F8/**` (documento, `arte/fonte/{atual,emblema,capa}.cjs`, PNGs e SVGs). Nenhum arquivo de produção alterado.
+- **Testes:** não se aplica (sem código de produção). Scripts rodados com Playwright/Chromium (`NODE_PATH=/opt/node22/lib/node_modules:/opt/node-tools/node_modules PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`).
+- **Principais vereditos:** selo antigo (`team-badge.tsx`, 27 usos em 18 arquivos) → refazer como `TeamEmblem` novo; `TeamEmblem` atual → refazer (ilegível abaixo de 40 pt); busto só ≥ 120 pt; corredor vira capa; medalhas e ícone Raid retocar; líderes retocar (P3); chefões, baús, vazios, logo, sequência manter. Ferramentas: continua SVG + Reanimated (D-71); HyperFrames só para vídeo/Stories na apresentação.
+- **Pendências/decisões:** aprovar o sistema e a API (`variant`, `on`, `mono`), lemas novos × `motto`, piso de 16 pt na zona, HyperFrames na apresentação, `TeamBadge` como alias × troca explícita (§6 do documento).
+- **Próximo:** equipe de implementação segue a §5 do documento (ordem 1 → 9); E10 captura antes/depois com a galeria `/dev/arte`.
+
 ### 2026-10-29 — Fase 7: rodada final antes do deploy (Coordenador)
 - **Feito:** Vercel pronta (`apps/mobile/vercel.json` + `supabase/DEPLOY.md` §11); texto final de Resumo, Zona, Corrida, Meu time, Quiz, Conta e Editar perfil dentro da meta (0 telas de jogo acima); servidor: B1 (corridas simultâneas sem XP em dobro), B2 (`paintedToday` perto de casa só para a própria pessoa), B3 (reações da demo iguais ao servidor), meta semanal de km da crew (**D-88**, `crew_week_goal()`), liga no app antes do fechamento de segunda 03:20.
 - **Testes:** app Jest 1.423 ✅ (26 pulados) · typecheck ok · eslint 0 · pgTAP 846/846 em 30 arquivos · Deno 88 ok, 1 ignorado. Slide "Entregas", PDF e página web regerados com esses números.
