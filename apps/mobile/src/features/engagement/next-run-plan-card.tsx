@@ -10,7 +10,7 @@ import { nextRunPlanOptions, type PlanOption } from '@/domain/reminders';
 import { replanReminders } from '@/features/notifications/reminders';
 import { notificationPermissionStatus, requestNotificationPermission } from '@/features/run/notification-permission';
 import { useEngagement } from '@/store/engagement-store';
-import { radius, space } from '@/theme/tokens';
+import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { answerPlan, planQuestionDue } from './next-run-plan';
@@ -71,7 +71,7 @@ export function NextRunPlanCard({ now, testID = 'plano-proxima' }: NextRunPlanCa
           <View style={{ flex: 1, gap: 2 }}>
             <Text variant="bodyBold">{`Combinado: ${phase.option.label}`}</Text>
             <Text variant="small" muted>
-              {phase.avisos ? 'Um aviso no horário. Só esse.' : 'Plano anotado. Avisos desligados.'}
+              {phase.avisos ? 'Avisamos só no horário.' : 'Anotado (avisos desligados).'}
             </Text>
           </View>
         </Surface>
@@ -88,12 +88,13 @@ export function NextRunPlanCard({ now, testID = 'plano-proxima' }: NextRunPlanCa
             Quando você corre de novo?
           </Text>
           <Text variant="small" muted>
-            Um aviso no horário. Caminhar vale.
+            Um aviso no horário.
           </Text>
         </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
+        {/* 1 horário por linha: o rótulo inteiro cabe a 360 pt ("Domingo · 19h" não quebra). */}
+        <View style={{ gap: space[2] }}>
           {options.map((o, i) => (
-            <View key={o.at} style={{ flexGrow: 1, flexBasis: '30%', minWidth: 96, borderRadius: radius.pill }}>
+            <View key={o.at}>
               <Button testID={`${testID}-opcao-${i + 1}`} label={o.label} kind="secondary" wide disabled={busy} onPress={() => void choose(o)} />
             </View>
           ))}

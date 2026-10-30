@@ -570,6 +570,17 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
   - `tabBarClearance` revisto: sem o círculo elevado da web, os 16 pt acima da barra (Android e web) e a barra flutuante do iOS continuam valendo.
 - **Consequências:** testes de abas (`tab-bar-clearance.test.ts`), `e2e-web/demo-mode-flow.cjs` (4 abas, `/correr`, 404) e o Maestro (`06-abas-mapa-voce.yaml`) atualizados.
 
+### D-94 — Aviso "plano da próxima corrida" (intenção de implementação)
+2026-10-30 · Coordenador da Fase 8 (§2); implementação E7 (frente B2, `docs/melhoria/relatorios/F8-B2.md`)
+- **Contexto:** o gatilho de retorno mais forte para atividade física é um plano ("quando e onde vou correr": d = 0,65 em 94 estudos, `F8/01` §1.8). O app não perguntava; sem push remoto (D-97), os avisos de jogo só chegam com o app aberto.
+- **Decisão:**
+  - No 1º resumo, e depois no máximo 1 vez por semana quando não há plano marcado, o resumo pergunta **"Quando você corre de novo?"** com 3 horários: amanhã e depois de amanhã no horário habitual da pessoa (mediana das 10 últimas largadas, entre 8h e 20h) e a manhã do fim de semana (8h); nunca hoje (descanso também conta). Regra pura em `src/domain/reminders.ts` (`nextRunPlanOptions`, `shouldAskPlan`).
+  - **"Agora não"** é neutro (sem confirmshaming) e conta como a pergunta da semana: ela só volta na semana seguinte.
+  - O horário escolhido vira **1 aviso local `plano`** ("Seu plano: correr hoje às 19h. Caminhar também vale.") no planejador da D-69: entra no limite de **1 por dia e 4 em 7 dias**, vence os outros avisos do mesmo dia (a pessoa pediu), respeita o silêncio da pessoa, a pausa de saúde, o "pausar lembretes" e o dia em que ela já correu. Preferência própria (`plan`, chave `plan` no jsonb), com interruptor em Lembretes.
+  - Memória no aparelho (`features/engagement/next-run-plan.ts`, chaves separadas na demonstração). Se a pessoa nunca decidiu sobre avisos, a permissão é pedida ali, no contexto de quem acabou de pedir um lembrete.
+  - O mesmo planejador ganhou o **eco da crew** (`n-eco`, preferência `crewEcho`): 1 aviso por dia, dentro da janela do servidor (07h–22h) e dos mesmos limites.
+- **Consequências:** catálogo de avisos com 17 tipos (2 novos); testes de limite em `src/domain/__tests__/reminders-plan.test.ts` (exemplos e propriedade). Sem tabela nova no servidor: as preferências novas cabem no jsonb (`profiles_notification_prefs_size` ≤ 512 B).
+
 ### D-95 — Estados de dado honestos
 2026-10-30 · Coordenador da Fase 8 (§2); implementação E6 (frente A3)
 - **Contexto:** offline e carregando mostravam zeros como se fossem dados ("0,0 km · 0 zonas · 0 de 4"); um 503 travava o app inteiro mesmo com o perfil salvo; havia 5 jeitos de dizer "sem conexão"; o esqueleto de Recompensas não terminava; "Sair" aparecia 2 vezes, sem confirmar (UX-05, UX-36, UX-38).

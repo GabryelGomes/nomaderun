@@ -31,8 +31,8 @@ export function CrewEchoCard({ now, testID = 'eco-da-crew' }: { now: number; tes
           Eco da crew · ontem
         </Text>
         <Text variant="body">{text}</Text>
+        {echo.isDemo ? <DemoBadge /> : null}
       </View>
-      {echo.isDemo ? <DemoBadge /> : null}
     </View>
   );
 }

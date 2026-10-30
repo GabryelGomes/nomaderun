@@ -139,6 +139,12 @@ function sealOverlap() {
     await id('resumo-recompensas').waitFor({ timeout: 15_000 });
     ok(await id('resumo-recompensas-demonstracao').isVisible(), 'Resumo: bloco de recompensas identificado como demonstração');
     await shot('05-resumo');
+    // F8 B2 (D-94): no 1º resumo, "Quando você corre de novo?" com 3 horários e "Agora não".
+    await id('plano-proxima').waitFor({ state: 'attached', timeout: 15_000 });
+    ok((await page.locator('[data-testid^="plano-proxima-opcao-"]').count()) === 3, 'Resumo: plano da próxima corrida com 3 horários (D-94)');
+    await id('plano-proxima').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+    await shot('05-resumo-plano');
 
     // 6. Compartilhar
     await id('resumo-compartilhar').click();
@@ -152,11 +158,20 @@ function sealOverlap() {
 
     // 7. Abas (D-89): Mapa · Arena · Clube · Você, sem aba Correr; o CORRER do Mapa é o único genérico
     await screen('tela-mapa', 'Mapa depois da corrida');
+    // F8 B2 (UX-02): com a 1ª corrida feita, a missão de boas-vindas sai sozinha.
+    ok((await page.locator('[data-testid="mapa-missao-boas-vindas"]').count()) === 0, 'Mapa depois da 1ª corrida: missão de boas-vindas saiu sozinha (UX-02)');
+    await shot('07-mapa-depois');
     const tabs = await page.locator('[role="tab"]').evaluateAll((els) => els.map((e) => e.getAttribute('aria-label') || e.innerText));
     ok(JSON.stringify(tabs) === JSON.stringify(['Mapa', 'Arena', 'Clube', 'Você']), '4 abas: Mapa · Arena · Clube · Você (sem aba Correr)', tabs);
     ok((await page.locator('[data-testid="aba-correr"]').count()) === 0 && (await id('mapa-correr').isVisible()), 'Correr em um lugar só: o CORRER do Mapa');
     await id('aba-arena').click();
     await screen('tela-arena', 'Arena');
+    // F8 B2 (UX-19): na 1ª visita, "Como jogar" (6 cartões) abre sozinho; fecha e a Arena fica livre.
+    await id('arena-ajuda').waitFor({ timeout: 10_000 });
+    ok((await page.locator('[data-testid="arena-ajuda"]').innerText()).includes('Missões e baú'), 'Arena, 1ª visita: "Como jogar" abre sozinho com os 6 cartões');
+    await shot('07-arena-como-jogar');
+    await id('arena-ajuda-fechar').click();
+    await page.waitForTimeout(600);
     await shot('07-arena');
     await id('aba-clube').click();
     await screen('tela-clube', 'Clube');

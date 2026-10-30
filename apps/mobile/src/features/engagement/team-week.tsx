@@ -1,7 +1,7 @@
 /**
  * "A semana do time" (F8 · ideia 5.10): na 1ª abertura do Mapa na segunda-feira, uma faixa na cor do time com o
  * mascote em pose e o lugar do time na temporada (número real do servidor, `ranking_factions`). Some com 1 toque ou
- * depois de 4 s. Destino comum: o time todo começa a semana junto. Sem o número, a faixa fica só com o convite.
+ * depois de 4 s. Na demonstração, o selo global da tela já marca o dado (e o leitor de tela ouve "Demonstração"). Destino comum: o time todo começa a semana junto. Sem o número, a faixa fica só com o convite.
  *
  * Encaixe da E5 (onda C): o mascote em pose animada (`Mascot animated`) e a entrada da faixa.
  */
@@ -9,7 +9,6 @@ import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { Mascot } from '@/components/art';
-import { DemoBadge } from '@/components/demo-badge';
 import { FadeUp } from '@/components/motion';
 import { Text } from '@/components/text';
 import { brtCalendar } from '@/domain/progression';
@@ -29,11 +28,11 @@ export function teamWeekDue(now: number, seenWeek: string | null): boolean {
   return c.weekday === 0 && seenWeek !== c.weekId;
 }
 
-/** "2º lugar na temporada · 48 zonas" (só com o lugar real); sem ele, o convite. */
+/** "2º na temporada · 48 zonas" (só com o lugar real); sem ele, o convite. */
 export function teamWeekBody(row: { position: number; zones: number } | null): string {
-  if (!row || row.position < 1) return 'Semana nova. Bora pintar a cidade juntos';
+  if (!row || row.position < 1) return 'Bora pintar a cidade juntos';
   const zones = row.zones === 1 ? '1 zona' : `${row.zones} zonas`;
-  return `${row.position}º lugar na temporada · ${zones}`;
+  return `${row.position}º na temporada · ${zones}`;
 }
 
 type Shown = { body: string; first: boolean } | null;
@@ -75,20 +74,22 @@ export function TeamWeekBanner({ team, now, testID = 'mapa-semana-time' }: { tea
       <Pressable
         testID={testID}
         accessibilityRole="button"
-        accessibilityLabel={`Semana nova dos ${f.name}. ${shown.body}. Toque para fechar.`}
+        accessibilityLabel={`Semana nova dos ${f.name}. ${shown.body}.${isDemoMode() ? ' Demonstração.' : ''} Toque para fechar.`}
         accessibilityLiveRegion="polite"
         onPress={() => setGone(true)}
-        style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 56, paddingVertical: space[2], paddingHorizontal: space[3], borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: f.color, boxShadow: floating }}>
+        // À direita ficam o sino e as camadas do mapa: a faixa para antes deles.
+        style={{ marginRight: 56, flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 56, paddingVertical: space[2], paddingHorizontal: space[3], borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: f.color, boxShadow: floating }}>
         <View aria-hidden importantForAccessibility="no-hide-descendants" style={{ width: 40, height: 44 }}>
           <Mascot team={team} pose={shown.first ? 'vitoria' : 'parado'} size={40} color={f.onColor} />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
-          <Text variant="bodyBold" color={f.onColor} numberOfLines={1}>{`Semana nova dos ${f.name}`}</Text>
+          <Text variant="bodyBold" color={f.onColor} numberOfLines={1}>
+            Semana nova!
+          </Text>
           <Text variant="caption" color={f.onColor} numberOfLines={1}>
             {shown.body}
           </Text>
         </View>
-        {isDemoMode() ? <DemoBadge /> : null}
       </Pressable>
     </FadeUp>
   );

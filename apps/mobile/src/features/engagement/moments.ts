@@ -26,9 +26,9 @@ export const HISTORY_PAGE = 200;
 
 const COUNTS = new Set(['valid', 'partial']);
 
-/** "Jardim Goiás · perto do Estádio" → "Jardim Goiás" (o bairro, sem a referência da zona). */
+/** "Jardim Goiás · perto do Estádio" → "Jardim Goiás" (o bairro, sem a referência nem o número da zona). */
 export function districtName(zoneName: string | undefined | null): string {
-  const n = (zoneName ?? '').split(' · ')[0].trim();
+  const n = (zoneName ?? '').split(' · ')[0].replace(/\s+\d+$/, '').trim();
   return n || 'Bairro novo';
 }
 

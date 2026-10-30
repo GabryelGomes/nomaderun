@@ -122,6 +122,7 @@ describe('carimbo de bairro novo (5.8)', () => {
     expect(districtStamps(H, dist)).toEqual([{ district: 'D1', name: 'Setor Bueno', at: 2, runId: 'a' }]);
     expect(districtName('Jardim Goiás · perto do Estádio')).toBe('Jardim Goiás');
     expect(districtName('')).toBe('Bairro novo');
+    expect(districtName('Setor Pedro Ludovico 28')).toBe('Setor Pedro Ludovico');
   });
 
   it('resumo: só com distrito novo, histórico completo e não na 1ª corrida com pontos', () => {
@@ -204,10 +205,10 @@ describe('a semana do time (5.10)', () => {
   });
 
   it('número real ou o convite (nunca lugar inventado)', () => {
-    expect(teamWeekBody({ position: 2, zones: 48 })).toBe('2º lugar na temporada · 48 zonas');
-    expect(teamWeekBody({ position: 1, zones: 1 })).toBe('1º lugar na temporada · 1 zona');
-    expect(teamWeekBody(null)).toBe('Semana nova. Bora pintar a cidade juntos');
-    expect(teamWeekBody({ position: 0, zones: 3 })).toBe('Semana nova. Bora pintar a cidade juntos');
+    expect(teamWeekBody({ position: 2, zones: 48 })).toBe('2º na temporada · 48 zonas');
+    expect(teamWeekBody({ position: 1, zones: 1 })).toBe('1º na temporada · 1 zona');
+    expect(teamWeekBody(null)).toBe('Bora pintar a cidade juntos');
+    expect(teamWeekBody({ position: 0, zones: 3 })).toBe('Bora pintar a cidade juntos');
   });
 });
 
