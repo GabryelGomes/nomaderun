@@ -3,7 +3,7 @@
  * Roda DEPOIS da gravação v1 já confirmada. Nunca derruba o finish: se a v2 falhar, a resposta sai sem `extras`
  * (como hoje) e a próxima chamada do finish para a mesma corrida tenta de novo (tudo é idempotente).
  */
-import { validateActivity } from './domain.ts';
+import { type PaintMilestones, validateActivity } from './domain.ts';
 import { randomSeed } from './feed.ts';
 import { type FinishResponse, type StoredPoint, toGeoPoints } from './scoring.ts';
 import { DbError, rpc } from './supabase.ts';
@@ -54,7 +54,7 @@ export async function runV2(
       p_zone_ids: paint.zoneIds,
     });
     if (!ctx) return null;
-    if (ctx.done) return buildExtras(ctx.done, deps.now());
+    if (ctx.done) return buildExtras(await withMilestones(ctx.done, opts, deps), deps.now());
     if (!v2On(ctx.flags)) return null;
     if (!scored || !ctx.activity.scored || !ctx.profile?.faction) return unscoredExtras(ctx, opts.response);
     // a regra virou para a v2 entre a leitura das flags e o contexto: recarrega com as zonas que a pintura toca
@@ -77,11 +77,31 @@ export async function runV2(
     });
     try {
       const raw = await deps.rpc<V2Raw>('svc_apply_v2', { p: plan });
-      return buildExtras(raw, deps.now());
+      return buildExtras(await withMilestones(raw, opts, deps), deps.now());
     } catch (e) {
       if (e instanceof DbError && e.message.startsWith('ZONE_CONFLICT') && attempt < V2_MAX_ATTEMPTS) continue;
       throw e;
     }
+  }
+}
+
+/**
+ * F8 A2: marcos da pintura ("primeiro trecho" e "recorde de trechos"), decididos e gravados pelo banco
+ * (`svc_paint_milestones`, idempotente, em `activities.v2_extras.milestones`). Só quando a corrida pintou pela regra v2
+ * e o marco ainda não está na gravação. Banco antigo (sem a RPC) ou erro: segue sem o marco — nunca derruba o finish.
+ */
+export async function withMilestones(
+  raw: V2Raw,
+  opts: { activityId: string; userId: string },
+  deps: Pick<Deps, 'rpc'>,
+): Promise<V2Raw> {
+  if (raw.milestones !== undefined || !raw.paint || typeof raw.paint !== 'object' || raw.scored === false) return raw;
+  try {
+    const m = await deps.rpc<PaintMilestones | null>('svc_paint_milestones', { p_user: opts.userId, p_activity: opts.activityId });
+    return m ? { ...raw, milestones: m } : raw;
+  } catch (e) {
+    console.error('marcos da pintura indisponíveis', opts.activityId, e instanceof Error ? e.message : e);
+    return raw;
   }
 }
 

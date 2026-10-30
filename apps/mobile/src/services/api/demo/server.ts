@@ -104,7 +104,7 @@ export function ingestPoints(db: DemoDb, userId: string, body: Row): { accepted:
 // -----------------------------------------------------------------------------------------------
 // finish-activity / moderate-activity (cálculo oficial + gravação, como svc_apply_activity_result)
 // -----------------------------------------------------------------------------------------------
-function storedPoints(db: DemoDb, activityId: string): StoredPoint[] {
+export function storedPoints(db: DemoDb, activityId: string): StoredPoint[] {
   return db.pointsOf(activityId).map((p) => ({
     seq: Number(p.seq),
     lat: Number(p.lat),
