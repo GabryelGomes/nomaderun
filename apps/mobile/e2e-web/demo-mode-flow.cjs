@@ -3,7 +3,7 @@
  * E10 (onda 4, F5) — fluxo completo no MODO DEMONSTRAÇÃO (D-77), sem servidor e sem rede:
  * primeira abertura → cadastro → cidade dividida → escolher time → confirmação → localização → Mapa (missão de
  * boas-vindas) → Nova corrida → simulação → segurar para encerrar → Resumo (recompensas) → Compartilhar (card) →
- * Arena → Clube → Você → Ajustes → Missões → Recompensas.
+ * Arena → Clube → Você → Ajustes → Missões → Recompensas → `/correr` (link antigo) → rota inexistente (404).
  *
  * Em cada tela confere: o selo "Demonstração" na tela e sem texto por baixo dele, nenhum erro de página e nenhum
  * pedido ao Supabase (o modo demonstração não usa rede).
@@ -150,8 +150,11 @@ function sealOverlap() {
     await id('resumo-concluir').waitFor({ timeout: 15_000 });
     await id('resumo-concluir').click();
 
-    // 7. Abas: Arena → Clube → Você → Ajustes
+    // 7. Abas (D-89): Mapa · Arena · Clube · Você, sem aba Correr; o CORRER do Mapa é o único genérico
     await screen('tela-mapa', 'Mapa depois da corrida');
+    const tabs = await page.locator('[role="tab"]').evaluateAll((els) => els.map((e) => e.getAttribute('aria-label') || e.innerText));
+    ok(JSON.stringify(tabs) === JSON.stringify(['Mapa', 'Arena', 'Clube', 'Você']), '4 abas: Mapa · Arena · Clube · Você (sem aba Correr)', tabs);
+    ok((await page.locator('[data-testid="aba-correr"]').count()) === 0 && (await id('mapa-correr').isVisible()), 'Correr em um lugar só: o CORRER do Mapa');
     await id('aba-arena').click();
     await screen('tela-arena', 'Arena');
     await shot('07-arena');
@@ -173,6 +176,18 @@ function sealOverlap() {
     await id('perfil-recompensas').click();
     await screen('tela-recompensas', 'Recompensas');
     await shot('11-recompensas');
+
+    // 9. Links antigos e rota inexistente (D-89, UX-06): /correr abre a Nova corrida; 404 em português
+    await page.goto(`${BASE}/correr`);
+    await screen('tela-nova-corrida', '/correr → Nova corrida');
+    await id('corrida-fechar').click();
+    await screen('tela-mapa', 'fechar a Nova corrida aberta por link volta ao Mapa');
+    await page.goto(`${BASE}/rota-que-nao-existe`);
+    await screen('tela-nao-encontrada', 'rota inexistente');
+    ok(/Essa página não existe/.test(await id('tela-nao-encontrada').innerText()) && !/Unmatched/i.test(await page.locator('body').innerText()), '404 em português ("Essa página não existe")');
+    await shot('12-nao-encontrada');
+    await id('nao-encontrada-voltar').click();
+    await screen('tela-mapa', '"Voltar ao mapa" abre o Mapa');
 
     ok(server_.length === 0, 'nenhum pedido ao Supabase (modo demonstração sem rede)', server_);
     ok(errors.length === 0, 'sem erros de página', errors);

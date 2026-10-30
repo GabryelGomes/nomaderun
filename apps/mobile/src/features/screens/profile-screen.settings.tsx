@@ -58,9 +58,10 @@ export function SettingsScreen() {
           {staff ? <SettingsRow testID="perfil-moderacao" icon="shield" title="Moderação" onPress={() => router.push('/moderacao' as Href)} /> : null}
         </Group>
 
-        <Group title="Corrida Segura" note="Seus contatos recebem sua localização no SOS, na Escolta e no alerta.">
-          <ToggleRow testID="perfil-escolta" icon="location" title="Escolta ao vivo" value={escortOn} onChange={toggleEscort} />
-          <ToggleRow testID="perfil-alerta-parada" icon="timer" title="Alerta de parada" value={stopAlertOn} onChange={toggleStopAlert} />
+        {/* UX-12: um nome só ("Corrida Segura") e as mesmas 2 opções da Nova corrida. */}
+        <Group title="Corrida Segura" note="No SOS e nestas opções, seus contatos recebem sua localização.">
+          <ToggleRow testID="perfil-escolta" icon="location" title="Compartilhar ao vivo" value={escortOn} onChange={toggleEscort} />
+          <ToggleRow testID="perfil-alerta-parada" icon="timer" title="Avisar se eu parar" value={stopAlertOn} onChange={toggleStopAlert} />
           <SettingsRow
             testID="perfil-contatos-seguranca"
             icon="shield"

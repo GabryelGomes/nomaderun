@@ -129,7 +129,7 @@ export function SafetyContactsScreen() {
           />
         )
       }>
-      <Text muted>Eles recebem sua localização no SOS, na Escolta e se você parar por 10 min.</Text>
+      <Text muted>Eles recebem sua localização no SOS, ao vivo e se você parar por 10 min.</Text>
 
       {/* O formulário fica logo abaixo da explicação: com o teclado aberto, ele continua à vista. */}
       {editor}
