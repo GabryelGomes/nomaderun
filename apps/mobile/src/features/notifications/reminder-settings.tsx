@@ -18,10 +18,11 @@ import { useTheme } from '@/theme/use-theme';
 import { EMPTY_DEVICE_PREFS, type DeviceReminderPrefs } from './reminder-state';
 import { readDevicePrefs, replanReminders, writeDevicePrefs } from './reminders';
 
-type ReminderKey = 'chests' | 'streak' | 'missions' | 'league' | 'raid' | 'season' | 'recap' | 'comeback' | 'kudos';
+type ReminderKey = 'plan' | 'chests' | 'streak' | 'missions' | 'league' | 'raid' | 'season' | 'recap' | 'comeback' | 'kudos' | 'crewEcho';
 
 /** Cada tipo de lembrete com o seu interruptor (transparência: a pessoa desliga o que quiser). */
 export const REMINDER_TOGGLES: readonly { key: ReminderKey; title: string }[] = [
+  { key: 'plan', title: 'Plano da próxima corrida' },
   { key: 'chests', title: 'Baú do dia guardado' },
   { key: 'streak', title: 'Falta 1 para a semana' },
   { key: 'missions', title: 'Missões e primeira semana' },
@@ -31,6 +32,7 @@ export const REMINDER_TOGGLES: readonly { key: ReminderKey; title: string }[] = 
   { key: 'recap', title: 'Resumo da semana' },
   { key: 'comeback', title: 'Volta depois de uma pausa' },
   { key: 'kudos', title: 'Aplausos da crew (1 por dia)' },
+  { key: 'crewEcho', title: 'Eco da crew (1 por dia)' },
 ];
 
 const LATE = [null, 20, 19] as const;
