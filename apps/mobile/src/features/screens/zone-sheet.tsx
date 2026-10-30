@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
-import { EmptyArt, Mascot } from '@/components/art';
+import { EmptyArt, TeamEmblem } from '@/components/art';
 import { Button } from '@/components/button';
 import { Icon } from '@/components/icon';
 import { TeamBadge } from '@/components/team-badge';
@@ -12,6 +12,7 @@ import { CountUp, FadeUp, ProgressBar, RevealText, ShimmerSkeleton, Stagger } fr
 import { cellCenter } from '@/domain/grid';
 import type { LiveSnapshot } from '@/domain/live-events';
 import type { Zone } from '@/domain/territory';
+import { neonTeam } from '@/theme/neon';
 import type { FactionId } from '@/domain/types';
 import { zoneName } from '@/demo/demo-data';
 import { useNow } from '@/features/use-now';
@@ -103,8 +104,8 @@ function ZoneScore({ view }: { view: ZoneView }) {
       </View>
       <ProgressBar
         value={bar.share}
-        color={factions[bar.left].color}
-        trackColor={bar.right ? factions[bar.right].color : colors.surfaceSunken}
+        color={neonTeam[bar.left]}
+        trackColor={bar.right ? neonTeam[bar.right] : colors.surfaceSunken}
         ghost={false}
         height={12}
         delay={200}
@@ -185,7 +186,7 @@ export function ZoneSheet() {
       {/* 1. Herói: o dono ilustrado (mascote do time) ou a zona vazia. */}
       <View style={{ flexDirection: 'row', gap: space[4], alignItems: 'center' }}>
         <View style={{ width: 64, height: 70, alignItems: 'center', justifyContent: 'center' }}>
-          {zone.owner ? <Mascot team={zone.owner} size={64} quality="leve" /> : <EmptyArt kind="sem-zonas" size={64} quality="plano" />}
+          {zone.owner ? <TeamEmblem team={zone.owner} size={64} variant="medio" /> : <EmptyArt kind="sem-zonas" size={64} quality="plano" />}
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <RevealText variant="title" header testID="zona-nome">
