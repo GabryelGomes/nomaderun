@@ -25,3 +25,5 @@ export { SummaryMoments, FirstPaintMoment, DistrictStampMoment, LeaderComment, t
 export { leaderLine, LEADER_LINES, LEADER_LINE_MAX, type LeaderFeat, type LeaderFeatKind } from './leader-lines';
 export { districtStamps, newDistrictStamp, recapLeaderFeat, summaryLeaderFeat, firstPaintLiveEligible, type DistrictStamp } from './moments';
 export { echoNow, echoText, loadCrewEcho, useCrewEcho } from './crew-echo';
+export { useWelcomeDone, WelcomeDoneToast, welcomeDoneDue } from './welcome-done';
+export { TeamWeekBanner, teamWeekBody, teamWeekDue, TEAM_WEEK_MS } from './team-week';

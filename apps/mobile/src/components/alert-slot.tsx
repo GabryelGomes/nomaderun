@@ -9,8 +9,12 @@ import { Icon, type IconName } from './icon';
 import { PressableScale } from './motion/pressable';
 import { Text } from './text';
 
-/** Tipos de alerta do Mapa, da maior para a menor prioridade (E6 F1 §4.1). */
-export const ALERT_PRIORITY = ['attack', 'mission', 'chest', 'boss', 'streak'] as const;
+/**
+ * Tipos de alerta do Mapa, da maior para a menor prioridade (E6 F1 §4.1; F8 B2, UX-02/UX-32): a missão inicial de
+ * quem tem 0 corridas (`welcome`) vence o ataque (quem nunca correu aprende a correr antes de defender); depois o
+ * ataque, a missão em andamento, o baú pronto, o chefão, o recap de domingo e a sequência.
+ */
+export const ALERT_PRIORITY = ['welcome', 'attack', 'mission', 'chest', 'boss', 'recap', 'streak'] as const;
 export type AlertKind = (typeof ALERT_PRIORITY)[number];
 
 export type SlotAlert = {
@@ -26,7 +30,7 @@ export type SlotAlert = {
   art?: ReactNode;
 };
 
-const ICON: Record<AlertKind, IconName> = { attack: 'warning', mission: 'flag', chest: 'chest', boss: 'raid', streak: 'fire' };
+const ICON: Record<AlertKind, IconName> = { welcome: 'flag', attack: 'warning', mission: 'flag', chest: 'chest', boss: 'raid', recap: 'share', streak: 'fire' };
 
 /** O alerta que aparece: o de maior prioridade; empate fica com o primeiro da lista. */
 export function pickAlert(alerts: readonly SlotAlert[]): SlotAlert | null {

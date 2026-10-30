@@ -24,6 +24,8 @@ export type MapToday = {
   mission?: MapMission | null;
   /** Chip da missão aberta mais adiantada (E7: "40%" ou "Feitas"). */
   featured?: { value: string; label: string } | null;
+  /** Recap da semana pronto (domingo, com atividade na semana): alerta que abre "Minha semana". */
+  recap?: { title: string; body: string } | null;
   demo?: boolean;
 };
 
@@ -36,6 +38,8 @@ export type MapMission = {
   reward?: string;
   /** Para onde o cartão leva (padrão: Correr). As missões da E7 abrem `/missoes`. */
   href?: '/corrida' | '/missoes';
+  /** A missão inicial de quem ainda tem 0 corridas: vence o alerta de ataque (UX-32). */
+  first?: boolean;
 };
 
 export type TodayHref = '/recompensas' | '/missoes' | '/arena';
@@ -51,7 +55,7 @@ export type TodayChip = {
 };
 
 /**
- * Faixa de hoje: até 3 chips (sequência, baú do dia, chefão), só os verdadeiros. A sequência v1 (semanas,
+ * Faixa de hoje: até 3 chips (sequência, missões do dia, baú do dia, chefão), só os verdadeiros. A sequência v1 (semanas,
  * do servidor) entra enquanto a E7 não entrega a v2 ("1/2" na semana).
  */
 export function todayChips(today: MapToday | null | undefined, streakWeeks: number): TodayChip[] {
@@ -62,14 +66,14 @@ export function todayChips(today: MapToday | null | undefined, streakWeeks: numb
   } else if (streakWeeks > 0) {
     out.push({ key: 'streak', testID: 'mapa-hoje-sequencia', icon: 'fire', value: String(streakWeeks), label: streakWeeks === 1 ? 'semana' : 'semanas', tone: 'action' });
   }
+  // UX-17: o chip "Missões 1/3" é fixo (logo depois da sequência), para as missões nunca ficarem escondidas.
+  if (today?.featured) out.push({ key: 'mission', testID: 'mapa-hoje-missao', icon: 'trophy', value: today.featured.value, label: today.featured.label, tone: 'action', href: '/missoes' });
   if (today?.chest && today.chest.credits > 0) {
     out.push({ key: 'chest', testID: 'mapa-hoje-bau', icon: 'chest', value: String(today.chest.credits), label: today.chest.credits > 1 ? 'Baús' : 'Baú', tone: 'action', href: '/recompensas' });
   }
   if (today?.boss && Number.isFinite(today.boss.hp)) {
     out.push({ key: 'boss', testID: 'mapa-hoje-chefao', icon: 'raid', value: `${Math.round(Math.max(0, Math.min(1, today.boss.hp)) * 100)}%`, label: 'Chefão', tone: 'villain', href: '/arena' });
   }
-  // A missão em destaque entra se sobrar espaço (a faixa mostra no máximo 3 chips).
-  if (today?.featured) out.push({ key: 'mission', testID: 'mapa-hoje-missao', icon: 'trophy', value: today.featured.value, label: today.featured.label, tone: 'action', href: '/missoes' });
   return out;
 }
 
@@ -85,11 +89,12 @@ export function zonesUnderAttack(zones: Readonly<Record<string, Zone>>, faction:
     .sort((a, b) => (b.attackStartedAt ?? 0) - (a.attackStartedAt ?? 0));
 }
 
-export type MapAlert = { id: string; kind: AlertKind; title: string; body: string; zoneId?: string };
+export type MapAlert = { id: string; kind: AlertKind; title: string; body: string; zoneId?: string; href?: '/corrida' | '/missoes' | '/compartilhar/semana' };
 
 /**
- * Candidatos ao espaço único de alerta (o `AlertSlot` escolhe 1 pela prioridade: ataque > missão > baú >
- * chefão > sequência). Textos ≤ 30 caracteres no título e 1 linha no apoio (D-74).
+ * Candidatos ao espaço único de alerta (o `AlertSlot` escolhe 1 pela prioridade: missão inicial com 0 corridas >
+ * ataque > missão em andamento > baú > chefão > recap de domingo > sequência). Textos ≤ 30 caracteres no título e
+ * 1 linha no apoio (D-74).
  */
 export function mapAlerts(input: {
   attacked: readonly Zone[];
@@ -108,13 +113,15 @@ export function mapAlerts(input: {
     out.push({ id: `ataque-${a.id}`, kind: 'attack', zoneId: a.id, title: `${input.zoneName(a.id)} sob ataque`, body: `${input.attackerName(a.attacker)} · ${deadline}` });
   }
   const m = input.today?.mission;
-  if (m && m.done < m.steps.length) out.push({ id: `missao-${m.id}`, kind: 'mission', title: m.title, body: m.reward ?? '' });
+  if (m && m.done < m.steps.length) out.push({ id: `missao-${m.id}`, kind: m.first ? 'welcome' : 'mission', title: m.title, body: m.reward ?? '', href: m.href ?? '/corrida' });
   const c = input.today?.chest;
   if (c && c.credits > 0 && c.meters !== null && c.meters !== undefined && c.meters <= 1000) {
     out.push({ id: 'bau-do-dia', kind: 'chest', title: `Baú do dia a ${Math.round(c.meters / 10) * 10} m`, body: 'Passe por ele na próxima corrida' });
   }
   const b = input.today?.boss;
   if (b && b.hp > 0 && b.hp < 0.2) out.push({ id: 'chefao', kind: 'boss', title: `${b.name} com ${Math.round(b.hp * 100)}% de vida`, body: 'Seu próximo km pode derrubar' });
+  const r = input.today?.recap;
+  if (r) out.push({ id: 'recap', kind: 'recap', title: r.title, body: r.body, href: '/compartilhar/semana' });
   const s = input.today?.streak;
   if (s && s.atRisk && !s.paused && s.done < s.goal) {
     const left = s.goal - s.done;
@@ -146,12 +153,27 @@ export function changesText(c: { gained: number; lost: number }): string {
 }
 
 /**
- * Missão de boas-vindas (D-72), só quando é verdade: a conta e o time existem e o servidor diz que a pessoa
- * ainda não tem nenhuma corrida. Sem a resposta do servidor (`runs === null`), nada aparece.
+ * Missão de boas-vindas (D-72; F8 B2, UX-02), ligada ao estado real:
+ * - 0 corridas (o servidor confirmou): "Corra e pinte sua 1ª zona", 2 de 3, e vence o alerta de ataque (`first`);
+ * - já correu, mas ainda sem zona conquistada (`zoneEver === false`, dado confirmado): "Pinte sua 1ª zona", 3 de 4,
+ *   como missão em andamento (abaixo do ataque);
+ * - correu e conquistou (ou sem o dado): some sozinha. A celebração da conclusão é da E7 (`welcomeDoneMoment`).
+ * Sem a resposta do servidor (`runs === null`), nada aparece.
  */
-export function welcomeMission(runs: number | null): MapMission | null {
-  if (runs === null || runs > 0) return null;
-  return { id: 'boas-vindas', eyebrow: 'Missão 1', title: 'Corra e pinte sua 1ª zona', steps: ['Conta', 'Time', '1ª corrida'], done: 2 };
+export function welcomeMission(runs: number | null, zoneEver: boolean | null = null): MapMission | null {
+  if (runs === null) return null;
+  if (runs === 0) return { id: 'boas-vindas', eyebrow: 'Missão 1', title: 'Corra e pinte sua 1ª zona', steps: ['Conta', 'Time', '1ª corrida'], done: 2, first: true };
+  if (zoneEver === false) return { id: 'boas-vindas-zona', eyebrow: 'Missão 1', title: 'Pinte sua 1ª zona', steps: ['Conta', 'Time', '1ª corrida', '1ª zona'], done: 3 };
+  return null;
+}
+
+/**
+ * Qual missão o Mapa mostra: com 0 corridas, sempre a inicial (ela vence até a primeira semana da E7); depois, a da
+ * E7 (primeira semana ou volta) e, sem ela, a de boas-vindas em andamento.
+ */
+export function pickMapMission(welcome: MapMission | null, fromEngagement: MapMission | null | undefined): MapMission | null {
+  if (welcome?.first) return welcome;
+  return fromEngagement ?? welcome;
 }
 
 /** Assinatura das zonas com ataque vencido (muda só quando um ataque expira, não a cada minuto). */
