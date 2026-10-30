@@ -11,6 +11,7 @@ import { useMemo, useRef, useState } from 'react';
 import { PixelRatio, Switch, useWindowDimensions, View } from 'react-native';
 import type Svg from 'react-native-svg';
 
+import { EmptyArt } from '@/components/art';
 import { Button } from '@/components/button';
 import { ChipRow } from '@/components/chip-row';
 import { EmptyState } from '@/components/empty-state';
@@ -105,15 +106,17 @@ export function RecapScreen() {
     return (
       <ScreenScroll testID="tela-semana">
         {header}
+        {/* UX-28: o vazio ganha arte e a ação que resolve (Correr); a saída é só o X do topo (antes, "Voltar" e X juntos). */}
         <EmptyState
           testID={failed ? 'semana-erro' : 'semana-vazia'}
+          art={failed ? <EmptyArt kind="sem-conexao" size={160} /> : <EmptyArt kind="sem-corridas" team={faction} size={180} />}
           title={failed ? 'Não deu para montar a semana' : 'Nenhuma corrida nesta semana'}
-          body={failed ? 'Confira a conexão e tente de novo.' : 'Quando você correr, a semana vira um card para compartilhar.'}
+          body={failed ? 'Confira a conexão e tente de novo.' : 'Corra e a semana vira um card.'}
           action={
             failed ? (
               <Button testID="semana-tentar" label="Tentar de novo" kind="secondary" onPress={retry} />
             ) : (
-              <Button testID="semana-voltar" label="Voltar" kind="secondary" onPress={close} />
+              <Button testID="semana-correr" label="Correr" icon="play" onPress={() => router.replace('/corrida')} />
             )
           }
         />

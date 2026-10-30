@@ -12,7 +12,8 @@ import { Text } from '@/components/text';
 import TerritoryMap from '@/components/territory-map';
 import type { MapCircle } from '@/components/territory-map.types';
 import type { LatLng } from '@/domain/types';
-import { DEMO_CENTER } from '@/demo/demo-data';
+import { zoneOf } from '@/domain/grid';
+import { DEMO_CENTER, zoneName } from '@/demo/demo-data';
 import { ErrorNotice, FormScaffold, TextField } from '@/features/auth/form-ui';
 import {
   addPrivacyZone,
@@ -22,11 +23,22 @@ import {
   removePrivacyZone,
   type PrivacyZone,
 } from '@/services/api/privacy-zones-repo';
+import { zoneDisplayName } from '@/features/format';
+import { isDemoActive } from '@/services/demo-mode';
 import { accessMessage, requestLocationAccess } from '@/services/location/permissions';
+import { useZones } from '@/store/zones-store';
 import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-const fmt = (p: LatLng) => `${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
+/**
+ * UX-23: "Perto de Jardim Goiás" no lugar das coordenadas cruas. Vem do nome da zona que contém o ponto (o mapa já
+ * carregou; na demonstração, o nome local). Sem nome conhecido: nada (melhor que "-16.70161, -49.25344").
+ */
+function placeNear(p: LatLng, meta: Readonly<Record<string, { name?: string | null } | undefined>>): string | null {
+  const id = zoneOf(p);
+  const name = meta[id]?.name ?? (isDemoActive() ? zoneName(id) : null);
+  return name ? zoneDisplayName(name).split(' · ')[0] : null;
+}
 
 /** Zonas de privacidade (RN-010): até 3 endereços cujo trecho do percurso não aparece para outras pessoas. */
 export function PrivacyZonesScreen() {
@@ -35,6 +47,8 @@ export function PrivacyZonesScreen() {
   const [adding, setAdding] = useState(false);
   const [label, setLabel] = useState('');
   const [point, setPoint] = useState<LatLng | null>(null);
+  const zoneMeta = useZones((st) => st.meta);
+  const pointNear = point ? placeNear(point, zoneMeta) : null;
   const [focus, setFocus] = useState<LatLng | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -153,7 +167,7 @@ export function PrivacyZonesScreen() {
           />
         )
       }>
-      <Text muted>A {DEFAULT_PRIVACY_RADIUS} m deles, sua rota vale pontos, mas ninguém vê.</Text>
+      <Text muted>{`Num raio de ${DEFAULT_PRIVACY_RADIUS} m destes endereços, ninguém vê sua rota.`}</Text>
 
       {/* Ao adicionar, o mapa e o formulário vêm primeiro: o ponto é escolhido tocando no mapa. */}
       {adding ? (
@@ -162,7 +176,7 @@ export function PrivacyZonesScreen() {
           {map}
           <TextField testID="zona-privacidade-nome" onSurface label="Nome (opcional)" value={label} onChangeText={setLabel} placeholder="Casa" autoCapitalize="sentences" maxLength={40} returnKeyType="done" />
           <Text testID="zona-privacidade-ponto" muted>
-            {point ? `Ponto escolhido: ${fmt(point)}. Raio de ${DEFAULT_PRIVACY_RADIUS} m.` : 'Toque no mapa para escolher o ponto ou use sua posição atual.'}
+            {point ? `Ponto escolhido${pointNear ? `: perto de ${pointNear}` : ''}. Raio de ${DEFAULT_PRIVACY_RADIUS} m.` : 'Toque no mapa para escolher o ponto ou use sua posição atual.'}
           </Text>
           <Button
             testID="zona-privacidade-posicao"
@@ -197,7 +211,8 @@ export function PrivacyZonesScreen() {
             <EmptyState testID="zonas-privacidade-vazio" compact art={<EmptyArt kind="sem-endereco" size={160} />} title="Nenhum endereço" body="Adicione sua casa para escondê-la do mapa." />
           ) : null}
           {zones.map((z, i) => {
-            const name = z.label ?? `Endereço ${i + 1}`;
+            const near = placeNear(z, zoneMeta);
+            const name = z.label ?? (near ? `Perto de ${near}` : `Endereço ${i + 1}`);
             return (
               <FadeUp key={z.id} delay={staggerDelay(i)} testID={`zona-privacidade-${i}`} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 48 }}>
                 <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceSunken, alignItems: 'center', justifyContent: 'center' }}>
@@ -207,8 +222,8 @@ export function PrivacyZonesScreen() {
                   <Text variant="bodyBold" numberOfLines={1}>
                     {name}
                   </Text>
-                  <Text variant="small" muted tabular>
-                    Raio de {z.radiusM} m · {fmt(z)}
+                  <Text variant="small" muted>
+                    {near ? `Perto de ${near} · raio de ${z.radiusM} m` : `Raio de ${z.radiusM} m`}
                   </Text>
                 </View>
                 <IconButton testID={`zona-privacidade-${i}-remover`} icon="close" label={`Remover ${name}`} tone="sunken" size={44} onPress={() => (busy ? undefined : void remove(z))} />

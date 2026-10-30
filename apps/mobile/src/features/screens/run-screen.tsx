@@ -31,6 +31,7 @@ import { useGpsPreflight } from '@/features/run/use-gps-preflight';
 import { bootstrapOfflineSync } from '@/features/run/use-offline-sync';
 import { useRunSession, type RunMode } from '@/features/run/use-run-session';
 import { useRunSafety } from '@/features/safety/use-run-safety';
+import { zoneDisplayName } from '@/features/format';
 import { useNow } from '@/features/use-now';
 import { bboxAround } from '@/services/api/zones-repo';
 import { isDemoActive } from '@/services/demo-mode';
@@ -351,7 +352,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
   const ghost = s.ghost !== null ? ghostStatus(s.ghost) : null;
 
   if (s.phase === 'countdown') return <Countdown count={s.count} />;
-  const zoneLabel = zoneId ? (zoneMeta[zoneId]?.name ?? zoneName(zoneId)) : null;
+  const zoneLabel = zoneId ? zoneDisplayName(zoneMeta[zoneId]?.name ?? zoneName(zoneId)) : null;
 
   const timeText = formatDuration(s.elapsed);
   const bannerOn = rival || defending;

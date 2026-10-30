@@ -99,7 +99,8 @@ describe('tela de compartilhar', () => {
     });
     const r = await mount(<ShareScreen />);
     const labels = [0, 1, 2, 3].map((i) => first(r, `compartilhar-modelo-${i}`).props.accessibilityLabel);
-    expect(labels).toEqual(['Modelo Chefão derrotado, 1 de 4', 'Modelo Nível novo, 2 de 4', 'Modelo Conquista de zona, 3 de 4', 'Modelo Corrida, 4 de 4']);
+    // F8-B3 (UX-33): o momento mais forte primeiro (zona antes do nível).
+    expect(labels).toEqual(['Modelo Chefão derrotado, 1 de 4', 'Modelo Conquista de zona, 2 de 4', 'Modelo Nível novo, 3 de 4', 'Modelo Corrida, 4 de 4']);
     for (const id of ['compartilhar-rota', 'compartilhar-usuario', 'compartilhar-cidade', 'compartilhar-enviar', 'compartilhar-legenda', 'compartilhar-fechar', 'compartilhar-formato-stories', 'compartilhar-formato-feed', 'compartilhar-formato-adesivo'])
       expect(byId(r, id).length).toBeGreaterThan(0);
     // A cópia de exportação é o card no tamanho de pixel exato.

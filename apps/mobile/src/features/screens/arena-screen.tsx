@@ -261,7 +261,7 @@ function ModesGrid() {
     { kind: 'fuga', title: 'Fuga', status: `Fantasma a ${formatPace(ghostPace)}/km`, hint: 'Corre com este modo', onPress: play('fuga') },
     // D-95: sem baú aberto (ou sem o dado do servidor), a regra do modo em vez de "0 baús abertos".
     { kind: 'caca', title: 'Caça', status: chests > 0 ? `${chests} ${chests === 1 ? 'baú aberto' : 'baús abertos'}` : 'Abra baús a 25 m', hint: 'Corre com este modo', onPress: play('caca') },
-    { kind: 'dominio', title: 'Domínio', status: zonesKnown ? `${zones} ${zones === 1 ? 'zona' : 'zonas'}` : `${NO_DATA} zonas`, hint: 'Abre o mapa', onPress: () => router.navigate('/') },
+    { kind: 'dominio', title: 'Domínio', status: zonesKnown ? `Você: ${zones} ${zones === 1 ? 'zona' : 'zonas'}` : `Você: ${NO_DATA} zonas`, hint: 'Abre o mapa', onPress: () => router.navigate('/') },
     { kind: 'atlas', title: 'Atlas', status: fogKnown ? `${atlasPercent(fog)}% do bairro` : `${NO_DATA} do bairro`, hint: 'Abre o mapa', onPress: () => router.navigate('/') },
   ];
   return (

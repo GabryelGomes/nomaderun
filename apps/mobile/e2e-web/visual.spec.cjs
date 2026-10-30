@@ -42,7 +42,7 @@ async function login(page) {
   await id('entrar-senha').fill('Corrida@2026');
   await id('entrar-botao').click();
   await id('mapa-status').waitFor({ timeout: 30_000 });
-  await page.getByText(/zonas em/).first().waitFor({ timeout: 30_000 });
+  await page.getByText(/Seu time: /).first().waitFor({ timeout: 30_000 });
   return id;
 }
 

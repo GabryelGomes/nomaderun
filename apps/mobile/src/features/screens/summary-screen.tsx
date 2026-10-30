@@ -17,7 +17,7 @@ import TerritoryMap from '@/components/territory-map';
 import { levelProgress } from '@/domain/progression';
 import { formatDuration, formatKm, formatPace } from '@/domain/geo';
 import { DEMO_CENTER } from '@/demo/demo-data';
-import { formatInt, formatXp, signedInt } from '@/features/format';
+import { formatInt, formatXp, signedInt, zoneDisplayName } from '@/features/format';
 import { mapZonesNear } from '@/features/map-data';
 import { NeonBackdrop } from '@/features/auth/neon-backdrop';
 import { notificationPermissionStatus, requestNotificationPermission, shouldAskNotifications } from '@/features/run/notification-permission';
@@ -215,12 +215,12 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
           </View>
         }>
         {highlight ? (
-          <View testID="resumo-zona-conquistada" accessible accessibilityRole="header" accessibilityLabel={`Zona conquistada: ${highlight.name}`} style={{ alignItems: 'center', gap: space[1] }}>
+          <View testID="resumo-zona-conquistada" accessible accessibilityRole="header" accessibilityLabel={`Zona conquistada: ${zoneDisplayName(highlight.name)}`} style={{ alignItems: 'center', gap: space[1] }}>
             <Text variant="label" color={neon.orangeText} style={{ textTransform: 'uppercase' }}>
               Zona conquistada
             </Text>
             <RevealText variant="headline" align="center" header={false}>
-              {highlight.name}
+              {zoneDisplayName(highlight.name)}
             </RevealText>
           </View>
         ) : (
@@ -393,7 +393,7 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
                     <TeamBadge faction={z.ownerAfter} size={30} />
                     <View style={{ flex: 1 }}>
                       <Text variant="bodyBold" numberOfLines={2}>
-                        {z.name}
+                        {zoneDisplayName(z.name)}
                       </Text>
                       <Text variant="small" muted>
                         {OUTCOME_LABEL[z.outcome]}, {Math.round(z.meters)} m

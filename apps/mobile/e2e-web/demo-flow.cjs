@@ -96,7 +96,7 @@ async function api(method, url, token, body) {
     await id('onboarding-cidade').waitFor({ timeout: 30_000 });
     ok(true, 'cadastro com 16+ e aceite abre o onboarding');
     await chooseTeam(page, 'striders');
-    await page.getByText(/zonas em/).first().waitFor({ timeout: 30_000 }).catch(() => {});
+    await page.getByText(/Seu time: /).first().waitFor({ timeout: 30_000 }).catch(() => {});
     ok(true, 'facção Neon Striders gravada e mapa com zonas do servidor');
     await shot('01-mapa');
 
