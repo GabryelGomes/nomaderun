@@ -68,7 +68,7 @@ export function TeamCoverCard({ faction, selected, focused, suggested, onSelect,
           <TeamEmblem team={faction} size={40} variant="medio" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text variant="bodyBold" numberOfLines={1}>
+          <Text variant="bodyBold" numberOfLines={2}>
             {b.style}
           </Text>
           <Text variant="small" muted numberOfLines={1}>

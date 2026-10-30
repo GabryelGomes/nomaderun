@@ -173,7 +173,8 @@ export const COVER_TEXT = {
   bioOpacity: 0.9,
   /** Recuo do texto em relação à borda direita e ao topo. */
   inset: { right: 18, top: 16, bottom: 14 },
-  columnWidth: 176,
+  /** Largura da coluna de texto da capa "hero" (cabe o nome em 1 linha e a bio sem quebrar a 358 pt). */
+  columnWidth: 216,
 } as const;
 
 /**

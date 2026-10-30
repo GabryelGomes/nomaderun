@@ -90,7 +90,7 @@ export function TeamConfirm(props: TeamConfirmProps) {
       />
       {/* "Pular": um toque em qualquer lugar fora do botão leva ao estado final (o botão, mais fundo, ganha o toque). */}
       {/* Sem `disabled`: na web ele viraria aria-disabled e "desligaria" o botão de dentro para o Playwright e o leitor. */}
-      <Pressable testID={`${testID}-pular`} accessible={false} focusable={false} role="none" onPress={skippable && !still ? () => setSkipped(true) : undefined} style={{ flex: 1 }}>
+      <Pressable testID={`${testID}-pular`} accessible={false} focusable={false} role="none" accessibilityLabel="Pular a cerimônia" onPress={skippable && !still ? () => setSkipped(true) : undefined} style={{ flex: 1 }}>
         <View accessible accessibilityLiveRegion="polite" accessibilityLabel={text} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[4], paddingHorizontal: space[6] }}>
         <View style={{ width: 160, height: 160, alignItems: 'center', justifyContent: 'center' }}>
           {variant === 'ftue' && !still

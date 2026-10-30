@@ -58,6 +58,6 @@ Rota × estado (`?cenario=` do servidor de demonstração: cheio, vazio, carrega
 NODE_PATH="$(npm root -g)" node e2e-web/demo-mode-flow.cjs /tmp/nomade-demo
 ```
 
-Primeira abertura → cadastro → cidade dividida → Volt Runners → confirmação → localização → Mapa (missão de boas-vindas sozinha) → Nova corrida → simulação (~20 s, `SIM_MS`) → segurar para encerrar → Resumo (recompensas marcadas como demonstração) → Compartilhar (card marcado) → Arena → Clube → Você → Ajustes → Missões → Recompensas. Em cada tela: selo "Demonstração" presente e nenhum texto por baixo dele; no fim, zero pedidos ao Supabase e zero erros de página (21 verificações).
+Primeira abertura → cidade dividida → Volt Runners (capas) → cerimônia (≤ 5 toques, sem digitar) → cadastro → localização → Mapa (missão de boas-vindas sozinha) → Nova corrida → simulação (~20 s, `SIM_MS`) → segurar para encerrar → Resumo (recompensas marcadas como demonstração) → Compartilhar (card marcado) → Arena → Clube → Você → Ajustes → Missões → Recompensas. Em cada tela: selo "Demonstração" presente e nenhum texto por baixo dele; no fim, zero pedidos ao Supabase e zero erros de página (21 verificações).
 
-Os passos de cadastro e onboarding da v2 ficam em `onboarding-steps.cjs`, usados também pelo `demo-flow.cjs` e pelo `auth-flow.cjs`. O cadastro não pede mais a cidade: o `auth-flow` confere a cidade em Você → Editar perfil.
+Os passos da primeira abertura (D-91: cidade → times → cerimônia → cadastro → GPS) ficam em `onboarding-steps.cjs`, usados também pelo `demo-flow.cjs` e pelo `auth-flow.cjs`; `chooseTeamBeforeAccount` conta os toques até a cerimônia (meta ≤ 5). O cadastro não pede mais a cidade: o `auth-flow` confere a cidade em Você → Editar perfil.

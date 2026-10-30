@@ -90,11 +90,10 @@ async function api(method, url, token, body) {
     const id = (t) => page.locator(`[data-testid="${t}"]`).first();
     const shot = (n) => page.screenshot({ path: path.join(OUT, `${n}.png`) });
 
-    // Onda 4 (E10): cadastro e onboarding da v2 (sem cidade no cadastro; cidade dividida → carrossel → confirmação).
+    // F8 B1 (D-91): cidade dividida → capas → cerimônia antes da conta; cadastro; depois o GPS e o Mapa.
     await page.goto(`${BASE}/`);
-    await signUp(page, user);
-    await id('onboarding-cidade').waitFor({ timeout: 30_000 });
-    ok(true, 'cadastro com 16+ e aceite abre o onboarding');
+    await signUp(page, user, 'striders');
+    ok(true, 'cadastro com 16+ e aceite depois da cerimônia');
     await chooseTeam(page, 'striders');
     await page.getByText(/zonas em/).first().waitFor({ timeout: 30_000 }).catch(() => {});
     ok(true, 'facção Neon Striders gravada e mapa com zonas do servidor');
