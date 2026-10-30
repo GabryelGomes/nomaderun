@@ -79,6 +79,13 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-10-30 — Fase 8, onda A, A2: uma verdade só (E9 + E3, servidor e domínio)
+- **Feito:** D-92 — curva de nível única (`levelProgress`, a mesma de `private.level_progress`); `levelFromXp`/`xpForLevel` removidas de `games.ts`; Você e Resumo apontados para ela; paridade com o SQL em 50 valores (pgTAP 31 + Deno lendo a mesma tabela). D-96 — RPC `faction_activity()` (só contagens, demo separada) + regra `factionNeedingBoost`. Marcos da pintura em `extras.milestones` (`svc_paint_milestones`: "primeiro trecho" 1 vez na vida e "recorde de trechos"). Eco da crew `crew_echo()` (agregado de ontem, 07h–22h, respeita compartilhamento e privacidade do colega).
+- **Arquivos:** `supabase/migrations/20261031120000_f8_fundacao.sql`, `supabase/tests/database/31_f8_fundacao.test.sql`, `supabase/functions/_shared/{v2.ts,v2-run.ts,domain.ts}`, `supabase/functions/tests/{f8_fundacao,v2}.test.ts`, os 2 `deno.json`, `apps/mobile/src/domain/{faction-activity.ts,games.ts,progression.ts}`, `services/api/{faction-activity-repo,crews-repo,activities-repo}.ts`, `services/api/demo/{f8,rpc,functions,server}.ts`, telas `profile-screen`/`summary-screen` (só a troca do import), `docs/API_CONTRATO.md`, `supabase/DEPLOY.md` §10.1.
+- **Testes:** pgTAP 877/877 (31 arquivos) · Deno 94 ok, 1 ignorado · typecheck ok · eslint 0 · Jest completo 1.435 ✅ (26 pulados), 0 falhas.
+- **Pendências:** seed da nuvem sem `paint_marks` (eco não aparece nas contas demo da nuvem; aparece no modo demonstração do app). Outras worktrees que importem `levelFromXp` precisam trocar por `levelProgress`.
+- **Próximo:** E7 (onda B) usa `paintMilestonesOf`, `getFactionActivity().needsBoost` e `getCrewEcho()` (campos em `F8-A2.md` §2).
+
 ### 2026-10-30 — Fase 8: auditoria de arte e sistema de identidade dos times (E4 direção de arte)
 - **Feito:** toda a arte atual renderizada em folhas de contato (`docs/melhoria/F8/arte/atual/`, 12 famílias, com o selo antigo reproduzido 1:1 e em contexto); veredito por peça em `docs/melhoria/F8/02-direcao-de-arte.md`; **sistema de identidade dos times** (cabeça do mascote dentro da forma, `mini`/`medio`/`grande`/`mono`/`neutro`) prototipado em 3 rodadas (`arte/proposta/emblemas-r1..r3.png`, `contexto-r3.png`, `antes-depois.png`, SVGs por time); capa do time para a escolha e "Meu time" (`capas.png`, `capa-meu-time.png`) com lema e bio por time; avaliação de Lottie/Skia/Rive/HyperFrames; plano de produção com estimativas e checklist de 10 itens.
 - **Arquivos:** só `docs/melhoria/F8/**` (documento, `arte/fonte/{atual,emblema,capa}.cjs`, PNGs e SVGs). Nenhum arquivo de produção alterado.

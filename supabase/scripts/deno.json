@@ -45,6 +45,8 @@
     "../../apps/mobile/src/domain/league": "../../apps/mobile/src/domain/league.ts",
     "@/domain/league": "../../apps/mobile/src/domain/league.ts",
     "../../apps/mobile/src/domain/crew-goal": "../../apps/mobile/src/domain/crew-goal.ts",
-    "@/domain/crew-goal": "../../apps/mobile/src/domain/crew-goal.ts"
+    "@/domain/crew-goal": "../../apps/mobile/src/domain/crew-goal.ts",
+    "../../apps/mobile/src/domain/faction-activity": "../../apps/mobile/src/domain/faction-activity.ts",
+    "@/domain/faction-activity": "../../apps/mobile/src/domain/faction-activity.ts"
   }
 }

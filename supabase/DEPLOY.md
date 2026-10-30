@@ -217,6 +217,21 @@ Resumo das seções 7 a 9 mais as correções da revisão (`20261028120000_revie
 
 **Para desligar a v2 de uma vez** (o que já foi gravado fica): `update public.game_config set value = (select jsonb_object_agg(k, false) from jsonb_object_keys(value) k) where key = 'features';` e `territory_rule = 'v1'`.
 
+## 10.1 Fase 8 · A2 (`20261031120000_f8_fundacao`)
+
+Mesma ordem da §10: **migration → functions → EAS Update**. Nada liga sozinho e nada muda para o app antigo.
+
+| Passo | O quê | Observação |
+|---|---|---|
+| 1 | Testes locais | `NR_PORT=54345 npm run db:test:local` (**877** pgTAP em 31 arquivos), `npm run functions:test` (Deno: 94 ok, 1 ignorado), `npm run functions:check` |
+| 2 | Migration | `npx supabase db push` (só `20261031120000_f8_fundacao`): `faction_activity()`, `crew_echo()`, `svc_paint_milestones()` e o índice `activities_scored_started_idx`. Sem tabela, job, flag ou Realtime novos |
+| 3 | Functions | `npx supabase functions deploy finish-activity moderate-activity` (o `runV2` passa a pedir os marcos). Function nova com banco antigo: a chamada falha, é registrada no log e a resposta sai sem `extras.milestones`. Banco novo com function antiga: nada muda |
+| 4 | App | EAS Update. App antigo com servidor novo: ignora as RPCs e o campo novo. App novo com servidor antigo: `faction_activity`/`crew_echo` viram `{ available: false }` (sem selo, sem eco) |
+
+**Volta atrás:** basta não usar (as RPCs são só leitura e o marco é um campo a mais em `v2_extras`). Se precisar: `drop function public.faction_activity(), public.crew_echo(), private.crew_echo_at(uuid, timestamptz), public.svc_paint_milestones(uuid, uuid), private.paint_cells_of(jsonb);` (a function antiga segue funcionando sem elas).
+
+Na máquina com Docker: `npm run db:reset`, `npm run db:test:psql`, `npm run e2e` e `npm run functions:bundle-check`.
+
 ## 11. Versão web na Vercel
 
 A Vercel hospeda só as telas (o export web do Expo). O servidor continua no Supabase Cloud (§10). A configuração está em `apps/mobile/vercel.json`.

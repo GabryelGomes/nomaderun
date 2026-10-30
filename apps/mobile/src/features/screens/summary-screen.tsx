@@ -14,7 +14,7 @@ import { TeamBadge } from '@/components/team-badge';
 import { EmptyState, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import TerritoryMap from '@/components/territory-map';
-import { levelFromXp } from '@/domain/games';
+import { levelProgress } from '@/domain/progression';
 import { formatDuration, formatKm, formatPace } from '@/domain/geo';
 import { DEMO_CENTER } from '@/demo/demo-data';
 import { mapZonesNear } from '@/features/map-data';
@@ -191,7 +191,7 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
             : null;
 
   const at = (ms: number) => (reduced ? 0 : ms);
-  const lvl = xp ?? levelFromXp(xpTotal);
+  const lvl = xp ?? levelProgress(xpTotal); // D-92: uma curva só
   const gained = xp?.gained ?? r.xp;
   const teamColor = neonTeam[faction];
   const time = formatDuration(r.movingSeconds);

@@ -7,6 +7,7 @@ import type { FunctionName } from '../functions';
 
 import type { DemoDb, Row } from './db';
 import { withEngagementExtras } from './engagement';
+import { withPaintMilestones } from './f8';
 import { weeklyRecapDemo } from './social';
 import { accountDelete, accountExport, DemoHttpError, finishActivity, ingestPoints, moderateActivity, registerDevice, zoneDetail, zonesInBbox } from './server';
 
@@ -16,7 +17,7 @@ type FunctionHandler = (db: DemoDb, userId: string, req: FunctionRequest) => unk
 export const DEMO_FUNCTION_HANDLERS: Record<FunctionName, FunctionHandler> = {
   'register-device': (db, userId, req) => registerDevice(db, userId, req.body),
   'ingest-points': (db, userId, req) => ingestPoints(db, userId, req.body),
-  'finish-activity': (db, userId, req) => withEngagementExtras(db, userId, finishActivity(db, userId, req.body)),
+  'finish-activity': (db, userId, req) => withPaintMilestones(db, userId, withEngagementExtras(db, userId, finishActivity(db, userId, req.body))),
   zones: (db, _u, req) => zonesInBbox(db, req.query.get('bbox')),
   zone: (db, _u, req) => zoneDetail(db, req.query.get('id')),
   'moderate-activity': (db, userId, req) => moderateActivity(db, userId, req.body),

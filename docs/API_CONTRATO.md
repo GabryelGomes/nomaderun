@@ -501,3 +501,55 @@ Migration `20261029120000_final_fixes` (aditiva; pgTAP `30_final_fixes`). O que 
 - Erros: `UNAUTHORIZED`, `ACCOUNT_INACTIVE`. Sem tabela nova, sem Realtime, nada novo no export LGPD (só leitura do que já existe).
 - App: `getCrewWeekGoal()` em `crews-repo.ts`; a barra do herói do Clube usa `progress` (km ÷ meta). Servidor antigo (sem a RPC): o Clube volta para a conta pelo `ranking_runners` (quem correu ÷ membros).
 
+
+## Fase 8 · A2 (E9 + E3): uma verdade só (`20261031120000_f8_fundacao`)
+
+Só aditivo: 3 RPCs novas, 1 índice (`activities_scored_started_idx`, parcial em `scored`), nenhuma tabela nova, nenhuma flag nova, nada novo no Realtime nem no export LGPD (o que entra fica em `activities.v2_extras`, que já é exportado e apagado).
+
+### D-92: curva de nível
+
+Uma só: `levelProgress(totalXp)` em `src/domain/progression.ts` (`xpToNextLevel(n) = arred10(50·n^1,3) + 50`, nível máximo 50), a mesma de `private.level_progress` (usada por `my_engagement()` e pelo bloco `extras.engagement.level`). A curva v1 (`xpForLevel`/`levelFromXp`, `games.ts`) foi **removida**: Resumo, Você, Recompensas e card usam `levelProgress`. Paridade: o pgTAP 31 compara 50 valores de XP (0 a 50.000, com as fronteiras dos níveis 2 a 13) com o SQL, e o Deno `f8_fundacao.test.ts` confere a mesma tabela contra o domain.
+
+### `faction_activity()` → `jsonb` (D-96, `authenticated`)
+
+```json
+{ "windowDays": 7, "since": 1793400000000, "counts": { "striders": 12, "coyotes": 9, "owls": 3, "volt": 10 }, "total": 34, "isDemo": false }
+```
+
+- **Ativo** = conta `active`, com time, com pelo menos 1 corrida **aceita** (pontuada, `valid`/`partial`) que terminou nos últimos 7 dias (janela móvel). Conta pessoas, não corridas. Os 4 times sempre aparecem (0 quando ninguém correu).
+- **Só números**: nenhum `user_id`, nome ou lugar.
+- **Demonstração separada**: conta real só conta contas reais; conta de demonstração (`profiles.is_demo`) só conta demonstração e recebe `isDemo: true` (a tela marca "demonstração").
+- O selo "Precisa de reforço" **não vem do servidor**: o app decide com `factionNeedingBoost(counts)` (`src/domain/faction-activity.ts`): o time com menos ativos, só se for o **único** no menor número e se o total for ≥ 4. Só cosmético.
+- Erros: `UNAUTHORIZED`, `ACCOUNT_INACTIVE`. App: `getFactionActivity()` (`services/api/faction-activity-repo.ts`); servidor antigo → `{ available: false, reason: 'servidor-antigo' }` (sem selo).
+
+### `extras.milestones` no `POST /finish-activity` (e `moderate-activity`) — para a E7
+
+Só com a **pintura v2** (`extras.paint` presente). Opcional: servidor antigo, regra v1 ou corrida não pontuada → o campo não vem.
+
+```json
+"milestones": { "firstPaint": true, "cells": 12, "cellsRecord": null }
+"milestones": { "firstPaint": false, "cells": 47, "cellsRecord": { "value": 47, "previous": 31 } }
+```
+
+| Campo | Significado |
+|---|---|
+| `firstPaint` | "Primeiro trecho pintado": a 1ª corrida **da vida** com ≥ 1 trecho. 1 vez só, mesmo com corridas sincronizadas fora de ordem (desempate: a que terminou antes) e mesmo para corridas pintadas antes desta migration (contam como "antes") |
+| `cells` | Trechos pintados nesta corrida (= `extras.paint.cells`) |
+| `cellsRecord` | "Recorde de trechos numa corrida": `value` > o maior número de trechos de **qualquer outra** corrida da pessoa (`previous` ≥ 1). Comparação só consigo. Nunca junto com `firstPaint` |
+
+- Quem decide: `public.svc_paint_milestones(p_user, p_activity)` (`service_role`), chamada pelo `runV2` logo depois do `svc_apply_v2`, com o mesmo travamento por pessoa (perfil `for update`). Idempotente: grava em `activities.v2_extras.milestones` e a repetição devolve o mesmo. Function nova com banco antigo (sem a RPC): segue sem o marco, nunca derruba o finish.
+- App: `paintMilestonesOf(official)` (`services/api/activities-repo.ts`) lê a resposta do finish **ou** `activities.v2_extras` (resumo reaberto). Regra pura igual em `paintMilestones()` (demonstração e testes).
+
+### `crew_echo()` → `jsonb | null` ("eco da crew", `authenticated`, flag `feed`)
+
+"Rafa reforçou 3 trechos que você pintou": o colega da crew que mais reforçou **ontem** (Brasília) os trechos que você pintou ontem ou anteontem.
+
+```json
+{ "day": "2026-11-03", "mate": { "username": "rafa" }, "cells": 3, "othersCount": 1, "totalCells": 4,
+  "notifyFrom": 1793786400000, "notifyUntil": 1793840400000 }
+```
+
+- `null` quando: sem crew, ninguém reforçou, ou **entre 22h e 7h** (o aviso nunca sai nesse horário). 1 agregado por dia (o de ontem); `notifyFrom`/`notifyUntil` = 07h–22h de hoje.
+- Fonte: `paint_marks` (o servidor guarda 2 dias). Fica de fora: colega com "mostrar minhas corridas na crew" desligado (`user_settings.share_runs_to_feed`), conta não ativa, trecho sem lugar conhecido e trecho dentro da **máscara** de uma zona de privacidade **do colega** (D-87, + 50 m). Só o nome do colega (que a crew já vê) e contagens; nada de lugar.
+- Erros: `UNAUTHORIZED`, `ACCOUNT_INACTIVE`, `FEATURE_DISABLED` (flag `feed`). App: `getCrewEcho()` (`crews-repo.ts`); servidor antigo ou flag desligada → `{ available: false }`. O aviso local respeita o limite de 1/dia e 4/semana (D-69) e `isEchoHour()` (domain).
+- Regra com relógio: `private.crew_echo_at(p_uid, p_now)` (não chamável pelo app; o pgTAP fixa a hora).

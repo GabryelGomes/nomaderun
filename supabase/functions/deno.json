@@ -23,6 +23,7 @@
     "../../apps/mobile/src/domain/live-events": "../../apps/mobile/src/domain/live-events.ts",
     "../../apps/mobile/src/domain/raid": "../../apps/mobile/src/domain/raid.ts",
     "../../apps/mobile/src/domain/league": "../../apps/mobile/src/domain/league.ts",
-    "../../apps/mobile/src/domain/crew-goal": "../../apps/mobile/src/domain/crew-goal.ts"
+    "../../apps/mobile/src/domain/crew-goal": "../../apps/mobile/src/domain/crew-goal.ts",
+    "../../apps/mobile/src/domain/faction-activity": "../../apps/mobile/src/domain/faction-activity.ts"
   }
 }
