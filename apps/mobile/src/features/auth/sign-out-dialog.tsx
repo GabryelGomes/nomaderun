@@ -32,10 +32,10 @@ export function SignOutDialog({ visible, onClose, testID = 'sair-dialogo' }: { v
             <Text variant="title" accessibilityRole="header">
               Sair da conta?
             </Text>
-            <Text muted>Para voltar, você entra com seu e-mail e senha.</Text>
+            <Text muted>Para voltar, use e-mail e senha.</Text>
           </View>
           <View style={{ gap: space[3] }}>
-            <Button testID={`${testID}-confirmar`} label={busy ? 'Saindo…' : 'Sair'} kind="danger" size="lg" wide disabled={busy} busy={busy} onPress={() => void confirm()} />
+            <Button testID={`${testID}-confirmar`} label="Sair" kind="danger" size="lg" wide disabled={busy} busy={busy} onPress={() => void confirm()} />
             <Button testID={`${testID}-cancelar`} label="Cancelar" kind="secondary" size="lg" wide disabled={busy} onPress={onClose} />
           </View>
         </Surface>

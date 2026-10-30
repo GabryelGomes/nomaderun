@@ -73,7 +73,9 @@ const SCREENS = [
   { rota: 'onboarding · 3 localização', tipo: 'jogo', partes: [['features/screens/onboarding/onboarding-screen.tsx', 'LocationStep']] },
   { rota: 'onboarding · nome (só login social sem nome)', tipo: 'jogo', partes: [['features/screens/onboarding/onboarding-screen.tsx', "cond:step === 'nome'"]] },
   { rota: 'mapa · missão de boas-vindas', tipo: 'jogo', meta: 25, partes: [['features/screens/onboarding/welcome-mission-card.tsx'], ['features/screens/onboarding/welcome-mission.ts']] },
-  { rota: '(tabs)/correr', tipo: 'jogo', partes: [['components/app-tabs-correr.tsx']] },
+  // F8-A3 (D-89): a aba Correr saiu; `/correr` só redireciona para a Nova corrida (sem texto próprio).
+  { rota: '+not-found (rota inexistente)', tipo: 'informativa', partes: [['app/+not-found.tsx']] },
+  { rota: 'aviso sem conexão (OfflineNotice, D-95)', tipo: 'jogo', meta: 20, partes: [['components/offline-notice.tsx']] },
   { rota: 'atividades → perfil/atividades (redireciona)', tipo: 'informativa', partes: [['components/app-tabs-redirect.tsx']] },
   { rota: '(tabs)/index · Mapa', tipo: 'jogo', partes: [['features/screens/map-screen.tsx', 'MapScreen'], ['features/screens/map-layer-chips.tsx']] },
   { rota: 'corrida · preparação', tipo: 'jogo', partes: [['features/screens/run-screen.tsx', 'RunScreen']] },
@@ -91,7 +93,7 @@ const SCREENS = [
   // E6a (onda 3): os ajustes saíram do perfil para trás da engrenagem.
   { rota: '(tabs)/perfil/ajustes', tipo: 'conta', partes: [['features/screens/profile-screen.settings.tsx']] },
   { rota: '(tabs)/perfil/editar', tipo: 'conta', partes: [['features/screens/edit-profile-screen.tsx']] },
-  { rota: '(tabs)/perfil/conta', tipo: 'conta', partes: [['features/screens/account-screen.tsx']] },
+  { rota: '(tabs)/perfil/conta', tipo: 'conta', partes: [['features/screens/account-screen.tsx'], ['features/auth/sign-out-dialog.tsx']] },
   { rota: 'notificacoes', tipo: 'jogo', partes: [['features/notifications/notifications-screen.tsx']] },
   { rota: 'contatos-seguranca', tipo: 'conta', partes: [['features/safety/contacts-screen.tsx']] },
   { rota: 'zonas-privacidade', tipo: 'conta', partes: [['features/screens/privacy-zones-screen.tsx']] },

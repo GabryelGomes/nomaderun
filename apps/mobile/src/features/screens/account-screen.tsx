@@ -115,7 +115,7 @@ export function AccountScreen() {
           <Surface>
             {/* O botão já diz "Exportar meus dados": o título repetido saiu (ajuste de texto E6). */}
             <Text variant="small" muted>
-              JSON com perfil, corridas, trajetos de GPS, contatos da Corrida Segura e notificações.
+              Arquivo com perfil, corridas, trajetos, contatos e avisos.
             </Text>
             <Button testID="conta-exportar" label={exporting ? 'Gerando arquivo…' : 'Exportar meus dados'} kind="secondary" icon="share" wide disabled={exporting} onPress={doExport} />
             <ErrorNotice message={error} testID="conta-exportar-erro" />
@@ -134,7 +134,7 @@ export function AccountScreen() {
         <View style={{ gap: space[3] }}>
           <SectionHeader title="Sessão" />
           {/* UX-36: o único "Sair" do app, sempre com confirmação. */}
-          <Button testID="conta-sair" label="Sair da conta" icon="logout" kind="secondary" size="lg" wide onPress={() => setSignOutOpen(true)} />
+          <Button testID="conta-sair" label="Sair" icon="logout" kind="secondary" size="lg" wide onPress={() => setSignOutOpen(true)} />
           <SignOutDialog visible={signOutOpen} onClose={() => setSignOutOpen(false)} testID="conta-sair-dialogo" />
         </View>
 

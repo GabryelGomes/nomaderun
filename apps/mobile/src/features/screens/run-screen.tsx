@@ -236,12 +236,12 @@ export function RunScreen() {
             testID="corrida-escolta"
             icon="location"
             title="Compartilhar ao vivo"
-            body={contacts.length === 0 ? 'Adicione alguém de confiança.' : escortOn ? `${contacts.join(' e ')} veem onde você está.` : 'Seus contatos veem onde você está.'}
+            body={contacts.length === 0 ? 'Adicione alguém de confiança.' : escortOn ? `${contacts.join(' e ')} veem você.` : 'Seus contatos veem você.'}
             value={escortOn}
             onChange={toggleEscort}
           />
           <View style={{ height: 1, backgroundColor: colors.line, marginHorizontal: space[4] }} />
-          <SafetyToggle testID="corrida-alerta-parada" icon="timer" title="Avisar se eu parar" body="Parado 10 min, avisamos seus contatos." value={stopAlertOn} onChange={toggleStopAlert} />
+          <SafetyToggle testID="corrida-alerta-parada" icon="timer" title="Avisar se eu parar" value={stopAlertOn} onChange={toggleStopAlert} />
         </View>
         <Button testID="corrida-contatos" label="Contatos de segurança" kind="ghost" wide onPress={() => router.push('/contatos-seguranca')} />
       </ScreenEnter>
@@ -250,16 +250,18 @@ export function RunScreen() {
 }
 
 /** Opção da Corrida Segura: ícone, nome, 1 frase e o interruptor (alvo da linha inteira ≥ 44 pt). */
-function SafetyToggle({ testID, icon, title, body, value, onChange }: { testID: string; icon: IconName; title: string; body: string; value: boolean; onChange: () => void }) {
+function SafetyToggle({ testID, icon, title, body, value, onChange }: { testID: string; icon: IconName; title: string; body?: string; value: boolean; onChange: () => void }) {
   const { colors } = useTheme();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[4], minHeight: 64 }}>
       <Icon name={icon} size={22} color={colors.text} />
       <View style={{ flex: 1 }}>
         <Text variant="bodyBold">{title}</Text>
-        <Text variant="small" muted>
-          {body}
-        </Text>
+        {body ? (
+          <Text variant="small" muted>
+            {body}
+          </Text>
+        ) : null}
       </View>
       <Switch testID={testID} value={value} onValueChange={onChange} accessibilityLabel={`Corrida Segura: ${title}`} trackColor={{ true: colors.action, false: colors.lineControl }} />
     </View>
