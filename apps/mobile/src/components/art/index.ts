@@ -17,6 +17,8 @@ export { TeamEmblem, type TeamEmblemProps } from './team/emblem';
 export { EMBLEM_BOX, EMBLEM_LINE_ART_MIN, EMBLEM_MIN_SIZE, EMBLEM_VARIANTS, emblemLabel, resolveEmblemVariant, type EmblemVariant, type EmblemVariantProp } from './team/emblem-art';
 export { MascotRunner, type MascotRunnerProps, type RunnerPart } from './team/mascot-runner';
 export { RUNNER_BOX, RUNNER_PIVOTS } from './team/runner-art';
+export { TeamCover, type TeamCoverProps } from './team/cover';
+export { COVER_BOX, COVER_GLOW, COVER_IDLE, COVER_TEXT, coverLabel, coverScene, glowOpacityAt, textAnchors, type CoverVariant } from './team/cover-art';
 export { MASCOT_BOX, MASCOT_NAMES, MASCOT_PIVOTS, MASCOT_POSES, type MascotPose } from './team/mascot-art';
 
 export { LeaderBust, type LeaderBustProps, type LeaderPart } from './leader/leader-bust';
