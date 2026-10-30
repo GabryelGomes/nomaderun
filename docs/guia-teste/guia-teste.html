@@ -41,10 +41,10 @@
 
 <header>
   <h1>NOMADE <span>RUN</span> — como testar o app</h1>
-  <p>Guia rápido para colegas e professores · TCC de Gabryel Gomes Bahmad Camapum e Mateus Augusto de Faria Brito</p>
+  <p>Guia rápido para colegas e professores · Gabryel Gomes Bahmad Camapum e Mateus Augusto de Faria Brito</p>
 </header>
 
-<p>O NOMADE RUN é um app de corrida em que cada corrida conquista zonas da cidade para a sua facção. Há duas formas de testar:</p>
+<p>O NOMADE RUN é um app de corrida em que cada corrida pinta as ruas da cidade com a cor do seu time e ajuda a conquistar zonas. Há duas formas de testar:</p>
 
 <table>
   <tr><th style="width:30%">Forma</th><th>Para quem</th><th style="width:30%">Precisa de</th></tr>
@@ -63,17 +63,17 @@
   </li>
   <li>Na primeira vez o app demora alguns segundos para baixar. Depois, abre direto pela lista de projetos do Expo Go.</li>
 </ol>
-<div class="box">Funciona em qualquer rede (Wi-Fi ou 4G) e <b>não depende de nenhum computador ligado</b>: o app e o servidor estão na nuvem.</div>
+<div class="box">Funciona em qualquer rede e <b>sem computador ligado</b>: app e servidor ficam na nuvem.</div>
 
 <h2>Primeiros passos no app</h2>
 <ol>
   <li><b>Crie sua conta</b> em “Criar conta” com e-mail e senha (é preciso ter 16 anos ou mais e aceitar a política de privacidade).</li>
-  <li><b>Escolha sua facção.</b> Cada facção tem cor e símbolo próprios no mapa.</li>
-  <li><b>Permita a localização</b> quando o app pedir: é ela que mede a distância e mostra em que zona você está.</li>
-  <li>No <b>Mapa</b>, toque em <b>Correr</b>, escolha a missão e toque em <b>Começar</b>. Para terminar, <b>segure o botão de encerrar</b>. O resumo mostra os pontos (RP) e as zonas que você ajudou a conquistar.</li>
-  <li>Explore as abas <b>Mapa</b> (território de cada facção), <b>Arena</b> (disputa e ranking), <b>Atividades</b> (suas corridas), <b>Clube</b> (crews) e <b>Perfil</b>.</li>
+  <li><b>Escolha seu time.</b> São 4 times, cada um com cor, mascote e jeito de correr. Na dúvida, toque em <b>“Não sei escolher”</b> e responda o quiz.</li>
+  <li><b>Permita a localização</b> quando o app pedir: é ela que mede a distância e pinta as ruas por onde você passa.</li>
+  <li>Toque na aba <b>Correr</b> e em <b>Começar</b>. Para terminar, <b>segure o botão de encerrar</b>. O Resumo mostra XP, ruas pintadas e recompensas, e gera um <b>card para os Stories</b>.</li>
+  <li>Explore as abas <b>Mapa</b> (território de cada time), <b>Arena</b> (chefão da semana, liga e missões), <b>Correr</b>, <b>Clube</b> (sua crew, feed com “Bora!” e ranking) e <b>Você</b> (perfil, corridas e ajustes).</li>
 </ol>
-<div class="box warn"><b>Atenção:</b> regiões e jogadores marcados como <b>“demonstração”</b> são dados fictícios para mostrar o funcionamento. Corridas muito curtas, rápidas demais (ex.: de carro) ou com GPS ruim podem ir para revisão e não pontuar: é o antifraude funcionando.</div>
+<div class="box warn"><b>Atenção:</b> o selo <b>“Demonstração”</b> marca dados fictícios. Pintura das ruas, chefão, liga e feed aparecem quando o servidor novo estiver no ar; para ver tudo já, use o <b>modo demonstração</b> (página 2, passo 5).</div>
 
 <div class="pagebreak"></div>
 <h2>B. Executando o projeto pelo zip, passo a passo <span class="tag dev">no seu computador</span></h2>
@@ -117,6 +117,8 @@ Get-Content .env</pre>
 <div class="step avoid"><div class="n">5</div><div>
 <h3>Inicie o app</h3>
 <pre>npx expo start --tunnel</pre>
+<p><b>Modo demonstração</b> (abre o app completo sem servidor, com dados fictícios e o selo “Demonstração” em toda tela; não precisa do <code>.env</code>):</p>
+<pre>$env:EXPO_PUBLIC_DEMO=1; npx expo start --tunnel --clear</pre>
 <ul>
   <li>Se perguntar se pode instalar o <code>@expo/ngrok</code>, digite <b>y</b> e Enter.</li>
   <li>Se o Firewall do Windows perguntar, clique em <b>Permitir acesso</b>.</li>
@@ -140,13 +142,14 @@ Get-Content .env</pre>
 <pre>cd $HOME\Documents\nomaderun\apps\mobile
 npx expo start --tunnel</pre></li>
   <li>Com o terminal aberto, a tecla <b>r</b> recarrega o app no celular.</li>
+  <li><b>Recebeu uma versão nova?</b> Troque a pasta pelo zip novo (ou <code>git pull</code>), rode <code>npm install</code> de novo e inicie com <code>--clear</code> na primeira vez.</li>
 </ul></div></div>
 
 <div class="box avoid"><b>Linux, macOS ou WSL:</b> os passos são os mesmos, trocando os comandos do passo 3 por:
 <pre>cd ~/nomaderun/apps/mobile
 cp .env.example .env
 nano .env        # preencha a URL e a chave, salve com Ctrl+O e saia com Ctrl+X</pre>
-Depois <code>npm install</code> e <code>npx expo start --tunnel</code>. (No WSL, o <code>--tunnel</code> é o jeito mais simples de o celular enxergar o PC.)</div>
+Depois <code>npm install</code> e <code>npx expo start --tunnel</code> (modo demonstração: <code>EXPO_PUBLIC_DEMO=1 npx expo start --tunnel --clear</code>). (No WSL, o <code>--tunnel</code> é o jeito mais simples de o celular enxergar o PC.)</div>
 
 <div class="avoid">
 <h3>Problemas comuns</h3>
