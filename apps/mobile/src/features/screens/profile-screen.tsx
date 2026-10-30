@@ -147,9 +147,12 @@ export function ProfileScreen() {
           testID="perfil-medalhas-titulo"
           title="Medalhas"
           action={
-            <Text testID="perfil-medalhas-contagem" variant="bodyBold" color={colors.accentText} tabular>
-              {runsKnown ? `${shelf.earned} de ${shelf.total}` : NO_DATA}
-            </Text>
+            // Carregando: nada (o esqueleto está logo abaixo); falhou: "—"; nunca "0 de 4".
+            runsKnown || runsFailed ? (
+              <Text testID="perfil-medalhas-contagem" variant="bodyBold" color={colors.accentText} tabular>
+                {runsKnown ? `${shelf.earned} de ${shelf.total}` : NO_DATA}
+              </Text>
+            ) : undefined
           }
         />
         {runsKnown ? (

@@ -132,7 +132,7 @@ async function rolar(page, y) {
     // Carregamento da web (UX-37): o HTML estático antes do JavaScript (o script do app fica parado).
     if (!ONLY.length || ONLY.includes('mapa__carregando')) {
       const { ctx, page } = await newCtx(browser);
-      await page.route(/\/_expo\/static\/js\//, () => undefined);
+      await page.route(/\/_expo\/static\/js\//, (r) => r.abort());
       await page.goto(`${BASE}/`, { waitUntil: 'commit' });
       await page.waitForTimeout(1500);
       await page.screenshot({ path: path.join(OUT, 'mapa__carregando.png') });

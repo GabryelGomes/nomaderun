@@ -1,0 +1,105 @@
+{
+  "mapa__cheio": {
+    "url": "/?cenario=cheio",
+    "palavras": 30,
+    "erros": []
+  },
+  "mapa__sob-ataque": {
+    "url": "/?cenario=sob-ataque",
+    "palavras": 30,
+    "erros": []
+  },
+  "zona__sob-ataque": {
+    "url": "/zona/89a8c0ce2c3ffff?cenario=sob-ataque",
+    "palavras": 40,
+    "erros": []
+  },
+  "nova-corrida__cheio": {
+    "url": "/corrida?cenario=cheio",
+    "palavras": 52,
+    "erros": []
+  },
+  "nova-corrida__cheio--2": {
+    "url": "/corrida?cenario=cheio",
+    "palavras": 52,
+    "erros": []
+  },
+  "correr-link__cheio": {
+    "url": "/corrida",
+    "palavras": 52,
+    "erros": []
+  },
+  "rota-inexistente__cheio": {
+    "url": "/rota-que-nao-existe?cenario=cheio",
+    "palavras": 18,
+    "erros": []
+  },
+  "voce__carregando": {
+    "url": "/perfil?cenario=lento",
+    "palavras": 26,
+    "erros": []
+  },
+  "voce-atividades__carregando": {
+    "url": "/perfil/atividades?cenario=lento",
+    "palavras": 18,
+    "erros": []
+  },
+  "voce__offline-quente": {
+    "url": "/perfil?cenario=offline",
+    "palavras": 41,
+    "erros": []
+  },
+  "voce__erro-quente": {
+    "url": "/perfil?cenario=erro",
+    "palavras": 43,
+    "erros": []
+  },
+  "voce-atividades__offline-quente": {
+    "url": "/perfil/atividades?cenario=offline",
+    "palavras": 30,
+    "erros": []
+  },
+  "mapa__erro-quente": {
+    "url": "/?cenario=erro",
+    "palavras": 23,
+    "erros": []
+  },
+  "arena__erro-quente": {
+    "url": "/arena?cenario=erro",
+    "palavras": 44,
+    "erros": []
+  },
+  "recompensas__offline-quente": {
+    "url": "/recompensas?cenario=offline",
+    "palavras": 33,
+    "erros": []
+  },
+  "missoes__offline-quente": {
+    "url": "/missoes?cenario=offline",
+    "palavras": 14,
+    "erros": []
+  },
+  "clube__offline-quente": {
+    "url": "/clube?cenario=offline",
+    "palavras": 30,
+    "erros": []
+  },
+  "indisponivel__erro": {
+    "url": "/indisponivel",
+    "palavras": 21,
+    "erros": []
+  },
+  "voce-ajustes__cheio": {
+    "url": "/perfil/ajustes?cenario=cheio",
+    "palavras": 201,
+    "erros": []
+  },
+  "voce-conta__sair": {
+    "url": "/perfil/conta?cenario=cheio",
+    "palavras": 75,
+    "erros": []
+  },
+  "mapa__carregando": {
+    "fundo": "rgb(7, 7, 8)"
+  }
+}
