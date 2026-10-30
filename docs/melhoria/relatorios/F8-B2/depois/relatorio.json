@@ -11,7 +11,7 @@
   },
   "mapa__segunda": {
     "url": "/?cenario=cheio",
-    "palavras": 42,
+    "palavras": 37,
     "erros": []
   },
   "missoes__cheio": {
@@ -26,12 +26,12 @@
   },
   "x-voce-medalhas-toque": {
     "url": "/perfil?cenario=cheio",
-    "palavras": 74,
+    "palavras": 71,
     "erros": []
   },
   "voce__cheio--2": {
     "url": "/perfil?cenario=cheio",
-    "palavras": 62,
+    "palavras": 59,
     "erros": []
   },
   "recompensas__cheio": {
