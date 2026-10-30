@@ -7,6 +7,7 @@ import type { IconName } from '@/components/icon';
 import { DEFENSE_WINDOW_MS, isUnderAttackAt, type Zone } from '@/domain/territory';
 import type { FactionId } from '@/domain/types';
 import type { AppNotification } from '@/services/api/notifications-repo';
+import { formatCountdown, formatUntil } from '@/features/format';
 
 /**
  * Dados de engajamento do dia. Quem preenche é o hook da E7 (sequência, baú do dia, missão) e o da Raid
@@ -73,9 +74,9 @@ export function todayChips(today: MapToday | null | undefined, streakWeeks: numb
 }
 
 /** Hora em que a janela de defesa fecha (24 h depois do início do ataque), "18:40". */
-export function defenseEndsAt(zone: Pick<Zone, 'attackStartedAt'>, timeZone?: string): string {
-  if (zone.attackStartedAt === null) return '';
-  return new Date(zone.attackStartedAt + DEFENSE_WINDOW_MS).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', ...(timeZone ? { timeZone } : null) });
+/** Fim da janela de defesa (ms), ou `null` sem ataque. O texto sai de `@/features/format` (UX-09). */
+export function defenseEndsAt(zone: Pick<Zone, 'attackStartedAt'>): number | null {
+  return zone.attackStartedAt === null ? null : zone.attackStartedAt + DEFENSE_WINDOW_MS;
 }
 
 /** Zonas do time sob ataque agora (E-03/E-04: só dentro da janela; `isUnderAttackAt`). A mais recente primeiro. */
@@ -96,13 +97,16 @@ export function mapAlerts(input: {
   zoneName: (id: string) => string;
   attackerName: (f: FactionId | null) => string;
   today?: MapToday | null;
-  timeZone?: string;
+  /** Agora (ms), para a contagem do prazo de defesa ("Faltam 17 h 30 min", UX-09). */
+  now?: number;
 }): MapAlert[] {
   const out: MapAlert[] = [];
   const a = input.attacked[0];
-  if (a) {
-    const ends = defenseEndsAt(a, input.timeZone);
-    out.push({ id: `ataque-${a.id}`, kind: 'attack', zoneId: a.id, title: `${input.zoneName(a.id)} sob ataque`, body: `${input.attackerName(a.attacker)} · dobro até ${ends}` });
+  const ends = a ? defenseEndsAt(a) : null;
+  if (a && ends !== null) {
+    // Na tela o prazo é contagem; o horário ("até 02h30") fica só para os avisos (regra 2 da Fase 8).
+    const deadline = input.now !== undefined ? formatCountdown(ends, input.now) : formatUntil(ends);
+    out.push({ id: `ataque-${a.id}`, kind: 'attack', zoneId: a.id, title: `${input.zoneName(a.id)} sob ataque`, body: `${input.attackerName(a.attacker)} · ${deadline}` });
   }
   const m = input.today?.mission;
   if (m && m.done < m.steps.length) out.push({ id: `missao-${m.id}`, kind: 'mission', title: m.title, body: m.reward ?? '' });

@@ -12,6 +12,7 @@ import { emptyPaintCounts, paintZoneGap, paintZoneOf, type PaintCounts } from '@
 import { DEFENSE_WINDOW_MS, influenceGapV1, isUnderAttackAt, type Zone } from '@/domain/territory';
 import { FACTION_IDS, type FactionId } from '@/domain/types';
 import { factions } from '@/theme/tokens';
+import { formatCountdown } from '@/features/format';
 
 /** Nome curto do time no placar ("Striders", "Owls"). */
 export const shortTeam = (f: FactionId) => factions[f].name.split(' ').slice(-1)[0];
@@ -94,10 +95,7 @@ export function zoneView(input: {
   return { rule: paint ? 'v2' : 'v1', owner, ownerLine, bar, attackEndsAt, ruleLine, gapLine, cta };
 }
 
-/** Tempo até o fim da defesa, "17:27" (h:mm). */
+/** Tempo até o fim da defesa, "Faltam 17 h 27 min" (UX-09: nunca "17:27", que parece horário). */
 export function countdownText(endsAt: number, now: number): string {
-  const left = Math.max(0, endsAt - now);
-  const h = Math.floor(left / 3_600_000);
-  const m = Math.floor((left % 3_600_000) / 60_000);
-  return `${h}:${String(m).padStart(2, '0')}`;
+  return formatCountdown(endsAt, now);
 }

@@ -17,6 +17,7 @@ import TerritoryMap from '@/components/territory-map';
 import { levelFromXp } from '@/domain/games';
 import { formatDuration, formatKm, formatPace } from '@/domain/geo';
 import { DEMO_CENTER } from '@/demo/demo-data';
+import { formatInt, formatXp, signedInt } from '@/features/format';
 import { mapZonesNear } from '@/features/map-data';
 import { NeonBackdrop } from '@/features/auth/neon-backdrop';
 import { notificationPermissionStatus, requestNotificationPermission, shouldAskNotifications } from '@/features/run/notification-permission';
@@ -46,12 +47,17 @@ const renderMoment = renderCelebrationMoment();
 
 const CHIP_ICON: Partial<Record<CelebrationEvent['kind'], IconName>> = { 'zone-captured': 'flag', 'zone-defended': 'shield', xp: 'trophy' };
 
-/** Depois do roteiro: as conquistas viram chips (wireframe 10), uma linha que quebra. */
-function ConquestChips({ events }: { events: readonly CelebrationEvent[] }) {
+/**
+ * Depois do roteiro: as conquistas viram chips (wireframe 10), uma linha que quebra. UX-10: sem o XP (ele mora no
+ * bloco de recompensas) e sem a zona que já é o título da tela.
+ */
+function ConquestChips({ events, headline }: { events: readonly CelebrationEvent[]; headline?: string }) {
   const { colors } = useTheme();
+  const shown = events.filter((e) => e.kind !== 'xp' && !(e.kind === 'zone-captured' && headline !== undefined && e.payload.zone === headline));
+  if (shown.length === 0) return null;
   return (
     <Stagger testID="resumo-conquistas-lista" gap={space[2]} style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-      {events.map((e) => (
+      {shown.map((e) => (
         <View
           key={e.id}
           accessible
@@ -69,7 +75,7 @@ function ConquestChips({ events }: { events: readonly CelebrationEvent[] }) {
           }}>
           <Icon name={CHIP_ICON[e.kind] ?? 'check'} size={14} color={colors.accentText} />
           <Text variant="caption" numberOfLines={1}>
-            {e.kind === 'zone-captured' ? e.payload.zone : e.kind === 'zone-defended' ? `${e.payload.zone} defendida` : e.kind === 'xp' ? `+${e.payload.gained} XP` : e.label}
+            {e.kind === 'zone-captured' ? e.payload.zone : e.kind === 'zone-defended' ? `${e.payload.zone} defendida` : e.label}
           </Text>
         </View>
       ))}
@@ -295,13 +301,13 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
             />
             <StatTile
               label="Território"
-              value={`+${r.rpTotal}`}
-              unit="pts"
+              value={signedInt(r.rpTotal)}
+              unit={Math.round(r.rpTotal) === 1 ? 'ponto' : 'pontos'}
               accent={neon.orangeText}
               valueSlot={
                 <CountUp
                   value={r.rpTotal}
-                  format={(n) => `+${Math.round(n)}`}
+                  format={(n) => signedInt(n)}
                   variant="headline"
                   color={neon.orangeText}
                   delay={at(NUMBERS_AT + 3 * NUMBER_STEP)}
@@ -326,10 +332,11 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
 
         {/* 3. As conquistas, uma a uma (E5): só o que o servidor confirmou. "Pular" leva tudo ao fim. */}
         {/* 3. As conquistas tocam no palco por cima da tela (abaixo); no fim, ficam aqui como chips. */}
-        {events.length > 0 && sequenceDone ? <ConquestChips events={events} /> : null}
+        {events.length > 0 && sequenceDone ? <ConquestChips events={events} headline={highlight?.name} /> : null}
 
-        {/* 4. O nível (XP do servidor) enche depois das conquistas. */}
-        {done ? (
+        {/* 4. O nível (XP do servidor) enche depois das conquistas. UX-10: com o bloco de recompensas da E7, o nível e o
+            XP moram só nele (1 vez cada); este cartão fica para o servidor v1, que não manda o bloco. */}
+        {done && !rewards ? (
           <FadeUp delay={at(events.length ? 0 : CONQUESTS_AT)}>
             <Surface style={{ gap: space[2] }}>
               <View testID="resumo-nivel" style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
@@ -339,7 +346,7 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
                 </Text>
                 {gained > 0 ? (
                   <Text variant="bodyBold" tabular color={neon.orangeText} testID="resumo-xp">
-                    +{gained} XP
+                    {formatXp(gained)}
                   </Text>
                 ) : null}
               </View>
@@ -393,7 +400,7 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
                       </Text>
                     </View>
                     <Text variant="bodyBold" tabular color={z.rp > 0 ? colors.accentText : undefined}>
-                      +{z.rp}
+                      {signedInt(z.rp)}
                     </Text>
                   </View>
                 ))
@@ -403,9 +410,11 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
                   Estimativa do aparelho.
                 </Text>
               ) : null}
-              <Text variant="small" muted accessibilityLabel={`Mais ${gained} XP e ${r.newFogCells} ruas novas no Atlas`}>
-                +{gained} XP · +{r.newFogCells} ruas
-              </Text>
+              {r.newFogCells > 0 ? (
+                <Text variant="small" muted accessibilityLabel={`Mais ${r.newFogCells} ruas novas no Atlas`}>
+                  {`+${formatInt(r.newFogCells)} ${r.newFogCells === 1 ? 'rua nova' : 'ruas novas'} no Atlas`}
+                </Text>
+              ) : null}
             </Surface>
             {reasons.length > 0 || r.review ? (
               <Surface style={{ borderWidth: 1, borderColor: colors.line }}>

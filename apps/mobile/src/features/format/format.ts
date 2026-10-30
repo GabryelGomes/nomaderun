@@ -24,8 +24,8 @@ export function formatInt(n: number): string {
   return r < 0 ? `−${digits}` : digits;
 }
 
-/** Com "+" no ganho (zero e negativo saem sem "+"). */
-function signedInt(n: number): string {
+/** Com "+" no ganho (zero e negativo saem sem "+"): 1130 → "+1.130". */
+export function signedInt(n: number): string {
   const r = Math.round(n);
   return r > 0 ? `+${formatInt(r)}` : formatInt(r);
 }
