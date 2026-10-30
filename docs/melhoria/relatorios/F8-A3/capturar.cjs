@@ -35,7 +35,8 @@ function parkZone() {
 const ZONE = parkZone();
 
 /** nome, rota, cenário, quente (abre o "cheio" antes, para o perfil ficar salvo), passos (testIDs a tocar), rolar (px). */
-const SHOTS = [
+const ONLY = (process.argv.find((a) => a.startsWith('--so=')) || '').slice(5).split(',').filter(Boolean);
+const ALL_SHOTS = [
   { nome: 'mapa__cheio', rota: '/', cenario: 'cheio' },
   { nome: 'mapa__sob-ataque', rota: '/', cenario: 'sob-ataque', espera: 7000 },
   { nome: 'zona__sob-ataque', rota: `/zona/${ZONE}`, cenario: 'sob-ataque', espera: 7000 },
@@ -43,8 +44,8 @@ const SHOTS = [
   { nome: 'nova-corrida__cheio--2', rota: '/corrida', cenario: 'cheio', rolar: 600 },
   { nome: 'correr-link__cheio', rota: '/correr', cenario: 'cheio' },
   { nome: 'rota-inexistente__cheio', rota: '/rota-que-nao-existe', cenario: 'cheio' },
-  { nome: 'voce__carregando', rota: '/perfil', cenario: 'lento', espera: 700, semTela: true },
-  { nome: 'voce-atividades__carregando', rota: '/perfil/atividades', cenario: 'lento', espera: 700, semTela: true },
+  { nome: 'voce__carregando', rota: '/perfil', cenario: 'lento', espera: 3300, semTela: true },
+  { nome: 'voce-atividades__carregando', rota: '/perfil/atividades', cenario: 'lento', espera: 3300, semTela: true },
   { nome: 'voce__offline-quente', rota: '/perfil', cenario: 'offline', quente: true },
   { nome: 'voce__erro-quente', rota: '/perfil', cenario: 'erro', quente: true },
   { nome: 'voce-atividades__offline-quente', rota: '/perfil/atividades', cenario: 'offline', quente: true },
@@ -57,6 +58,7 @@ const SHOTS = [
   { nome: 'voce-ajustes__cheio', rota: '/perfil/ajustes', cenario: 'cheio', rolar: 380 },
   { nome: 'voce-conta__sair', rota: '/perfil/conta', cenario: 'cheio', passos: ['conta-sair'] },
 ];
+const SHOTS = ONLY.length ? ALL_SHOTS.filter((s) => ONLY.includes(s.nome)) : ALL_SHOTS;
 
 async function newCtx(browser) {
   const ctx = await browser.newContext({
@@ -128,14 +130,16 @@ async function rolar(page, y) {
       await ctx.close();
     }
     // Carregamento da web (UX-37): o HTML estático antes do JavaScript (o script do app fica parado).
-    const { ctx, page } = await newCtx(browser);
-    await page.route(/\/_expo\/static\/js\//, () => undefined);
-    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(800);
-    await page.screenshot({ path: path.join(OUT, 'mapa__carregando.png') });
-    report['mapa__carregando'] = { fundo: await page.evaluate(() => getComputedStyle(document.body).backgroundColor) };
-    console.log('ok mapa__carregando', report['mapa__carregando'].fundo);
-    await ctx.close();
+    if (!ONLY.length || ONLY.includes('mapa__carregando')) {
+      const { ctx, page } = await newCtx(browser);
+      await page.route(/\/_expo\/static\/js\//, () => undefined);
+      await page.goto(`${BASE}/`, { waitUntil: 'commit' });
+      await page.waitForTimeout(1500);
+      await page.screenshot({ path: path.join(OUT, 'mapa__carregando.png') });
+      report['mapa__carregando'] = { fundo: await page.evaluate(() => getComputedStyle(document.body).backgroundColor) };
+      console.log('ok mapa__carregando', report['mapa__carregando'].fundo);
+      await ctx.close();
+    }
   } finally {
     await browser.close();
     server.close();

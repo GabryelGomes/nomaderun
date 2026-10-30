@@ -8,6 +8,7 @@ import { ScreenScroll } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { SettingsRow } from '@/components/settings-row';
 import { Surface } from '@/components/surface';
+import { switchColors } from '@/components/switch-colors';
 import { Text } from '@/components/text';
 import { HealthPauseSheet, TelemetrySettingsSection } from '@/features/engagement';
 import { canModerate } from '@/features/moderation/guard';
@@ -135,7 +136,7 @@ function ToggleRow({ testID, icon, title, value, onChange }: { testID: string; i
       <Text variant="bodyBold" style={{ flex: 1 }}>
         {title}
       </Text>
-      <Switch testID={testID} accessibilityLabel={title} value={value} onValueChange={onChange} trackColor={{ true: colors.action, false: colors.lineControl }} />
+      <Switch testID={testID} accessibilityLabel={title} value={value} onValueChange={onChange} {...switchColors(colors)} />
     </View>
   );
 }

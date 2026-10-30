@@ -180,7 +180,8 @@ export function ActivitiesScreen() {
               </Text>
             </View>
           ) : null}
-          <RecapButton testID="atividades-recap" wide />
+          {/* Sem a semana conhecida, nada para compartilhar (D-95). */}
+          {runsKnown ? <RecapButton testID="atividades-recap" wide /> : null}
         </Surface>
       </FadeUp>
 

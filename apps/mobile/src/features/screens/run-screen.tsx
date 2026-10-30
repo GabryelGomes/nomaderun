@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ModeIcon, type ModeIconKind } from '@/components/art';
 import { Button, IconButton } from '@/components/button';
+import { switchColors } from '@/components/switch-colors';
 import { ChipRow } from '@/components/chip-row';
 import { useDemoSealSpace } from '@/components/demo-badge';
 import { RewardToast } from '@/components/celebration';
@@ -263,7 +264,7 @@ function SafetyToggle({ testID, icon, title, body, value, onChange }: { testID: 
           </Text>
         ) : null}
       </View>
-      <Switch testID={testID} value={value} onValueChange={onChange} accessibilityLabel={`Corrida Segura: ${title}`} trackColor={{ true: colors.action, false: colors.lineControl }} />
+      <Switch testID={testID} value={value} onValueChange={onChange} accessibilityLabel={`Corrida Segura: ${title}`} {...switchColors(colors)} />
     </View>
   );
 }
