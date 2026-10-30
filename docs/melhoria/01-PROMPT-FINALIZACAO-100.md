@@ -40,7 +40,12 @@
 - O que já está bom e não se mexe: escolha do time (5/5), permissão de GPS, corrida ativa, folha da zona, notificações.
 
 ### 1.4 Skills e tecnologias (`F8/04`)
-Ver o relatório para skills instaladas, limites do Expo Go SDK 57 e o checklist de publicação. Regra desta fase: nenhuma biblioteca nova que não rode no Expo Go.
+1. 10 skills instaladas em `.claude/skills/` (entre elas `eas-update`, `eas-app-stores`, `character-design`, `icon-design`, `player-onboarding`, `mobile-audit`, `maestro-e2e`, `lgpd-privacy-policy`, `lgpd-eca-digital-minors`, `localize-pt`). Use a que couber na sua frente.
+2. Testado de verdade no SDK 57: Lottie e Skia instalam, mas quebram na web como estão (WASM externo; Skia exige 2,9 MB); Rive não roda no Expo Go. **Regra desta fase: personagens com SVG + Reanimated; nenhuma biblioteca nova que não rode no Expo Go.** HyperFrames renderiza MP4 a partir de HTML (testado: card de time 1080×1920 em 9 s); só na apresentação.
+3. **O OTA está quebrado:** falta `expo-updates`, e não há `projectId`, `updates.url` nem `runtimeVersion` no `app.json`; o `publicar.sh` não passa `--environment`. O APK interno nunca recebe o que `npm run publicar` publica. Também faltam `android.package` e `ios.bundleIdentifier`.
+4. **Pacote legal mínimo que falta:** página web de exclusão de conta (o Google Play exige), controlador e encarregado nomeados na política de privacidade (dado dos autores), decisão 16+ × 18+ com o orientador.
+5. **Riscos de publicação abertos:** nenhum limite de chamadas por pessoa nas Edge Functions; SMTP padrão do Supabase com confirmação de e-mail desligada; senhas das contas demo (A-1).
+6. MCPs: Figma e Mobbin estão em plano gratuito/limitado; Vercel funciona, mas ainda não há projeto do NOMADE.
 
 ## 2. Decisões do coordenador (registrar em `docs/DECISOES_TECNICAS.md`)
 
@@ -132,6 +137,12 @@ Perguntas que continuam com o dono: nomes dos mascotes (D-70); build com push (D
 **C1 · E5 — As animações da fase.** Capa (idle 1,6 s, tap com mola e flash do lema, confirmar vira busto em vitória), cerimônia "seu rastro", "Primeiro trecho!" (brilho que corre pela linha), "Antes e depois do bairro" no resumo (zonas acendendo uma a uma, máx. 5), "Golpe que abre fase" no chefão, "A semana do time" (mascote em pose), carimbo de bairro (mola com leve rotação). Tudo com `useReducedMotion`, medido na galeria `/dev/motion` a 1×, 4× e 6× de CPU; teto de confete mantido.
 
 **C2 · E8 + E9 — Social que volta.** "Eco da crew" (se a A2 entregou o dado), kudos ao vivo conferido, card do Stories com o emblema novo e o lema, recap com o líder comentando, telemetria dos eventos novos (`share`, `mission_complete`) conferida.
+
+**C3 · E10 + E9 — Pronto para gente de verdade (publicação e segurança).**
+- OTA de verdade: `npx expo install expo-updates`, `runtimeVersion` com política `appVersion`, `updates.url`, `--environment` no `publicar.sh`, `android.package` e `ios.bundleIdentifier` (proposta `br.com.nomaderun.app`; o dono confirma). O `projectId` do EAS só nasce com `eas init` logado na conta dos autores: deixar o passo documentado em `supabase/DEPLOY.md` e o `app.json` pronto para recebê-lo.
+- Limite de chamadas por pessoa nas Edge Functions (helper compartilhado em `_shared`, p.ex. 60/min por usuário e 10/min no `finish-activity`), com teste Deno e resposta `RATE_LIMITED` tratada no app.
+- Página web `/excluir-conta` (rota do app, estática) explicando como excluir pelo app e por e-mail; política de privacidade com os campos de controlador e encarregado prontos para os autores preencherem.
+- Checklist de publicação (`F8/04` §6) conferido item a item, com o que fica para o dono listado no `PROGRESSO`.
 
 ### Onda D — QA adversarial até zerar (E10 + revisor)
 - Capturas de todas as telas (3 larguras), régua de texto, teste de 5 segundos, contraste, alvos, rótulos, "Reduzir movimento", fluxo completo na demo com contagem de toques, checklist ético (os 15 "nunca"), bundle contra o orçamento, Maestro coerente.
