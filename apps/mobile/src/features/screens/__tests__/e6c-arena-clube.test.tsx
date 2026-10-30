@@ -26,7 +26,8 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
 import { useGame } from '@/store/game-store';
 
-import { ArenaScreen } from '../arena-screen';
+import { leagueCloses, leagueRules, leagueStripLine, leagueTitle } from '../arena-league.model';
+import { ArenaScreen, bossArticle, shortBossName } from '../arena-screen';
 import { atlasPercent, bossLook, hpRatio, percentLabel, timeLeft } from '../arena-screen.model';
 import { crewWeek, crewWeekFromGoal, emptyRankingText, hasPeriod, scopesFor } from '../club-ranking';
 /* eslint-enable import/first */
@@ -43,7 +44,15 @@ const raid = (over: object = {}) => ({
     share: 0.042,
   },
 });
-const league = { ok: true, data: { available: true, divisionName: 'Calçada', groupSize: 30, promoteSlots: 5, me: { position: 6 } } };
+const members = [
+  { position: 1, username: 'ana', faction: 'volt', avatarUrl: null, points: 900, you: false, zone: 'promote' },
+  { position: 6, username: 'eu', faction: 'striders', avatarUrl: null, points: 410, you: true, zone: null },
+  { position: 30, username: 'zé', faction: 'owls', avatarUrl: null, points: 0, you: false, zone: 'relegate' },
+];
+const league = {
+  ok: true,
+  data: { available: true, weekStart: '2026-10-26', closesAt: NOW + 3 * 24 * H + H, division: 0, divisionName: 'Calçada', joined: true, groupSize: 30, smallGroup: false, promoteSlots: 5, relegateSlots: 5, members, me: members[1], lastResult: null },
+};
 
 const mounted: ReactTestRenderer[] = [];
 async function mount(): Promise<ReactTestRenderer> {
@@ -89,8 +98,9 @@ describe('Arena', () => {
     expect(t).toContain('36% de vida · Fase 2');
     expect(t).toContain('Foge em 19 h');
     expect(t).toContain('4%');
-    expect(t).toContain('Liga Calçada');
-    expect(t).toContain('6º de 30 · top 5 sobe');
+    // F8-B3 (UX-11): "Liga · Divisão Calçada" e "5 primeiros sobem" (antes "Liga Calçada" e "top 5 sobe", em inglês).
+    expect(t).toContain('Liga · Divisão Calçada');
+    expect(t).toContain('6º de 30 · 5 primeiros sobem');
   });
 
   it('dado de demonstração vem com o selo', async () => {
@@ -152,6 +162,71 @@ describe('Arena', () => {
     expect(useGame.getState().mission).toBe('fuga');
     await press('arena-modo-atlas');
     expect(mockNavigate).toHaveBeenLastCalledWith('/');
+  });
+});
+
+describe('Arena com ação (F8-B3, UX-11)', () => {
+  const press = (r: ReactTestRenderer, id: string) =>
+    act(() => {
+      r.root.findAll((n) => n.props.testID === id && typeof n.props.onPress === 'function')[0].props.onPress({});
+    });
+
+  it('"Correr contra o Mormaço" abre a Nova corrida no modo Raid (corrida livre)', async () => {
+    mockRaid.mockResolvedValue(raid());
+    mockLeague.mockResolvedValue(league);
+    const r = await mount();
+    expect(text(r)).toContain('Correr contra o Mormaço');
+    useGame.setState({ mission: 'fuga' });
+    await press(r, 'arena-raid-correr');
+    expect(useGame.getState().mission).toBe('livre');
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: '/corrida', params: { modo: 'raid', chefao: 'mormaco', nome: 'Mormaço' } });
+  });
+
+  it('chefão vencido ou que fugiu não oferece corrida contra ele', async () => {
+    mockRaid.mockResolvedValue(raid({ status: 'defeated' }));
+    mockLeague.mockResolvedValue(league);
+    const r = await mount();
+    expect(has(r, 'arena-raid-correr')).toBe(false);
+  });
+
+  it('a faixa da Liga abre a folha: grupo, quem sobe, quem desce, prazo e a tabela', async () => {
+    mockRaid.mockResolvedValue(raid());
+    mockLeague.mockResolvedValue(league);
+    const r = await mount();
+    expect(has(r, 'arena-liga-folha')).toBe(false);
+    await press(r, 'arena-liga');
+    expect(has(r, 'arena-liga-folha')).toBe(true);
+    const t = text(r);
+    expect(t).toContain('Grupo de 30 corredores');
+    expect(t).toContain('Os 5 primeiros sobem de divisão');
+    expect(t).toContain('Os 5 últimos descem');
+    expect(t).toContain('Fecha em 3 dias');
+    expect(t).toContain('eu (você)');
+    expect(has(r, 'arena-liga-linha-30')).toBe(true);
+    await press(r, 'arena-liga-folha-fechar');
+    expect(has(r, 'arena-liga-folha')).toBe(false);
+  });
+
+  it('liga desligada: sem "em breve" e sem toque', async () => {
+    mockRaid.mockResolvedValue(raid());
+    mockLeague.mockResolvedValue({ ok: true, data: { available: false, reason: 'desligada' } });
+    const r = await mount();
+    expect(text(r)).not.toMatch(/em breve/i);
+    expect(r.root.findAll((n) => n.props.testID === 'arena-liga-vazio' && typeof n.props.onPress === 'function')).toHaveLength(0);
+  });
+});
+
+describe('textos da Liga', () => {
+  it('quem sobe, quem desce e o prazo', () => {
+    expect(leagueTitle({ divisionName: 'Rua' })).toBe('Liga · Divisão Rua');
+    expect(leagueStripLine({ me: null, groupSize: 30, promoteSlots: 5 })).toBe('Corra para entrar');
+    expect(leagueRules({ joined: true, groupSize: 4, promoteSlots: 1, relegateSlots: 0, smallGroup: true })).toEqual({ group: 'Grupo de 4 corredores', up: 'O 1º sobe de divisão', down: 'Ninguém desce nesta semana' });
+    expect(leagueRules({ joined: false, groupSize: 0, promoteSlots: 0, relegateSlots: 0, smallGroup: false }).group).toBe('Sua 1ª corrida da semana te põe num grupo');
+    expect(leagueCloses(NOW + 25 * H, NOW)).toBe('Fecha em 1 dia');
+    expect(leagueCloses(NOW + 5 * H + 20 * 60_000, NOW)).toBe('Fecha em 5 h 20 min');
+    expect(leagueCloses(NOW - 1, NOW)).toBe('Fechando agora');
+    expect(shortBossName('Soneca de Outubro')).toBe('Soneca');
+    expect(bossArticle('fuligem')).toBe('a');
   });
 });
 

@@ -20,7 +20,8 @@ import { useTheme } from '@/theme/use-theme';
 
 import { REACTION_HINT, REACTION_LABEL, REACTION_LOCK_MS } from './feed-model';
 
-const ICON: Record<FeedReaction, IconName> = { bora: 'heart', fogo: 'fire', raio: 'flag' };
+/** UX-21: "Raio" com raio (antes, uma bandeira que não dizia nada). */
+const ICON: Record<FeedReaction, IconName> = { bora: 'heart', fogo: 'fire', raio: 'bolt' };
 
 export type ReactionBarProps = {
   itemId: string;
@@ -64,9 +65,9 @@ export function ReactionBar({ itemId, reactions, myReaction, readOnly, onReact }
               accessibilityLabel={`${count} ${REACTION_HINT[r]}${count > 1 ? 's' : ''}`}
               style={{ minHeight: 44, paddingHorizontal: space[3], borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', gap: space[1] }}>
               <Icon name={ICON[r]} size={16} color={colors.textSecondary} />
+              {/* UX-21: o rótulo fica junto do número em todas as reações (antes, só o "Bora!" tinha nome). */}
               <Text variant="small" tabular>
-                {r === 'bora' ? `${REACTION_LABEL.bora} ` : ''}
-                {count}
+                {`${REACTION_LABEL[r]} ${count}`}
               </Text>
             </View>
           ) : null;

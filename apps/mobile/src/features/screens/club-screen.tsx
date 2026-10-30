@@ -138,6 +138,10 @@ async function loadCrewWeek(crew: MyCrew | null): Promise<Result<CrewWeekView | 
   return res.ok ? { ok: true, data: crewWeek(res.data, crew.crew.tag, crew.members.length) } : res;
 }
 
+/** Quantas corridas da crew aparecem no Clube; o resto em "Ver tudo" (`/compartilhar/feed`). */
+export const FEED_PREVIEW = 3;
+export type ClubSection = 'corridas' | 'ranking';
+
 const BOARDS: readonly (readonly [Board, string])[] = [
   ['individual', 'Corredores'],
   ['crews', 'Crews'],
@@ -165,6 +169,7 @@ export function ClubScreen() {
   const myCrew = crew.data;
   const week = useResource(() => loadCrewWeek(myCrew), [myCrew?.crew.id ?? null, myCrew?.members.length ?? 0]);
   const reloadCrew = crew.reload;
+  const [section, setSection] = useState<ClubSection>('corridas');
   useFocusEffect(
     useCallback(() => {
       void reloadCrew();
@@ -202,16 +207,37 @@ export function ClubScreen() {
         )}
       </Animated.View>
 
+      {/* UX-16: "Convidar" mora só no Clube. Crew com 1 pessoa: convite da crew; sem crew: convite do app. */}
       {myCrew && myCrew.members.length === 1 ? <InviteCard kind="crew" crewName={myCrew.crew.name} code={myCrew.crew.inviteCode} faction={myCrew.crew.faction} city={city} testID="clube-convite" /> : null}
+      {!myCrew && !crew.loading && !crew.error ? <InviteCard kind="app" place={city} faction={faction} testID="convite-app" /> : null}
 
+      {/* UX-21: seletor no topo (antes, o ranking ficava na 6ª rolagem, embaixo do feed sem fim). Sem crew, só o ranking. */}
       {myCrew ? (
-        <View style={{ gap: space[2] }}>
-          <SectionHeader title="Corridas da crew" testID="clube-feed" />
-          <CrewFeed faction={faction} onJoinCrew={() => router.push('/clube/crew')} onCreateCrew={() => router.push('/clube/crew')} />
+        <View style={{ gap: space[4] }}>
+          <ChipRow
+            testID="clube-secao"
+            accessibilityLabel="Ver no Clube"
+            size="md"
+            value={section}
+            onChange={setSection}
+            chipLabel={(l) => `Ver ${l.toLowerCase()}`}
+            options={[
+              ['corridas', 'Corridas'],
+              ['ranking', 'Ranking'],
+            ] as const}
+          />
+          {section === 'corridas' ? (
+            <View testID="clube-feed" style={{ gap: space[2] }}>
+              <CrewFeed faction={faction} limit={FEED_PREVIEW} onSeeAll={() => router.push('/compartilhar/feed')} onJoinCrew={() => router.push('/clube/crew')} onCreateCrew={() => router.push('/clube/crew')} />
+            </View>
+          ) : (
+            <Rankings userId={userId} city={city} faction={faction} offlineShown={crew.error !== null} titled={false} />
+          )}
         </View>
-      ) : null}
-
-      <Rankings userId={userId} city={city} faction={faction} offlineShown={crew.error !== null} />
+      ) : crew.loading && !crew.error ? null : (
+        // Só depois de saber se há crew: antes, o ranking piscava (e contava como visto) enquanto a crew carregava.
+        <Rankings userId={userId} city={city} faction={faction} offlineShown={crew.error !== null} />
+      )}
     </Animated.ScrollView>
   );
 }
@@ -261,7 +287,7 @@ function CrewHero({ crew, week }: { crew: MyCrew; week: CrewWeekView | null }) {
 
 /* ------------------------------------------------------------------ ranking: pódio + 1 linha de filtro */
 
-function Rankings({ userId, city, faction, offlineShown }: { userId: string | null; city: string | null; faction: FactionId | null; offlineShown: boolean }) {
+function Rankings({ userId, city, faction, offlineShown, titled = true }: { userId: string | null; city: string | null; faction: FactionId | null; offlineShown: boolean; titled?: boolean }) {
   const { colors } = useTheme();
   const [board, setBoard] = useState<Board>('individual');
   const [scope, setScope] = useState<Scope>('geral');
@@ -285,15 +311,18 @@ function Rankings({ userId, city, faction, offlineShown }: { userId: string | nu
 
   return (
     <View style={{ gap: space[3] }}>
-      <SectionHeader title="Ranking" testID="ranking" />
-      <ChipRow testID="ranking-quadro" accessibilityLabel="Ranking" role="button">
+      {titled ? <SectionHeader title="Ranking" testID="ranking" /> : <View testID="ranking" />}
+      {/* UX-21: os 4 quadros quebram linha em vez de sumir na borda; o filtro vai numa linha própria, inteiro. */}
+      <View accessibilityRole="radiogroup" accessibilityLabel="Ranking" testID="ranking-quadro" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
         {BOARDS.map(([key, label]) => (
-          <Chip key={key} testID={`ranking-quadro-${key}`} accessibilityLabel={`Ranking: ${label}`} label={label} selected={board === key} role="button" onPress={() => setBoard(key)} />
+          <Chip key={key} testID={`ranking-quadro-${key}`} accessibilityLabel={`Ranking: ${label}`} label={label} selected={board === key} onPress={() => setBoard(key)} />
         ))}
-        {hasPeriod(board) ? (
+      </View>
+      {hasPeriod(board) ? (
+        <View style={{ flexDirection: 'row' }}>
           <Chip testID="ranking-filtros" accessibilityLabel={`Filtros: ${filterLabel}. ${filtersOpen ? 'Fechar' : 'Abrir'}`} label={`${filterLabel} ${filtersOpen ? '▴' : '▾'}`} selected={filtersOpen} role="button" onPress={() => setFiltersOpen((o) => !o)} />
-        ) : null}
-      </ChipRow>
+        </View>
+      ) : null}
       {filtersOpen && hasPeriod(board) ? (
         <View style={{ gap: space[1] }}>
           <ChipRow testID="ranking-periodo" accessibilityLabel="Período" role="button" size="sm" value={period} onChange={setPeriod} options={[['week', periodLabels.week], ['season', periodLabels.season]] as const} />

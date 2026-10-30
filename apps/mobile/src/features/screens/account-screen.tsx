@@ -1,4 +1,4 @@
-import { router, Stack } from 'expo-router';
+import { router, Stack, type Href } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
@@ -6,9 +6,10 @@ import { Button } from '@/components/button';
 import { Icon, type IconName } from '@/components/icon';
 import { FadeUp, Pressable, RevealText, Stagger } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
+import { SettingsRow } from '@/components/settings-row';
 import { SectionHeader, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
-import { trustLevel } from '@/domain/trust';
+import { TRUST_REVIEW_BELOW, TRUST_START, trustLevel, type TrustLevel } from '@/domain/trust';
 import { ErrorNotice, InfoNotice, TextField } from '@/features/auth/form-ui';
 import { signOutAfterDeletion } from '@/features/auth/session-controller';
 import { SignOutDialog } from '@/features/auth/sign-out-dialog';
@@ -19,7 +20,21 @@ import { useSession } from '@/store/session-store';
 import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-/** Conta e privacidade (RF-002, RNF-013/LGPD): exportar dados, excluir conta, sair, textos legais. */
+const TRUST_TITLE: Record<TrustLevel, string> = {
+  ok: 'Corridas sem suspeita ✓',
+  review: 'Corridas em revisão',
+  suspended: 'Competição suspensa por 30 dias',
+};
+const TRUST_DETAIL: Record<TrustLevel, string> = {
+  ok: 'Suas corridas contam normalmente.',
+  review: `Abaixo de ${TRUST_REVIEW_BELOW}, cada corrida é revisada antes de pontuar.`,
+  suspended: 'Corridas válidas devolvem a confiança aos poucos.',
+};
+
+/**
+ * Ajustes → Conta (RF-002, RNF-013/LGPD; UX-16 e UX-24): editar perfil, a confiança das corridas, baixar os dados,
+ * textos legais, o único "Sair" do app (com confirmação) e excluir a conta.
+ */
 export function AccountScreen() {
   const { colors } = useTheme();
   const email = useSession((s) => s.session?.email);
@@ -34,6 +49,8 @@ export function AccountScreen() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [signOutOpen, setSignOutOpen] = useState(false);
+  const [trustOpen, setTrustOpen] = useState(false);
+  const level = trustLevel(trust);
 
   const doExport = async () => {
     setExporting(true);
@@ -82,7 +99,7 @@ export function AccountScreen() {
 
   return (
     <ScreenScroll testID="tela-conta" edges={[]} contentInsetAdjustmentBehavior="automatic" gap={space[6]}>
-      <Stack.Screen options={{ title: 'Conta e privacidade', headerLargeTitleEnabled: false }} />
+      <Stack.Screen options={{ title: 'Conta', headerLargeTitleEnabled: false }} />
       <Stagger gap={space[6]}>
 
         <Surface>
@@ -94,18 +111,36 @@ export function AccountScreen() {
           </Text>
         </Surface>
 
-        {/* Saiu do perfil (F1 §5.8): o índice de confiança fica aqui e no resumo, quando cai. */}
+        <Surface padded={false} style={{ overflow: 'hidden', gap: 0 }}>
+          <SettingsRow testID="perfil-editar" icon="edit" title="Editar perfil" accessibilityLabel="Editar perfil: nome, cidade, foto e unidade" onPress={() => router.push('/perfil/editar' as Href)} />
+        </Surface>
+
+        {/* UX-24: o número cru ("Índice de confiança: 100") parecia nota de crédito. O estado vem primeiro; o número, em "Ver mais". */}
         <Surface>
-          <Text testID="conta-confianca" variant="bodyBold">
-            Índice de confiança: {trust}
-          </Text>
-          <Text variant="small" muted>
-            {trustLevel(trust) === 'ok'
-              ? 'Suas corridas contam normalmente.'
-              : trustLevel(trust) === 'review'
-                ? 'Suas corridas são revisadas antes de pontuar.'
-                : 'Competição suspensa por 30 dias.'}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+            <Icon name={level === 'ok' ? 'check' : 'warning'} size={20} color={level === 'ok' ? colors.accentText : colors.danger} />
+            <Text testID="conta-confianca" variant="bodyBold" style={{ flex: 1 }}>
+              {TRUST_TITLE[level]}
+            </Text>
+          </View>
+          {trustOpen ? (
+            <FadeUp>
+              <Text testID="conta-confianca-detalhe" variant="small" muted>
+                {`Índice de confiança: ${trust} de ${TRUST_START}. ${TRUST_DETAIL[level]}`}
+              </Text>
+            </FadeUp>
+          ) : null}
+          <Pressable
+            testID="conta-confianca-mais"
+            accessibilityRole="button"
+            accessibilityLabel={trustOpen ? 'Ver menos sobre a confiança das corridas' : 'Ver mais sobre a confiança das corridas'}
+            hitSlop={0}
+            onPress={() => setTrustOpen((o) => !o)}
+            style={{ minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' }}>
+            <Text variant="small" color={colors.accentText}>
+              {trustOpen ? 'Ver menos' : 'Ver mais'}
+            </Text>
+          </Pressable>
         </Surface>
 
         <View style={{ gap: space[3] }}>
@@ -117,7 +152,7 @@ export function AccountScreen() {
             <Text variant="small" muted>
               Arquivo com perfil, corridas, trajetos, contatos e avisos.
             </Text>
-            <Button testID="conta-exportar" label={exporting ? 'Gerando arquivo…' : 'Exportar meus dados'} kind="secondary" icon="share" wide disabled={exporting} onPress={doExport} />
+            <Button testID="conta-exportar" label={exporting ? 'Gerando arquivo…' : 'Baixar meus dados (arquivo)'} kind="secondary" icon="share" wide disabled={exporting} onPress={doExport} />
             <ErrorNotice message={error} testID="conta-exportar-erro" />
             {exportMsg ? (
               <FadeUp>

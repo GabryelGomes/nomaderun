@@ -1,10 +1,10 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Pressable, Switch, useWindowDimensions, View } from 'react-native';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ModeIcon, type ModeIconKind } from '@/components/art';
+import { Boss, ModeIcon, type ModeIconKind } from '@/components/art';
 import { Button, IconButton } from '@/components/button';
 import { switchColors } from '@/components/switch-colors';
 import { ChipRow } from '@/components/chip-row';
@@ -18,6 +18,7 @@ import { Icon, type IconName } from '@/components/icon';
 import { Text } from '@/components/text';
 import TerritoryMap from '@/components/territory-map';
 import { ghostStatus } from '@/domain/games';
+import { RAID_BOSS_IDS, RAID_DAMAGE_PER_KM, type RaidBossId } from '@/domain/raid';
 import { formatDuration, formatKm, formatPace } from '@/domain/geo';
 import { isUnderAttackAt } from '@/domain/territory';
 import { DEMO_CENTER, zoneName } from '@/demo/demo-data';
@@ -59,6 +60,13 @@ function closeRun() {
 /** Ritmos do fantasma oferecidos na Fuga (s/km). */
 const GHOST_PACES = [300, 330, 360, 420];
 
+/** Chefão do link da Arena (`/corrida?modo=raid&chefao=soneca&nome=Soneca`); id desconhecido cai no Soneca. */
+function raidTarget(id: string | undefined, name: string | undefined): { id: RaidBossId; name: string } {
+  const known = (RAID_BOSS_IDS as readonly string[]).includes(id ?? '') ? (id as RaidBossId) : 'soneca';
+  const article = known === 'fuligem' ? 'a' : 'o';
+  return { id: known, name: `${article} ${(name ?? '').trim().slice(0, 24) || 'chefão'}` };
+}
+
 /** Pre-run choices: mission, signal source and Corrida Segura. Then the session starts. */
 export function RunScreen() {
   const { colors } = useTheme();
@@ -71,6 +79,9 @@ export function RunScreen() {
   const stopAlertOn = useGame((s) => s.stopAlertOn);
   const toggleStopAlert = useGame((s) => s.toggleStopAlert);
   const contacts = useGame((s) => s.contacts);
+  // F8-B3 (UX-11): "Correr contra o Soneca" (Arena) abre aqui com o chefão em destaque. Toda corrida bate nele.
+  const params = useLocalSearchParams<{ modo?: string; chefao?: string; nome?: string }>();
+  const raidBoss = params.modo === 'raid' ? raidTarget(params.chefao, params.nome) : null;
   const [mode, setMode] = useState<RunMode | null>(null);
   // D-76: o GPS real é o padrão. A simulação só existe no modo demonstração (E10: `isDemoActive`).
   const demo = isDemoActive();
@@ -126,6 +137,20 @@ export function RunScreen() {
         </RevealText>
         <IconButton testID="corrida-fechar" icon="close" label="Fechar" tone="sunken" size={44} onPress={closeRun} />
       </View>
+
+      {raidBoss ? (
+        <View
+          testID="corrida-raid"
+          accessible
+          accessibilityLabel={`Raid contra ${raidBoss.name}: cada quilômetro tira ${RAID_DAMAGE_PER_KM} de vida`}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[3], borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, borderWidth: 1, borderColor: neon.villain }}>
+          <Boss id={raidBoss.id} size={56} decorative />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text variant="bodyBold">{`Raid contra ${raidBoss.name}`}</Text>
+            <Text variant="small" muted>{`Cada km tira ${RAID_DAMAGE_PER_KM} de vida`}</Text>
+          </View>
+        </View>
+      ) : null}
 
       <ScreenEnter delay={120} style={{ gap: space[4] }}>
         <Text variant="title" accessibilityRole="header">

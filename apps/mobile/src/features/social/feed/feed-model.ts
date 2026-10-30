@@ -115,3 +115,12 @@ export function miniMapPaths(route: ServerClippedRoute | null, width: number, he
         .join(' '),
     );
 }
+
+/**
+ * §4.3 (F8-B3): o feed não traz o id da corrida (privacidade, D-79). Para "Compartilhar" o próprio item, acha a
+ * corrida da pessoa no mesmo dia (data local) com a mesma distância (±10 m). Nenhuma ou mais de uma: `null`.
+ */
+export function ownActivityFor(item: Pick<FeedItem, 'day' | 'meters'>, runs: readonly { id: string; startedAt: number; meters: number }[]): string | null {
+  const hits = runs.filter((r) => localToday(r.startedAt) === item.day && Math.abs(r.meters - item.meters) <= 10);
+  return hits.length === 1 ? hits[0].id : null;
+}

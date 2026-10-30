@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { Boss, ModeIcon, type ModeIconKind } from '@/components/art';
+import { Button } from '@/components/button';
 import { DemoBadge } from '@/components/demo-badge';
 import { EmptyState } from '@/components/empty-state';
 import { OfflineNotice } from '@/components/offline-notice';
@@ -26,6 +27,8 @@ import { neon } from '@/theme/neon';
 import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
+import { LeagueSheet } from './arena-league-sheet';
+import { leagueStripLine, leagueTitle } from './arena-league.model';
 import { ArenaHelp, ArenaHelpButton } from './arena-screen-help';
 import { atlasPercent, bossLook, hpRatio, missionRings, percentLabel, timeLeft } from './arena-screen.model';
 import { useResource } from './use-resource';
@@ -102,9 +105,15 @@ export function ArenaScreen() {
 
 /* ------------------------------------------------------------------ herói: o chefão da semana */
 
+/** "Soneca de Outubro" → "Soneca": o botão cabe numa linha e o nome inteiro vai para o leitor de tela. */
+export const shortBossName = (name: string) => name.replace(/\s+de\s+\S+$/i, '').trim() || name;
+/** "contra o Soneca", "contra a Fuligem". */
+export const bossArticle = (bossId: string | null | undefined) => (bossId === 'fuligem' ? 'a' : 'o');
+
 function RaidHero({ data, failed }: { data: RaidCurrent | Unavailable | null; failed: boolean }) {
   const { colors } = useTheme();
   const now = useNow(60_000);
+  const setMission = useGame((s) => s.setMission);
 
   if (data === null && !failed) {
     return <ShimmerSkeleton shape="card" height={300} accessibilityLabel="Carregando o chefão da semana" testID="arena-raid-carregando" />;
@@ -152,6 +161,21 @@ function RaidHero({ data, failed }: { data: RaidCurrent | Unavailable | null; fa
         </Text>
       </View>
       <StatTile testID="arena-raid-parte" label="Sua parte" value={percentLabel(data.share)} accent={colors.accentText} />
+      {/* UX-11: o chefão ganha a ação. Toda corrida da semana bate nele (10 de vida por km, D-67). */}
+      {active ? (
+        <Button
+          testID="arena-raid-correr"
+          label={`Correr contra ${bossArticle(boss.bossId)} ${shortBossName(boss.name)}`}
+          accessibilityLabel={`Correr contra ${bossArticle(boss.bossId)} ${boss.name}: cada quilômetro tira 10 de vida`}
+          icon="play"
+          size="lg"
+          wide
+          onPress={() => {
+            setMission('livre');
+            router.push({ pathname: '/corrida', params: { modo: 'raid', chefao: boss.bossId ?? 'soneca', nome: shortBossName(boss.name) } });
+          }}
+        />
+      ) : null}
     </HeroFrame>
   );
 }
@@ -179,9 +203,10 @@ function TodayMissions() {
   return (
     <View style={{ gap: space[2] }}>
       <SectionHeader title="Missões de hoje" actionLabel="Ver todas" onAction={() => router.push('/missoes')} testID="arena-missoes" />
-      <View style={{ flexDirection: 'row', gap: space[2] }}>
+      {/* UX-11: 1 missão por linha, o título inteiro (antes, 3 colunas cortavam "Termine à frente do …"). */}
+      <View style={{ gap: space[2] }}>
         {loading
-          ? [0, 1, 2].map((i) => <ShimmerSkeleton key={i} shape="card" height={128} style={{ flex: 1 }} accessibilityLabel="Carregando as missões" testID={`arena-missao-carregando-${i}`} />)
+          ? [0, 1, 2].map((i) => <ShimmerSkeleton key={i} shape="row" height={72} accessibilityLabel="Carregando as missões" testID={`arena-missao-carregando-${i}`} />)
           : rings.map((m) => {
               const done = m.completedAt !== null;
               const ratio = missionRatio(m);
@@ -193,20 +218,20 @@ function TodayMissions() {
                   accessibilityLabel={missionA11y(m)}
                   accessibilityHint="Abre as missões"
                   onPress={() => router.push('/missoes')}
-                  containerStyle={{ flex: 1 }}
-                  style={{ flex: 1, alignItems: 'center', gap: space[2], padding: space[3], borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, borderWidth: 1, borderColor: done ? colors.action : colors.line }}>
-                  <ProgressRing value={ratio} size={56} stroke={6} color={colors.action} trackColor={colors.surfaceSunken} accessibilityLabel={missionA11y(m)}>
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 72, padding: space[3], borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, borderWidth: 1, borderColor: done ? colors.action : colors.line }}>
+                  <ProgressRing value={ratio} size={48} stroke={5} color={colors.action} trackColor={colors.surfaceSunken} accessibilityLabel={missionA11y(m)}>
                     {done ? (
-                      <Icon name="check" size={22} color={colors.accentText} />
+                      <Icon name="check" size={20} color={colors.accentText} />
                     ) : (
                       <Text variant="caption" tabular maxFontSizeMultiplier={1.2}>
                         {pct(ratio)}
                       </Text>
                     )}
                   </ProgressRing>
-                  <Text variant="caption" numberOfLines={2} style={{ textAlign: 'center' }}>
+                  <Text variant="bodyBold" style={{ flex: 1 }}>
                     {m.title}
                   </Text>
+                  <Icon name="chevron" size={16} color={colors.textSecondary} />
                 </PressableScale>
               );
             })}
@@ -295,27 +320,57 @@ function LeagueStrip({ data, failed }: { data: LeagueCurrent | Unavailable | nul
     );
   }
   if (data === null) return <ShimmerSkeleton shape="row" height={72} accessibilityLabel="Carregando a liga" testID="arena-liga-carregando" />;
-  const live = data.available ? data : null;
-  const me = live?.me ?? null;
-  return (
-    <View
-      testID={live ? 'arena-liga' : 'arena-liga-vazio'}
-      accessible
-      accessibilityLabel={live ? `Liga ${live.divisionName}. ${me ? `${me.position}º de ${live.groupSize}${live.promoteSlots > 0 ? `, os ${live.promoteSlots} primeiros sobem` : ''}` : 'Sua primeira corrida da semana entra na liga'}` : 'Liga em breve'}
-      style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[3], minHeight: 72, borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, opacity: live ? 1 : 0.8 }}>
-      <ModeIcon kind="liga" size={44} />
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text variant="bodyBold" numberOfLines={1}>
-          {live ? `Liga ${live.divisionName}` : 'Liga em breve'}
-        </Text>
-        {live ? (
-          <Text variant="caption" muted numberOfLines={1}>
-            {me ? `${me.position}º de ${live.groupSize}${live.promoteSlots > 0 ? ` · top ${live.promoteSlots} sobe` : ''}` : 'Corra para entrar'}
+  if (!data.available) {
+    // Regra 1 da F8: sem "em breve". Servidor sem a liga = faixa honesta, sem toque e sem número.
+    return (
+      <View
+        testID="arena-liga-vazio"
+        accessible
+        accessibilityLabel="Liga: indisponível neste servidor"
+        style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[3], minHeight: 72, borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, opacity: 0.8 }}>
+        <ModeIcon kind="liga" size={44} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text variant="bodyBold">Liga</Text>
+          <Text variant="caption" muted>
+            Indisponível neste servidor
           </Text>
-        ) : null}
-        {/* Selo embaixo do texto: ao lado, ele cortava a posição em 390 pt. */}
-        {live && isDemoMode() ? <DemoBadge testID="arena-liga-demonstracao" /> : null}
+        </View>
       </View>
-    </View>
+    );
+  }
+  return <LeagueCard league={data} />;
+}
+
+/** UX-11: a faixa da Liga abre a folha (grupo, quem sobe, prazo) em vez de ser um card sem destino. */
+function LeagueCard({ league }: { league: LeagueCurrent }) {
+  const { colors } = useTheme();
+  const [open, setOpen] = useState(false);
+  const demo = isDemoMode();
+  const line = leagueStripLine(league);
+  return (
+    <>
+      <PressableScale
+        testID="arena-liga"
+        accessibilityRole="button"
+        accessibilityLabel={`${leagueTitle(league)}. ${line}.`}
+        accessibilityHint="Abre o grupo, quem sobe e o prazo"
+        onPress={() => setOpen(true)}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[3], minHeight: 72, borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line }}>
+        <ModeIcon kind="liga" size={44} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text variant="bodyBold" numberOfLines={1}>
+            {leagueTitle(league)}
+          </Text>
+          <Text variant="caption" muted>
+            {line}
+          </Text>
+          {/* Selo embaixo do texto: ao lado, ele cortava a posição em 390 pt. */}
+          {demo ? <DemoBadge testID="arena-liga-demonstracao" /> : null}
+        </View>
+        <Icon name="chevron" size={16} color={colors.textSecondary} />
+      </PressableScale>
+      {/* Montada só aberta: a Arena não carrega a tabela do grupo escondida. */}
+      {open ? <LeagueSheet visible league={league} demo={demo} onClose={() => setOpen(false)} /> : null}
+    </>
   );
 }
