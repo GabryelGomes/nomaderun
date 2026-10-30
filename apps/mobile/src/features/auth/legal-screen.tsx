@@ -47,7 +47,7 @@ const TERMS: Section[] = [
     title: '6. Disponibilidade e mudanças',
     body: [
       'Por ser um MVP, o serviço pode ficar fora do ar, perder dados de demonstração ou mudar regras de pontuação. Avisaremos no aplicativo sobre mudanças relevantes nestes termos.',
-      'Você pode encerrar sua conta a qualquer momento em Perfil > Conta e privacidade.',
+      'Você pode encerrar sua conta a qualquer momento em Você > Ajustes > Conta.',
     ],
   },
 ];
@@ -84,7 +84,7 @@ const PRIVACY: Section[] = [
   {
     title: '5. Seus direitos',
     body: [
-      'Você pode ver e corrigir seus dados no perfil, exportar tudo em um arquivo JSON e excluir sua conta em Perfil > Conta e privacidade. Pedidos de exportação e exclusão são atendidos em até 30 dias; a exclusão pelo aplicativo é imediata para os dados pessoais.',
+      'Você pode ver e corrigir seus dados no perfil, exportar tudo em um arquivo JSON e excluir sua conta em Você > Ajustes > Conta. Pedidos de exportação e exclusão são atendidos em até 30 dias; a exclusão pelo aplicativo é imediata para os dados pessoais.',
     ],
   },
   {

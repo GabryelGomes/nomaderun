@@ -1,0 +1,17 @@
+{
+  "mapa__cheio": {
+    "url": "/?cenario=cheio",
+    "palavras": 30,
+    "erros": []
+  },
+  "clube-crew__cheio": {
+    "url": "/clube/crew?cenario=cheio",
+    "palavras": 53,
+    "erros": []
+  },
+  "voce-conta__cheio": {
+    "url": "/perfil/conta?cenario=cheio",
+    "palavras": 51,
+    "erros": []
+  }
+}

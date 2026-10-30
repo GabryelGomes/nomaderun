@@ -125,10 +125,10 @@ describe('<CrewFeed> no modo demonstração', () => {
     spy.mockRestore();
   });
 
-  it('sem conexão e nada carregado: erro com "Tentar de novo"', async () => {
+  it('sem conexão e nada carregado: o aviso único (D-95) com "Tentar de novo"', async () => {
     setDemoClient(createDemoClient({ clock: () => NOW, scenario: 'offline' }));
     const r = await mount(<CrewFeed />);
     expect(byId(r, 'feed-crew-erro').length).toBeGreaterThan(0);
-    expect(byId(r, 'feed-crew-tentar').length).toBeGreaterThan(0);
+    expect(byId(r, 'feed-crew-erro-tentar').length).toBeGreaterThan(0);
   });
 });

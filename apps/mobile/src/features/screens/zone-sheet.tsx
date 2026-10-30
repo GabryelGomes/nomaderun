@@ -22,6 +22,7 @@ import { selectBasePace, useGame } from '@/store/game-store';
 import { useZones } from '@/store/zones-store';
 import { factions, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
+import { zoneDisplayName } from '@/features/format';
 
 import { useResource } from './use-resource';
 import { countdownText, shortTeam, zoneView, type ZoneView } from './zone-sheet.model';
@@ -142,7 +143,7 @@ export function ZoneSheet() {
 
   // Realtime: a troca de dono que chega no store aparece aqui sem recarregar a folha.
   const zone: Zone | undefined = cached ?? detail?.zone;
-  const name = detail?.meta.name ?? cachedName ?? (id ? zoneName(id) : '');
+  const name = zoneDisplayName(detail?.meta.name ?? cachedName ?? (id ? zoneName(id) : ''));
   const sheetBg = process.env.EXPO_OS === 'ios' ? 'transparent' : colors.surface;
   const goRun = () => {
     router.back();

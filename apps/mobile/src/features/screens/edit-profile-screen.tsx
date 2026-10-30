@@ -1,32 +1,25 @@
 import { Image } from 'expo-image';
 import { router, Stack } from 'expo-router';
 import { useState } from 'react';
-import { Switch, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Button } from '@/components/button';
-import { Icon, type IconName } from '@/components/icon';
+import { Icon } from '@/components/icon';
 import { FadeUp, Pressable, RevealText, Stagger } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
-import { SectionHeader, Surface } from '@/components/surface';
+import { Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { ErrorNotice, InfoNotice, TextField } from '@/features/auth/form-ui';
 import { saveProfile } from '@/features/auth/session-controller';
 import { validateCity, validateUsername } from '@/features/auth/validation';
-import { DEFAULT_NOTIFICATION_PREFS, type DistanceUnit, type NotificationPrefs } from '@/services/api/types';
+import type { DistanceUnit } from '@/services/api/types';
 import { useSession } from '@/store/session-store';
 
 import { pickAndUploadAvatar } from './avatar-picker';
 import { initialsOf } from './profile-screen.model';
-import { factions, fonts, space } from '@/theme/tokens';
+import { neonTeam } from '@/theme/neon';
+import { fonts, palette, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
-
-// Ajuste de texto (E6): ícone + 4 palavras por aviso (antes, frases de até 9).
-const PREFS: { key: keyof NotificationPrefs; title: string; body: string; icon: IconName }[] = [
-  { key: 'invasions', title: 'Invasões', body: 'Rival atacou sua zona', icon: 'warning' },
-  { key: 'conquests', title: 'Conquistas', body: 'Você conquistou ou defendeu', icon: 'flag' },
-  { key: 'missions', title: 'Missões', body: 'Missões, baús e temporada', icon: 'chest' },
-  { key: 'moderation', title: 'Moderação', body: 'Revisão das suas corridas', icon: 'eye' },
-];
 
 const UNITS: { id: DistanceUnit; label: string }[] = [
   { id: 'km', label: 'Quilômetros (km)' },
@@ -35,14 +28,13 @@ const UNITS: { id: DistanceUnit; label: string }[] = [
 
 export { initialsOf };
 
-/** Editar perfil (RF-002): nome de usuário, cidade natal, unidade e preferências de notificação. */
+/** Editar perfil (RF-002): foto, nome de usuário, cidade natal e unidade. Os avisos ficam em Ajustes → Lembretes (UX-16). */
 export function EditProfileScreen() {
   const { colors } = useTheme();
   const profile = useSession((s) => s.profile);
   const [username, setUsername] = useState(profile?.username ?? '');
   const [city, setCity] = useState(profile?.city ?? '');
   const [unit, setUnit] = useState<DistanceUnit>(profile?.unit ?? 'km');
-  const [prefs, setPrefs] = useState<NotificationPrefs>(profile?.notificationPrefs ?? DEFAULT_NOTIFICATION_PREFS);
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [cityError, setCityError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +66,7 @@ export function EditProfileScreen() {
     if (err || cityErr) return;
     setBusy(true);
     setError(null);
-    const res = await saveProfile({ username, city, unit, notificationPrefs: prefs });
+    const res = await saveProfile({ username, city, unit });
     setBusy(false);
     if (!res.ok) {
       if (res.error.code === 'CONFLICT') setUsernameError(res.error.message);
@@ -105,11 +97,11 @@ export function EditProfileScreen() {
               accessibilityLabel={profile?.avatarUrl ? 'Foto de perfil. Toque para trocar.' : `Foto de perfil: iniciais ${initialsOf(username)}. Toque para enviar uma foto.`}
               disabled={uploading}
               onPress={changePhoto}
-              style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: factions[faction].color, overflow: 'hidden' }}>
+              style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: neonTeam[faction], overflow: 'hidden' }}>
               {profile?.avatarUrl ? (
                 <Image testID="perfil-foto-imagem" source={{ uri: profile.avatarUrl }} style={{ width: 64, height: 64 }} contentFit="cover" />
               ) : (
-                <Text style={{ fontFamily: fonts.display, fontSize: 24, lineHeight: 28 }} color={factions[faction].onColor}>
+                <Text style={{ fontFamily: fonts.display, fontSize: 24, lineHeight: 28 }} color={palette.ink}>
                   {initialsOf(username)}
                 </Text>
               )}
@@ -166,29 +158,7 @@ export function EditProfileScreen() {
           </Surface>
         </View>
 
-        <View style={{ gap: space[3] }}>
-          <SectionHeader title="Notificações" />
-          <Surface>
-            {PREFS.map((p) => (
-              <View key={p.key} style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 44 }}>
-                <Icon name={p.icon} size={20} color={colors.textSecondary} />
-                <View style={{ flex: 1 }}>
-                  <Text variant="bodyBold">{p.title}</Text>
-                  <Text variant="small" muted>
-                    {p.body}
-                  </Text>
-                </View>
-                <Switch
-                  testID={`perfil-notificacao-${p.key}`}
-                  accessibilityLabel={`Notificações de ${p.title.toLowerCase()}`}
-                  value={prefs[p.key]}
-                  onValueChange={(v) => setPrefs((cur) => ({ ...cur, [p.key]: v }))}
-                />
-              </View>
-            ))}
-          </Surface>
-        </View>
-
+        {/* UX-16: os avisos saíram daqui; moram só em Ajustes → Lembretes (gravam na hora). */}
       </Stagger>
 
       <ErrorNotice message={error} testID="perfil-erro" />

@@ -78,7 +78,7 @@ export function PlayerCard({ name, faction, level, xp, title, avatar, mascot, ri
       </View>
       {ring ? null : (
         <View style={{ gap: space[1] }}>
-          <ProgressBar value={xp.needed > 0 ? xp.into / xp.needed : 0} color={factions[faction].color} />
+          <ProgressBar value={xp.needed > 0 ? xp.into / xp.needed : 0} color={neonTeam[faction]} />
           <Text variant="caption" muted tabular>
             {xp.into.toLocaleString('pt-BR')} / {xp.needed.toLocaleString('pt-BR')} XP
           </Text>

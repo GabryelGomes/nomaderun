@@ -7,6 +7,7 @@ import { Text } from '@/components/text';
 import type { Influence } from '@/domain/territory';
 import { FACTION_IDS } from '@/domain/types';
 import { cssEasings, durations, easings } from '@/theme/motion';
+import { neonTeam } from '@/theme/neon';
 import { factions, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
@@ -70,7 +71,7 @@ export function InfluenceBar({ influence, height = 12, delay = 0 }: { influence:
     <View accessible accessibilityLabel={`Domínio: ${label}`} style={{ height, borderRadius: radius.pill, overflow: 'hidden', backgroundColor: colors.surfaceSunken }}>
       <Animated.View style={[{ height: '100%', flexDirection: 'row', gap: total ? 2 : 0, transformOrigin: 'left' }, fill]}>
         {parts.map((f) => (
-          <View key={f} style={{ flex: influence[f], backgroundColor: factions[f].color }} />
+          <View key={f} style={{ flex: influence[f], backgroundColor: neonTeam[f] }} />
         ))}
       </Animated.View>
     </View>

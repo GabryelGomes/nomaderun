@@ -2,19 +2,22 @@
  * Item do feed da crew (F1 §6): quem correu, selo do time, data sem hora, mini-mapa 16:9 da rota cortada
  * no servidor, km · tempo · ritmo, até 3 fichas de conquista e a barra de reações.
  */
+import { router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { View, type LayoutChangeEvent } from 'react-native';
 
 import { DemoBadge } from '@/components/demo-badge';
+import { Icon } from '@/components/icon';
 import { PressableScale } from '@/components/motion';
 import { TeamBadge } from '@/components/team-badge';
 import { Text } from '@/components/text';
+import { listMyActivities } from '@/services/api/activities-repo';
 import { listFeedItemKudos, type FeedItem, type FeedKudo, type FeedReaction } from '@/services/api/feed-repo';
 import { neonTeam } from '@/theme/neon';
 import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-import { feedDateLabel, feedItemLabel, feedStats, highlightLabel, REACTION_LABEL, totalReactions } from './feed-model';
+import { feedDateLabel, feedItemLabel, feedStats, highlightLabel, ownActivityFor, REACTION_LABEL, totalReactions } from './feed-model';
 import { ReactionBar } from './reaction-bar';
 import { ServerRouteMap } from './server-route-map';
 
@@ -72,6 +75,14 @@ export function CrewFeedCard({ item, today, onReact, onRemove }: CrewFeedCardPro
       <ReactionBar itemId={item.id} reactions={item.kudos} myReaction={item.myReaction} readOnly={item.you} onReact={(r) => onReact(item.id, r)} />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space[2] }}>
         {totalReactions(item.kudos) > 0 ? <WhoReacted itemId={item.id} total={totalReactions(item.kudos)} /> : null}
+        {item.you ? (
+          <PressableScale testID={`feed-${item.id}-compartilhar`} accessibilityRole="button" accessibilityLabel="Compartilhar esta corrida" onPress={() => void shareOwn(item)} hitSlop={8} style={{ minHeight: 36, flexDirection: 'row', alignItems: 'center', gap: space[1] }}>
+            <Icon name="share" size={16} color={colors.accentText} />
+            <Text variant="small" color={colors.accentText}>
+              Compartilhar
+            </Text>
+          </PressableScale>
+        ) : null}
         {item.you && onRemove ? (
           <PressableScale testID={`feed-${item.id}-tirar`} accessibilityLabel="Tirar esta corrida do feed" onPress={() => onRemove(item.id)} hitSlop={8} style={{ minHeight: 36, justifyContent: 'center' }}>
             <Text variant="small" muted>
@@ -82,6 +93,13 @@ export function CrewFeedCard({ item, today, onReact, onRemove }: CrewFeedCardPro
       </View>
     </View>
   );
+}
+
+/** Abre o card da própria corrida; sem achar a corrida (ou fora do ar), abre as Atividades, onde cada uma tem "Compartilhar". */
+async function shareOwn(item: FeedItem) {
+  const runs = await listMyActivities({ limit: 30 });
+  const id = runs.ok ? ownActivityFor(item, runs.data) : null;
+  router.push((id ? `/compartilhar/${encodeURIComponent(id)}` : '/perfil/atividades') as Href);
 }
 
 /** "Quem reagiu" (só nomes da crew, sob demanda). */

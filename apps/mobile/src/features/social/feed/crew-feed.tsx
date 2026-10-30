@@ -13,6 +13,7 @@ import { FlatList, View } from 'react-native';
 import { EmptyArt } from '@/components/art';
 import { Button } from '@/components/button';
 import { EmptyState } from '@/components/empty-state';
+import { OfflineNotice } from '@/components/offline-notice';
 import { ShimmerSkeleton } from '@/components/motion';
 import { Text } from '@/components/text';
 import type { FactionId } from '@/domain/types';
@@ -35,6 +36,7 @@ export const CREW_FEED_TEXT = {
   errorTitle: 'Não deu para carregar o feed',
   offline: 'Sem conexão. Mostrando o que já carregou.',
   more: 'Ver mais',
+  all: 'Ver tudo',
   retry: 'Tentar de novo',
   join: 'Entrar com código',
   create: 'Criar crew',
@@ -49,10 +51,13 @@ export type CrewFeedProps = {
   /** Dentro de uma ScrollView (padrão) ou como lista própria. */
   embedded?: boolean;
   pageSize?: number;
+  /** Prévia (Clube, UX-21): mostra só os N primeiros e troca o "Ver mais" por "Ver tudo". */
+  limit?: number;
+  onSeeAll?: () => void;
   testID?: string;
 };
 
-export function CrewFeed({ faction, onJoinCrew, onCreateCrew, embedded = true, pageSize, testID = 'feed-crew' }: CrewFeedProps) {
+export function CrewFeed({ faction, onJoinCrew, onCreateCrew, embedded = true, pageSize, limit, onSeeAll, testID = 'feed-crew' }: CrewFeedProps) {
   const { colors } = useTheme();
   const feed = useCrewFeed({ pageSize });
   const today = localToday();
@@ -90,30 +95,30 @@ export function CrewFeed({ faction, onJoinCrew, onCreateCrew, embedded = true, p
   if (feed.status === 'unavailable') {
     return (
       <View testID={testID}>
-        <EmptyState testID={`${testID}-indisponivel`} icon="club" tag="Em breve" title={CREW_FEED_TEXT.unavailableTitle} body={CREW_FEED_TEXT.unavailableBody} compact />
+        {/* Regra 1 da F8: sem "Em breve"; o estado diz o que é, sem prometer data. */}
+        <EmptyState testID={`${testID}-indisponivel`} icon="club" title={CREW_FEED_TEXT.unavailableTitle} body={CREW_FEED_TEXT.unavailableBody} compact />
       </View>
     );
   }
 
   if (feed.status === 'error') {
+    // D-95: o aviso único de "sem conexão" (antes, um título grande com arte, diferente do resto do app).
     return (
       <View testID={testID}>
-        <EmptyState
-          testID={`${testID}-erro`}
-          art={<EmptyArt kind="sem-conexao" size={160} />}
-          title={CREW_FEED_TEXT.errorTitle}
-          body={feed.error ?? undefined}
-          action={<Button testID={`${testID}-tentar`} label={CREW_FEED_TEXT.retry} kind="secondary" onPress={() => void feed.reload()} />}
-          compact
-        />
+        <OfflineNotice testID={`${testID}-erro`} code={feed.errorCode} hasData={false} onRetry={() => void feed.reload()} />
       </View>
     );
   }
 
+  // Erro de carga com a última página na tela: o mesmo aviso; erro de uma ação (reagir, tirar): 1 linha curta.
   const banner = feed.error ? (
-    <View testID={`${testID}-aviso`} accessibilityLiveRegion="polite" style={{ paddingVertical: space[2], paddingHorizontal: space[3], borderRadius: 12, backgroundColor: colors.surfaceSunken }}>
-      <Text variant="small">{feed.error.includes('conexão') ? CREW_FEED_TEXT.offline : feed.error}</Text>
-    </View>
+    feed.errorCode ? (
+      <OfflineNotice testID={`${testID}-aviso`} code={feed.errorCode} hasData onRetry={() => void feed.reload()} />
+    ) : (
+      <View testID={`${testID}-aviso`} accessibilityLiveRegion="polite" style={{ paddingVertical: space[2], paddingHorizontal: space[3], borderRadius: 12, backgroundColor: colors.surfaceSunken }}>
+        <Text variant="small">{feed.error}</Text>
+      </View>
+    )
   ) : null;
 
   if (feed.items.length === 0) {
@@ -131,11 +136,13 @@ export function CrewFeed({ faction, onJoinCrew, onCreateCrew, embedded = true, p
   ) : null;
 
   if (embedded) {
+    const shown = limit !== undefined ? feed.items.slice(0, limit) : feed.items;
+    const seeAll = limit !== undefined && onSeeAll && (feed.items.length > limit || feed.hasMore);
     return (
       <View testID={testID} style={{ gap: space[3] }}>
         {banner}
-        {feed.items.map(renderItem)}
-        {more}
+        {shown.map(renderItem)}
+        {limit !== undefined ? (seeAll ? <Button testID={`${testID}-ver-tudo`} label={CREW_FEED_TEXT.all} kind="secondary" icon="chevron" onPress={onSeeAll} /> : null) : more}
       </View>
     );
   }

@@ -1,0 +1,183 @@
+{
+  "mapa__cheio": {
+    "url": "/?cenario=cheio",
+    "palavras": 30,
+    "erros": []
+  },
+  "arena__cheio": {
+    "url": "/arena?cenario=cheio",
+    "palavras": 72,
+    "erros": []
+  },
+  "arena__cheio--2": {
+    "url": "/arena?cenario=cheio",
+    "palavras": 72,
+    "erros": []
+  },
+  "arena-liga__cheio": {
+    "url": "/arena?cenario=cheio",
+    "palavras": 72,
+    "erros": []
+  },
+  "arena-chefao__toque": {
+    "falha": "locator.click: Timeout 4000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"arena-raid-correr\"]').first()\u001b[22m\n"
+  },
+  "clube__cheio": {
+    "url": "/clube?cenario=cheio",
+    "palavras": 284,
+    "erros": []
+  },
+  "clube__cheio--2": {
+    "url": "/clube?cenario=cheio",
+    "palavras": 284,
+    "erros": []
+  },
+  "clube-ranking__cheio": {
+    "falha": "locator.click: Timeout 4000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"clube-secao-ranking\"]').first()\u001b[22m\n"
+  },
+  "clube__vazio": {
+    "url": "/clube?cenario=vazio",
+    "palavras": 151,
+    "erros": []
+  },
+  "clube-crew__cheio": {
+    "url": "/clube/crew?cenario=cheio",
+    "palavras": 80,
+    "erros": []
+  },
+  "clube-crew__cheio--2": {
+    "url": "/clube/crew?cenario=cheio",
+    "palavras": 80,
+    "erros": []
+  },
+  "compartilhar-feed__cheio": {
+    "url": "/compartilhar/feed?cenario=cheio",
+    "palavras": 160,
+    "erros": []
+  },
+  "voce__cheio": {
+    "url": "/perfil?cenario=cheio",
+    "palavras": 46,
+    "erros": []
+  },
+  "voce-atividades__cheio": {
+    "url": "/perfil/atividades?cenario=cheio",
+    "palavras": 118,
+    "erros": []
+  },
+  "voce-atividades__cheio--2": {
+    "url": "/perfil/atividades?cenario=cheio",
+    "palavras": 118,
+    "erros": []
+  },
+  "voce-atividades__vazio": {
+    "url": "/perfil/atividades?cenario=vazio",
+    "palavras": 47,
+    "erros": []
+  },
+  "voce-ajustes__cheio": {
+    "url": "/perfil/ajustes?cenario=cheio",
+    "palavras": 201,
+    "erros": []
+  },
+  "voce-ajustes__cheio--2": {
+    "url": "/perfil/ajustes?cenario=cheio",
+    "palavras": 201,
+    "erros": []
+  },
+  "voce-ajustes__cheio--3": {
+    "url": "/perfil/ajustes?cenario=cheio",
+    "palavras": 201,
+    "erros": []
+  },
+  "ajustes-seguranca__cheio": {
+    "url": "/perfil/ajustes/seguranca?cenario=cheio",
+    "palavras": 18,
+    "erros": []
+  },
+  "ajustes-privacidade__cheio": {
+    "url": "/perfil/ajustes/privacidade?cenario=cheio",
+    "palavras": 18,
+    "erros": []
+  },
+  "ajustes-privacidade__cheio--2": {
+    "url": "/perfil/ajustes/privacidade?cenario=cheio",
+    "palavras": 18,
+    "erros": []
+  },
+  "ajustes-lembretes__cheio": {
+    "url": "/perfil/ajustes/lembretes?cenario=cheio",
+    "palavras": 18,
+    "erros": []
+  },
+  "ajustes-lembretes__cheio--2": {
+    "url": "/perfil/ajustes/lembretes?cenario=cheio",
+    "palavras": 18,
+    "erros": []
+  },
+  "voce-conta__cheio": {
+    "url": "/perfil/conta?cenario=cheio",
+    "palavras": 64,
+    "erros": []
+  },
+  "voce-conta__cheio--2": {
+    "url": "/perfil/conta?cenario=cheio",
+    "palavras": 64,
+    "erros": []
+  },
+  "voce-editar__cheio--2": {
+    "url": "/perfil/editar?cenario=cheio",
+    "palavras": 70,
+    "erros": []
+  },
+  "contatos-seguranca__cheio": {
+    "url": "/contatos-seguranca?cenario=cheio",
+    "palavras": 36,
+    "erros": []
+  },
+  "zonas-privacidade__cheio": {
+    "url": "/zonas-privacidade?cenario=cheio",
+    "palavras": 30,
+    "erros": []
+  },
+  "compartilhar__cheio": {
+    "url": "/compartilhar/demo-corrida-1?cenario=cheio",
+    "palavras": 113,
+    "erros": []
+  },
+  "compartilhar-semana__cheio": {
+    "url": "/compartilhar/semana?cenario=cheio",
+    "palavras": 103,
+    "erros": []
+  },
+  "compartilhar-semana__vazio": {
+    "url": "/compartilhar/semana?cenario=vazio",
+    "palavras": 18,
+    "erros": []
+  },
+  "resumo__cheio": {
+    "url": "/resumo?id=demo-corrida-1&cenario=cheio",
+    "palavras": 44,
+    "erros": []
+  },
+  "moderacao__moderador": {
+    "url": "/moderacao?cenario=moderador",
+    "palavras": 110,
+    "erros": []
+  },
+  "clube__offline-quente": {
+    "url": "/clube?cenario=offline",
+    "palavras": 30,
+    "erros": []
+  },
+  "clube-crew__offline-quente": {
+    "url": "/clube/crew?cenario=offline",
+    "palavras": 14,
+    "erros": []
+  },
+  "compartilhar-feed__offline-quente": {
+    "url": "/compartilhar/feed?cenario=offline",
+    "palavras": 70,
+    "erros": []
+  }
+}

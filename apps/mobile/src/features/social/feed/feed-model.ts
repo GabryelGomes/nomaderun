@@ -5,6 +5,7 @@
 import { formatDuration, formatKm, formatPace, paceSecPerKm } from '@/domain/geo';
 import type { LatLng } from '@/domain/types';
 import type { FeedHighlight, FeedItem, FeedReaction, KudosCounts, ServerClippedRoute } from '@/services/api/feed-repo';
+import { zoneDisplayName } from '@/features/format';
 
 export const REACTION_LABEL: Record<FeedReaction, string> = { bora: 'Bora!', fogo: 'Fogo', raio: 'Raio' };
 export const REACTION_HINT: Record<FeedReaction, string> = { bora: 'aplauso', fogo: 'ritmo forte', raio: 'conquista' };
@@ -41,7 +42,7 @@ export function feedStats(item: Pick<FeedItem, 'meters' | 'movingSeconds'>): { k
 }
 
 export function highlightLabel(h: FeedHighlight): string {
-  if (h.kind === 'zone_conquered') return `Conquistou ${h.name}`;
+  if (h.kind === 'zone_conquered') return `Conquistou ${zoneDisplayName(h.name)}`;
   if (h.kind === 'raid_damage') return `−${String(h.km).replace('.', ',')} km no chefão`;
   return `Recorde: ${h.distance}`;
 }
@@ -114,4 +115,13 @@ export function miniMapPaths(route: ServerClippedRoute | null, width: number, he
         })
         .join(' '),
     );
+}
+
+/**
+ * §4.3 (F8-B3): o feed não traz o id da corrida (privacidade, D-79). Para "Compartilhar" o próprio item, acha a
+ * corrida da pessoa no mesmo dia (data local) com a mesma distância (±10 m). Nenhuma ou mais de uma: `null`.
+ */
+export function ownActivityFor(item: Pick<FeedItem, 'day' | 'meters'>, runs: readonly { id: string; startedAt: number; meters: number }[]): string | null {
+  const hits = runs.filter((r) => localToday(r.startedAt) === item.day && Math.abs(r.meters - item.meters) <= 10);
+  return hits.length === 1 ? hits[0].id : null;
 }

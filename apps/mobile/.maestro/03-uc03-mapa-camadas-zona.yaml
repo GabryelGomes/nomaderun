@@ -6,7 +6,7 @@ tags: [uc-03, rf-007]
 - runFlow: subflows/entrar-demo.yaml
 - extendedWaitUntil:
     visible:
-      text: ".*zonas em .*"
+      text: "Seu time: .*"
     timeout: 30000
 - tapOn:
     id: "mapa-camada-meu-time"

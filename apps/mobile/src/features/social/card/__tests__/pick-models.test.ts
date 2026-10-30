@@ -23,8 +23,9 @@ const straight = (meters: number) => Array.from({ length: meters / 20 + 1 }, (_,
 describe('pickCardModels', () => {
   it('todos os momentos: chefão > nível > zona > corrida', () => {
     const pick = pickCardModels(demoRunInput());
-    expect(pick.kinds).toEqual(['boss', 'level', 'zone', 'run']);
-    expect(CARD_RARITY_ORDER).toEqual(['boss', 'level', 'zone', 'run']);
+    // F8-B3 (UX-33): o momento mais forte primeiro: a zona conquistada vem antes do nível novo.
+    expect(pick.kinds).toEqual(['boss', 'zone', 'level', 'run']);
+    expect(CARD_RARITY_ORDER).toEqual(['boss', 'zone', 'level', 'run']);
     expect(pick.startWithoutRoute).toBe(false);
     expect(pick.privacyNotice).toBe(PRIVACY_NOTICE_CLIPPED);
   });
@@ -32,7 +33,7 @@ describe('pickCardModels', () => {
   it('a corrida aparece sempre; os outros só com o momento', () => {
     const z = demoRunInput().zones;
     expect(pickCardModels(demoRunInput({ boss: null, level: null, zones: [z[1]] })).kinds).toEqual(['run']);
-    expect(pickCardModels(demoRunInput({ boss: { ...demoRunInput().boss!, defeated: false } })).kinds).toEqual(['level', 'zone', 'run']);
+    expect(pickCardModels(demoRunInput({ boss: { ...demoRunInput().boss!, defeated: false } })).kinds).toEqual(['zone', 'level', 'run']);
     expect(pickCardModels(demoRunInput({ level: null })).kinds).toEqual(['boss', 'zone', 'run']);
   });
 
@@ -51,7 +52,7 @@ describe('pickCardModels', () => {
     expect(pick.startWithoutRoute).toBe(true);
     expect(pick.privacyNotice).toBe(PRIVACY_NOTICE_MOSTLY_HIDDEN);
     const models = buildCarousel(demoRunInput({ route }));
-    expect(models.map((m) => m.kind)).toEqual(['boss', 'level', 'zone', 'run']);
+    expect(models.map((m) => m.kind)).toEqual(['boss', 'zone', 'level', 'run']);
     for (const m of models) if (m.kind === 'run' || m.kind === 'zone') expect(m.route).toBeNull();
   });
 
@@ -67,7 +68,7 @@ describe('pickCardModels', () => {
 
   it('carrossel pronto, na ordem, respeitando as escolhas', () => {
     const models = buildCarousel(demoRunInput(), { withRoute: false, showCity: false, showUsername: true });
-    expect(models.map((m) => m.kind)).toEqual(['boss', 'level', 'zone', 'run']);
+    expect(models.map((m) => m.kind)).toEqual(['boss', 'zone', 'level', 'run']);
     expect(models.every((m) => m.username === '@gabryel' && m.dateLabel === 'SEXTA · 23 OUT')).toBe(true);
     expect(buildCarousel(demoRunInput({ status: 'rejected' }))).toEqual([]);
   });

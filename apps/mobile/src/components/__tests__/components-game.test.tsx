@@ -149,8 +149,8 @@ describe('DailyStrip', () => {
 describe('AlertSlot', () => {
   const mk = (kind: SlotAlert['kind'], id: string = kind): SlotAlert => ({ id, kind, title: `t-${id}`, body: 'b', onPress: noop });
 
-  it('a prioridade segue a ordem da E6 (ataque > missão > baú > chefão > sequência)', () => {
-    expect(ALERT_PRIORITY).toEqual(['attack', 'mission', 'chest', 'boss', 'streak']);
+  it('a prioridade segue a ordem da E6 (ataque > missão > baú > chefão > sequência > recap, F8-B3)', () => {
+    expect(ALERT_PRIORITY).toEqual(['attack', 'mission', 'chest', 'boss', 'streak', 'recap']);
     expect(pickAlert([mk('streak'), mk('boss'), mk('chest')])?.kind).toBe('chest');
     expect(pickAlert([mk('mission', 'm1'), mk('mission', 'm2')])?.id).toBe('m1');
     expect(pickAlert([])).toBeNull();
