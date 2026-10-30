@@ -23,12 +23,7 @@ import { useTheme } from '@/theme/use-theme';
 const TRUST_TITLE: Record<TrustLevel, string> = {
   ok: 'Corridas sem suspeita ✓',
   review: 'Corridas em revisão',
-  suspended: 'Competição suspensa por 30 dias',
-};
-const TRUST_DETAIL: Record<TrustLevel, string> = {
-  ok: 'Suas corridas contam normalmente.',
-  review: `Abaixo de ${TRUST_REVIEW_BELOW}, cada corrida é revisada antes de pontuar.`,
-  suspended: 'Corridas válidas devolvem a confiança aos poucos.',
+  suspended: 'Competição suspensa',
 };
 
 /**
@@ -104,7 +99,7 @@ export function AccountScreen() {
 
         <Surface>
           <Text variant="caption" muted>
-            E-mail da conta
+            E-mail
           </Text>
           <Text variant="bodyBold" selectable>
             {email ?? '—'}
@@ -126,7 +121,7 @@ export function AccountScreen() {
           {trustOpen ? (
             <FadeUp>
               <Text testID="conta-confianca-detalhe" variant="small" muted>
-                {`Índice de confiança: ${trust} de ${TRUST_START}. ${TRUST_DETAIL[level]}`}
+                {`Índice de confiança: ${trust} de ${TRUST_START}. Abaixo de ${TRUST_REVIEW_BELOW}, há revisão.`}
               </Text>
             </FadeUp>
           ) : null}
@@ -148,10 +143,7 @@ export function AccountScreen() {
             Seus dados
           </RevealText>
           <Surface>
-            {/* O botão já diz "Exportar meus dados": o título repetido saiu (ajuste de texto E6). */}
-            <Text variant="small" muted>
-              Arquivo com perfil, corridas, trajetos, contatos e avisos.
-            </Text>
+            {/* UX-24: o botão diz o que sai ("arquivo"); a lista do que vai dentro está na Política de Privacidade. */}
             <Button testID="conta-exportar" label={exporting ? 'Gerando arquivo…' : 'Baixar meus dados (arquivo)'} kind="secondary" icon="share" wide disabled={exporting} onPress={doExport} />
             <ErrorNotice message={error} testID="conta-exportar-erro" />
             {exportMsg ? (
@@ -167,7 +159,6 @@ export function AccountScreen() {
         </View>
 
         <View style={{ gap: space[3] }}>
-          <SectionHeader title="Sessão" />
           {/* UX-36: o único "Sair" do app, sempre com confirmação. */}
           <Button testID="conta-sair" label="Sair" icon="logout" kind="secondary" size="lg" wide onPress={() => setSignOutOpen(true)} />
           <SignOutDialog visible={signOutOpen} onClose={() => setSignOutOpen(false)} testID="conta-sair-dialogo" />

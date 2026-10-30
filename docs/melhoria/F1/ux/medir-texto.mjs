@@ -92,6 +92,14 @@ const SCREENS = [
   { rota: '(tabs)/perfil/time', tipo: 'jogo', meta: 60, partes: [['features/screens/faction-screen.tsx']] },
   // E6a (onda 3): os ajustes saíram do perfil para trás da engrenagem.
   { rota: '(tabs)/perfil/ajustes', tipo: 'conta', partes: [['features/screens/profile-screen.settings.tsx']] },
+  // F8-B3 (UX-16): Ajustes em 4 telas, cada uma com a sua rota (Conta continua em `perfil/conta`).
+  { rota: '(tabs)/perfil/seguranca', tipo: 'conta', partes: [['features/screens/settings-pages.tsx', 'SafetySettingsScreen']] },
+  { rota: '(tabs)/perfil/privacidade', tipo: 'conta', partes: [['features/screens/settings-pages.tsx', 'PrivacySettingsScreen']] },
+  { rota: '(tabs)/perfil/lembretes', tipo: 'conta', partes: [['features/screens/settings-pages.tsx', 'RemindersSettingsScreen', 'ALERTS']] },
+  // F8-B3: a folha da Liga (detalhe sob demanda da Arena) e o feed da crew em rota própria (UX-22).
+  { rota: 'arena · folha da Liga', tipo: 'jogo', partes: [['features/screens/arena-league-sheet.tsx'], ['features/screens/arena-league.model.ts']] },
+  { rota: 'compartilhar/feed (corridas da crew)', tipo: 'jogo', partes: [['features/social/feed/crew-feed-screen.tsx'], ['features/social/feed/crew-feed.tsx']] },
+  { rota: 'compartilhar/semana (minha semana)', tipo: 'jogo', meta: 60, partes: [['features/social/recap/recap-screen.tsx']] },
   { rota: '(tabs)/perfil/editar', tipo: 'conta', partes: [['features/screens/edit-profile-screen.tsx']] },
   { rota: '(tabs)/perfil/conta', tipo: 'conta', partes: [['features/screens/account-screen.tsx'], ['features/auth/sign-out-dialog.tsx']] },
   { rota: 'notificacoes', tipo: 'jogo', partes: [['features/notifications/notifications-screen.tsx']] },

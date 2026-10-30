@@ -47,7 +47,7 @@ import { useTheme } from '@/theme/use-theme';
 
 // D-74: 1 linha curta por modo. UX-08: "Modo" (missão é tarefa, modo é jogo) e os ícones da Arena (`ModeIcon`, E4).
 const MODES: { id: MissionId; title: string; body: string; art: ModeIconKind }[] = [
-  { id: 'livre', title: 'Corrida livre', body: 'Corra e pinte a cidade.', art: 'dominio' },
+  { id: 'livre', title: 'Corrida livre', body: 'Pinte a cidade.', art: 'dominio' },
   { id: 'fuga', title: 'Fuga', body: 'Vença o seu fantasma.', art: 'fuga' },
   { id: 'caca', title: 'Caça', body: 'Abra baús a 25 m.', art: 'caca' },
 ];
@@ -148,7 +148,7 @@ export function RunScreen() {
           <Boss id={raidBoss.id} size={56} decorative />
           <View style={{ flex: 1, gap: 2 }}>
             <Text variant="bodyBold">{`Raid contra ${raidBoss.name}`}</Text>
-            <Text variant="small" muted>{`Cada km tira ${RAID_DAMAGE_PER_KM} de vida`}</Text>
+            <Text variant="small" muted>{`−${RAID_DAMAGE_PER_KM} de vida/km`}</Text>
           </View>
         </View>
       ) : null}
@@ -263,7 +263,7 @@ export function RunScreen() {
             testID="corrida-escolta"
             icon="location"
             title="Compartilhar ao vivo"
-            body={contacts.length === 0 ? 'Adicione alguém de confiança.' : escortOn ? `${contacts.join(' e ')} veem você.` : 'Seus contatos veem você.'}
+            body={contacts.length === 0 ? 'Adicione um contato.' : escortOn ? `${contacts.join(' e ')} veem você.` : 'Seus contatos veem você.'}
             value={escortOn}
             onChange={toggleEscort}
           />

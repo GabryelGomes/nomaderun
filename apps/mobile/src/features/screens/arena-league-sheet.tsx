@@ -40,7 +40,7 @@ export function LeagueSheet({ visible, league, demo, onClose }: { visible: boole
             <Text variant="headline" accessibilityRole="header" style={{ flex: 1 }}>
               {leagueTitle(league)}
             </Text>
-            <IconButton testID="arena-liga-folha-fechar" icon="close" label="Fechar a liga" tone="sunken" size={44} onPress={onClose} />
+            <IconButton testID="arena-liga-folha-fechar" icon="close" label="Fechar" tone="sunken" size={44} onPress={onClose} />
           </View>
           {demo ? <DemoBadge testID="arena-liga-folha-demonstracao" /> : null}
 

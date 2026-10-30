@@ -198,7 +198,7 @@ describe('Arena com ação (F8-B3, UX-11)', () => {
     expect(has(r, 'arena-liga-folha')).toBe(true);
     const t = text(r);
     expect(t).toContain('Grupo de 30 corredores');
-    expect(t).toContain('Os 5 primeiros sobem de divisão');
+    expect(t).toContain('Os 5 primeiros sobem');
     expect(t).toContain('Os 5 últimos descem');
     expect(t).toContain('Fecha em 3 dias');
     expect(t).toContain('eu (você)');
@@ -220,8 +220,8 @@ describe('textos da Liga', () => {
   it('quem sobe, quem desce e o prazo', () => {
     expect(leagueTitle({ divisionName: 'Rua' })).toBe('Liga · Divisão Rua');
     expect(leagueStripLine({ me: null, groupSize: 30, promoteSlots: 5 })).toBe('Corra para entrar');
-    expect(leagueRules({ joined: true, groupSize: 4, promoteSlots: 1, relegateSlots: 0, smallGroup: true })).toEqual({ group: 'Grupo de 4 corredores', up: 'O 1º sobe de divisão', down: 'Ninguém desce nesta semana' });
-    expect(leagueRules({ joined: false, groupSize: 0, promoteSlots: 0, relegateSlots: 0, smallGroup: false }).group).toBe('Sua 1ª corrida da semana te põe num grupo');
+    expect(leagueRules({ joined: true, groupSize: 4, promoteSlots: 1, relegateSlots: 0, smallGroup: true })).toEqual({ group: 'Grupo de 4 corredores', up: 'O 1º sobe', down: 'Ninguém desce' });
+    expect(leagueRules({ joined: false, groupSize: 0, promoteSlots: 0, relegateSlots: 0, smallGroup: false }).group).toBe('Corra para entrar num grupo');
     expect(leagueCloses(NOW + 25 * H, NOW)).toBe('Fecha em 1 dia');
     expect(leagueCloses(NOW + 5 * H + 20 * 60_000, NOW)).toBe('Fecha em 5 h 20 min');
     expect(leagueCloses(NOW - 1, NOW)).toBe('Fechando agora');
