@@ -43,6 +43,14 @@ jest.mock('@/services/demo-mode', () => {
   };
 });
 jest.mock('@/services/api/profile-repo',() => ({ isUsernameAvailable: async () => ({ ok: true, data: true }) }));
+const mockLocal = new Map<string, unknown>();
+jest.mock('@/features/engagement/local-store', () => ({
+  readLocal: async (name: string) => mockLocal.get(name) ?? null,
+  writeLocal: async (name: string, value: unknown) => {
+    if (value === null || value === undefined) mockLocal.delete(name);
+    else mockLocal.set(name, value);
+  },
+}));
 
 /* eslint-disable import/first */
 import { act } from 'react-test-renderer';
@@ -52,6 +60,7 @@ import { useSession } from '@/store/session-store';
 
 import { canLeaveDemo, DEMO_RUNNER_EMAIL, startDemo } from '../demo-entry';
 import { useOnboardingFlow } from '../onboarding-flow';
+import { usePendingTeam } from '../pending-team';
 import { resetStoresForDemoSwitch } from '../session-controller';
 import { LEGAL_ERROR, SignUpScreen } from '../sign-up-screen';
 import { WelcomeScreen } from '../welcome-screen';
@@ -64,13 +73,15 @@ beforeEach(() => {
   act(() => useSession.getState().setSignedOutNotice(null));
 });
 
-describe('Boas-vindas (wireframe 00)', () => {
-  it('1 frase e 2 caminhos: Começar → cadastro, Já tenho conta → entrar', () => {
+describe('Boas-vindas (wireframe 00, D-91)', () => {
+  it('1 frase e 2 caminhos: Começar → a cidade dividida (valor antes da conta), Já tenho conta → entrar', () => {
     const r = render(<WelcomeScreen />);
     expect(r.text()).toContain('Corra a sua cidade: cada rua conta.');
+    // herói do jogo (UX-20): o logo oficial como imagem, sem o wordmark em texto nem bolinhas
+    expect(r.host('boas-vindas-titulo').props.accessibilityLabel).toBe('NOMADE RUN');
     r.press('boas-vindas-comecar');
     r.press('boas-vindas-entrar');
-    expect(mockRouter.push.mock.calls).toEqual([['/cadastro'], ['/entrar']]);
+    expect(mockRouter.push.mock.calls).toEqual([['/cidade'], ['/entrar']]);
   });
 
   it('sessão encerrada pelo servidor: vai direto para Entrar, onde o aviso aparece', () => {
@@ -82,6 +93,18 @@ describe('Boas-vindas (wireframe 00)', () => {
 });
 
 describe('Cadastro enxuto (D-72)', () => {
+  it('depois da cerimônia (D-91): "Garanta seu lugar nos <time>" com o emblema; sem time pendente, "Criar conta"', () => {
+    act(() => usePendingTeam.setState({ team: 'volt', hydrated: true }));
+    const r = render(<SignUpScreen />);
+    expect(r.text()).toContain('Garanta seu lugar nos Volt Runners');
+    expect(r.has('cadastro-time')).toBe(true);
+    act(() => r.renderer.unmount());
+    act(() => usePendingTeam.setState({ team: null, hydrated: true }));
+    const r2 = render(<SignUpScreen />);
+    expect(r2.text()).toContain('Criar conta');
+    expect(r2.has('cadastro-time')).toBe(false);
+  });
+
   it('no máximo 4 campos, sem cidade, e 1 caixa para Termos e Privacidade', () => {
     const r = render(<SignUpScreen />);
     const fields = ['cadastro-email', 'cadastro-senha', 'cadastro-usuario', 'cadastro-nascimento'];
