@@ -113,7 +113,7 @@ export function AccountScreen() {
         {/* UX-24: o número cru ("Índice de confiança: 100") parecia nota de crédito. O estado vem primeiro; o número, em "Ver mais". */}
         <Surface>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
-            <Icon name={level === 'ok' ? 'check' : 'warning'} size={20} color={level === 'ok' ? colors.accentText : colors.danger} />
+            {level === 'ok' ? null : <Icon name="warning" size={20} color={colors.danger} />}
             <Text testID="conta-confianca" variant="bodyBold" style={{ flex: 1 }}>
               {TRUST_TITLE[level]}
             </Text>

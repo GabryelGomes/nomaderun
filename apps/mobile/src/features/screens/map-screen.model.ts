@@ -66,7 +66,7 @@ export function todayChips(today: MapToday | null | undefined, streakWeeks: numb
     out.push({ key: 'chest', testID: 'mapa-hoje-bau', icon: 'chest', value: String(today.chest.credits), label: today.chest.credits > 1 ? 'Baús' : 'Baú', tone: 'action', href: '/recompensas' });
   }
   if (today?.boss && Number.isFinite(today.boss.hp)) {
-    out.push({ key: 'boss', testID: 'mapa-hoje-chefao', icon: 'raid', value: `${Math.round(Math.max(0, Math.min(1, today.boss.hp)) * 100)}%`, label: 'de vida do chefão', tone: 'villain', href: '/arena' });
+    out.push({ key: 'boss', testID: 'mapa-hoje-chefao', icon: 'raid', value: `${Math.round(Math.max(0, Math.min(1, today.boss.hp)) * 100)}%`, label: 'Chefão', tone: 'villain', href: '/arena' });
   }
   // A missão em destaque entra se sobrar espaço (a faixa mostra no máximo 3 chips).
   if (today?.featured) out.push({ key: 'mission', testID: 'mapa-hoje-missao', icon: 'trophy', value: today.featured.value, label: today.featured.label, tone: 'action', href: '/missoes' });

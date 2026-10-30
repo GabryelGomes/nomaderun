@@ -42,8 +42,8 @@ export function InviteCard(props: InviteCardProps) {
       <View testID={testID} style={{ gap: space[3] }}>
         <Text variant="title">{props.kind === 'crew' ? 'Convidar para a crew' : 'Convidar amigos'}</Text>
         {code ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[2], paddingHorizontal: space[4], borderRadius: 16, backgroundColor: colors.surfaceSunken }}>
-            <View accessible accessibilityLabel={`Código da crew: ${code.split('').join(' ')}`} style={{ flex: 1 }}>
+          <View style={{ alignItems: 'center', gap: space[2], paddingVertical: space[3], paddingHorizontal: space[4], borderRadius: 16, backgroundColor: colors.surfaceSunken }}>
+            <View accessible accessibilityLabel={`Código da crew: ${code.split('').join(' ')}`} style={{ alignItems: 'center' }}>
               <Text variant="caption" muted>
                 CÓDIGO
               </Text>
