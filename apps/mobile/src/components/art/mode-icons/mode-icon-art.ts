@@ -44,7 +44,14 @@ export function modeIconNodes(kind: ModeIconKind, color: string = ART.ink, accen
       case 'caca':
         return [I(['M14 40 L 50 40 L 48 54 L 16 54 Z', 'M14 40 L 16 32 Q 32 26 48 32 L 50 40'], accent), I(['M22 22 Q 32 14 42 22', 'M16 14 Q 32 2 48 14'], color, 2.4)];
       case 'raid':
-        return [I('M14 26 L 18 12 L 26 22 L 38 22 L 46 12 L 50 26 L 48 44 L 38 54 L 26 54 L 16 44 Z', ART.villain), I('M34 24 L 26 38 L 34 38 L 28 50', accent, 2.6)];
+        // Vulto do vilão (o mesmo do vazio "sem chefão"): ombros largos, cabeça baixa, chifres de touro abertos
+        // e olhos acesos. Sem orelhas nem raio, para não ler como gato nem concorrer com o Breu.
+        return [
+          neon('M6 58 L 8 46 Q 12 36 26 35 L 38 35 Q 52 36 56 46 L 58 58 Z', ART.villain, 3, { fill: true, tint: 0.22, glow: 0.7, hot: 0.35 }),
+          neon({ tag: 'circle', cx: 32, cy: 25, r: 9.5 }, ART.villain, 3, { fill: true, tint: 0.22, glow: 0.7, hot: 0.35 }),
+          I(['M24 20 Q 12 18 6 5 Q 18 9 28 14', 'M40 20 Q 52 18 58 5 Q 46 9 36 14'], ART.villain, 3.2),
+          glowFill([{ tag: 'circle', cx: 28.5, cy: 24.5, r: 1.9 }, { tag: 'circle', cx: 35.5, cy: 24.5, r: 1.9 }], accent, { w: 1, glow: 1 }),
+        ];
       case 'liga':
         return [
           I(['M8 52 L 8 38 L 22 38 L 22 52', 'M24 52 L 24 26 L 40 26 L 40 52', 'M42 52 L 42 32 L 56 32 L 56 52', 'M4 52 L 60 52']),

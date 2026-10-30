@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { router, type Href } from 'expo-router';
 import { View } from 'react-native';
 
-import { Mascot, Medal } from '@/components/art';
+import { Medal, TeamEmblem } from '@/components/art';
 import { FadeUp, ProgressRing, Stagger } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
@@ -100,7 +100,7 @@ export function ProfileScreen() {
               accessibilityLabel={`Nível ${lvl.level}: ${lvl.intoLevel} de ${lvl.needed} XP`}
             />
           }
-          mascot={<Mascot team={faction} pose="parado" size={72} animated />}
+          mascot={<TeamEmblem team={faction} size={72} variant="medio" />}
           onPress={() => router.push('/recompensas' as Href)}
         />
       </FadeUp>

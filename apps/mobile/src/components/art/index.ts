@@ -4,16 +4,17 @@
  * decide pose, estado, raridade, nível e dano. Guia: `docs/melhoria/relatorios/E4-onda1.md`.
  */
 export { resolveQuality, type Quality, type QualityProp } from './neon/core';
-export { ART, PRISM, VILLAIN, EMBER, ICE } from './neon/palette';
+export { ART, PRISM, VILLAIN, EMBER, ICE, mix } from './neon/palette';
 export { ArtFrame, type ArtA11y } from './neon/render';
 export { InSvgArt, fitTransform, type InSvgArtProps, type SvgArtBox } from './neon/in-svg';
-export { BossSvgArt, bossSlot, LeaderSvgArt, LogoSvgArt, MascotSvgArt, mascotSlot, RunnerSvgArt, type SvgArtSlot } from './svg-art';
+export { BossSvgArt, bossSlot, LeaderSvgArt, LogoSvgArt, MascotSvgArt, mascotSlot, RunnerSvgArt, TeamEmblemInSvg, type SvgArtSlot } from './svg-art';
 
 export { Logo, type LogoProps } from './logo/logo';
 export { LOGO_BOX, LOGO_COLORS, LOGO_LABEL, LOGO_VARIANTS, type LogoVariant } from './logo/logo-art';
 
 export { Mascot, type MascotPart, type MascotProps } from './team/mascot';
 export { TeamEmblem, type TeamEmblemProps } from './team/emblem';
+export { EMBLEM_BOX, EMBLEM_LINE_ART_MIN, EMBLEM_MIN_SIZE, EMBLEM_VARIANTS, emblemLabel, resolveEmblemVariant, type EmblemVariant, type EmblemVariantProp } from './team/emblem-art';
 export { MascotRunner, type MascotRunnerProps, type RunnerPart } from './team/mascot-runner';
 export { RUNNER_BOX, RUNNER_PIVOTS } from './team/runner-art';
 export { MASCOT_BOX, MASCOT_NAMES, MASCOT_PIVOTS, MASCOT_POSES, type MascotPose } from './team/mascot-art';

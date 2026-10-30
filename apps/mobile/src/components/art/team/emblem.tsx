@@ -1,62 +1,44 @@
-import { View } from 'react-native';
+import { useMemo } from 'react';
 
-import { Text } from '@/components/text';
 import type { FactionId } from '@/domain/types';
-import { fonts } from '@/theme/tokens';
 
 import { expand, resolveQuality, type QualityProp } from '../neon/core';
-import { ART, teamName } from '../neon/palette';
 import { ArtFrame, ArtSvg, type ArtA11y, type ArtBox } from '../neon/render';
-import { EMBLEM_BAND, EMBLEM_BOX, emblemNodes } from './mascot-art';
+import { EMBLEM_BOX, EMBLEM_MIN_SIZE, emblemNodes, resolveEmblemVariant, type EmblemVariantProp } from './emblem-art';
 
 export type TeamEmblemProps = ArtA11y & {
-  team: FactionId;
-  /** Largura (e altura) em pontos. */
+  /** `null` desenha a zona neutra (anel tracejado). */
+  team: FactionId | null;
+  /** Largura (e altura) em pontos; padrão 24. Abaixo de 18 sobe para 18 (D-90). */
   size?: number;
-  /** Sem a faixa com o nome. Padrão: compacto abaixo de 64 pt (a faixa fica ilegível em 32 pt). */
-  compact?: boolean;
+  /** `auto` (padrão): < 40 mini · < 96 médio · ≥ 96 grande. */
+  variant?: EmblemVariantProp;
+  /** Cor do time; padrão `neonTeam[team]`. */
   color?: string;
+  /** Cor do fundo onde o emblema está (as feições são desenhadas nesta cor); padrão `neon.bg`. */
+  on?: string;
+  /** Uma cor só: forma em `color`, cabeça em `on` (botões laranja, chips coloridos). */
+  mono?: boolean;
+  /** Anel tracejado vermelho por fora (zona sob ataque), o mesmo sinal do mapa. */
+  attack?: boolean;
+  /** Só afeta o `grande` (o rosto line-art); mini e médio são polígonos cheios, iguais em qualquer qualidade. */
   quality?: QualityProp;
 };
 
 /**
- * Emblema do time: moldura na forma do time + cabeça do mascote. No completo, o nome vai numa faixa
- * laranja, escrito com `Text` por cima do SVG (nunca `<text>` dentro do SVG: a fonte não é garantida).
+ * Emblema do time (D-90): a cabeça do mascote dentro da forma do time, que continua sendo a moldura em
+ * qualquer tamanho (pista para daltônicos). Decorativo por padrão; com `accessibilityLabel` vira imagem
+ * informativa (use `emblemLabel(team)`).
  */
-export function TeamEmblem({ team, size = 96, compact, color, quality, ...a11y }: TeamEmblemProps) {
-  const c = color ?? ART.team[team];
-  const isCompact = compact ?? size < 64;
-  const box: ArtBox = { ...EMBLEM_BOX, width: size };
-  const k = size / EMBLEM_BOX.vbW;
-  const label = teamName(team).toUpperCase();
+export function TeamEmblem({ team, size = 24, variant = 'auto', color, on, mono, attack, quality, ...a11y }: TeamEmblemProps) {
+  const px = Math.max(EMBLEM_MIN_SIZE, size);
+  const v = resolveEmblemVariant(variant, px);
+  const q = resolveQuality(quality, px);
+  const prims = useMemo(() => expand(emblemNodes(team, { variant: v, size: px, color, on, mono, attack }), q), [team, v, px, color, on, mono, attack, q]);
+  const box: ArtBox = { ...EMBLEM_BOX, width: px };
   return (
     <ArtFrame box={box} {...a11y}>
-      <ArtSvg box={box} prims={expand(emblemNodes(team, c, isCompact), resolveQuality(quality, size))} />
-      {isCompact ? null : (
-        <View
-          style={{
-            position: 'absolute',
-            left: EMBLEM_BAND.x * k,
-            top: EMBLEM_BAND.y * k,
-            width: EMBLEM_BAND.width * k,
-            height: EMBLEM_BAND.height * k,
-            justifyContent: 'center',
-          }}>
-          <Text
-            allowFontScaling={false}
-            numberOfLines={1}
-            color={ART.ink}
-            style={{
-              fontFamily: fonts.display,
-              fontSize: (label.length > 12 ? 11.5 : 13) * k,
-              lineHeight: EMBLEM_BAND.height * k,
-              letterSpacing: 1.2 * k,
-              textAlign: 'center',
-            }}>
-            {label}
-          </Text>
-        </View>
-      )}
+      <ArtSvg box={box} prims={prims} />
     </ArtFrame>
   );
 }

@@ -57,7 +57,7 @@ import { ChipRow } from '@/components/chip-row';
 import { ScreenScroll } from '@/components/screen';
 import { Text } from '@/components/text';
 import type { FactionId } from '@/domain/types';
-import { neon } from '@/theme/neon';
+import { neon, neonTeam } from '@/theme/neon';
 import { factions, radius, space } from '@/theme/tokens';
 
 const TEAMS: readonly FactionId[] = ['striders', 'volt', 'owls', 'coyotes'];
@@ -65,6 +65,21 @@ const POSE_LABELS = { parado: 'parado', vitoria: 'vitória', derrota: 'derrota',
 const LOGO_LABELS = { simbolo: 'símbolo', logotipo: 'logotipo', horizontal: 'horizontal' } as const;
 const LAYER_LABELS = { corpo: 'corpo', tampa: 'tampa', item: 'item' } as const;
 type MedalView = '1' | '2' | '3' | 'bloqueada';
+/** Teste visual dos emblemas: cinza (só a forma distingue) e deuteranopia simulada (Machado et al., 2009, severidade 1). */
+type Vision = 'normal' | 'cinza' | 'deuteranopia';
+
+function simulateDeuteranopia(hex: string): string {
+  const n = parseInt(hex.slice(1, 7), 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  const c = (v: number) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0');
+  return `#${c(0.367322 * r + 0.860646 * g - 0.227968 * b)}${c(0.280085 * r + 0.672501 * g + 0.047413 * b)}${c(-0.01182 * r + 0.04294 * g + 0.968881 * b)}`;
+}
+
+function teamColorFor(team: FactionId, vision: Vision): string | undefined {
+  if (vision === 'cinza') return '#9A9A9A';
+  if (vision === 'deuteranopia') return simulateDeuteranopia(neonTeam[team]);
+  return undefined;
+}
 
 export default function ArtGalleryRoute() {
   if (!__DEV__ && process.env.EXPO_OS !== 'web') return <Redirect href="/" />;
@@ -99,7 +114,9 @@ function ArtGallery() {
   const [team, setTeam] = useState<FactionId>('striders');
   const [motion, setMotion] = useState<'parado' | 'vivo'>('parado');
   const [medal, setMedal] = useState<MedalView>('3');
+  const [vision, setVision] = useState<Vision>('normal');
   const animated = motion === 'vivo';
+  const tc = (t: FactionId) => teamColorFor(t, vision);
 
   return (
     <ScreenScroll testID="dev-arte">
@@ -202,22 +219,69 @@ function ArtGallery() {
         ))}
       </Section>
 
-      <Section title="Emblemas" note="Completo (nome por Text, fora do SVG) e compacto; abaixo de 64 pt fica compacto.">
+      <Section title="Emblemas v2 · cabeça na forma (D-90)" note="Mini (18–39: silhueta, 2 cores), médio (40–95: feições + acento laranja) e grande (96+: rosto line-art). A forma é a moldura em qualquer tamanho. Troque a visão abaixo para o teste de daltonismo.">
+        <ChipRow
+          testID="dev-arte-visao"
+          accessibilityLabel="Simulação de visão"
+          chipLabel={(l) => `Visão: ${l}`}
+          options={[
+            ['normal', 'Normal'],
+            ['cinza', 'Cinza (só a forma)'],
+            ['deuteranopia', 'Deuteranopia'],
+          ]}
+          value={vision}
+          onChange={setVision}
+        />
+      </Section>
+      <Section title="Emblemas v2 · mini 18 · 24 · 34" note="Barra da zona (18), feed e crew (20–24), chip do Mapa (34). Pupilas a partir de 24.">
         {TEAMS.map((t) => (
           <Cell key={t} label={factions[t].name}>
-            <TeamEmblem team={t} size={120} quality={quality} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+              <TeamEmblem team={t} size={18} color={tc(t)} testID={`dev-arte-emblema-${t}-18`} />
+              <TeamEmblem team={t} size={24} color={tc(t)} />
+              <TeamEmblem team={t} size={34} color={tc(t)} />
+            </View>
           </Cell>
         ))}
+      </Section>
+      <Section title="Emblemas v2 · médio 40 · 64" note="Pódio e HUD (40), trocar de time (44), Perfil (64), selo do card (72).">
         {TEAMS.map((t) => (
-          <Cell key={`c-${t}`} label="compacto">
-            <TeamEmblem team={t} size={72} compact quality={quality} />
+          <Cell key={t} label={factions[t].name}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+              <TeamEmblem team={t} size={40} color={tc(t)} />
+              <TeamEmblem team={t} size={64} color={tc(t)} />
+            </View>
           </Cell>
         ))}
-        {[56, 40, 32].map((s) => (
-          <Cell key={s} label={`${s} pt`}>
-            <TeamEmblem team={team} size={s} quality={quality} />
+      </Section>
+      <Section title="Emblemas v2 · grande 120" note="Meu time sem capa, celebração, card do Stories. Só aqui o rosto line-art (e a qualidade) entra.">
+        {TEAMS.map((t) => (
+          <Cell key={t} label={factions[t].name}>
+            <TeamEmblem team={t} size={120} color={tc(t)} quality={quality} />
           </Cell>
         ))}
+      </Section>
+      <Section title="Emblemas v2 · mono, neutro e sob ataque" note="Mono: forma em `color`, cabeça em `on` (a cor do fundo). Neutro: zona sem time. Sob ataque: anel tracejado do mapa.">
+        {TEAMS.map((t) => (
+          <Cell key={`m-${t}`} label={`mono · ${factions[t].name}`}>
+            <View style={{ backgroundColor: neon.orange, padding: space[2], borderRadius: radius.md }}>
+              <TeamEmblem team={t} size={40} mono color={neon.bg} on={neon.orange} />
+            </View>
+          </Cell>
+        ))}
+        {[24, 40].map((s) => (
+          <Cell key={`n-${s}`} label={`neutro ${s}`}>
+            <TeamEmblem team={null} size={s} />
+          </Cell>
+        ))}
+        {[34, 40].map((s) => (
+          <Cell key={`a-${s}`} label={`sob ataque ${s}`}>
+            <TeamEmblem team={team} size={s} attack color={tc(team)} />
+          </Cell>
+        ))}
+        <Cell label="informativo (rótulo)">
+          <TeamEmblem team={team} size={48} accessibilityLabel={`Emblema dos ${factions[team].name}`} testID="dev-arte-emblema-rotulo" />
+        </Cell>
       </Section>
 
       {BOSS_IDS.map((id) => (
