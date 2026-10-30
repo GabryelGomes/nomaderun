@@ -8,7 +8,8 @@ import { ChipRow } from '@/components/chip-row';
 import { EmptyState } from '@/components/empty-state';
 import { FeedRunCard } from '@/components/feed-run-card';
 import { Icon } from '@/components/icon';
-import { CountUp, FadeUp, staggerDelay } from '@/components/motion';
+import { CountUp, FadeUp, ShimmerSkeleton, staggerDelay } from '@/components/motion';
+import { OfflineNotice } from '@/components/offline-notice';
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Surface } from '@/components/surface';
@@ -17,6 +18,7 @@ import { WeekBars } from '@/components/week-bars';
 import { STREAK_RUNS_PER_WEEK } from '@/domain/games';
 import { formatDuration, formatKm, formatPace } from '@/domain/geo';
 import type { LatLng } from '@/domain/types';
+import { NO_DATA } from '@/features/format';
 import { mergeHistory, periodStart, PERIODS, TAG_LABEL, type PeriodId } from '@/features/run/history-model';
 import { loadHistory, refreshLocalRuns } from '@/features/run/run-controller';
 import { bootstrapOfflineSync } from '@/features/run/use-offline-sync';
@@ -68,7 +70,10 @@ export function ActivitiesScreen() {
   const now = useNow(60_000);
   const [period, setPeriod] = useState<PeriodId>('30d');
   const [loading, setLoading] = useState(false);
+  /** Código do erro da última carga (D-95: o `OfflineNotice` diz "Sem internet" ou "Servidor fora do ar"). */
   const [error, setError] = useState<string | null>(null);
+  const historySync = useGame((s) => s.sync.history);
+  const progressSync = useGame((s) => s.sync.progress);
 
   const [nonce, setNonce] = useState(0);
 
@@ -81,7 +86,7 @@ export function ActivitiesScreen() {
       .then(() => loadHistory({ from: periodStart(period, Date.now()) }))
       .then((res) => {
         if (!alive) return;
-        setError(res.ok ? null : res.error.code === 'NETWORK' ? 'Sem conexão: só as corridas do aparelho.' : res.error.message);
+        setError(res.ok ? null : res.error.code);
         setLoading(false);
       });
     return () => {
@@ -100,6 +105,14 @@ export function ActivitiesScreen() {
     .slice(0, PATHS_TO_FETCH)
     .map((h) => h.id);
   const serverPaths = useServerPaths(toFetch);
+  // D-95: sem o histórico do servidor, a semana e a sequência não são conhecidas: esqueleto carregando, "—" se falhou.
+  const runsKnown = historySync.at !== null;
+  const runsFailed = !runsKnown && (error !== null || historySync.failed);
+  const streakKnown = progressSync.at !== null;
+  const retry = () => {
+    setLoading(true);
+    setNonce((n) => n + 1);
+  };
 
   return (
     <ScreenScroll
@@ -115,19 +128,29 @@ export function ActivitiesScreen() {
           }}
         />
       }>
+      {error ? <OfflineNotice testID="atividades-sem-conexao" code={error} hasData={runsKnown || localRuns.length > 0} savedAt={historySync.at} onRetry={retry} busy={loading} /> : null}
+
       <FadeUp>
         <Surface>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: space[3] }}>
             <View style={{ flexShrink: 1 }}>
-              <CountUp
-                testID="atividades-semana-km"
-                value={week.total * 1000}
-                format={(n) => formatKm(n, 1)}
-                unit="km"
-                variant="metric"
-                delay={150}
-                accessibilityLabel={`${formatKm(week.total * 1000, 1)} quilômetros nesta semana`}
-              />
+              {runsKnown ? (
+                <CountUp
+                  testID="atividades-semana-km"
+                  value={week.total * 1000}
+                  format={(n) => formatKm(n, 1)}
+                  unit="km"
+                  variant="metric"
+                  delay={150}
+                  accessibilityLabel={`${formatKm(week.total * 1000, 1)} quilômetros nesta semana`}
+                />
+              ) : runsFailed ? (
+                <Text testID="atividades-semana-km" variant="metric" muted accessibilityLabel="Quilômetros desta semana: sem dado agora">
+                  {NO_DATA}
+                </Text>
+              ) : (
+                <ShimmerSkeleton testID="atividades-semana-carregando" shape="line" width={140} height={40} accessibilityLabel="Carregando a semana" />
+              )}
               <Text variant="small" muted>
                 esta semana
               </Text>
@@ -135,12 +158,12 @@ export function ActivitiesScreen() {
             <View
               testID="atividades-sequencia"
               accessible
-              accessibilityLabel={`${streakWeeks} semanas seguidas. ${freezesLeft} congelamento disponível.`}
+              accessibilityLabel={streakKnown ? `${streakWeeks} semanas seguidas. ${freezesLeft} congelamento disponível.` : 'Semanas seguidas: sem dado agora.'}
               style={{ alignItems: 'flex-end' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[1] }}>
                 <Icon name="fire" size={20} color={colors.accentText} />
-                <Text variant="headline" color={colors.accentText} tabular>
-                  {streakWeeks}
+                <Text variant="headline" color={streakKnown ? colors.accentText : colors.textSecondary} tabular>
+                  {streakKnown ? streakWeeks : NO_DATA}
                 </Text>
               </View>
               <Text variant="small" muted>
@@ -148,13 +171,15 @@ export function ActivitiesScreen() {
               </Text>
             </View>
           </View>
-          <WeekBars testID="atividades-semana" days={week.days} today={week.today} height={88} />
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
-            <Icon name="shield" size={14} color={colors.textSecondary} />
-            <Text testID="atividades-meta-semana" variant="caption" muted style={{ flex: 1 }}>
-              {missing === 0 ? 'Semana garantida.' : `Mais ${missing} corrida${missing > 1 ? 's' : ''} até domingo.`} {freezesLeft} congelamento.
-            </Text>
-          </View>
+          {runsKnown ? <WeekBars testID="atividades-semana" days={week.days} today={week.today} height={88} /> : null}
+          {runsKnown && streakKnown ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+              <Icon name="shield" size={14} color={colors.textSecondary} />
+              <Text testID="atividades-meta-semana" variant="caption" muted style={{ flex: 1 }}>
+                {missing === 0 ? 'Semana garantida.' : `Mais ${missing} corrida${missing > 1 ? 's' : ''} até domingo.`} {freezesLeft} congelamento.
+              </Text>
+            </View>
+          ) : null}
           <RecapButton testID="atividades-recap" wide />
         </Surface>
       </FadeUp>
@@ -164,29 +189,16 @@ export function ActivitiesScreen() {
           title="Corridas"
           action={
             <Text testID="atividades-total-corridas" variant="small" muted tabular>
-              {history.length}
+              {runsKnown ? history.length : NO_DATA}
             </Text>
           }
         />
         {/* Filtros numa linha que rola na horizontal (não quebram mais em 2 linhas em 360 pt). */}
         <ChipRow testID="atividades-periodo" accessibilityLabel="Período" size="md" value={period} onChange={setPeriod} chipLabel={(l) => `Período: ${l}`} options={PERIODS.map((p) => [p.id, p.label] as const)} />
-        {error ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
-            <Text testID="atividades-erro" variant="small" muted style={{ flex: 1 }}>
-              {error}
-            </Text>
-            <Button
-              testID="atividades-tentar"
-              label="Tentar de novo"
-              kind="ghost"
-              onPress={() => {
-                setLoading(true);
-                setNonce((n) => n + 1);
-              }}
-            />
-          </View>
-        ) : null}
-        {history.length === 0 ? (
+        {history.length === 0 && !runsKnown ? (
+          // D-95: sem o histórico do servidor, "Sua 1ª corrida aparece aqui" seria falso: esqueleto ou nada (o aviso explica).
+          runsFailed ? null : <ShimmerSkeleton testID="atividades-lista-carregando" shape="row" height={88} accessibilityLabel="Carregando as corridas" />
+        ) : history.length === 0 ? (
           <FadeUp delay={120}>
             <Surface>
               <EmptyState

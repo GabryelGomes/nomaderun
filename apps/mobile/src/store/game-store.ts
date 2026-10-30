@@ -27,6 +27,17 @@ export type LocalRun = {
 };
 
 /** Recorte do perfil do servidor que o jogo usa (evita depender do formato completo do perfil). */
+/** Dados do servidor que as telas mostram como número (D-95). */
+export type SyncPart = 'history' | 'progress' | 'fog';
+/**
+ * D-95 (estados honestos): quando cada parte chegou do servidor pela última vez (ms, `null` = nunca nesta sessão) e
+ * se a última tentativa falhou. Sem `at`, a tela não sabe o número: mostra esqueleto (carregando) ou "—" (falhou),
+ * nunca o zero inicial do store.
+ */
+export type SyncInfo = { at: number | null; failed: boolean };
+export type SyncState = Record<SyncPart, SyncInfo>;
+const initialSync = (): SyncState => ({ history: { at: null, failed: false }, progress: { at: null, failed: false }, fog: { at: null, failed: false } });
+
 export type ProfileSnapshot = { username: string; faction: FactionId | null; xp?: number; trust?: number };
 
 type GameState = {
@@ -56,6 +67,10 @@ type GameState = {
   safetyContacts: SafetyContact[];
   /** Nomes dos contatos (usado no texto do perfil). */
   contacts: string[];
+  /** D-95: quando o histórico, o progresso e a neblina chegaram do servidor (e se a última carga falhou). */
+  sync: SyncState;
+  /** A carga de uma parte falhou (sem internet, servidor fora): o último dado bom continua, com a hora. */
+  markSyncFailed: (part: SyncPart) => void;
   completeOnboarding: (name: string, faction: FactionId) => void;
   /** Dados que vêm do perfil do servidor (nome, facção, XP, confiança). */
   applyProfile: (p: ProfileSnapshot) => void;
@@ -95,7 +110,8 @@ type GameActions =
   | 'setLocalRuns'
   | 'upsertLocalRun'
   | 'setServerRuns'
-  | 'setSafetyContacts';
+  | 'setSafetyContacts'
+  | 'markSyncFailed';
 
 const initialGame = (): Omit<GameState, GameActions> => ({
   name: 'Corredor',
@@ -116,7 +132,11 @@ const initialGame = (): Omit<GameState, GameActions> => ({
   stopAlertOn: true,
   safetyContacts: [],
   contacts: [],
+  sync: initialSync(),
 });
+
+/** Marca uma parte como recebida agora (chamado só dentro das ações, nunca na renderização). */
+const synced = (s: { sync: SyncState }, part: SyncPart): SyncState => ({ ...s.sync, [part]: { at: Date.now(), failed: false } });
 
 const uniq = (a: string[]) => [...new Set(a)];
 
@@ -138,7 +158,9 @@ export const useGame = create<GameState>((set) => ({
       streakWeeks: p.streakWeeks ?? s.streakWeeks,
       freezesLeft: p.freezesLeft ?? s.freezesLeft,
       recentPaces: p.recentPaces ?? s.recentPaces,
+      sync: p.streakWeeks !== undefined ? synced(s, 'progress') : s.sync,
     })),
+  markSyncFailed: (part) => set((s) => ({ sync: { ...s.sync, [part]: { at: s.sync[part].at, failed: true } } })),
   resetForSignOut: () => set(initialGame()),
   setMission: (mission) => set({ mission }),
   setGhostPace: (ghostPace) => set({ ghostPace }),
@@ -147,12 +169,12 @@ export const useGame = create<GameState>((set) => ({
   toggleStopAlert: () => set((s) => ({ stopAlertOn: !s.stopAlertOn })),
   openChest: (id, xp) => set((s) => (s.openedChests.includes(id) ? s : { openedChests: [...s.openedChests, id], xp: s.xp + xp })),
   setOpenedChests: (ids) => set((s) => ({ openedChests: uniq([...s.openedChests, ...ids]) })),
-  setFog: (cells) => set({ fog: uniq(cells) }),
+  setFog: (cells) => set((s) => ({ fog: uniq(cells), sync: synced(s, 'fog') })),
   addFog: (cells) => set((s) => ({ fog: uniq([...s.fog, ...cells]) })),
   setLocalRuns: (localRuns) => set({ localRuns: [...localRuns].sort((a, b) => b.startedAt - a.startedAt) }),
   upsertLocalRun: (run) =>
     set((s) => ({ localRuns: [run, ...s.localRuns.filter((r) => r.id !== run.id)].sort((a, b) => b.startedAt - a.startedAt) })),
-  setServerRuns: (serverRuns) => set({ serverRuns }),
+  setServerRuns: (serverRuns) => set((s) => ({ serverRuns, sync: synced(s, 'history') })),
   setSafetyContacts: (safetyContacts) => set({ safetyContacts, contacts: safetyContacts.map((c) => c.name) }),
 }));
 

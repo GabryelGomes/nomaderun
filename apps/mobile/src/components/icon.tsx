@@ -53,6 +53,8 @@ const ICONS = {
   moon: { ios: 'moon.fill', android: 'bedtime', web: 'bedtime' },
   invite: { ios: 'person.badge.plus', android: 'person_add', web: 'person_add' },
   home: { ios: 'house.fill', android: 'home', web: 'home' },
+  // D-95: o aviso único de "sem conexão" (`OfflineNotice`).
+  offline: { ios: 'wifi.slash', android: 'wifi_off', web: 'wifi_off' },
 } satisfies Record<string, SymbolName>;
 
 export type IconName = keyof typeof ICONS;

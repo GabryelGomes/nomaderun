@@ -6,8 +6,8 @@ import type { AlertKind } from '@/components/alert-slot';
 import type { IconName } from '@/components/icon';
 import { DEFENSE_WINDOW_MS, isUnderAttackAt, type Zone } from '@/domain/territory';
 import type { FactionId } from '@/domain/types';
-import type { AppNotification } from '@/services/api/notifications-repo';
 import { formatCountdown, formatUntil } from '@/features/format';
+import type { AppNotification } from '@/services/api/notifications-repo';
 
 /**
  * Dados de engajamento do dia. Quem preenche é o hook da E7 (sequência, baú do dia, missão) e o da Raid
@@ -73,7 +73,6 @@ export function todayChips(today: MapToday | null | undefined, streakWeeks: numb
   return out;
 }
 
-/** Hora em que a janela de defesa fecha (24 h depois do início do ataque), "18:40". */
 /** Fim da janela de defesa (ms), ou `null` sem ataque. O texto sai de `@/features/format` (UX-09). */
 export function defenseEndsAt(zone: Pick<Zone, 'attackStartedAt'>): number | null {
   return zone.attackStartedAt === null ? null : zone.attackStartedAt + DEFENSE_WINDOW_MS;

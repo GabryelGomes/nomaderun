@@ -112,12 +112,29 @@ describe('Arena', () => {
     expect(t).not.toMatch(/de vida|Sua parte|Foge em/);
   });
 
-  it('erro: "Sem conexão" e tentar de novo, sem número', async () => {
+  it('erro (D-95): 1 aviso "Sem internet" com tentar de novo, chefão sem número', async () => {
     mockRaid.mockResolvedValue({ ok: false, error: { code: 'NETWORK', message: 'Sem internet' } });
     mockLeague.mockResolvedValue(league);
     const r = await mount();
-    expect(text(r)).toContain('Sem conexão');
-    expect(has(r, 'arena-raid-tentar')).toBe(true);
+    expect(text(r)).toContain('Sem internet');
+    expect(has(r, 'arena-sem-conexao')).toBe(true);
+    expect(has(r, 'arena-sem-conexao-tentar')).toBe(true);
+    expect(has(r, 'arena-raid-sem-dado')).toBe(true);
+    expect(text(r)).not.toMatch(/de vida|Sua parte|Foge em/);
+  });
+
+  it('D-95: servidor fora do ar não deixa esqueleto infinito nem zero falso (liga, Domínio, Atlas)', async () => {
+    useGame.setState({ serverRuns: [], fog: [], sync: { history: { at: null, failed: true }, progress: { at: null, failed: true }, fog: { at: null, failed: true } } });
+    mockRaid.mockResolvedValue({ ok: false, error: { code: 'SERVER', message: 'Fora do ar' } });
+    mockLeague.mockResolvedValue({ ok: false, error: { code: 'SERVER', message: 'Fora do ar' } });
+    const r = await mount();
+    expect(text(r)).toContain('Servidor fora do ar');
+    expect(has(r, 'arena-liga-carregando')).toBe(false);
+    expect(has(r, 'arena-liga-sem-dado')).toBe(true);
+    const t = text(r);
+    expect(t).toContain('— zonas');
+    expect(t).toContain('— do bairro');
+    expect(t).not.toMatch(/\b0 zonas|\b0% do bairro/);
   });
 
   it('grade 2×2: Fuga e Caça escolhem o modo e abrem a corrida; Domínio e Atlas abrem o mapa', async () => {

@@ -158,6 +158,9 @@ async function recoveryLink(to, after) {
     // 3. recuperação de senha (PKCE) neste navegador
     await page.goto(`${BASE}/perfil/conta`);
     await id('conta-sair').click();
+    // UX-36: "Sair" pede confirmação
+    await id('conta-sair-dialogo').waitFor({ timeout: 10_000 });
+    await id('conta-sair-dialogo-confirmar').click();
     await id('tela-entrar').waitFor({ timeout: 20_000 });
     await page.goto(`${BASE}/recuperar-senha`);
     await id('recuperar-email').fill(user.email);

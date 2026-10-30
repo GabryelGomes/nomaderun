@@ -11,8 +11,8 @@ import type { LiveSnapshot } from '@/domain/live-events';
 import { emptyPaintCounts, paintZoneGap, paintZoneOf, type PaintCounts } from '@/domain/paint';
 import { DEFENSE_WINDOW_MS, influenceGapV1, isUnderAttackAt, type Zone } from '@/domain/territory';
 import { FACTION_IDS, type FactionId } from '@/domain/types';
-import { factions } from '@/theme/tokens';
 import { formatCountdown } from '@/features/format';
+import { factions } from '@/theme/tokens';
 
 /** Nome curto do time no placar ("Striders", "Owls"). */
 export const shortTeam = (f: FactionId) => factions[f].name.split(' ').slice(-1)[0];

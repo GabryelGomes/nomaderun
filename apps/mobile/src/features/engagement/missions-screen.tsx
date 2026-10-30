@@ -5,6 +5,7 @@ import { RefreshControl, View } from 'react-native';
 import { EmptyArt, ModeIcon, type ModeIconKind } from '@/components/art';
 import { Button } from '@/components/button';
 import { EmptyState } from '@/components/empty-state';
+import { OfflineNotice } from '@/components/offline-notice';
 import { Icon } from '@/components/icon';
 import { MissionCoachCard } from '@/components/mission-coach-card';
 import { ProgressBar, ProgressRing, ShimmerSkeleton } from '@/components/motion';
@@ -207,14 +208,9 @@ export function MissionsScreen() {
         <EmptyState testID="missoes-indisponivel" tag="Em breve" title="Missões em breve" body="O servidor ainda não liberou as missões." art={<EmptyArt kind="sem-medalhas" size={160} />} />
       ) : null}
 
+      {/* D-95: o mesmo aviso de "sem conexão" das outras telas (antes, ilustração com botão laranja). */}
       {missions.status === 'error' && !data ? (
-        <EmptyState
-          testID="missoes-erro"
-          title="Não deu para carregar"
-          body={missions.error?.message}
-          art={<EmptyArt kind="sem-conexao" size={160} />}
-          action={<Button testID="missoes-tentar" label="Tentar de novo" onPress={() => void refresh()} />}
-        />
+        <OfflineNotice testID="missoes-sem-conexao" code={missions.error?.code} hasData={false} onRetry={() => void refresh()} />
       ) : null}
 
       {data ? (
