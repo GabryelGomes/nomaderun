@@ -178,15 +178,8 @@ export function closeWeek(state: StreakState, validRunsThisWeek: number): Streak
 export const XP_PER_100M = 1;
 export const MAX_LEVEL = 50;
 
-/** XP needed to go from level n to n+1: 100 × n^1.5, rounded. */
-export const xpForLevel = (level: number) => Math.round(100 * level ** 1.5);
-
-export function levelFromXp(totalXp: number): { level: number; intoLevel: number; needed: number } {
-  let level = 1;
-  let remaining = Math.max(0, totalXp);
-  while (level < MAX_LEVEL && remaining >= xpForLevel(level)) {
-    remaining -= xpForLevel(level);
-    level++;
-  }
-  return { level, intoLevel: remaining, needed: xpForLevel(level) };
-}
+/*
+ * D-92: a curva de nível é UMA só, `levelProgress`/`xpToNextLevel` em `progression.ts` — a mesma que o servidor usa
+ * (`private.level_progress` sobre `profiles.xp`, creditado pelo `xp_ledger`). A curva v1 (`xpForLevel` = 100·n^1,5 e
+ * `levelFromXp`) saiu: o Você e o Resumo mostravam um nível e as Recompensas outro.
+ */

@@ -10,9 +10,9 @@ import { SettingsRow } from '@/components/settings-row';
 import { PlayerCard } from '@/components/player-card';
 import { StatTile } from '@/components/stat-tile';
 import { Text } from '@/components/text';
-import { districtsExploration, levelFromXp } from '@/domain/games';
+import { districtsExploration } from '@/domain/games';
 import { formatKm } from '@/domain/geo';
-import { titleForLevel } from '@/domain/progression';
+import { levelProgress, titleForLevel } from '@/domain/progression';
 import { useEngagementData } from '@/features/engagement';
 import { mergeHistory } from '@/features/run/history-model';
 import { useNow } from '@/features/use-now';
@@ -56,7 +56,7 @@ export function ProfileScreen() {
   const faction = gameFaction ?? profile?.faction ?? 'striders';
   const team = factions[faction];
   const display = name || profile?.username || 'Corredor';
-  const lvl = levelFromXp(xp);
+  const lvl = levelProgress(xp); // D-92: a mesma curva do servidor e das Recompensas
   const runsSource = all.data ?? serverRuns;
   const history = mergeHistory(runsSource, localRuns);
   const counted = history.filter((h) => h.counts);

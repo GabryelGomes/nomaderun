@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 
 import {
   chestsInReach,
@@ -7,11 +7,10 @@ import {
   ghostGap,
   ghostStatus,
   leagueOutcome,
-  levelFromXp,
   revealFog,
-  xpForLevel,
 } from '../games';
 import { offset } from '../geo';
+import { levelProgress } from '../progression';
 import { ORIGIN } from './helpers';
 
 describe('RN-013 — Guerra de Cidades', () => {
@@ -78,15 +77,13 @@ describe('Sequência semanal', () => {
   });
 });
 
-describe('Progressão', () => {
-  it('a curva de níveis é 100 × n^1,5', () => {
-    expect(xpForLevel(1)).toBe(100);
-    expect(xpForLevel(4)).toBe(800);
-  });
-
-  it('converte XP total em nível', () => {
-    expect(levelFromXp(0).level).toBe(1);
-    expect(levelFromXp(100).level).toBe(2);
-    expect(levelFromXp(99)).toMatchObject({ level: 1, intoLevel: 99 });
+describe('Progressão (D-92: uma curva só)', () => {
+  it('games.ts não tem mais a curva v1: o nível vem de levelProgress (progression.ts)', () => {
+    const games = jest.requireActual<Record<string, unknown>>('../games');
+    expect('levelFromXp' in games).toBe(false);
+    expect('xpForLevel' in games).toBe(false);
+    expect(levelProgress(0).level).toBe(1);
+    expect(levelProgress(100).level).toBe(2);
+    expect(levelProgress(99)).toMatchObject({ level: 1, intoLevel: 99 });
   });
 });
