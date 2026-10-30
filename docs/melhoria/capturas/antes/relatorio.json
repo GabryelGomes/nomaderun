@@ -1,0 +1,1173 @@
+[
+ {
+  "file": "inicio__sem-servidor__360.png",
+  "route": "/",
+  "state": "sem-servidor",
+  "width": 360,
+  "finalUrl": "/indisponivel",
+  "loadMs": 2852,
+  "fcpMs": 436,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "inicio__sem-servidor__390.png",
+  "route": "/",
+  "state": "sem-servidor",
+  "width": 390,
+  "finalUrl": "/indisponivel",
+  "loadMs": 2872,
+  "fcpMs": 468,
+  "screens": [
+   "tela-backend-nao-configurado"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 0,
+   "words": 47
+  },
+  "errors": []
+ },
+ {
+  "file": "inicio__sem-servidor__430.png",
+  "route": "/",
+  "state": "sem-servidor",
+  "width": 430,
+  "finalUrl": "/indisponivel",
+  "loadMs": 2840,
+  "fcpMs": 416,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "inicio__sem-servidor-reduzir-movimento__390.png",
+  "route": "/",
+  "state": "sem-servidor-reduzir-movimento",
+  "width": 390,
+  "finalUrl": "/indisponivel",
+  "loadMs": 2877,
+  "fcpMs": 464,
+  "screens": [
+   "tela-backend-nao-configurado"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 0,
+   "words": 47
+  },
+  "errors": []
+ },
+ {
+  "file": "entrar__deslogado__360.png",
+  "route": "/entrar",
+  "state": "deslogado",
+  "width": 360,
+  "finalUrl": "/entrar",
+  "loadMs": 2897,
+  "fcpMs": 484,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "entrar__deslogado__390.png",
+  "route": "/entrar",
+  "state": "deslogado",
+  "width": 390,
+  "finalUrl": "/entrar",
+  "loadMs": 2930,
+  "fcpMs": 472,
+  "screens": [
+   "tela-entrar"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 6,
+   "words": 23
+  },
+  "errors": []
+ },
+ {
+  "file": "entrar__deslogado__430.png",
+  "route": "/entrar",
+  "state": "deslogado",
+  "width": 430,
+  "finalUrl": "/entrar",
+  "loadMs": 2929,
+  "fcpMs": 520,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "cadastro__deslogado__360.png",
+  "route": "/cadastro",
+  "state": "deslogado",
+  "width": 360,
+  "finalUrl": "/cadastro",
+  "loadMs": 2917,
+  "fcpMs": 492,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "cadastro__deslogado__390.png",
+  "route": "/cadastro",
+  "state": "deslogado",
+  "width": 390,
+  "finalUrl": "/cadastro",
+  "loadMs": 2944,
+  "fcpMs": 536,
+  "screens": [
+   "tela-cadastro"
+  ],
+  "audit": {
+   "small": [
+    {
+     "id": "cadastro-abrir-termos",
+     "w": 117,
+     "h": 20,
+     "name": "Termos de Uso"
+    },
+    {
+     "id": "cadastro-abrir-privacidade",
+     "w": 178,
+     "h": 20,
+     "name": "Política de Privacidade"
+    }
+   ],
+   "unlabeled": [],
+   "interactive": 12,
+   "words": 92
+  },
+  "errors": []
+ },
+ {
+  "file": "cadastro__deslogado__430.png",
+  "route": "/cadastro",
+  "state": "deslogado",
+  "width": 430,
+  "finalUrl": "/cadastro",
+  "loadMs": 2985,
+  "fcpMs": 624,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "recuperar-senha__deslogado__360.png",
+  "route": "/recuperar-senha",
+  "state": "deslogado",
+  "width": 360,
+  "finalUrl": "/recuperar-senha",
+  "loadMs": 2893,
+  "fcpMs": 496,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "recuperar-senha__deslogado__390.png",
+  "route": "/recuperar-senha",
+  "state": "deslogado",
+  "width": 390,
+  "finalUrl": "/recuperar-senha",
+  "loadMs": 2904,
+  "fcpMs": 500,
+  "screens": [
+   "tela-recuperar-senha"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 3,
+   "words": 23
+  },
+  "errors": []
+ },
+ {
+  "file": "recuperar-senha__deslogado__430.png",
+  "route": "/recuperar-senha",
+  "state": "deslogado",
+  "width": 430,
+  "finalUrl": "/recuperar-senha",
+  "loadMs": 2891,
+  "fcpMs": 472,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "onboarding__sem-time__360.png",
+  "route": "/onboarding",
+  "state": "sem-time",
+  "width": 360,
+  "finalUrl": "/onboarding",
+  "loadMs": 2951,
+  "fcpMs": 512,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "onboarding__sem-time__390.png",
+  "route": "/onboarding",
+  "state": "sem-time",
+  "width": 390,
+  "finalUrl": "/onboarding",
+  "loadMs": 2971,
+  "fcpMs": 524,
+  "screens": [
+   "tela-onboarding"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 2,
+   "words": 50
+  },
+  "errors": []
+ },
+ {
+  "file": "onboarding__sem-time__430.png",
+  "route": "/onboarding",
+  "state": "sem-time",
+  "width": 430,
+  "finalUrl": "/onboarding",
+  "loadMs": 2884,
+  "fcpMs": 460,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "inicio__erro-perfil__390.png",
+  "route": "/",
+  "state": "erro-perfil",
+  "width": 390,
+  "finalUrl": "/",
+  "loadMs": 2792,
+  "fcpMs": null,
+  "screens": [],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 0,
+   "words": 0
+  },
+  "errors": []
+ },
+ {
+  "file": "inicio__vazio__360.png",
+  "route": "/",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/",
+  "loadMs": 4320,
+  "fcpMs": 536,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "inicio__vazio__390.png",
+  "route": "/",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/",
+  "loadMs": 4339,
+  "fcpMs": 532,
+  "screens": [],
+  "audit": {
+   "small": [
+    {
+     "id": "mapa-camada-todos",
+     "w": 121,
+     "h": 36,
+     "name": "Todos os times"
+    },
+    {
+     "id": "mapa-camada-meu-time",
+     "w": 105,
+     "h": 36,
+     "name": "Só meu time"
+    },
+    {
+     "id": "mapa-camada-explorado",
+     "w": 108,
+     "h": 36,
+     "name": "Onde já corri"
+    }
+   ],
+   "unlabeled": [],
+   "interactive": 12,
+   "words": 22
+  },
+  "errors": []
+ },
+ {
+  "file": "inicio__vazio__430.png",
+  "route": "/",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/",
+  "loadMs": 4317,
+  "fcpMs": 508,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "arena__vazio__360.png",
+  "route": "/arena",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/arena",
+  "loadMs": 2846,
+  "fcpMs": 572,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "arena__vazio__390.png",
+  "route": "/arena",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/arena",
+  "loadMs": 2839,
+  "fcpMs": 572,
+  "screens": [
+   "tela-arena"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 8,
+   "words": 227
+  },
+  "errors": []
+ },
+ {
+  "file": "arena__vazio__430.png",
+  "route": "/arena",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/arena",
+  "loadMs": 2823,
+  "fcpMs": 552,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "atividades__vazio__360.png",
+  "route": "/atividades",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/atividades",
+  "loadMs": 2851,
+  "fcpMs": 516,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "atividades__vazio__390.png",
+  "route": "/atividades",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/atividades",
+  "loadMs": 2821,
+  "fcpMs": 568,
+  "screens": [
+   "tela-atividades"
+  ],
+  "audit": {
+   "small": [
+    {
+     "id": "atividades-periodo-7d",
+     "w": 80,
+     "h": 40,
+     "name": "Período: 7 dias"
+    },
+    {
+     "id": "atividades-periodo-30d",
+     "w": 92,
+     "h": 40,
+     "name": "Período: 30 dias"
+    },
+    {
+     "id": "atividades-periodo-ano",
+     "w": 101,
+     "h": 40,
+     "name": "Período: Este ano"
+    },
+    {
+     "id": "atividades-periodo-tudo",
+     "w": 73,
+     "h": 40,
+     "name": "Período: Tudo"
+    }
+   ],
+   "unlabeled": [],
+   "interactive": 10,
+   "words": 65
+  },
+  "errors": []
+ },
+ {
+  "file": "atividades__vazio__430.png",
+  "route": "/atividades",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/atividades",
+  "loadMs": 2826,
+  "fcpMs": 524,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "clube__vazio__360.png",
+  "route": "/clube",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/clube",
+  "loadMs": 2839,
+  "fcpMs": 576,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "clube__vazio__390.png",
+  "route": "/clube",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/clube",
+  "loadMs": 2848,
+  "fcpMs": 584,
+  "screens": [
+   "tela-clube"
+  ],
+  "audit": {
+   "small": [
+    {
+     "id": "ranking-quadro-individual",
+     "w": 99,
+     "h": 36,
+     "name": "Corredores"
+    },
+    {
+     "id": "ranking-quadro-crews",
+     "w": 70,
+     "h": 36,
+     "name": "Crews"
+    },
+    {
+     "id": "ranking-quadro-faccoes",
+     "w": 69,
+     "h": 36,
+     "name": "Times"
+    },
+    {
+     "id": "ranking-periodo-season",
+     "w": 99,
+     "h": 36,
+     "name": "Temporada"
+    },
+    {
+     "id": "ranking-periodo-week",
+     "w": 80,
+     "h": 36,
+     "name": "Semana"
+    },
+    {
+     "id": "ranking-escopo-geral",
+     "w": 69,
+     "h": 36,
+     "name": "Todos"
+    },
+    {
+     "id": "ranking-escopo-cidade",
+     "w": 98,
+     "h": 36,
+     "name": "Em Goiânia"
+    },
+    {
+     "id": "ranking-escopo-time",
+     "w": 87,
+     "h": 36,
+     "name": "Meu time"
+    },
+    {
+     "id": "ranking-escopo-distrito",
+     "w": 102,
+     "h": 36,
+     "name": "Meu distrito"
+    }
+   ],
+   "unlabeled": [],
+   "interactive": 16,
+   "words": 143
+  },
+  "errors": []
+ },
+ {
+  "file": "clube__vazio__430.png",
+  "route": "/clube",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/clube",
+  "loadMs": 2853,
+  "fcpMs": 628,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "clube_crew__vazio__360.png",
+  "route": "/clube/crew",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/clube/crew",
+  "loadMs": 2836,
+  "fcpMs": 476,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "clube_crew__vazio__390.png",
+  "route": "/clube/crew",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/clube/crew",
+  "loadMs": 2861,
+  "fcpMs": 516,
+  "screens": [
+   "tela-crew"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 10,
+   "words": 61
+  },
+  "errors": []
+ },
+ {
+  "file": "clube_crew__vazio__430.png",
+  "route": "/clube/crew",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/clube/crew",
+  "loadMs": 2930,
+  "fcpMs": 616,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "perfil__vazio__360.png",
+  "route": "/perfil",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/perfil",
+  "loadMs": 2814,
+  "fcpMs": 556,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "perfil__vazio__390.png",
+  "route": "/perfil",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/perfil",
+  "loadMs": 2856,
+  "fcpMs": 544,
+  "screens": [
+   "tela-perfil"
+  ],
+  "audit": {
+   "small": [
+    {
+     "id": "input",
+     "w": 40,
+     "h": 20,
+     "name": "Escolta ao vivo"
+    },
+    {
+     "id": "input",
+     "w": 40,
+     "h": 20,
+     "name": "Alerta de parada"
+    }
+   ],
+   "unlabeled": [],
+   "interactive": 14,
+   "words": 177
+  },
+  "errors": []
+ },
+ {
+  "file": "perfil__vazio__430.png",
+  "route": "/perfil",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/perfil",
+  "loadMs": 2817,
+  "fcpMs": 548,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "perfil_editar__vazio__360.png",
+  "route": "/perfil/editar",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/perfil/editar",
+  "loadMs": 2870,
+  "fcpMs": 604,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "perfil_editar__vazio__390.png",
+  "route": "/perfil/editar",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/perfil/editar",
+  "loadMs": 2864,
+  "fcpMs": 576,
+  "screens": [
+   "tela-editar-perfil"
+  ],
+  "audit": {
+   "small": [
+    {
+     "id": "input",
+     "w": 40,
+     "h": 20,
+     "name": "Notificações de invasões"
+    },
+    {
+     "id": "input",
+     "w": 40,
+     "h": 20,
+     "name": "Notificações de conquistas"
+    },
+    {
+     "id": "input",
+     "w": 40,
+     "h": 20,
+     "name": "Notificações de missões"
+    },
+    {
+     "id": "input",
+     "w": 40,
+     "h": 20,
+     "name": "Notificações de moderação"
+    }
+   ],
+   "unlabeled": [],
+   "interactive": 15,
+   "words": 104
+  },
+  "errors": []
+ },
+ {
+  "file": "perfil_editar__vazio__430.png",
+  "route": "/perfil/editar",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/perfil/editar",
+  "loadMs": 2831,
+  "fcpMs": 516,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "perfil_conta__vazio__360.png",
+  "route": "/perfil/conta",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/perfil/conta",
+  "loadMs": 2845,
+  "fcpMs": 520,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "perfil_conta__vazio__390.png",
+  "route": "/perfil/conta",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/perfil/conta",
+  "loadMs": 2840,
+  "fcpMs": 528,
+  "screens": [
+   "tela-conta"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 10,
+   "words": 71
+  },
+  "errors": []
+ },
+ {
+  "file": "perfil_conta__vazio__430.png",
+  "route": "/perfil/conta",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/perfil/conta",
+  "loadMs": 2830,
+  "fcpMs": 528,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "perfil_time__vazio__360.png",
+  "route": "/perfil/time",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/perfil/time",
+  "loadMs": 2888,
+  "fcpMs": 620,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "perfil_time__vazio__390.png",
+  "route": "/perfil/time",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/perfil/time",
+  "loadMs": 2857,
+  "fcpMs": 508,
+  "screens": [
+   "tela-faccao"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 8,
+   "words": 44
+  },
+  "errors": []
+ },
+ {
+  "file": "perfil_time__vazio__430.png",
+  "route": "/perfil/time",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/perfil/time",
+  "loadMs": 2845,
+  "fcpMs": 524,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "notificacoes__vazio__360.png",
+  "route": "/notificacoes",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/notificacoes",
+  "loadMs": 2907,
+  "fcpMs": 560,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "notificacoes__vazio__390.png",
+  "route": "/notificacoes",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/notificacoes",
+  "loadMs": 2876,
+  "fcpMs": 472,
+  "screens": [
+   "tela-notificacoes"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 0,
+   "words": 17
+  },
+  "errors": []
+ },
+ {
+  "file": "notificacoes__vazio__430.png",
+  "route": "/notificacoes",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/notificacoes",
+  "loadMs": 2865,
+  "fcpMs": 460,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "contatos-seguranca__vazio__360.png",
+  "route": "/contatos-seguranca",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/contatos-seguranca",
+  "loadMs": 2920,
+  "fcpMs": 592,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "contatos-seguranca__vazio__390.png",
+  "route": "/contatos-seguranca",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/contatos-seguranca",
+  "loadMs": 2826,
+  "fcpMs": 452,
+  "screens": [
+   "tela-contatos-seguranca"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 1,
+   "words": 49
+  },
+  "errors": []
+ },
+ {
+  "file": "contatos-seguranca__vazio__430.png",
+  "route": "/contatos-seguranca",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/contatos-seguranca",
+  "loadMs": 2877,
+  "fcpMs": 500,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "zonas-privacidade__vazio__360.png",
+  "route": "/zonas-privacidade",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/zonas-privacidade",
+  "loadMs": 2861,
+  "fcpMs": 508,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "zonas-privacidade__vazio__390.png",
+  "route": "/zonas-privacidade",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/zonas-privacidade",
+  "loadMs": 2825,
+  "fcpMs": 464,
+  "screens": [
+   "tela-zonas-privacidade"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 2,
+   "words": 51
+  },
+  "errors": []
+ },
+ {
+  "file": "zonas-privacidade__vazio__430.png",
+  "route": "/zonas-privacidade",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/zonas-privacidade",
+  "loadMs": 2862,
+  "fcpMs": 520,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "corrida__vazio__360.png",
+  "route": "/corrida",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/corrida",
+  "loadMs": 4352,
+  "fcpMs": 484,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "corrida__vazio__390.png",
+  "route": "/corrida",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/corrida",
+  "loadMs": 4334,
+  "fcpMs": 484,
+  "screens": [
+   "tela-nova-corrida"
+  ],
+  "audit": {
+   "small": [
+    {
+     "id": "input",
+     "w": 40,
+     "h": 20,
+     "name": "Corrida Segura"
+    }
+   ],
+   "unlabeled": [],
+   "interactive": 9,
+   "words": 68
+  },
+  "errors": []
+ },
+ {
+  "file": "corrida__vazio__430.png",
+  "route": "/corrida",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/corrida",
+  "loadMs": 4349,
+  "fcpMs": 464,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "resumo_id_inexistente__vazio__360.png",
+  "route": "/resumo?id=inexistente",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/resumo?id=inexistente",
+  "loadMs": 2830,
+  "fcpMs": 472,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "resumo_id_inexistente__vazio__390.png",
+  "route": "/resumo?id=inexistente",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/resumo?id=inexistente",
+  "loadMs": 2829,
+  "fcpMs": 456,
+  "screens": [
+   "tela-resumo"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 1,
+   "words": 16
+  },
+  "errors": []
+ },
+ {
+  "file": "resumo_id_inexistente__vazio__430.png",
+  "route": "/resumo?id=inexistente",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/resumo?id=inexistente",
+  "loadMs": 2866,
+  "fcpMs": 480,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "zona_89a8100c6b7ffff__vazio__360.png",
+  "route": "/zona/89a8100c6b7ffff",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/zona/89a8100c6b7ffff",
+  "loadMs": 2862,
+  "fcpMs": 492,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "zona_89a8100c6b7ffff__vazio__390.png",
+  "route": "/zona/89a8100c6b7ffff",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/zona/89a8100c6b7ffff",
+  "loadMs": 2826,
+  "fcpMs": 460,
+  "screens": [],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 1,
+   "words": 21
+  },
+  "errors": []
+ },
+ {
+  "file": "zona_89a8100c6b7ffff__vazio__430.png",
+  "route": "/zona/89a8100c6b7ffff",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/zona/89a8100c6b7ffff",
+  "loadMs": 2923,
+  "fcpMs": 460,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "termos__vazio__360.png",
+  "route": "/termos",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/termos",
+  "loadMs": 2904,
+  "fcpMs": 592,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "termos__vazio__390.png",
+  "route": "/termos",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/termos",
+  "loadMs": 2899,
+  "fcpMs": 528,
+  "screens": [
+   "tela-termos"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 1,
+   "words": 234
+  },
+  "errors": []
+ },
+ {
+  "file": "termos__vazio__430.png",
+  "route": "/termos",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/termos",
+  "loadMs": 2888,
+  "fcpMs": 564,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "privacidade__vazio__360.png",
+  "route": "/privacidade",
+  "state": "vazio",
+  "width": 360,
+  "finalUrl": "/privacidade",
+  "loadMs": 2816,
+  "fcpMs": 460,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "privacidade__vazio__390.png",
+  "route": "/privacidade",
+  "state": "vazio",
+  "width": 390,
+  "finalUrl": "/privacidade",
+  "loadMs": 2824,
+  "fcpMs": 448,
+  "screens": [
+   "tela-privacidade"
+  ],
+  "audit": {
+   "small": [],
+   "unlabeled": [],
+   "interactive": 1,
+   "words": 305
+  },
+  "errors": []
+ },
+ {
+  "file": "privacidade__vazio__430.png",
+  "route": "/privacidade",
+  "state": "vazio",
+  "width": 430,
+  "finalUrl": "/privacidade",
+  "loadMs": 2840,
+  "fcpMs": 464,
+  "screens": null,
+  "audit": null,
+  "errors": []
+ },
+ {
+  "file": "inicio__vazio-reduzir-movimento__390.png",
+  "route": "/",
+  "state": "vazio-reduzir-movimento",
+  "width": 390,
+  "finalUrl": "/",
+  "loadMs": 2797,
+  "fcpMs": 476,
+  "screens": [],
+  "audit": {
+   "small": [
+    {
+     "id": "mapa-camada-todos",
+     "w": 121,
+     "h": 36,
+     "name": "Todos os times"
+    },
+    {
+     "id": "mapa-camada-meu-time",
+     "w": 105,
+     "h": 36,
+     "name": "Só meu time"
+    },
+    {
+     "id": "mapa-camada-explorado",
+     "w": 108,
+     "h": 36,
+     "name": "Onde já corri"
+    }
+   ],
+   "unlabeled": [],
+   "interactive": 12,
+   "words": 22
+  },
+  "errors": []
+ }
+]

@@ -1,0 +1,60 @@
+{
+  "downloads": [
+    {
+      "name": "app-01-chefao-derrotado-stories",
+      "suggested": "nomade-stories.png",
+      "bytes": 1908354
+    },
+    {
+      "name": "app-02-nivel-novo-stories",
+      "suggested": "nomade-stories.png",
+      "bytes": 1836019
+    },
+    {
+      "name": "app-03-conquista-de-zona-stories",
+      "suggested": "nomade-stories.png",
+      "bytes": 1630193
+    },
+    {
+      "name": "app-04-corrida-stories",
+      "suggested": "nomade-stories.png",
+      "bytes": 1963054
+    },
+    {
+      "name": "app-chefao-derrotado-feed",
+      "suggested": "nomade-feed.png",
+      "bytes": 1383900
+    },
+    {
+      "name": "app-adesivo",
+      "suggested": "nomade-adesivo.png",
+      "bytes": 144906
+    },
+    {
+      "name": "app-corrida-sem-rota-stories",
+      "suggested": "nomade-stories.png",
+      "bytes": 2192459
+    },
+    {
+      "name": "app-05-minha-semana-stories",
+      "suggested": "nomade-stories.png",
+      "bytes": 1656878
+    },
+    {
+      "name": "app-05-minha-semana-feed",
+      "suggested": "nomade-feed.png",
+      "bytes": 1168751
+    },
+    {
+      "name": "app-05-minha-semana-sem-rotas-stories",
+      "suggested": "nomade-stories.png",
+      "bytes": 1808494
+    }
+  ],
+  "errors": [],
+  "external": [],
+  "liveBefore": "2 aplausos",
+  "liveAfter": "3 aplausos",
+  "boraBefore": "Mandar Bora! (aplauso), 1",
+  "boraAfter": "Tirar Bora!, 2"
+}

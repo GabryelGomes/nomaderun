@@ -21,11 +21,19 @@ export async function currentPosition(api: CurrentPositionApi = Location, timeou
   try {
     const last = await api.getLastKnownPositionAsync({ maxAge: LAST_KNOWN_MAX_AGE_MS });
     if (last) return { lat: last.coords.latitude, lng: last.coords.longitude };
-    const fresh = await Promise.race([
-      api.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
-      new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
-    ]);
-    return fresh ? { lat: fresh.coords.latitude, lng: fresh.coords.longitude } : null;
+    // O prazo é cancelado assim que o GPS responde (ou falha): nenhum temporizador fica armado.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const fresh = await Promise.race([
+        api.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+        new Promise<null>((resolve) => {
+          timer = setTimeout(() => resolve(null), timeoutMs);
+        }),
+      ]);
+      return fresh ? { lat: fresh.coords.latitude, lng: fresh.coords.longitude } : null;
+    } finally {
+      clearTimeout(timer);
+    }
   } catch {
     return null;
   }

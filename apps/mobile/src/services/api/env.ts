@@ -10,6 +10,11 @@ export type AppEnv = {
   supabaseUrl: string | null;
   supabaseAnonKey: string | null;
   oauthProviders: OAuthProvider[];
+  /**
+   * Modo demonstração (D-77): `EXPO_PUBLIC_DEMO=1`. O app usa o servidor em memória
+   * (`src/services/api/demo`) e ignora a URL e a chave do Supabase: não há como misturar com conta real.
+   */
+  demo?: boolean;
 };
 
 export function parseProviders(raw: string | undefined | null): OAuthProvider[] {
@@ -27,14 +32,52 @@ function clean(v: string | undefined): string | null {
   return t ? t : null;
 }
 
-export function readEnv(): AppEnv {
+/** Só `1` ou `true` ligam o modo demonstração. */
+export const parseDemoFlag = (raw: string | undefined | null) => {
+  const v = raw?.trim().toLowerCase();
+  return v === '1' || v === 'true';
+};
+
+type EnvVars = Partial<Record<'EXPO_PUBLIC_SUPABASE_URL' | 'EXPO_PUBLIC_SUPABASE_ANON_KEY' | 'EXPO_PUBLIC_AUTH_PROVIDERS' | 'EXPO_PUBLIC_DEMO', string | undefined>>;
+
+/** `vars` existe para os testes: no app, cada variável é lida por extenso (o Expo embute o valor no build). */
+export function readEnv(
+  vars: EnvVars = {
+    EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
+    EXPO_PUBLIC_SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+    EXPO_PUBLIC_AUTH_PROVIDERS: process.env.EXPO_PUBLIC_AUTH_PROVIDERS,
+    EXPO_PUBLIC_DEMO: process.env.EXPO_PUBLIC_DEMO,
+  },
+): AppEnv {
+  const demo = parseDemoFlag(vars.EXPO_PUBLIC_DEMO);
   return {
-    supabaseUrl: clean(process.env.EXPO_PUBLIC_SUPABASE_URL),
-    supabaseAnonKey: clean(process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY),
-    oauthProviders: parseProviders(process.env.EXPO_PUBLIC_AUTH_PROVIDERS),
+    supabaseUrl: demo ? null : clean(vars.EXPO_PUBLIC_SUPABASE_URL),
+    supabaseAnonKey: demo ? null : clean(vars.EXPO_PUBLIC_SUPABASE_ANON_KEY),
+    // Login social não existe na demonstração.
+    oauthProviders: demo ? [] : parseProviders(vars.EXPO_PUBLIC_AUTH_PROVIDERS),
+    demo,
   };
 }
 
 export const env = readEnv();
 
-export const isBackendConfigured = (e: AppEnv = env) => Boolean(e.supabaseUrl && e.supabaseAnonKey);
+/**
+ * Interruptor do modo demonstração em tempo de execução (T7.2.10): ligado pelo botão "Ver demonstração".
+ * Só `src/services/demo-mode.ts` (`enterDemo`/`exitDemo`) mexe nele: a troca precisa zerar fila, sync,
+ * caches e cliente junto, ou dados de um modo vazariam para o outro.
+ */
+let runtimeDemo = false;
+
+/** Uso exclusivo de `src/services/demo-mode.ts`. Telas usam `enterDemo`/`exitDemo`. */
+export function setRuntimeDemo(on: boolean) {
+  runtimeDemo = on;
+}
+
+/**
+ * Modo demonstração ativo: pelo build (`EXPO_PUBLIC_DEMO=1`) ou pelo interruptor em tempo de execução.
+ * O interruptor só vale para o `env` do app (um `AppEnv` passado à mão responde só pela própria flag).
+ */
+export const isDemoMode = (e: AppEnv = env) => e.demo === true || (e === env && runtimeDemo);
+
+/** Há "servidor": o Supabase configurado ou o servidor de demonstração. */
+export const isBackendConfigured = (e: AppEnv = env) => isDemoMode(e) || Boolean(e.supabaseUrl && e.supabaseAnonKey);

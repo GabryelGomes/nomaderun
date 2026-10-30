@@ -7,16 +7,19 @@
  * enquanto esta sessão lê os pontos novos de lá. Simulação: volta no Parque Flamboyant em 10×,
  * com cadência realista. A tela fica acesa durante a corrida (expo-keep-awake).
  */
-import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { createLiveFeedback } from '@/components/celebration/adapters';
+import { haptic } from '@/components/motion/haptics';
 import { chestsInReach, CHEST_XP, ghostGap, type Chest } from '@/domain/games';
 import { distanceMeters } from '@/domain/geo';
-import { addPoint, averagePace, livePace, startRun, type LiveRun } from '@/domain/run-engine';
-import type { LatLng } from '@/domain/types';
-import { seedChests } from '@/demo/demo-data';
+import type { LiveZoneState } from '@/domain/live-events';
+import { appendPoint, averagePace, livePace, startRun, type LiveRun } from '@/domain/run-engine';
+import type { GeoPoint, LatLng } from '@/domain/types';
+import { seedChests, zoneName as zoneLabelLocal } from '@/demo/demo-data';
+import { fetchPaintNear } from '@/services/api/paint-repo';
 import { setBackgroundRun } from '@/services/location/background-task';
 import { backgroundLocationEnabled, startBackgroundUpdates, stopBackgroundUpdates, watchFixes, type Fix, type FixSubscription } from '@/services/location/tracker';
 import { getQueueStore } from '@/services/offline/queue';
@@ -35,6 +38,9 @@ import { toGeoPoints } from './summary-model';
 import { nearestNeutral, SIM_SPEED_MPS, simulationRoute } from './simulation';
 import { loadHuntChests } from './hunt-chests';
 import { createVoiceGuide, type VoiceGuide } from './voice-guide';
+import { enqueueToast, lazyLiveSnapshot, liveEffects, type RunToast } from './live-hud';
+import { createPaintedLiveTracker, PAINT_FETCH_IDLE, paintFetchDue, type PaintedLiveTracker } from './live-paint';
+import { firstConquestEverNow } from './first-conquest';
 
 export type RunMode = 'gps' | 'simulacao';
 export type Phase = 'countdown' | 'running' | 'paused' | 'finishing';
@@ -54,6 +60,15 @@ export type ChestToast = { id: string; rarity: Chest['rarity']; xp: number };
 
 export type FinishOutcome = { run: LocalRun | null; confirmed: boolean };
 
+/** Previsão ao vivo do território (E3, `createLiveTracker`): a zona atual e as conquistas prováveis. */
+export type LiveTerritory = { current: LiveZoneState | null; conquered: string[]; cellsPainted: number };
+const NO_LIVE: LiveTerritory = { current: null, conquered: [], cellsPainted: 0 };
+
+/** Nome da zona para os avisos quando o evento não traz: o do servidor ou o nome local. */
+function zoneTitle(zoneId: string): string {
+  return useZones.getState().meta[zoneId]?.name ?? zoneLabelLocal(zoneId);
+}
+
 export function useRunSession(mode: RunMode) {
   const mission = useGame((s) => s.mission);
   const ghostPace = useGame((s) => s.ghostPace);
@@ -72,6 +87,8 @@ export function useRunSession(mode: RunMode) {
   const [chestToast, setChestToast] = useState<ChestToast | null>(null);
   const [runId, setRunId] = useState<string | null>(null);
   const [pedometer, setPedometer] = useState<boolean | null>(null);
+  const [liveTerritory, setLiveTerritory] = useState<LiveTerritory>(NO_LIVE);
+  const [toasts, setToasts] = useState<RunToast[]>([]);
 
   // Espelhos mutáveis lidos/escritos só dentro de callbacks (nunca durante o render).
   const live = useRef({
@@ -86,6 +103,9 @@ export function useRunSession(mode: RunMode) {
     voice: true,
     background: false,
     huntRequested: false,
+    tracker: null as PaintedLiveTracker | null,
+    feedback: null as ReturnType<typeof createLiveFeedback> | null,
+    paint: PAINT_FETCH_IDLE,
   });
 
   const guideRef = useRef<VoiceGuide | null>(null);
@@ -113,16 +133,57 @@ export function useRunSession(mode: RunMode) {
     });
   }, []);
 
+  /**
+   * Retrato da pintura em volta (E3, `zone_paint_near`): no 1º ponto e de novo a cada 1 km. Servidor sem a
+   * pintura (regra v1): a previsão continua com o retrato do mapa e não pede mais nesta corrida.
+   */
+  const requestPaint = useCallback((p: GeoPoint) => {
+    const l = live.current;
+    if (!l.tracker || !paintFetchDue(l.paint, p)) return;
+    l.paint = { ...l.paint, center: { lat: p.lat, lng: p.lng }, inflight: true };
+    void fetchPaintNear({ lat: p.lat, lng: p.lng }).then((res) => {
+      if (!res.ok) {
+        l.paint = { ...l.paint, center: null, inflight: false, failedAt: p.t };
+        return;
+      }
+      if (!res.data.available) {
+        l.paint = { ...l.paint, inflight: false, disabled: true };
+        return;
+      }
+      l.paint = { ...l.paint, inflight: false, failedAt: null };
+      l.tracker?.reseed({ snapshot: res.data.snapshot, paintedToday: res.data.paintedToday });
+    });
+  }, []);
+
   /** Atualiza a corrida ao vivo e os eventos de jogo com um ponto já gravado na fila. */
   const show = useCallback(
     (p: QueuedPoint | (NewPoint & { seq?: number })) => {
       const l = live.current;
       const [geo] = toGeoPoints([{ ...p, seq: p.seq ?? 0 }]);
-      const next = addPoint(l.run, geo);
+      // E-12: sem copiar o vetor de pontos (O(1) por ponto). `run.points` é sempre o mesmo vetor: quem
+      // desenha a rota depende de `run.points.length` (ver `pathVersion`).
+      const next = appendPoint(l.run, geo);
       l.run = next;
       setRun(next);
       guideRef.current?.distance(next.meters, livePace(next));
       const faction = useGame.getState().faction ?? 'striders';
+      const tracker = l.tracker;
+      if (tracker) {
+        const events = tracker.push(geo);
+        const sum = tracker.summary();
+        setLiveTerritory({ current: sum.current, conquered: sum.conquered, cellsPainted: sum.cellsPainted });
+        // Aviso, vibração (ritmo de 10 s) e voz de cada evento: `createLiveFeedback` da E5.
+        const fresh: RunToast[] = [];
+        for (const e of events) {
+          const fx = l.feedback ? liveEffects(e, l.feedback.push(e), faction) : null;
+          if (!fx) continue;
+          if (fx.haptic) haptic(fx.haptic);
+          if (fx.voice) say(fx.voice);
+          if (fx.toast) fresh.push(fx.toast);
+        }
+        if (fresh.length) setToasts((q) => fresh.reduce(enqueueToast, q));
+        requestPaint(geo);
+      }
       const zone = next.currentZone ? useZones.getState().zones[next.currentZone] : undefined;
       guideRef.current?.zone(next.currentZone, zone?.owner ?? null, faction);
       if (mission === 'fuga') guideRef.current?.ghost(ghostGap(next.meters, next.movingSeconds, ghostPace));
@@ -132,12 +193,12 @@ export function useRunSession(mode: RunMode) {
           setOpenedIds([...l.opened]);
           openChest(c.id, CHEST_XP[c.rarity]);
           setChestToast({ id: c.id, rarity: c.rarity, xp: CHEST_XP[c.rarity] });
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          haptic('success');
           guideRef.current?.chest(c.rarity);
         }
       }
     },
-    [chests, ghostPace, mission, openChest],
+    [chests, ghostPace, mission, openChest, requestPaint, say],
   );
 
   /** Ponto novo do GPS (primeiro plano) ou da simulação: grava na fila e mostra. */
@@ -155,7 +216,7 @@ export function useRunSession(mode: RunMode) {
   // Contagem 3-2-1, um toque leve por número; no "Vai!" cria a corrida na fila.
   useEffect(() => {
     if (phase !== 'countdown') return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptic('tap');
     const t = setTimeout(async () => {
       if (count > 1) {
         setCount(count - 1);
@@ -165,6 +226,17 @@ export function useRunSession(mode: RunMode) {
       const fresh = startRun(startedAt);
       live.current.run = fresh;
       setRun(fresh);
+      // Previsão do território: começa com o retrato do mapa e troca pelo retrato da pintura (E3) quando ele
+      // chega no 1º ponto (o servidor decide no fim).
+      const faction = useGame.getState().faction ?? 'striders';
+      live.current.tracker = createPaintedLiveTracker({
+        runId: `local-${startedAt}`,
+        faction,
+        fallback: lazyLiveSnapshot(() => ({ zones: useZones.getState().zones, names: useZones.getState().meta }), startedAt),
+        firstConquestEver: firstConquestEverNow(),
+      });
+      live.current.feedback = createLiveFeedback({ faction, zoneName: zoneTitle });
+      live.current.paint = PAINT_FETCH_IDLE;
       const userId = useSession.getState().session?.userId;
       if (userId) {
         try {
@@ -326,6 +398,12 @@ export function useRunSession(mode: RunMode) {
     elapsed,
     position,
     path: run.points as LatLng[],
+    /** Muda a cada ponto: `path` é sempre o mesmo vetor (appendPoint), então o mapa depende disto. */
+    pathVersion: run.points.length,
+    live: liveTerritory,
+    /** Avisos de recompensa na fila; o primeiro está na tela. */
+    toasts,
+    dismissToast: (id: string) => setToasts((q) => q.filter((t) => t.id !== id)),
     pace: livePace(run),
     avgPace: averagePace(run),
     ghost,

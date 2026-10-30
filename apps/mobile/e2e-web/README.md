@@ -18,7 +18,7 @@ npx expo export -p web --output-dir /tmp/nomade-web
 node e2e-web/demo-flow.cjs /tmp/nomade-web
 ```
 
-Cadastro (conta nova) → Neon Striders → Correr → Simulação → "Conquista garantida ao terminar" (~1 min) → segurar "Segure para encerrar" → **resumo oficial com "Zona conquistada"** → confere no servidor que a zona mudou de dono → abre a folha da zona → notificação "Zona conquistada" → **moderador de demonstração aprova a corrida em revisão** → apaga a conta de teste. Capturas em `OUT_DIR` (padrão: pasta temporária). Variáveis: `PW_CHROMIUM`, `PW_MODULE`, `API_URL`, `ANON_KEY`, `PORT`, `SIM_TIMEOUT_MS`.
+Cadastro (conta nova) → Neon Striders → Correr → Simulação (demonstração) → "Conquista provável: o servidor confirma ao terminar" (~1 min) → segurar "Segure para encerrar" → **resumo oficial com "Zona conquistada"** → confere no servidor que a zona mudou de dono → abre a folha da zona → notificação "Zona conquistada" → **moderador de demonstração aprova a corrida em revisão** → apaga a conta de teste. Capturas em `OUT_DIR` (padrão: pasta temporária). Variáveis: `PW_CHROMIUM`, `PW_MODULE`, `API_URL`, `ANON_KEY`, `PORT`, `SIM_TIMEOUT_MS`.
 
 ## Autenticação, exclusão e acessibilidade (A3, QA-03/06/12, P-39)
 
@@ -36,3 +36,28 @@ NODE_PATH="$(npm root -g)" WEB_DIST=/tmp/nomade-web node "$(npm root -g)/playwri
 ```
 
 Estados: mapa com zonas dominadas e zona sob ataque; folha da zona neutra, dominada e sob ataque (eventos e prazo mascarados); mapa de calor = `fixme` (RF-013 fora do MVP). O mapa-base externo é bloqueado no teste. As imagens de referência ficam em `__screenshots__/` e foram geradas com o seed limpo: depois de uma mudança visual aprovada (D-15), rode `npm run db:reset` e acrescente `--update-snapshots`.
+
+## Capturas do modo demonstração (T7.1.19, sem servidor)
+
+Não precisa de Supabase: o export roda com o servidor de demonstração em memória (D-77).
+
+```bash
+# em apps/mobile; o --clear é obrigatório (o cache do Metro ignora mudança de EXPO_PUBLIC_*)
+EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear --output-dir /tmp/nomade-demo
+NODE_PATH="$(npm root -g)" node e2e-web/capturas.cjs /tmp/nomade-demo <pasta>
+# filtros: --rotas=inicio,arena  --estados=cheio,vazio  --larguras=390  --sem-pngquant
+# ou --build para o script fazer o export (sempre com --clear)
+```
+
+Rota × estado (`?cenario=` do servidor de demonstração: cheio, vazio, carregando/lento, erro, offline, sob-ataque, sem-time, primeira-abertura, moderador) × 360/390/430. Relógio fixo, "Reduzir movimento", mapa-base trocado por um estilo vazio (as regiões aparecem sem internet) e selo "Demonstração" em toda captura. Saída em `docs/melhoria/capturas/<pasta>/`, comprimida com `pngquant --quality=85-98`, e `relatorio.json` (FCP, palavras visíveis, alvos < 44 px, interativos sem nome, erros da página; `pedidosAoServidor` tem de ser 0). Desde a onda 4, também o **contraste do texto renderizado** (`lowContrast`, WCAG AA, com a opacidade dos ancestrais) e o **texto por baixo do selo** (`sealOverlap`).
+
+## Fluxo completo no modo demonstração (onda 4, sem servidor)
+
+```bash
+# em apps/mobile, com o mesmo export do modo demonstração das capturas
+NODE_PATH="$(npm root -g)" node e2e-web/demo-mode-flow.cjs /tmp/nomade-demo
+```
+
+Primeira abertura → cadastro → cidade dividida → Volt Runners → confirmação → localização → Mapa (missão de boas-vindas sozinha) → Nova corrida → simulação (~20 s, `SIM_MS`) → segurar para encerrar → Resumo (recompensas marcadas como demonstração) → Compartilhar (card marcado) → Arena → Clube → Você → Ajustes → Missões → Recompensas. Em cada tela: selo "Demonstração" presente e nenhum texto por baixo dele; no fim, zero pedidos ao Supabase e zero erros de página (21 verificações).
+
+Os passos de cadastro e onboarding da v2 ficam em `onboarding-steps.cjs`, usados também pelo `demo-flow.cjs` e pelo `auth-flow.cjs`. O cadastro não pede mais a cidade: o `auth-flow` confere a cidade em Você → Editar perfil.

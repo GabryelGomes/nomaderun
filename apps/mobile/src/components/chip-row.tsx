@@ -14,6 +14,9 @@ export const GLOW_ROOM = 14;
 
 export type ChipSize = 'sm' | 'md';
 
+/** Teto da fonte do sistema nos chips: acima disso a linha de chips fica maior que a tela. */
+export const CHIP_FONT_MAX = 1.3;
+
 /** Alturas atuais dos chips do app: 36 (filtros do Clube, texto `caption`) e 40 (período, ritmo; texto `bodyBold`). */
 const CHIP = {
   sm: { height: 36, variant: 'caption' as const, slop: 8 },
@@ -49,15 +52,18 @@ export function Chip({ testID, accessibilityLabel, label, selected, onPress, siz
       onPress={onPress}
       style={{
         paddingHorizontal: space[4],
-        height: c.height,
+        // minHeight (não height): com fonte grande o rótulo cresce sem ser cortado.
+        minHeight: c.height,
+        paddingVertical: space[1],
         justifyContent: 'center',
         borderRadius: radius.pill,
         backgroundColor: selected ? neon.activeFill : colors.surface,
         borderWidth: 1,
-        borderColor: selected ? colors.action : colors.line,
+        // D-75: borda de controle com 3:1.
+        borderColor: selected ? colors.action : colors.lineControl,
         boxShadow: selected ? '0 0 14px rgba(255,106,19,0.35)' : undefined,
       }}>
-      <Text variant={c.variant} tabular={tabular} color={selected ? colors.accentText : colors.text} numberOfLines={1}>
+      <Text variant={c.variant} tabular={tabular} color={selected ? colors.accentText : colors.text} numberOfLines={1} maxFontSizeMultiplier={CHIP_FONT_MAX}>
         {label}
       </Text>
     </PressableScale>

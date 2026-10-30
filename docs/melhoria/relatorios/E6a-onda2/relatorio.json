@@ -1,0 +1,44 @@
+{
+  "marcas": [
+    [
+      "boas-vindas",
+      "1.0"
+    ],
+    [
+      "cadastro",
+      "2.9"
+    ],
+    [
+      "cidade-dividida",
+      "4.4"
+    ],
+    [
+      "times (passou sozinha)",
+      "10.7"
+    ],
+    [
+      "time escolhido",
+      "17.9"
+    ],
+    [
+      "confirmação",
+      "18.0"
+    ],
+    [
+      "localização",
+      "20.5"
+    ],
+    [
+      "mapa",
+      "21.6"
+    ]
+  ],
+  "selo": 1,
+  "erros": [],
+  "externos": [
+    "https://tiles.openfreemap.org/styles/dark",
+    "https://tiles.openfreemap.org/styles/dark"
+  ],
+  "redirecionamentoAtividades": "http://127.0.0.1:8297/perfil/atividades",
+  "reduzirMovimento": false
+}

@@ -1,8 +1,10 @@
-"""Monta um HTML de impressão com os 10 slides (fonte em docs/apresentacao/slides) para virar PDF.
+"""Monta um HTML de impressão com os slides do deck (fonte em docs/apresentacao/slides) para virar PDF.
 Uso: python3 montar_pdf.py <pasta-slides> <pasta-imagens> <pasta-fontes> <saida.html>"""
 import json, re, sys
 SL, IMG, FONTS, OUT = sys.argv[1:5]
 deck = json.load(open(f'{SL}/deck.json'))
+import os as _os
+TELAS = _os.path.join(_os.path.dirname(_os.path.abspath(SL)), 'telas-v2')
 BLOBS = {
     '17213839fd13fc13c9cc6034d27b6ac2': 'capa-mapa.jpg',
     '6027ed46e05cc17b886c8301244cc940': 'tel-mapa.png',
@@ -40,6 +42,7 @@ for sid in deck['order']:
     h = open(f'{SL}/slides/{sid}.html').read()
     h = re.sub(r'<aside>.*?</aside>', '', h, flags=re.S)
     h = re.sub(r'/_blob/([0-9a-f]{32})', lambda m: f'file://{IMG}/{BLOBS[m.group(1)]}', h)
+    h = h.replace('src="telas-v2/', f'src="file://{TELAS}/')  # capturas reais da v2 (modo demonstração)
     h = re.sub(r'<x-icon name="(\w+)" style="([^"]*)"></x-icon>', icon, h)
     h = re.sub(r'<x-connector style="([^"]*)"[^>]*></x-connector>', connector, h)
     h = re.sub(r'<x-embed style="([^"]*)">(.*?)</x-embed>', embed, h, flags=re.S)

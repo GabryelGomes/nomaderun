@@ -362,3 +362,200 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
 2026-10-21 · A1 Arquiteto (pedido dos autores)
 - **Decisão:** a cor do time Night Owls passa de rosa (`#C0559A`; neon `#FF4FD8`) para vermelho carmim (`#D7263D`; neon `#FF2D55`, também nos tokens da apresentação). Carmim, puxado para o fundo, para não confundir com o laranja da marca (`#FF6A13`) nem com o vermelho de perigo/ataque (`#FF4D45`). Branco sobre o vermelho: 4,96:1 (AA).
 - **Consequência:** vermelho × verde (Volt) é o par mais confundido por daltônicos (deuteranopia); a diferenciação continua garantida pela forma de cada time (Night Owls = losango) exigida no RF-007, mas a paleta deixa de ser 100% Okabe-Ito. Registrar na proposta de ERS v1.1.
+
+### D-61 — Reformulação v2: mudanças visuais liberadas dentro do Pit Lane Neon
+2026-10-23 · Coordenador da Fase 7 (pedido dos autores)
+- **Contexto:** os autores pediram uma reformulação grande: menos texto e mais imagem, times com mascote e biografia, chefões desenhados e animados, nova forma de ganhar áreas e telas que dão vontade de voltar. A D-15 ("não mude cores, fontes, espaçamentos ou componentes sem necessidade") travaria esse trabalho. Prompt da fase: `docs/melhoria/00-PROMPT-MELHORIA-COLOSSAL.md`.
+- **Decisão:** **substitui a D-15** no que ainda valia. Na Fase 7 as telas podem mudar de layout, ganhar ilustrações, componentes novos e motion, desde que **dentro** do sistema Pit Lane Neon (D-58/D-59/D-60): mesmos tokens de cor e fontes, ilustrações no mesmo traço neon e cores e formas dos times preservadas. Tokens novos entram em `src/theme/tokens.ts`/`neon.ts`, nunca soltos nas telas. As regras de acessibilidade continuam valendo: contraste AA, formas dos times, `testID`/`accessibilityLabel` e "Reduzir movimento".
+- **Consequências:** as imagens de referência do Playwright (`e2e-web/__screenshots__/`) serão regeneradas ao fim de cada onda aprovada. As decisões da reformulação continuam numeradas a partir da D-62 e são registradas pelo coordenador no plano mestre (`docs/melhoria/PLANO-MESTRE.md`).
+
+### D-62 — Território v2: pintura de ruas
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** a regra atual dá pouca chance ao iniciante (na simulação, 32% dos novatos nunca conquistam em 8 semanas) e deixa 38% das zonas com o mesmo dono por 8 semanas (`docs/melhoria/F1/03-jogo-e-territorio.md`).
+- **Decisão:** "Corra pelas ruas para pintá-las com a cor do seu time; a zona fica com o time que pintou mais ruas nela." Trecho = célula H3 res 11 (~40 m) com até 3 camadas; cada passada do rival tira 1 camada; uma camada desbota a cada 7 dias sem passada do time; a zona (res 9, desenhada como região suavizada) precisa de pelo menos 3 trechos para ter dono. Os pontos de esforço relativo (antigo RP) continuam só para ranking, liga e Cidade × Cidade. O mapa público mostra só zonas; a rua pintada aparece só na própria corrida. A virada é pela flag `territory_rule` (`game_config`), na troca de temporada, com herança de 3 trechos virtuais por zona com dono. Reforço na conquista: parâmetro desligado.
+- **Consequências:** simulação (271 zonas, 115 corredores, 8 semanas): novato que conquista na 1ª corrida 13% → 62%; nunca conquista 32% → 0%; zonas eternas 38% → 11%. As funções v1 do domain ficam iguais (deprecated) até a gravação v2 ligar. Bandeira sai do anúncio; Rabisco fica "em breve".
+
+### D-63 — Sequência semanal sem multiplicador de pontos, com congelamento e pausa de saúde
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** o multiplicador de sequência (`scoring.ts:28-30`) conta semanas como se fossem dias e dá +50% permanente a quem mantém 10 semanas.
+- **Decisão:** a sequência é semanal (2 atividades na semana, caminhar vale), não multiplica pontos, tem 1 congelamento automático por mês e uma pausa de saúde de 1 a 4 semanas, 1 vez por temporada. A melhor sequência fica guardada para sempre.
+- **Consequências:** o bônus vira XP e medalha. Descanso nunca é punido (prompt §5.4).
+
+### D-64 — Progressão: curva de XP, títulos e faixas de corredor
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** com a curva atual (100·n^1,5) o iniciante leva 139 corridas até o nível 10 e o avançado ganha 11,1× o XP dele por semana (`docs/melhoria/F1/07-engajamento.md`).
+- **Decisão:** curva `arred10(50·n^1,3) + 50`; XP de 10/km até 5 km por dia, 5/km de 5 a 15 km e 0 depois; +30 por atividade (1×/dia); Atlas a 2 por célula (máx. 60); missões, baú do dia e semana garantida. 8 títulos por faixa de nível. Faixas de corredor por **material** (Asfalto, Bronze, Prata, Ouro, Neon, Holográfico, Lenda, Nômade), nunca por cor, para não confundir com os times. XP nunca diminui.
+- **Consequências:** ninguém perde nível na troca (a curva nova pede menos XP em todo nível); o avançado cai para 3,2× o iniciante.
+
+### D-65 — Missões diárias, semanais e da primeira semana
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** RF-016 está parcial: não há missões.
+- **Decisão:** 3 missões diárias e 3 semanais, sempre com 1 leve, com troca de 1 por dia; primeira semana com 7 passos sem prazo (Domínio → Caça → Fuga → Raid → Crew → Liga → Compartilhar). O sorteio é determinístico no servidor e o resgate é idempotente.
+- **Consequências:** catálogo e textos em `docs/melhoria/F1/engajamento/`; regras puras em `src/domain/missions.ts`.
+
+### D-66 — Baú do dia
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** a recompensa variável é forte, mas pode virar caça-níquel; a Lei 15.211/2025 (ECA Digital) proíbe loot box para menores.
+- **Decisão:** crédito diário que acumula até 3, aberto por qualquer atividade de pelo menos 1 km; chances visíveis na tela; o 20º baú sem lendário vira lendário; conteúdo só de XP e cosméticos; nunca vendido.
+- **Consequências:** não pune descanso (o crédito espera). Confirmar a leitura jurídica com o orientador.
+
+### D-67 — Raid real semanal
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** a Raid é só demonstração e a tela diz que "vale em toda corrida".
+- **Decisão:** um chefão por semana (segunda 06:00 a domingo 21:00), vida proporcional ao volume da cidade, fases 100/67/33% com pontos fracos a partir da fase 2, dano de 10 por km, crítico de 10% com a chance visível, teto de 21 km por corrida e 30 km por dia, recompensas cosméticas. A tela mostra "Sua parte" e o dano da cidade desde a última visita. Global por enquanto (coluna `city` pronta). Os 5 chefões são da E4; violeta `#B15CFF` é a cor só dos vilões.
+- **Consequências:** tabelas, RPCs e job na E9; regra pura em `src/domain/raid.ts`.
+
+### D-68 — Liga real
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** a Liga é só demonstração, e a regra `leagueOutcome` quebra com grupos pequenos.
+- **Decisão:** grupos de até 30 pessoas com volume parecido; pontos = pontos da corrida; fechamento na segunda às 03:20 (Brasília), idempotente; regra própria para grupo pequeno.
+- **Consequências:** a pessoa entra na liga na 1ª corrida da semana.
+
+### D-69 — Notificações locais com limites
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** o Expo Go Android não recebe push remoto desde o SDK 53.
+- **Decisão:** lembretes só locais e agendados; engajamento no máximo 1 por dia e 4 por semana, só das 8h às 21h e nunca no dia em que a pessoa já correu; escada de volta aos 7, 14, 21 e 30 dias e depois silêncio; invasão e conquista entre 22h e 7h ficam só na central; aplausos agrupados em 1 por dia. Cada tipo tem preferência própria.
+- **Consequências:** o app replaneja a cada abertura, sincronização e corrida.
+
+### D-70 — Identidade dos times
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** os times não tinham personagem ("sem vontade").
+- **Decisão:** mascotes Lume (guepardo, Striders), Faísca (lebre elétrica, Volt), Breu (coruja, Owls) e Faro (coiote, Coyotes); líderes Íris Valente, Téo Faria, Nara Lis e Bento Rocha, como proposta que os autores podem trocar; lema dos Night Owls "Donos das luzes da cidade", sem incentivar a madrugada. Cores: as base de `tokens.ts` para preenchimento e texto sobre a cor; as neon de `neon.ts` para traço, brilho e arte.
+- **Consequências:** bíblia completa em `docs/melhoria/F1/04-direcao-de-arte.md`.
+
+### D-71 — Arte e motion sem Skia e sem Lottie na v2
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** o Skia (2.6.2) e o Lottie (7.3.8) vêm no Expo Go SDK 57, mas pesam na web e o Lottie pede pipeline de After Effects.
+- **Decisão:** ilustração em SVG (react-native-svg) e animação com Reanimated 4.5; molas nas animações CSS via `linear()`; sem som; vibração com intervalo mínimo de 150 ms; "Reduzir movimento" vira fade de 150 ms, tratado à mão porque as animações CSS do Reanimated o ignoram; sem `onCSS*` (só existe na 4.6).
+- **Consequências:** o Skia fica como plano B só para o confete, se o Android cair abaixo de 55 fps.
+
+### D-72 — Primeira abertura
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** hoje quem não tem conta cai em "Entrar" e a escolha de time é texto.
+- **Decisão:** Boas-vindas (Começar / Já tenho conta) → cadastro enxuto → "A cidade está dividida" (até 6 s) → escolha do time (carrossel com mascote, líder e biografia, e o quiz "Não sei escolher") → confirmação épica (a cor do time inunda a tela em até 600 ms, vibração e frase do líder) → permissão de localização com explicação → Mapa com a missão de boas-vindas. A permissão de notificação é pedida depois da 1ª conquista. Sem o passo "nome", exceto para OAuth sem nome.
+- **Consequências:** meta: chegar ao Mapa em até 90 s.
+
+### D-73 — Abas: Mapa · Arena · Correr · Clube · Você
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** correr ficava longe de algumas abas e Atividades disputava espaço com o Perfil.
+- **Decisão:** 5 abas: Mapa, Arena, Correr, Clube e Você; Atividades fica dentro de Você. Correr é uma aba comum com ícone laranja (as abas nativas não deixam um botão central elevado).
+- **Consequências:** testes de navegação e e2e atualizados junto com a mudança.
+
+### D-74 — Limites de texto e glossário
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** telas de jogo com média de 82 palavras e 14 telas sem nenhuma imagem (`docs/melhoria/F1/06-ux.md`).
+- **Decisão:** título ≤ 30 caracteres; bloco ≤ 1 frase de até 90; média ≤ 40 palavras por tela de jogo e ≤ 25 na 1ª dobra. Glossário: RP → "pontos", Neblina → "Atlas", células → "% da cidade", influência → "domínio"; "missão" é tarefa e "modo" é jogo.
+- **Consequências:** régua em `docs/melhoria/F1/ux/medir-texto.mjs`, com antes e depois.
+
+### D-75 — Contraste: texto escuro sobre o laranja
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** texto branco no botão laranja dá 2,87:1 e o botão de perigo dá 3,28:1; as bordas de campos ficam em 1,32:1.
+- **Decisão:** texto `#070708` sobre o laranja (7,02:1) e nos botões de perigo; bordas de campos e botões secundários com pelo menos 3:1.
+- **Consequências:** o script `docs/melhoria/F1/qa/contraste.cjs --strict` entra na CI depois da correção.
+
+### D-76 — Simulação só no modo demonstração e nada falso em conta real
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** a Nova corrida começa em "Simulação" (`run-screen.tsx:61`) e a Raid, a Liga e o Encontro mostram números falsos em conta real.
+- **Decisão:** GPS real é o padrão. A simulação só aparece no modo demonstração. Raid, Liga e Encontro mostram dado real ou estado vazio ilustrado.
+- **Consequências:** até o modo demonstração existir, a simulação fica como opção explícita marcada "demonstração".
+
+### D-77 — Modo demonstração
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** sem servidor o app cai em "indisponível"; a apresentação dependia das contas de demonstração do Cloud, com senha pública (A-1).
+- **Decisão:** cliente em memória atrás de `getSupabase()` (todo acesso ao servidor já passa por ele); liga por `EXPO_PUBLIC_DEMO=1` (export com `--clear`) ou pelo botão "Ver demonstração"; selo "Demonstração" sempre visível; caches e fila separados; teste que proíbe `fetch` e teste de contrato que falha quando uma RPC nova não tem par.
+- **Consequências:** capturas, CI e prévia web usam o modo demonstração.
+
+### D-78 — Compartilhar com imagem e privacidade
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** RF-017 só compartilha texto.
+- **Decisão:** o card é SVG e vira PNG por `toDataURL` → arquivo → `expo-sharing`, sem biblioteca nova; o plano B é o view-shot fixado em 4.0.3 (a versão do Expo Go). Na web, a fonte vai embutida e o compartilhamento usa Web Share ou download. O corte de privacidade fica no domain (`share-privacy.ts`): folga sorteada, pontas de 150 a 250 m, sem horário e sem rota quando mais de 60% for cortado. São 5 modelos, a versão sem rota e um adesivo transparente.
+- **Consequências:** abrir direto nos Stories exige código nativo que o Expo Go não tem: o caminho é o menu do sistema.
+
+### D-79 — Feed da crew com reações prontas
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** RF-014 (feed) não existe; comentário livre exigiria moderação.
+- **Decisão:** feed só da crew; reações Bora!, fogo e raio, sem comentário; teto de 200 por dia; a rota do feed vem já cortada pelo domain.
+- **Consequências:** aplausos entram no limite de notificações da D-69.
+
+### D-80 — Servidor v2 com flags e contrato versionado
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** o app publicado no Expo Go não pode quebrar com o servidor novo, nem o app novo com o servidor antigo.
+- **Decisão:** `game_config` com flags, todas desligadas por padrão; `server_info()` devolve o contrato 2; gravação v2 que chama a v1 sem mudá-la; migrações só aditivas. Ordem de deploy em `supabase/DEPLOY.md`. O banco local sem Docker (Postgres 16 + PostGIS + pgTAP + pg_cron pelo apt, com shim do Supabase) é obrigatório antes de cada commit em `supabase/`.
+- **Consequências:** 285/285 pgTAP passam no banco local; e2e e bundle-check continuam só na máquina da equipe.
+
+### D-81 — CI no GitHub
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** não havia CI.
+- **Decisão:** jobs app (tipos, lint, Jest, cobertura do domain ≥ 90%), web (export com `--clear` e orçamento do bundle) e functions (Deno test, check e `domain-copy --check`), em commit e push isolados. O contraste estrito liga depois da D-75.
+- **Consequências:** se o GitHub recusar o arquivo por falta da permissão `workflow`, o dono cria pelo site.
+
+### D-82 — Telemetria opt-in
+2026-10-23 · Coordenador da Fase 7 (relatórios da F1 em `docs/melhoria/F1/`; plano em `docs/melhoria/PLANO-MESTRE.md`)
+- **Contexto:** medir D1/D7/D30 ajuda a banca, mas toca a LGPD.
+- **Decisão:** telemetria só com consentimento, desligada por padrão, lista fechada de eventos e retenção de 30 dias; prioridade P2 (última onda).
+- **Consequências:** nenhum dado sai sem o opt-in.
+
+### D-83 — Decisões de implementação da onda 1 (aceitas)
+2026-10-23 · Coordenador da Fase 7
+- **Contexto:** cada equipe tomou decisões de detalhe ao implementar a onda 1 e listou no próprio relatório.
+- **Decisão:** ficam aceitas as decisões registradas nos relatórios:
+  - `docs/melhoria/relatorios/E3-onda1.md` §3: desbotar pelo relógio do trecho; teto diário da Raid depois do crítico; fantasma a 7:30/km sem histórico; e as outras;
+  - `E7-onda1.md` §5: Fantasma e Atlas 1×/dia; o congelamento só é gasto com sequência a proteger; só a missão diária pode ser trocada; e as outras;
+  - `E8-onda1.md` §5: pontas escondidas em círculo; `CardChip`; e as outras;
+  - `E9-onda1.md`: flag `streakV2`; tabela `bonus_chests`; `record_ranking_opened()`; o golpe final em `raid_hits` (fora do Realtime); troca de missão no mesmo registro; `CHECK` de `notifications.type` como superconjunto.
+  - A cor provisória do baú raro (E5) deixa de ser violeta, que é só dos vilões (D-67).
+- **Consequências:** quem discordar de uma delas abre uma decisão nova que a substitui.
+
+### D-84 — A Fuligem fica fora do rodízio em agosto e setembro
+2026-10-23 · Coordenador da Fase 7
+- **Contexto:** o rodízio fixo dos chefões (E3) pode pôr a Fuligem (fumaça) na época das queimadas, e a arte (E4) pediu para não incentivar correr na fumaça.
+- **Decisão:** nas semanas que começam em agosto ou setembro, a Fuligem é pulada e entra o próximo chefão do rodízio. A regra fica no domain (`raid.ts`) e no job do servidor, com teste de paridade.
+- **Consequências:** a fala da Fuligem continua sem incentivar correr com fumaça; as outras semanas seguem o rodízio.
+
+### D-85 — Decisões de implementação da onda 2 (aceitas)
+2026-10-23 · Coordenador da Fase 7
+- **Contexto:** decisões de detalhe tomadas pelas equipes na onda 2, listadas nos relatórios `docs/melhoria/relatorios/*-onda2.md`.
+- **Decisão:** ficam aceitas.
+  - **E9:**
+    - com a flag `missions` ligada, a v1 grava `xp = 0` e o XP vai em linhas no `xp_ledger` (corrida já paga não recebe de novo);
+    - com `territory_rule = 'v2'`, a v1 só cria zonas novas e a pintura decide o dono; `zones.influence` vira espelho (trechos × 10) para o app antigo e para a volta atrás;
+    - `paint`, `points`, `raid` e `league` ficam dentro de `extras`;
+    - `zone_cells` não guarda quem pintou;
+    - o seed v2 não tem Raid nem Liga (D-76).
+  - **E7:**
+    - o silêncio e o "pausar lembretes por 7 dias" ficam no aparelho;
+    - "Abrir baús" só aparece com atividade no dia;
+    - o par de demonstração de `record_share` da E7 vale sobre o da E8.
+  - **E8:**
+    - o convite (`/compartilhar/convite/[codigo]`) fica fora dos guards;
+    - o selo de demonstração dos Stories fica em y = 370.
+  - **E6a:**
+    - Atividades vive em `/perfil/atividades` (o endereço antigo redireciona);
+    - a missão de boas-vindas fica por cima do Mapa.
+  - **E6b:** a previsão ao vivo usa a regra v2 com "~" e "provável" até o servidor ligar a v2.
+  - **Coordenador:** o `paint-repo` aceita `cells`/`zones` como mapa (formato do servidor) ou lista.
+- **Consequências:** quem discordar abre uma decisão nova.
+
+### D-86 — Orçamento do bundle web revisto e instalação do banco na CI sem prompt
+2026-10-28 · Coordenador da Fase 7
+- **Contexto:** a CI ficou vermelha depois da onda 2 por dois motivos.
+  - O bundle web do modo demonstração chegou a 1.126.568 B gzip, acima do orçamento de 980.000 B (linha de base da onda 1 + 10%). A arte, as animações, os cards e o engajamento entraram de propósito.
+  - A instalação do Postgres 16 pelo apt no runner ficou 15 min parada, sem saída (`-qq`), e foi cancelada.
+- **Decisão:**
+  - **Bundle:** o orçamento passa a 1.250.000 B gzip. A onda 4 (QA) procura reduzir: rotas de desenvolvimento e de moderação carregadas sob demanda, e geometria repetida da arte.
+  - **Banco na CI:** o job `db` roda com `DEBIAN_FRONTEND=noninteractive`, `NEEDRESTART_MODE=a`, `sudo -E`, espera de trava do apt, `--no-install-recommends`, saída visível (`-q`) e limite de 10 min na instalação.
+- **Consequências:** nenhuma mudança no app.
+
+
+### D-87 — Máscara estável das zonas de privacidade no servidor (revisão A1)
+2026-10-28 · E9 (revisão da lógica v2, `docs/melhoria/relatorios/revisor-onda4-logica.md`, A1)
+- **Contexto:** o retrato da pintura (`zone_paint_near`) escondia os trechos pelo círculo exato de cada zona de privacidade; tirando a média dos trechos que faltavam, o centro (a casa) saía com 3,5 m de erro (ataque de Hassan et al., USENIX 2018, o mesmo que a D-78 evita no card).
+- **Decisão:** no servidor, toda zona de privacidade é escondida por uma **máscara**, no estilo do Strava: centro deslocado de 0,6 a 1,0 × raio numa direção sorteada e raio = raio + deslocamento + folga de 25 a 85 m (cobre a zona inteira). Os três sorteios são feitos **uma vez por zona** e gravados (`private.privacy_zone_masks`, fora do alcance do cliente); mover a zona move a máscara com o mesmo sorteio, e só mudar o rótulo não sorteia de novo. Vale para `cells` e `paintedToday` do retrato e para o percurso que a staff vê (`activity_points`).
+- **Consequências:** o buraco no retrato fica maior e descentrado (pgTAP 29: erro do centro > 0,5 × raio; nenhum ponto da zona visível). Some um pouco mais de pintura perto das casas. O card e o feed continuam com o corte do domain (D-78).
+
+### D-88 — Meta semanal de km da crew, oficial do servidor
+2026-10-29 · E9 + E3 (ajustes finais; pendência da E6c, `docs/melhoria/relatorios/E6c-onda3.md` §5)
+- **Contexto:** o servidor não tinha meta de km da crew; a barra do herói do Clube mostrava "quem correu ÷ membros", calculada no app a partir do `ranking_runners` (limite de 500 corredores do time).
+- **Decisão:** meta da semana = **10 km por membro atual**, com piso de **20 km** e teto de **300 km** (30 membros, o máximo da crew). Progresso = km das corridas aceitas (pontuadas, `valid`/`partial`) dos membros atuais que terminaram na semana de Brasília. Regra pura em `src/domain/crew-goal.ts` (registrada na ponte das functions); o oficial é o servidor (`crew_week_goal()`, mesma conta em `private.crew_week_goal_m`), que devolve só totais da crew. A demonstração usa o mesmo domain.
+- **Consequências:** quem entra na crew no meio da semana leva os km da semana junto (conta-se o membro atual) e a meta sobe 10 km; quem sai leva os seus. Sem tabela nova nem job. Servidor antigo: o app cai na conta antiga (quem correu ÷ membros).
+

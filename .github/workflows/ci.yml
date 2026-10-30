@@ -1,0 +1,168 @@
+# CI do NOMADE RUN (T7.1.20 e T7.2.10, D-81). Proposta original: docs/melhoria/ci/ci.yml (E10, F1).
+# Quatro jobs: app (tipos, lint, Jest, cobertura do domain e contraste estrito dos tokens), web (export do
+# modo demonstração e orçamento do bundle), functions (Deno test/check e ponte do domain) e db (migrations,
+# seed e pgTAP num Postgres 16 do apt, sem Docker: npm run db:test:local, da E9).
+# Se o GitHub recusar este arquivo por falta da permissão `workflow`, crie-o pelo site (docs/melhoria/ci/README.md).
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: App (tipos, lint, testes, cobertura do domain)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Tipos (tsc --noEmit)
+        run: npm run typecheck
+
+      - name: Lint (ESLint, binário direto)
+        run: ./node_modules/.bin/eslint src --max-warnings 0
+
+      - name: Testes (Jest)
+        # Os *.local.test.ts se pulam sozinhos sem Supabase local. Inclui o contrato e o fluxo sem rede
+        # do modo demonstração (src/__tests__/demo-*.test.ts).
+        run: npx jest --ci --maxWorkers=2
+
+      - name: Cobertura do domain (mínimo 90%, regra 16.5 do prompt mestre)
+        run: >
+          npx jest --ci --maxWorkers=2 --coverage src/domain
+          --coverageThreshold='{"./src/domain/":{"statements":90,"branches":90,"functions":90,"lines":90}}'
+
+      - name: Contraste dos tokens (estrito, D-75)
+        # Falha se algum par usado no tema escuro ficar abaixo de 4,5:1 (texto) ou 3:1 (UI); a tabela vai
+        # para o resumo do job. Pares do tema claro (sem uso) aparecem na tabela, mas não derrubam a CI.
+        working-directory: .
+        run: node docs/melhoria/F1/qa/contraste.cjs --strict >> "$GITHUB_STEP_SUMMARY"
+
+  web:
+    name: Export web (modo demonstração e orçamento do bundle)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: app
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Export web do modo demonstração
+        # --clear: o cache do Metro não percebe mudança de EXPO_PUBLIC_* (linha de base da E10).
+        run: npx expo export -p web --clear --output-dir dist-web
+        env:
+          EXPO_PUBLIC_DEMO: '1'
+          EXPO_OFFLINE: '1'
+
+      - name: O export está no modo demonstração
+        run: grep -q 'demonstracao@nomaderun.invalid' dist-web/_expo/static/js/web/entry-*.js
+
+      - name: Tamanho do bundle (orçamento)
+        # D-86: orçamento revisto depois das ondas 1 e 2 (arte, motion, cards, engajamento): 1,25 MB gzip.
+        # Era 980 KB (linha de base + 10%); o export da onda 2 deu 1,127 MB. A onda 4 procura reduzir.
+        # Linha de base 2026-10-23: entry 3.464.108 B (889.454 B gzip); com o modo demonstração, 909.056 B gzip.
+        run: |
+          f=$(ls dist-web/_expo/static/js/web/entry-*.js)
+          raw=$(stat -c%s "$f"); gz=$(gzip -9c "$f" | wc -c)
+          echo "entry: ${raw} B (${gz} B gzip)" | tee -a "$GITHUB_STEP_SUMMARY"
+          test "$gz" -le 1250000 || { echo "::error::bundle web acima do orçamento (${gz} B gzip > 1250000)"; exit 1; }
+
+  functions:
+    name: Edge Functions (Deno) e ponte do domain
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.x
+
+      - name: Testes das functions
+        run: deno test --allow-read --config supabase/functions/deno.json supabase/functions/tests
+
+      - name: Tipos das functions
+        run: deno check --config supabase/functions/deno.json supabase/functions/*/index.ts
+
+      - name: Gerador do seed (src/demo continua puro, sem React/Expo)
+        run: deno check --config supabase/scripts/deno.json supabase/scripts/gen-seed.ts
+
+      - name: Cópia do domain em dia (plano B da D-02)
+        run: node supabase/scripts/domain-copy.mjs --check
+
+  db:
+    name: Banco (migrations, seed e pgTAP sem Docker)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Nenhum prompt: debconf não interativo e o needrestart do Ubuntu 24.04 reiniciando sozinho
+      # (a instalação ficou 15 min parada sem saída em 2026-10-23).
+      DEBIAN_FRONTEND: noninteractive
+      NEEDRESTART_MODE: a
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Postgres 16 com PostGIS, pgTAP e pg_cron (apt)
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          # -E leva o env acima para o apt; espera curta pela trava do apt; arquivos de configuração sem pergunta.
+          APT="sudo -E apt-get -o DPkg::Lock::Timeout=120 -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold"
+          $APT update -q
+          # O banco-local.sh espera o Postgres 16 (/usr/lib/postgresql/16). Se o ubuntu-latest trouxer outra
+          # versão como padrão, o repositório oficial do Postgres (PGDG) tem o 16 para todas as versões do Ubuntu.
+          if ! apt-cache show postgresql-16-cron >/dev/null 2>&1; then
+            $APT install -y -q --no-install-recommends postgresql-common
+            sudo -E /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          fi
+          $APT install -y -q --no-install-recommends \
+            postgresql-16 postgresql-16-postgis-3 postgresql-16-pgtap postgresql-16-cron libtap-parser-sourcehandler-pgtap-perl
+          ls /usr/share/postgresql/16/extension/{postgis,pgtap,pg_cron}.control
+
+      - name: Migrations, seed e testes pgTAP (npm run db:test:local)
+        # Cluster temporário na porta 54329, só por socket; o servidor do pacote (porta 5432) não é usado.
+        shell: bash
+        run: |
+          npm run db:test:local 2>&1 | tee banco-local.log
+          { echo '### Banco (pgTAP)'; grep -E '^(Arquivos|Migrations aplicadas|Result):' banco-local.log; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Seed v2 de demonstração aplicado 2 vezes (idempotente) + teste do seed
+        shell: bash
+        env:
+          NR_EXTRA_SQL: supabase/seed_v2_demo.sql supabase/seed_v2_demo.sql
+          NR_EXTRA_TESTS: supabase/tests/seed/seed_v2_demo.test.sql
+        run: |
+          npm run db:test:local 2>&1 | tee banco-seed-v2.log
+          { echo '### Banco + seed v2 (pgTAP)'; grep -E '^(Arquivos|Migrations aplicadas|Result):' banco-seed-v2.log; } >> "$GITHUB_STEP_SUMMARY"

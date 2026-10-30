@@ -4,11 +4,11 @@
     "slug": "nomade-run",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/art/icone-1024.png",
     "scheme": "nomaderun",
     "userInterfaceStyle": "dark",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/art/icone-1024.png",
       "infoPlist": {
         "CADisableMinimumFrameDurationOnPhone": true,
         "NSMotionUsageDescription": "O NOMADE RUN usa o sensor de movimento para contar seus passos durante a corrida e conferir se o percurso foi feito a pé."
@@ -16,25 +16,34 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#FF5A1F",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#070708",
+        "foregroundImage": "./assets/art/android-icone-frente.png",
+        "backgroundImage": "./assets/art/android-icone-fundo.png",
+        "monochromeImage": "./assets/art/android-icone-monocromatico.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/art/favicon-48.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FF5A1F",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#070708",
+          "image": "./assets/art/splash-simbolo.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "android": {
+            "image": "./assets/art/splash-simbolo.png",
+            "mdpi": "./assets/art/splash-simbolo-mdpi.png",
+            "hdpi": "./assets/art/splash-simbolo-hdpi.png",
+            "xhdpi": "./assets/art/splash-simbolo-xhdpi.png",
+            "xxhdpi": "./assets/art/splash-simbolo-xxhdpi.png",
+            "xxxhdpi": "./assets/art/splash-simbolo-xxxhdpi.png"
+          }
         }
       ],
       [

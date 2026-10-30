@@ -6,7 +6,31 @@
 ## 0. Antes de começar
 
 - Node 22 e `npm install` na raiz (instala o CLI); Docker rodando (o CLI usa o Docker para empacotar as functions); Deno 2 para os testes (`npm i -g deno@2.5.6`).
-- Confira localmente: `npm run db:reset`, `npm run db:test:psql`, `npm run functions:test`, `npm run functions:check`, `npm run e2e`.
+- Confira localmente: `npm run db:reset`, `npm run db:test:psql`, `npm run functions:test`, `npm run functions:check`, `npm run e2e`. Sem Docker, o banco e o pgTAP rodam com `npm run db:test:local` (seção 0.1).
+
+## 0.1 Testes do banco sem Docker (`npm run db:test:local`, D-80)
+
+Obrigatório antes de cada commit em `supabase/` (Fase 7). Usa um Postgres 16 "puro" com PostGIS, pgTAP e pg_cron do apt e um **shim do Supabase** (`supabase/scripts/supabase-shim.sql`: roles `anon`/`authenticated`/`service_role`, `auth.users`, `auth.uid()`/`auth.jwt()`, `storage.buckets`/`objects`, publicação `supabase_realtime` e os privilégios padrão do `public`).
+
+```bash
+NR_INSTALL=1 npm run db:test:local   # 1ª vez, como root: instala postgresql-16-postgis-3, -pgtap e -cron pelo apt
+npm run db:test:local                # cria o cluster, aplica shim + migrations + seed, roda o pgTAP e para (≈ 10 s)
+NR_SEED=0 npm run db:test:local      # sem o seed de demonstração
+NR_KEEP=1 npm run db:test:local      # deixa o banco rodando; o script imprime o psql e o comando para parar
+```
+
+| Variável | Padrão | Para quê |
+|---|---|---|
+| `NR_WORKDIR` | `mktemp -d /tmp/nomaderun-pg.XXXXXX` (apagada no fim) | pasta do cluster; o socket fica nela (sem TCP) |
+| `NR_PORT` | `54329` | número do socket (não conflita com o `supabase start`, que usa 54322) |
+| `NR_SEED` / `NR_KEEP` / `NR_PG_PROVE` | `1` / `0` / `1` | seed, manter rodando, conferir com `pg_prove` |
+| `NR_EXTRA_SQL` / `NR_EXTRA_TESTS` | vazio | SQL e testes pgTAP extras (ex.: rascunhos) |
+| `NR_PG_BIN` | `/usr/lib/postgresql/16/bin` | binários do Postgres |
+
+- **Regra de aprovação:** igual à de `supabase/scripts/test-db.sh` (falha com `not ok`, erro de SQL ou plano diferente do executado) e, se houver `pg_prove`, a mesma lista confere pelo `pg_prove`.
+- **Como root:** o servidor roda como o usuário `postgres`. Se `NR_WORKDIR` fica atrás de uma pasta `700` (ex.: pasta de rascunho de um agente), o script faz um **bind mount** para um caminho curto em `/tmp` (o socket Unix aceita no máximo 107 caracteres) e desfaz no fim.
+- **O que não cobre:** não há PostgREST, GoTrue, Realtime nem Storage API. O pre-request (`check_request`), a RLS no canal do Realtime e o upload de avatar ficam para o `npm run e2e` com Docker. O local usa Postgres 16 e o `config.toml` usa 17: a validação final continua sendo `npm run db:reset && npm run db:test:psql`.
+- **Uma migration nova que dependa de outra parte do Supabase** (`pg_net`, `vault`, `pgsodium`) precisa de um trecho novo no shim.
 - **Domain fora de `supabase/` (D-02/D-22):** `npm run functions:bundle-check` roda o mesmo `edge-runtime bundle` que o `supabase functions deploy` usa no Docker, gera o eszip das 8 functions, confere que o domain e o h3-js estão dentro e sobe o eszip de `finish-activity` num edge-runtime limpo (só o arquivo `.eszip` montado). Resultado em 2026-10-20: **ok** — o deploy padrão (Docker) aceita o domain do app (plano A). O que não deu para testar sem conta: o upload do eszip para a API do Supabase (o proxy deste ambiente bloqueia `api.supabase.com`), que não reprocessa os imports.
 
 ## 1. Criar o projeto
@@ -93,5 +117,117 @@ Mudou o domain? Rode `npm run domain:copy` de novo antes do próximo deploy (`np
 
 ## 6. Jobs e Realtime
 
-- Os 4 jobs do pg_cron (RN-004, RN-005, RN-006, RN-014) são criados pela migration; confira em **Database → Cron Jobs** (horários em UTC = Brasília + 3 h).
+- Os 4 jobs do pg_cron do MVP (RN-004, RN-005, RN-006, RN-014) são criados pela migration; a v2 soma mais 4 (§10). Confira em **Database → Cron Jobs** (horários em UTC = Brasília + 3 h).
 - Realtime: `zones` (mapa) e `notifications` (central, P-13) estão na publicação `supabase_realtime`; a RLS vale para quem assina.
+
+## 7. Servidor v2 (Fase 7, D-80): migrations atrás de flags
+
+- **Ordem:** backup (`npx supabase db dump --linked -f backup-<data>.sql` e `--data-only`) → `npm run db:test:local` (ou `db:reset` + `db:test:psql`) → `npx supabase db push --dry-run` e `db push` → functions → EAS Update → flags, uma por vez.
+- **Migrations da onda 1** (`20261023120000` a `20261023120600`): contrato (`game_config`, `server_info`, `xp_ledger`), cosméticos e medalhas, baú do dia, Raid, Liga, missões e trilha, sequência v2. Todas aditivas; com as flags desligadas o app publicado não vê diferença. A única mudança em objeto antigo é o `CHECK` de `notifications.type`, trocado por um superconjunto na mesma instrução, e o `job_close_week`, que só muda de regra com `features.streakV2`.
+- **Jobs novos:** `nomaderun-raid-tick` (`*/10 * * * *`) e `nomaderun-close-league` (`20 6 * * 1` = segunda 03:20 BRT). Realtime ganha `raids`.
+- **Segredo do baú do dia:** a migration gera `private.server_secrets('daily_chest_hmac')` com 32 bytes aleatórios no próprio banco (nada no repositório). Para trocar: `update private.server_secrets set value = extensions.gen_random_bytes(32) where name = 'daily_chest_hmac';` (os baús já abertos não mudam).
+- **Ligar uma feature:** `update public.game_config set value = value || '{"raid": true}' where key = 'features';`. **Desligar** (volta atrás na hora): o mesmo com `false`. Ordem sugerida, depois do EAS Update: `dailyChest`, `missions`, `track`, `raid`, `league`, `streakV2`. A gravação v2 do `finish-activity` (onda 2) é que alimenta raid, liga, missões e baú com as corridas; antes dela, as telas abrem, mas só as RPCs do app mexem nos dados.
+- **Conferir depois do `db push`:** `select public.server_info();` no SQL Editor (como `authenticated`, com `set role`), `select jobname, schedule from cron.job;` e `npx supabase db advisors --linked`.
+
+## 8. Onda 2 (T7.2.1 e T7.2.2): gravação v2, pintura, feed, recordes, LGPD v2
+
+### 8.1 O que sobe
+
+| Ordem | O quê | Observação |
+|---|---|---|
+| 1 | Backup | `npx supabase db dump --linked -f backup-<data>.sql` e `--data-only` |
+| 2 | Testes locais | `npm run db:test:local` (716 pgTAP), `npx -y deno test --allow-read --config supabase/functions/deno.json supabase/functions/tests` e o `deno check` das 8 functions. Com o seed v2: `NR_EXTRA_SQL="supabase/seed_v2_demo.sql supabase/seed_v2_demo.sql" NR_EXTRA_TESTS=supabase/tests/seed/seed_v2_demo.test.sql npm run db:test:local` |
+| 3 | Migrations | `npx supabase db push --dry-run` e `db push`: `20261023120700_paint`, `…120800_records_social`, `…120900_v2_recording`, `…121000_engagement_lgpd`. Todas aditivas. Objetos antigos tocados: `private.raid_boss_for_week` (D-84) e os comandos dos jobs `nomaderun-decay-zones` e `nomaderun-fortify-zones` (mesmo nome e horário; agora só rodam com `territory_rule = 'v1'`) |
+| 4 | Functions | `npx supabase functions deploy finish-activity moderate-activity account-export` (as outras não mudaram; o `bundle-check` continua valendo). Com as flags desligadas, a resposta é a mesma de antes |
+| 5 | EAS Update | o app novo, que lê `extras` e as RPCs novas |
+| 6 | Flags, uma por vez | abaixo |
+| 7 | Seed v2 (só demonstração/apresentação) | `psql "$DB_URL" -f supabase/seed_v2_demo.sql` depois do `seed.sql`. Idempotente; não liga flag; não cria Raid nem Liga (D-76); a conta nova `parceira_demo` não tem senha |
+
+**Compatibilidade.** App antigo × servidor novo: igual a hoje enquanto as flags estiverem desligadas; com flags ligadas, só ganha o campo `extras`, que ele ignora (com `missions` ligada, o `xp` da resposta passa a ser o XP v2 da atividade; com o território v2, os `zones[].outcome` refletem a pintura). App novo × servidor antigo: `server_info` não existe (`PGRST202`) e o finish não manda `extras` → o app mostra o modo atual. Function nova × banco sem as migrations da onda 2: `svc_v2_context` não existe → a v2 falha, é registrada no log e a resposta sai sem `extras` (a v1 nunca é afetada). Por isso a ordem é migrations → functions.
+
+### 8.2 Flags (ordem sugerida, depois do EAS Update)
+
+```sql
+update public.game_config set value = value || '{"records": true}' where key = 'features';     -- recordes e parciais
+update public.game_config set value = value || '{"missions": true, "dailyChest": true, "track": true}' where key = 'features';  -- XP em linhas, missões, baú
+update public.game_config set value = value || '{"feed": true}' where key = 'features';        -- feed da crew e aplausos
+update public.game_config set value = value || '{"raid": true}' where key = 'features';        -- o job abre o chefão na segunda 06:00
+update public.game_config set value = value || '{"league": true}' where key = 'features';      -- liga semanal
+```
+Desligar é o mesmo comando com `false` (volta atrás na hora; o que já foi gravado fica).
+
+### 8.3 Virada do território (D-62), na troca de temporada
+
+1. Confirme que o app publicado já tem a pintura (EAS Update) e que `job_fade_cells` está agendado (`select jobname, schedule, command from cron.job;`).
+2. `update public.game_config set value = '"v2"' where key = 'territory_rule';` — o trigger `game_config_territory_switch` aplica a herança na mesma transação: cada zona com dono recebe 3 trechos virtuais do dono por 7 dias (`inherit_*`), `rule_version = 2`. `select public.job_territory_switch();` refaz (idempotente).
+3. Daí em diante: o `finish-activity` pinta (`zone_cells`, `paint_marks`), o `job_fade_cells` (03:00 BRT) desbota e reavalia os donos, e o decaimento/fortificar por influência deixam de rodar.
+4. **Volta atrás:** `update public.game_config set value = '"v1"' where key = 'territory_rule';`. As zonas ficam com o dono e a influência-espelho (trechos × 10) e a regra v1 continua a partir daí; os trechos ficam guardados (invisíveis na v1) para uma nova virada.
+
+### 8.4 Conferir
+
+- `select public.zone_paint_near(-16.7097, -49.2388, 1500);` (como `authenticated`): sem `painted_at`, sem autor, sem trecho em zona de privacidade.
+- Uma corrida de teste com `missions` ligada: `select v2_extras from public.activities where id = '<id>';` e `select * from public.xp_ledger where ref = '<id>';`.
+- `select public.svc_account_export_v2('<user>') ? 'xpLedger';` → `true`.
+- `npx supabase db advisors --linked` (RLS e `search_path` das funções novas).
+
+## 9. Onda 3 (T7.3.8): paintedToday, pauseAvailable, resumo da semana, telemetria
+
+| Ordem | O quê | Observação |
+|---|---|---|
+| 1 | Backup | como na §8.1 |
+| 2 | Testes locais | `npm run db:test:local` (**805** pgTAP, 28 arquivos), os testes Deno (87) e o `deno check` das **9** functions |
+| 3 | Migrations | `20261024120000_paint_today_pause_prefs`, `…120100_weekly_recap`, `…120200_telemetry`. Aditivas. A 1ª **limpa** valores não booleanos de `profiles.notification_prefs` (viram "ligado", como chave ausente) antes do CHECK novo |
+| 4 | Functions | `npx supabase functions deploy weekly-recap` (nova; já está no `config.toml`). As outras não mudaram |
+| 5 | EAS Update | o app que lê `paintedToday`, `pauseAvailable`, `weekly-recap` e a tela de consentimento |
+| 6 | Flag | `update public.game_config set value = value || '{"telemetry": true}' where key = 'features';` — só depois do app com a tela de consentimento. Mesmo ligada, nada é gravado sem o opt-in |
+
+**Compatibilidade.** App antigo × servidor novo: campos novos são ignorados; `weekly-recap` e as RPCs de telemetria
+não são chamadas. App novo × servidor antigo: `paintedToday` ausente → `[]`; `pauseAvailable` ausente → `null`;
+`weekly-recap` → 404 `NOT_AVAILABLE` e `weekly_recap`/`track_events` → `PGRST202` (indisponível); o app não envia
+telemetria. **Volta atrás:** desligar `features.telemetry`; para apagar os eventos, `delete from public.telemetry_events;`.
+
+**Conferir:**
+- `select jobname, schedule from cron.job where jobname = 'nomaderun-telemetry-retention';` → `40 6 * * *`.
+- Como `authenticated`: `select public.zone_paint_near(-16.7097, -49.2388, 1500) -> 'paintedToday';` e
+  `select public.weekly_recap();`.
+- `curl -X POST "$SUPABASE_URL/functions/v1/weekly-recap" -H "Authorization: Bearer <jwt>" -H "apikey: <anon>" -d '{}'`.
+
+**Segurança (máquina com Docker):** `npm run db:start`, `npm run functions:serve` e, em outro terminal,
+`bash supabase/tests/security/run-v2.sh` (aplaudir a si mesmo, 201º aplauso, `feed_items`/`zone_cells`/`paint_marks`/
+telemetria direto, golpe forjado no chefão, missão resgatada 2 vezes, telemetria sem consentimento, `weekly-recap`).
+O script liga as flags da v2 durante o teste e devolve como estavam. A mesma lógica, sem HTTP, está no pgTAP 28.
+
+## 10. Deploy completo da v2 (Fase 7), do zero ao app na nuvem
+
+Resumo das seções 7 a 9 mais as correções da revisão (`20261028120000_review_fixes`) e os ajustes finais (`20261029120000_final_fixes`), na ordem que não quebra o app que já está publicado no EAS Update. Cada passo pode parar no meio: com as flags desligadas, o app antigo continua igual, e o app novo mostra "indisponível" no que o servidor ainda não tem.
+
+| Passo | O quê | Comando / observação |
+|---|---|---|
+| 0 | **A-1: senhas das contas demo** | Troque as senhas de `admin.demo` e `moderador.demo` no projeto da nuvem (SQL em `docs/COMO_APRESENTAR.md` §1). Elas estão no README, e o repositório é público |
+| 1 | Backup | `npx supabase db dump --linked -f backup-<data>.sql` e o mesmo com `--data-only` |
+| 2 | Testes locais | `npm run db:test:local` (**846** pgTAP em 30 arquivos), `npm run functions:test` (Deno: 88 ok, 1 ignorado), `npm run functions:check` e `npm run domain:copy:check` |
+| 3 | Migrations | `npx supabase db push --dry-run` e `npx supabase db push`. Sobem de `20261023120000_v2_contract` a `20261029120000_final_fixes` (16 arquivos, todos aditivos). Jobs novos: `raid-tick`, `close-league`, `fade-cells` e `telemetry-retention`. Realtime ganha `raids` e `feed_kudos_counts` |
+| 4 | Functions | `npx supabase functions deploy` (as 9). Mudaram na v2: `finish-activity`, `moderate-activity`, `account-export` e a nova `weekly-recap`. Os ajustes finais (B1) só acrescentam o `stamp` ao plano da gravação v2: function nova com banco antigo ignora o campo, e function antiga com banco novo manda plano sem `stamp`, aceito como antes; mesmo assim, migrations **antes** das functions |
+| 5 | Seed v2 (só para a apresentação) | `psql "$DB_URL" -f supabase/seed_v2_demo.sql`, depois do `seed.sql`. Idempotente, não liga flag e não cria Raid nem Liga (D-76) |
+| 6 | App novo | Confira que o `apps/mobile/.env.production` **não** tem `EXPO_PUBLIC_DEMO=1` (senão o app publicado só abre a demonstração) e rode `npm run publicar -- "v2"` na raiz (branch `demo` do EAS Update) |
+| 7 | Flags, uma por vez | Na ordem da §8.2: `records` → `missions` + `dailyChest` + `track` → `feed` → `raid` → `league` → `streakV2`. Depois de cada uma, uma corrida de teste e `select v2_extras from public.activities order by created_at desc limit 1;` |
+| 8 | Território v2 | Só na **troca de temporada** (dia 1), com o app novo já publicado: §8.3. Volta atrás com `territory_rule = 'v1'` |
+| 9 | Telemetria, por último | `features.telemetry` só depois que o app com a seção "Ajudar a melhorar o app" (Você → Ajustes) estiver publicado **e** a política de privacidade (`/privacidade`) citar a telemetria opt-in (já cita, desde o fechamento da Fase 7). Mesmo ligada, nada é gravado sem o consentimento da pessoa |
+| 10 | Conferir | `select jobname, schedule from cron.job;` (8 jobs), `npx supabase db advisors --linked` e o `curl` do `weekly-recap` (§9) |
+
+**Para desligar a v2 de uma vez** (o que já foi gravado fica): `update public.game_config set value = (select jsonb_object_agg(k, false) from jsonb_object_keys(value) k) where key = 'features';` e `territory_rule = 'v1'`.
+
+## 11. Versão web na Vercel
+
+A Vercel hospeda só as telas (o export web do Expo). O servidor continua no Supabase Cloud (§10). A configuração está em `apps/mobile/vercel.json`.
+
+| Passo | O quê | Observação |
+|---|---|---|
+| 1 | Branch | A Vercel publica a `main` em produção: a v2 precisa estar nela (pull request da branch da Fase 7). Outras branches viram prévia. |
+| 2 | Projeto | Importar o repositório na Vercel com **Root Directory = `apps/mobile`**. O `vercel.json` já define instalação (`npm ci`), build (`npx expo export -p web`) e saída (`dist`). Node 22, como na CI. |
+| 3 | Variáveis | `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_ANON_KEY` do projeto na nuvem (as mesmas do `.env.production`; a anon key é pública por natureza, a `service_role` **nunca** vai aqui). Opcional: `EXPO_PUBLIC_AUTH_PROVIDERS`. As `EXPO_PUBLIC_*` entram no build: mudou uma, faça redeploy. |
+| 4 | Prévia só de demonstração | Num projeto ou ambiente separado, `EXPO_PUBLIC_DEMO=1` abre o app sem servidor, com o selo "Demonstração" em toda tela (cenários com `?cenario=`). **Nunca** em produção. |
+| 5 | Auth | No Supabase (Authentication → URL Configuration), acrescente o domínio da Vercel em *Site URL*/*Redirect URLs*, senão os links de e-mail (confirmação e nova senha) voltam para o endereço antigo. |
+| 6 | Conferir | Abrir `/`, `/entrar`, `/privacidade` e um link com parâmetro, como `/zona/<id>` e `/compartilhar/convite/<codigo>`: as rotas com parâmetro dependem dos `rewrites` do `vercel.json` (o export gera `zona/[id].html` etc.). Se alguma der 404, confira o nome do arquivo em `dist/` e ajuste o `rewrites`. |
+
+Testado aqui: `npx expo export -p web --clear` gera as 4 páginas com parâmetro (`zona/[id]`, `compartilhar/[id]`, `compartilhar/convite/[codigo]`, `moderacao/[id]`). O roteamento na Vercel em si só dá para conferir depois do primeiro deploy (passo 6).

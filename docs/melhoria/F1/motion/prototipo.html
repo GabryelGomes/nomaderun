@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipos de motion · NOMADE RUN (F1, E5)</title>
+<!--
+  Protótipos da Equipe E5 (F1). HTML/CSS/JS puro, sem biblioteca: Web Animations API.
+  Uso: prototipo.html?cena=zona|zona-corrida|bau|chefao|chefao-derrota|time|resumo[&reduzido=1][&pular=3000][&raridade=raro|lendario|comum][&t=800]
+  Sem `t` a cena toca sozinha em loop; com `t` fica congelada naquele instante (é assim que os quadros são gravados).
+  Todos os números (duração, atraso, curva, vibração) são os mesmos do relatório 05-motion-e-feedback.md.
+  Arte (chefão, baú, emblema) é PROVISÓRIA: a E4 entrega a definitiva; aqui só a forma e o movimento contam.
+-->
+<style>
+  :root {
+    --bg: #070708; --surface: #0F1013; --sunken: #15161A; --line: #24252B; --ink: #F3F1ED; --ink2: #A8A6A1;
+    --orange: #FF6A13; --orangeText: #FF7A2A;
+    --striders: #2FA8FF; --volt: #19E6A8; --owls: #FF2D55; --coyotes: #FFD60A;
+    --team: var(--owls);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #000; color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+  #stage { display: flex; width: 690px; height: 844px; }
+  .phone { position: relative; width: 390px; height: 844px; background: var(--bg); overflow: hidden; flex: none; }
+  aside { width: 300px; height: 844px; background: #0B0B0D; border-left: 1px solid var(--line); padding: 20px 18px; display: flex; flex-direction: column; gap: 14px; font-size: 13px; color: var(--ink2); }
+  aside h1 { font-size: 17px; color: var(--ink); font-weight: 700; letter-spacing: -0.2px; }
+  aside .t { font: 700 34px/1 "Inter Display", Inter, sans-serif; color: var(--ink); font-variant-numeric: tabular-nums; }
+  aside .t small { font-size: 14px; color: var(--ink2); font-weight: 500; }
+  .track { position: relative; height: 54px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+  .track .mk { position: absolute; top: 8px; width: 3px; height: 38px; border-radius: 2px; }
+  .track .lbl { position: absolute; bottom: -18px; font-size: 10px; color: var(--ink2); transform: translateX(-50%); white-space: nowrap; }
+  .track .ph { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); }
+  .legend { display: grid; grid-template-columns: 1fr; gap: 6px; margin-top: 10px; }
+  .legend div { display: flex; gap: 8px; align-items: center; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .steps { display: flex; flex-direction: column; gap: 5px; overflow: hidden; }
+  .steps div { padding: 5px 8px; border-radius: 6px; border: 1px solid transparent; line-height: 1.3; }
+  .steps div.on { border-color: var(--orange); color: var(--ink); background: rgba(255,106,19,0.10); }
+  .tag { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink2); }
+  .tag.on { color: #111; background: var(--orange); border-color: var(--orange); font-weight: 700; }
+
+  /* telefone */
+  .status { position: absolute; top: 0; left: 0; right: 0; height: 44px; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; font-size: 14px; font-weight: 600; z-index: 50; }
+  .vibra { position: absolute; top: 52px; right: 14px; z-index: 60; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 999px; background: #fff; color: #111; opacity: 0; letter-spacing: .3px; }
+  .demo { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-size: 10px; color: #5c5b58; z-index: 70; }
+  .abs { position: absolute; }
+  .center { display: flex; align-items: center; justify-content: center; }
+  .h-hero { font: 800 72px/0.95 "Inter Display", Inter, sans-serif; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+  .h-head { font: 800 30px/1.05 "Inter Display", Inter, sans-serif; letter-spacing: -0.6px; }
+  .h-title { font: 700 18px/1.2 Inter, sans-serif; }
+  .small { font-size: 13px; color: var(--ink2); }
+  .caption { font-size: 11px; color: var(--ink2); }
+  .word { display: inline-block; overflow: hidden; vertical-align: bottom; padding: 0 0.12em; }
+  .word > span { display: inline-block; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; }
+  .btn { height: 60px; border-radius: 16px; background: var(--orange); color: #111; font-weight: 800; font-size: 17px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 28px rgba(255,106,19,.55), 0 0 8px rgba(255,106,19,.6); }
+  .btn.ghost { background: transparent; color: var(--ink); box-shadow: none; border: 1px solid var(--line); }
+  .pill { height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: rgba(15,16,19,.85); display: flex; align-items: center; font-size: 13px; font-weight: 700; gap: 6px; }
+  .bar { position: relative; height: 14px; border-radius: 999px; background: var(--sunken); overflow: hidden; border: 1px solid var(--line); }
+  .bar > div { position: absolute; inset: 0; transform-origin: left center; border-radius: 999px; }
+  .particle { position: absolute; left: 0; top: 0; will-change: transform, opacity; }
+  .num { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="phone" id="phone">
+    <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+    <div class="vibra" id="vibra">VIBRA</div>
+    <div class="demo">Protótipo de motion · dados de demonstração · arte provisória</div>
+  </div>
+  <aside id="panel"></aside>
+</div>
+<script>
+'use strict';
+const Q = new URLSearchParams(location.search);
+const SCENE = Q.get('cena') || 'zona';
+const REDUCED = Q.get('reduzido') === '1';
+const SKIP_AT = Q.has('pular') ? Number(Q.get('pular')) : null;
+const RARITY = Q.get('raridade') || 'raro';
+const FIXED_T = Q.has('t') ? Number(Q.get('t')) : null;
+
+/* ---------- tokens (espelho de src/theme/motion.ts + propostas da E5) ---------- */
+const CURVE = {
+  standard: 'cubic-bezier(0.25,0.46,0.45,0.94)', // power2.out
+  enter: 'cubic-bezier(0.215,0.61,0.355,1)',     // power3.out
+  reveal: 'cubic-bezier(0.19,1,0.22,1)',         // expo.out
+  screen: 'cubic-bezier(0.87,0,0.13,1)',         // expo.inOut
+  swap: 'cubic-bezier(0.455,0.03,0.515,0.955)',  // power2.inOut
+  exit: 'cubic-bezier(0.55,0.055,0.675,0.19)',   // power3.in (proposta: saídas)
+  linear: 'linear',
+};
+/** Mola amortecida amostrada como `linear(...)` — a mesma técnica serve para as animações CSS do Reanimated 4.5. */
+function springLinear(zeta, n = 48) {
+  const pts = [];
+  const w = zeta < 1 ? Math.log(1000) / zeta : 9.23;
+  const wd = w * Math.sqrt(Math.max(1e-6, 1 - zeta * zeta));
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const x = zeta < 1 ? 1 - Math.exp(-zeta * w * t) * (Math.cos(wd * t) + ((zeta * w) / wd) * Math.sin(wd * t)) : 1 - Math.exp(-w * t) * (1 + w * t);
+    pts.push(i === n ? 1 : +x.toFixed(4));
+  }
+  return `linear(${pts.join(', ')})`;
+}
+const SPRING = {
+  snappy: { zeta: 0.8, d: 350 },  // toasts, chips, troca de estado
+  gentle: { zeta: 1.0, d: 500 },  // cards, folhas, layout
+  bouncy: { zeta: 0.5, d: 650 },  // item do baú, emblema, nível
+  stamp: { zeta: 0.42, d: 550 },  // carimbo PR, "derrotado", número do nível
+};
+const SP = Object.fromEntries(Object.entries(SPRING).map(([k, v]) => [k, springLinear(v.zeta)]));
+
+const C = { bg: '#070708', surface: '#0F1013', line: '#24252B', ink: '#F3F1ED', ink2: '#A8A6A1', orange: '#FF6A13', white: '#FFFFFF' };
+const TEAM = { striders: '#2FA8FF', volt: '#19E6A8', owls: '#FF2D55', coyotes: '#FFD60A' };
+const RARE = { comum: '#C9C6BF', raro: '#9B6BFF', lendario: '#FFB800' };
+const ME = 'owls';
+
+/* ---------- utilidades ---------- */
+const phone = document.getElementById('phone');
+const tickers = [];
+const haptics = []; // {t, kind}
+const steps = [];   // {t0, t1, text}
+let TOTAL = 2000;
+
+function el(tag, style = {}, parent = phone, html) {
+  const e = document.createElement(tag);
+  Object.assign(e.style, style);
+  if (html !== undefined) e.innerHTML = html;
+  parent.appendChild(e);
+  return e;
+}
+function svgEl(tag, attrs, parent) {
+  const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  parent.appendChild(e);
+  return e;
+}
+/** Partícula: escondida até começar (sem preenchimento para trás). */
+function AP(node, frames, { d, delay = 0, e = 'linear' }) {
+  node.style.opacity = 0;
+  return node.animate(frames, { duration: d, delay, easing: e, fill: 'forwards' });
+}
+/** Uma animação (WAAPI). `d` duração, `delay`, `e` curva. Sempre `fill: both` (estado inicial antes do atraso). */
+function A(node, frames, { d, delay = 0, e = CURVE.standard, it = 1, dir = 'normal' }) {
+  return node.animate(frames, { duration: d, delay, easing: e, fill: 'both', iterations: it, direction: dir });
+}
+const fade = (node, delay, d = 150, from = 0, to = 1) => A(node, [{ opacity: from }, { opacity: to }], { d, delay, e: CURVE.standard });
+function haptic(t, kind) { haptics.push({ t, kind }); }
+function step(t0, t1, text) { steps.push({ t0, t1, text }); }
+/** Número que conta (CountUp) — seekável: o texto é função do tempo. */
+function ticker(node, { from = 0, to, delay = 0, d = 1000, ease = expoOut, fmt = (n) => Math.round(n).toLocaleString('pt-BR') }) {
+  tickers.push((t) => {
+    const p = Math.min(1, Math.max(0, (t - delay) / d));
+    node.textContent = fmt(from + (to - from) * ease(p));
+  });
+}
+function expoOut(t) { return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t); }
+function rnd(seed) { let s = seed; return () => ((s = (s * 16807) % 2147483647) / 2147483647); }
+/** Palavras que sobem de dentro da máscara (RevealText). */
+function reveal(parent, text, { delay = 0, stagger = 60, d = 600, cls = 'h-head', color } = {}) {
+  const wrap = el('div', { textAlign: 'center', color: color || C.ink }, parent);
+  wrap.className = cls;
+  text.split(' ').forEach((w, i) => {
+    const m = el('span', {}, wrap); m.className = 'word';
+    const s = el('span', {}, m, w);
+    if (REDUCED) fade(s, delay ? 0 : 0, 150);
+    else A(s, [{ transform: 'translateY(105%)' }, { transform: 'translateY(0)' }], { d, delay: delay + i * stagger, e: CURVE.reveal });
+  });
+  return wrap;
+}
+/**
+ * Confete físico (lançamento + gravidade + arrasto), amostrado em 14 quadros-chave por partícula.
+ * Orçamento: pequeno 0 · médio 24 · épico 60 (nunca mais). Só transform/opacidade.
+ */
+function confetti(parent, { x, y, n = 24, colors, delay = 0, spread = [-160, -20], speed = [420, 780], g = 1500, life = [900, 1300], seed = 7, size = 1, xs = 0 }) {
+  if (REDUCED) return;
+  const r = rnd(seed);
+  for (let i = 0; i < n; i++) {
+    const p = el('div', { width: `${(6 + r() * 5) * size}px`, height: `${(9 + r() * 7) * size}px`, background: colors[i % colors.length], borderRadius: r() < 0.3 ? '50%' : '2px' }, parent);
+    p.className = 'particle';
+    const ang = ((spread[0] + r() * (spread[1] - spread[0])) * Math.PI) / 180;
+    const v = speed[0] + r() * (speed[1] - speed[0]);
+    const vx = Math.cos(ang) * v, vy = Math.sin(ang) * v;
+    const x0 = x + (r() - 0.5) * 2 * xs;
+    const L = life[0] + r() * (life[1] - life[0]);
+    const spin = (r() - 0.5) * 900;
+    const frames = [];
+    for (let k = 0; k <= 13; k++) {
+      const tt = (k / 13) * (L / 1000);
+      const drag = 1 - Math.exp(-2.2 * tt);
+      const px = x0 + (vx / 2.2) * drag;
+      const py = y + (vy / 2.2) * drag + 0.5 * g * tt * tt * 0.55;
+      frames.push({ transform: `translate(${px}px, ${py}px) rotate(${spin * tt}deg) scale(${k === 0 ? 0.4 : 1})`, opacity: k / 13 > 0.7 ? 1 - (k / 13 - 0.7) / 0.3 : 1 });
+    }
+    AP(p, frames, { d: L, delay: delay + r() * 40 });
+  }
+}
+/** Faíscas radiais curtas (golpe, fechar anel). */
+function sparks(parent, { x, y, n = 8, color = '#fff', delay = 0, len = 26, dist = 54, d = 280, seed = 3 }) {
+  if (REDUCED) return;
+  const r = rnd(seed);
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * 360 + r() * 20;
+    const s = el('div', { width: `${len}px`, height: '3px', background: color, borderRadius: '2px', transformOrigin: '0 50%' }, parent);
+    s.className = 'particle';
+    AP(s, [
+      { transform: `translate(${x}px, ${y}px) rotate(${a}deg) translateX(8px) scaleX(0.2)`, opacity: 1 },
+      { transform: `translate(${x}px, ${y}px) rotate(${a}deg) translateX(${dist * 0.6}px) scaleX(1)`, opacity: 1, offset: 0.4 },
+      { transform: `translate(${x}px, ${y}px) rotate(${a}deg) translateX(${dist}px) scaleX(0.1)`, opacity: 0 },
+    ], { d, delay, e: CURVE.standard });
+  }
+}
+/** Selo do time (losango dos Night Owls). */
+function emblem(parent, size, color) {
+  const s = svgEl('svg', { width: size, height: size, viewBox: '0 0 100 100' }, parent);
+  svgEl('rect', { x: 22, y: 22, width: 56, height: 56, rx: 8, transform: 'rotate(45 50 50)', fill: 'none', stroke: color, 'stroke-width': 9 }, s);
+  svgEl('rect', { x: 38, y: 38, width: 24, height: 24, rx: 4, transform: 'rotate(45 50 50)', fill: color }, s);
+  return s;
+}
+
+/* ========================================================================== */
+/* CENA 1 — Zona conquistada (resumo): anel fecha, confete na cor do time, número sobe (1,2 s) */
+function sceneZona() {
+  TOTAL = 1800;
+  const team = TEAM[ME];
+  el('div', { left: '24px', top: '64px' }, phone, '<span class="caption">RESUMO DA CORRIDA</span>').className = 'abs';
+  const card = el('div', { left: '16px', right: '16px', top: '96px', height: '380px', boxShadow: '0 0 30px rgba(255,106,19,0.22)', borderColor: C.orange }, phone);
+  card.className = 'card abs';
+  const SIZE = 150, STROKE = 11, R = (SIZE - STROKE) / 2, LEN = 2 * Math.PI * R, GAP = 5, SEG = (LEN * (60 - GAP)) / 360;
+  const back = el('div', { inset: '0', overflow: 'visible' }, card); back.className = 'abs';
+  const ringBox = el('div', { left: '50%', top: '48px', width: SIZE + 'px', height: SIZE + 'px', marginLeft: -SIZE / 2 + 'px', borderRadius: '50%' }, card);
+  ringBox.className = 'abs';
+  const glow = el('div', { inset: '0', borderRadius: '50%', boxShadow: `0 0 40px ${team}88` }, ringBox); glow.className = 'abs';
+  const base = svgEl('svg', { width: SIZE, height: SIZE }, ringBox); base.style.position = 'absolute';
+  svgEl('circle', { cx: SIZE / 2, cy: SIZE / 2, r: R, fill: '#15161A', stroke: C.line, 'stroke-width': STROKE }, base);
+  for (let i = 0; i < 6; i++) {
+    const w = el('div', { inset: '0', transform: `rotate(${-90 + i * 60 + GAP / 2}deg)` }, ringBox); w.className = 'abs';
+    const s = svgEl('svg', { width: SIZE, height: SIZE }, w);
+    const c = svgEl('circle', { cx: SIZE / 2, cy: SIZE / 2, r: R, fill: 'none', stroke: team, 'stroke-width': STROKE, 'stroke-linecap': 'round', 'stroke-dasharray': `${SEG} ${LEN}` }, s);
+    if (REDUCED) c.style.strokeDashoffset = 0;
+    else A(c, [{ strokeDashoffset: SEG }, { strokeDashoffset: 0 }], { d: 420, delay: i * 60, e: CURVE.reveal });
+  }
+  const em = el('div', { inset: '0' }, ringBox); em.className = 'abs center';
+  emblem(em, 74, team);
+  if (REDUCED) { fade(ringBox, 0); }
+  else {
+    A(em, [{ transform: 'scale(0.5)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], { d: SPRING.bouncy.d, delay: 540, e: SP.bouncy });
+    A(glow, [{ transform: 'scale(1)', opacity: 0.4 }, { transform: 'scale(1.12)', opacity: 1, offset: 0.35 }, { transform: 'scale(1)', opacity: 0.8 }], { d: 420, delay: 720, e: CURVE.standard });
+    A(ringBox, [{ transform: 'scale(1)' }, { transform: 'scale(1.06)', offset: 0.3 }, { transform: 'scale(1)' }], { d: 400, delay: 720, e: CURVE.standard });
+    sparks(back, { x: 179, y: 123, n: 10, color: team, delay: 720, dist: 110, len: 22 });
+  }
+  const txt = el('div', { left: '0', right: '0', top: '230px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }, card); txt.className = 'abs';
+  reveal(txt, 'Zona conquistada', { delay: 660 });
+  const sub = el('div', { fontSize: '17px', color: '#FF7A2A', fontWeight: 700 }, txt, '+<span class="num" id="rp">0</span> pontos em Setor Bueno');
+  ticker(sub.querySelector('#rp'), { to: 120, delay: REDUCED ? -1 : 860, d: REDUCED ? 1 : 600 });
+  if (REDUCED) fade(sub, 0); else A(sub, [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }], { d: 500, delay: 820, e: CURVE.enter });
+  const chips = el('div', { display: 'flex', gap: '8px', marginTop: '10px' }, txt);
+  ['Nível da zona 1', 'Escudo 1/3'].forEach((t, i) => { const c = el('div', {}, chips, t); c.className = 'pill'; if (REDUCED) fade(c, 0); else A(c, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { d: 450, delay: 1000 + i * 60, e: CURVE.enter }); });
+  confetti(back, { x: 179, y: 123, n: 24, colors: [team, team, '#fff', '#FF7A2A'], delay: 720 });
+  if (REDUCED) { haptic(0, 'sucesso'); step(0, 150, 'Tudo aparece com fade de 150 ms; anel já fechado.'); step(0, 150, 'Vibração de sucesso (uma).'); return; }
+  haptic(0, 'leve'); haptic(720, 'sucesso');
+  step(0, 720, '0–720 ms · 6 traços na cor do time, 60 ms entre eles, 420 ms cada (expo.out).');
+  step(540, 1190, '540 ms · selo do time entra com mola "bouncy" (650 ms).');
+  step(660, 1260, '660 ms · título por palavras (60 ms, expo.out 600 ms).');
+  step(720, 1620, '720 ms · anel fecha: pulso 1,06×, brilho, 10 faíscas, 24 confetes.');
+  step(860, 1460, '860 ms · "+120 pontos" conta em 600 ms.');
+}
+
+/* CENA 1b — Zona conquistada durante a corrida (leve: toast + brilho na borda, sem partícula) */
+function sceneZonaCorrida() {
+  TOTAL = 3200;
+  const team = TEAM[ME];
+  const mapBox = el('div', { left: '0', right: '0', top: '0', height: '330px', background: '#0b0c0f' }, phone); mapBox.className = 'abs';
+  const s = svgEl('svg', { width: 390, height: 330 }, mapBox);
+  for (let i = 0; i < 9; i++) svgEl('path', { d: `M${-20 + i * 55} 0 L${40 + i * 45} 330`, stroke: '#1b1c21', 'stroke-width': 6 }, s);
+  for (let i = 0; i < 6; i++) svgEl('path', { d: `M0 ${30 + i * 60} L390 ${10 + i * 62}`, stroke: '#1b1c21', 'stroke-width': 5 }, s);
+  const zone = svgEl('path', { d: 'M150 120 C190 90 260 100 270 150 C285 200 230 240 180 230 C130 222 115 160 150 120 Z', fill: team, 'fill-opacity': 0.0, stroke: team, 'stroke-width': 2, 'stroke-opacity': 0.6 }, s);
+  svgEl('path', { d: 'M40 300 C90 260 120 240 160 200 S 230 160 250 150', fill: 'none', stroke: team, 'stroke-width': 6, 'stroke-linecap': 'round' }, s);
+  svgEl('circle', { cx: 250, cy: 150, r: 9, fill: '#fff', stroke: team, 'stroke-width': 4 }, s);
+  if (REDUCED) A(zone, [{ fillOpacity: 0.0 }, { fillOpacity: 0.45 }], { d: 150, e: CURVE.standard });
+  else A(zone, [{ fillOpacity: 0.0 }, { fillOpacity: 0.6, offset: 0.4 }, { fillOpacity: 0.42 }], { d: 600, e: CURVE.standard });
+  const stats = el('div', { left: '0', right: '0', top: '360px', textAlign: 'center' }, phone); stats.className = 'abs';
+  el('div', {}, stats, '<div class="caption">TEMPO</div><div class="h-hero" style="font-size:88px">18:42</div>');
+  el('div', { display: 'flex', justifyContent: 'space-around', marginTop: '26px' }, stats, '<div><div class="caption">DISTÂNCIA</div><div class="h-head num">3,12 km</div></div><div><div class="caption">RITMO</div><div class="h-head num">5\'58"</div></div>');
+  el('div', { left: '24px', right: '24px', top: '640px' }, phone, '<div class="small" style="margin-bottom:8px">Próxima zona: faltam 380 m</div><div class="bar"><div style="background:' + team + ';transform:scaleX(.42)"></div></div>').className = 'abs';
+  // brilho periférico na cor do time (inset), nunca tela cheia durante a corrida
+  const edge = el('div', { inset: '0', boxShadow: `inset 0 0 0 3px ${team}, inset 0 0 70px ${team}aa`, pointerEvents: 'none', zIndex: 40 }, phone); edge.className = 'abs';
+  if (REDUCED) A(edge, [{ opacity: 0 }, { opacity: 0.8, offset: 0.3 }, { opacity: 0 }], { d: 600, e: CURVE.standard });
+  else A(edge, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 0 }], { d: 600, e: CURVE.standard });
+  const toast = el('div', { left: '12px', right: '12px', top: '50px', height: '76px', borderRadius: '18px', background: '#111216', border: `1.5px solid ${team}`, boxShadow: `0 0 26px ${team}66`, display: 'flex', alignItems: 'center', gap: '12px', padding: '0 14px', zIndex: 45 }, phone);
+  toast.className = 'abs';
+  emblem(toast, 42, team);
+  el('div', { flex: 1 }, toast, `<div class="h-title">Zona conquistada!</div><div class="small">Setor Bueno · <b style="color:#FF7A2A">+120 pontos</b></div>`);
+  if (REDUCED) { A(toast, [{ opacity: 0 }, { opacity: 1 }], { d: 150 }); A(toast, [{ opacity: 1 }, { opacity: 0 }], { d: 150, delay: 2600 }); }
+  else {
+    A(toast, [{ transform: 'translateY(-140px)' }, { transform: 'translateY(0)' }], { d: SPRING.snappy.d, e: SP.snappy });
+    A(toast.firstChild, [{ transform: 'scale(.6) rotate(-45deg)' }, { transform: 'scale(1) rotate(0)' }], { d: SPRING.bouncy.d, delay: 120, e: SP.bouncy });
+    toast.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(-30px)' }], { duration: 200, delay: 2600, easing: CURVE.exit, fill: 'forwards' });
+  }
+  haptic(0, 'sucesso');
+  step(0, 600, '0 ms · borda acende na cor do time (600 ms) e a zona pinta no mapa.');
+  step(0, 350, '0 ms · toast desce com mola "snappy" (350 ms). Voz do Guia fala junto.');
+  step(120, 770, '120 ms · selo gira e assenta (mola "bouncy").');
+  step(350, 2600, 'Fica 2,25 s (dá para ler correndo). Sem confete: GPS primeiro.');
+  step(2600, 2800, '2.600 ms · sai para cima em 200 ms (power3.in).');
+}
+
+/* CENA 2 — Abertura de baú: treme 3× → raios → explode → item na cor da raridade (1,5 s) */
+function sceneBau() {
+  TOTAL = 2200;
+  const rc = RARE[RARITY] || RARE.raro;
+  const label = { comum: 'Baú comum', raro: 'Baú raro', lendario: 'Baú lendário' }[RARITY] || 'Baú raro';
+  const xp = { comum: 15, raro: 40, lendario: 150 }[RARITY] || 40;
+  const cx = 195, cy = 420;
+  el('div', { left: '0', right: '0', top: '80px', textAlign: 'center' }, phone, '<div class="caption">CAÇA · BAÚ ENCONTRADO</div>').className = 'abs';
+  const rays = el('div', { left: cx - 230 + 'px', top: cy - 230 + 'px', width: '460px', height: '460px', borderRadius: '50%', background: `repeating-conic-gradient(${rc}55 0deg 9deg, transparent 9deg 24deg)`, maskImage: 'radial-gradient(circle, #000 20%, transparent 68%)', WebkitMaskImage: 'radial-gradient(circle, #000 20%, transparent 68%)' }, phone);
+  rays.className = 'abs';
+  const halo = el('div', { left: cx - 120 + 'px', top: cy - 120 + 'px', width: '240px', height: '240px', borderRadius: '50%', background: `radial-gradient(circle, ${rc}66, transparent 65%)` }, phone); halo.className = 'abs';
+  // baú (provisório E4): três camadas de transform → tremor, achatar, (tampa separada)
+  const shake = el('div', { left: cx - 70 + 'px', top: cy - 40 + 'px', width: '140px', height: '110px', transformOrigin: '50% 100%' }, phone); shake.className = 'abs';
+  const squash = el('div', { position: 'absolute', inset: '0', transformOrigin: '50% 100%' }, shake);
+  const body = el('div', { position: 'absolute', left: '6px', right: '6px', bottom: '0', height: '70px', borderRadius: '10px 10px 14px 14px', background: 'linear-gradient(#2a1d14,#1a120c)', border: `3px solid ${rc}`, boxShadow: `0 0 24px ${rc}66` }, squash);
+  el('div', { position: 'absolute', left: '50%', top: '10px', width: '22px', height: '26px', marginLeft: '-11px', borderRadius: '6px', background: rc }, body);
+  const lid = el('div', { position: 'absolute', left: '0', right: '0', top: '6px', height: '40px', borderRadius: '18px 18px 6px 6px', background: 'linear-gradient(#3a281a,#24180f)', border: `3px solid ${rc}`, transformOrigin: '10% 100%' }, squash);
+  const flash = el('div', { left: cx - 90 + 'px', top: cy - 90 + 'px', width: '180px', height: '180px', borderRadius: '50%', background: 'radial-gradient(circle,#fff,rgba(255,255,255,0) 70%)' }, phone); flash.className = 'abs';
+  const item = el('div', { left: cx - 44 + 'px', top: cy - 30 + 'px', width: '88px', height: '88px', borderRadius: '24px', background: '#111216', border: `3px solid ${rc}`, boxShadow: `0 0 36px ${rc}, 0 0 10px ${rc}`, display: 'flex', alignItems: 'center', justifyContent: 'center', font: '800 26px Inter', color: rc }, phone, 'XP');
+  item.className = 'abs';
+  const info = el('div', { left: '0', right: '0', top: '560px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }, phone); info.className = 'abs';
+  const t1 = el('div', { color: rc, font: '800 30px "Inter Display", Inter', letterSpacing: '-0.5px' }, info, label);
+  const t2 = el('div', { font: '800 44px "Inter Display", Inter', color: C.ink }, info, '+<span class="num">0</span> XP');
+  const odds = el('div', { marginTop: '14px' }, info, '<span class="caption">Chances: comum 70% · raro 25% · lendário 5%</span>');
+  ticker(t2.querySelector('span'), { to: xp, delay: REDUCED ? -1 : 1150, d: REDUCED ? 1 : 500 });
+  if (REDUCED) {
+    rays.style.opacity = 0.5; halo.style.opacity = 1; lid.style.opacity = 0; flash.style.opacity = 0;
+    item.style.transform = 'translateY(-150px)';
+    fade(item, 0, 200); fade(info, 100, 150); fade(rays, 0, 200, 0, 0.5);
+    haptic(0, 'sucesso'); step(0, 200, 'Baú já aberto: item e textos com fade (200/150 ms).'); step(0, 150, 'Uma vibração de sucesso.');
+    return;
+  }
+  // 0–600: três tremidas crescentes (4°, 6°, 8°), 200 ms cada
+  A(shake, [0, -4, 4, -6, 6, -8, 8, 0].map((a) => ({ transform: `rotate(${a}deg) translateX(${a * 0.6}px)` })), { d: 600, e: 'linear' });
+  A(halo, [{ opacity: 0.0, transform: 'scale(.6)' }, { opacity: 0.6, transform: 'scale(.9)' }], { d: 600, e: CURVE.standard });
+  // 600–750: antecipação (achata)
+  A(squash, [{ transform: 'scale(1,1)' }, { transform: 'scale(1.08,0.86)', offset: 0.8 }, { transform: 'scale(0.96,1.08)' }, { transform: 'scale(1,1)' }], { d: 300, delay: 600, e: CURVE.standard });
+  // 750: estoura
+  A(lid, [{ transform: 'none', opacity: 1 }, { transform: 'translate(-30px,-120px) rotate(-40deg)', opacity: 0 }], { d: 380, delay: 750, e: CURVE.enter });
+  A(flash, [{ opacity: 0, transform: 'scale(.3)' }, { opacity: 0.95, transform: 'scale(1.1)', offset: 0.25 }, { opacity: 0, transform: 'scale(1.8)' }], { d: 320, delay: 750, e: CURVE.standard });
+  A(rays, [{ opacity: 0, transform: 'scale(.3) rotate(0deg)' }, { opacity: 1, transform: 'scale(1) rotate(25deg)' }], { d: 450, delay: 750, e: CURVE.reveal });
+  rays.animate([{ rotate: '0deg' }, { rotate: '360deg' }], { duration: 9000, delay: 750, iterations: Infinity, fill: 'both' });
+  A(halo, [{ opacity: 0.6, transform: 'scale(.9)' }, { opacity: 1, transform: 'scale(1.25)' }], { d: 450, delay: 750, e: CURVE.reveal });
+  A(shake, [{ opacity: 1 }, { opacity: 0.35 }], { d: 300, delay: 900, e: CURVE.standard });
+  // 800: item sobe com mola "bouncy"
+  A(item, [{ transform: 'translateY(30px) scale(.3)', opacity: 0 }, { transform: 'translateY(-150px) scale(1)', opacity: 1 }], { d: SPRING.bouncy.d, delay: 800, e: SP.bouncy });
+  confetti(phone, { x: cx, y: cy - 20, n: RARITY === 'lendario' ? 60 : RARITY === 'raro' ? 24 : 0, colors: [rc, rc, '#fff'], delay: 800, seed: 11 });
+  sparks(phone, { x: cx, y: cy, n: 10, color: rc, delay: 760, dist: 120, len: 30 });
+  A(t1, [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { d: 450, delay: 1050, e: CURVE.enter });
+  A(t2, [{ opacity: 0, transform: 'scale(.8)' }, { opacity: 1, transform: 'scale(1)' }], { d: SPRING.snappy.d, delay: 1150, e: SP.snappy });
+  A(odds, [{ opacity: 0 }, { opacity: 1 }], { d: 300, delay: 1400 });
+  haptic(0, 'leve'); haptic(200, 'média'); haptic(400, 'forte'); haptic(750, 'sucesso');
+  step(0, 600, '0–600 ms · treme 3× (4°, 6°, 8°; 200 ms cada) + halo acende. Vibração crescente: leve → média → forte.');
+  step(600, 750, '600 ms · antecipação: achata (1,08 × 0,86) em 150 ms.');
+  step(750, 1200, '750 ms · estoura: tampa voa (380 ms), clarão (320 ms), raios abrem (expo.out 450 ms) e giram devagar. Vibração de sucesso.');
+  step(800, 1450, '800 ms · item sobe com mola "bouncy" (650 ms) na cor da raridade; 24 confetes (raro), 60 (lendário), 0 (comum).');
+  step(1050, 1650, '1.050 ms · nome da raridade; 1.150 ms "+40 XP" conta (500 ms); chances visíveis (ética 5.4).');
+}
+
+/* CENA 3 — Golpe no chefão: pisca branco, treme, dano flutua, barra desce com barra fantasma (800 ms) */
+function bossArt(parent, size) {
+  // PROVISÓRIO (E4): "Mormaço de Outubro", um sol de calor zangado. Só a silhueta importa para o motion.
+  const s = svgEl('svg', { width: size, height: size, viewBox: '0 0 200 200' }, parent);
+  const defs = svgEl('defs', {}, s);
+  const g = svgEl('radialGradient', { id: 'bg' + size, cx: '45%', cy: '40%', r: '60%' }, defs);
+  svgEl('stop', { offset: '0%', 'stop-color': '#FFD36B' }, g);
+  svgEl('stop', { offset: '60%', 'stop-color': '#FF7A2A' }, g);
+  svgEl('stop', { offset: '100%', 'stop-color': '#C8341A' }, g);
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    const x1 = 100 + Math.cos(a) * 62, y1 = 100 + Math.sin(a) * 62, x2 = 100 + Math.cos(a) * 92, y2 = 100 + Math.sin(a) * 92;
+    svgEl('path', { d: `M${x1} ${y1} Q ${(x1 + x2) / 2 + Math.sin(a) * 10} ${(y1 + y2) / 2 - Math.cos(a) * 10} ${x2} ${y2}`, stroke: '#FF7A2A', 'stroke-width': 9, 'stroke-linecap': 'round', fill: 'none' }, s);
+  }
+  svgEl('circle', { cx: 100, cy: 100, r: 64, fill: `url(#bg${size})` }, s);
+  svgEl('path', { d: 'M62 82 L90 92', stroke: '#2a0d05', 'stroke-width': 8, 'stroke-linecap': 'round' }, s);
+  svgEl('path', { d: 'M138 82 L110 92', stroke: '#2a0d05', 'stroke-width': 8, 'stroke-linecap': 'round' }, s);
+  svgEl('circle', { cx: 80, cy: 102, r: 7, fill: '#2a0d05' }, s);
+  svgEl('circle', { cx: 120, cy: 102, r: 7, fill: '#2a0d05' }, s);
+  svgEl('path', { d: 'M76 132 Q100 118 124 132', stroke: '#2a0d05', 'stroke-width': 7, 'stroke-linecap': 'round', fill: 'none' }, s);
+  return s;
+}
+function bossWhite(parent, size) {
+  const s = svgEl('svg', { width: size, height: size, viewBox: '0 0 200 200' }, parent);
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    svgEl('line', { x1: 100 + Math.cos(a) * 62, y1: 100 + Math.sin(a) * 62, x2: 100 + Math.cos(a) * 92, y2: 100 + Math.sin(a) * 92, stroke: '#fff', 'stroke-width': 11, 'stroke-linecap': 'round' }, s);
+  }
+  svgEl('circle', { cx: 100, cy: 100, r: 66, fill: '#fff' }, s);
+  return s;
+}
+function bossFrame({ hpFrom, hpTo, max }) {
+  el('div', { left: '20px', right: '20px', top: '58px' }, phone, '<div class="caption">RAID DA CIDADE · termina em 19 h · demonstração</div>').className = 'abs';
+  const head = el('div', { left: '20px', right: '20px', top: '82px' }, phone); head.className = 'abs';
+  el('div', { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }, head, '<div class="h-title">Mormaço de Outubro</div><div class="small num" id="hp"></div>');
+  const bar = el('div', { height: '22px' }, head); bar.className = 'bar';
+  const ghost = el('div', { background: '#FFF4E4', boxShadow: '0 0 12px #fff', transform: `scaleX(${hpFrom / max})` }, bar);
+  const front = el('div', { background: 'linear-gradient(90deg,#FF2D55,#FF6A13)', boxShadow: '0 0 14px rgba(255,106,19,.6)', transform: `scaleX(${hpFrom / max})` }, bar);
+  for (let i = 1; i < 10; i++) el('div', { position: 'absolute', top: 0, bottom: 0, left: `${i * 10}%`, width: '2px', background: '#070708', opacity: 0.6 }, bar);
+  const cx = 195, cy = 380, size = 240;
+  const idle = el('div', { left: cx - size / 2 + 'px', top: cy - size / 2 + 'px', width: size + 'px', height: size + 'px' }, phone); idle.className = 'abs';
+  const shake = el('div', { position: 'absolute', inset: 0 }, idle);
+  const squash = el('div', { position: 'absolute', inset: 0, transformOrigin: '50% 80%' }, shake);
+  bossArt(squash, size);
+  const white = el('div', { position: 'absolute', inset: 0, opacity: 0 }, squash); bossWhite(white, size);
+  if (!REDUCED) A(idle, [{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-6px) scale(1.025)' }], { d: 1200, e: 'ease-in-out', it: Infinity, dir: 'alternate' });
+  return { cx, cy, size, idle, shake, squash, white, ghost, front, hp: head.querySelector('#hp'), bar };
+}
+function hit(B, { t, from, to, max, dmg, mine }) {
+  const sx = (v) => `scaleX(${Math.max(0, v / max)})`;
+  if (REDUCED) {
+    A(B.front, [{ transform: sx(from) }, { transform: sx(to) }], { d: 1, delay: t });
+    A(B.ghost, [{ transform: sx(from) }, { transform: sx(to) }], { d: 300, delay: t, e: CURVE.standard });
+    const n = el('div', { left: '0', right: '0', top: B.cy - 40 + 'px', textAlign: 'center', font: '800 40px "Inter Display", Inter', color: '#FF7A2A' }, phone, dmg); n.className = 'abs';
+    A(n, [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { d: 800, delay: t, e: 'linear' });
+    return;
+  }
+  A(B.white, [{ opacity: 0 }, { opacity: 0.9, offset: 0.25 }, { opacity: 0 }], { d: 160, delay: t, e: 'linear' });
+  A(B.shake, [0, -14, 11, -7, 4, -2, 0].map((x) => ({ transform: `translateX(${x}px)` })), { d: 320, delay: t, e: 'linear' });
+  A(B.squash, [{ transform: 'scale(1)' }, { transform: 'scale(1.06,0.92)', offset: 0.15 }, { transform: 'scale(0.98,1.03)', offset: 0.55 }, { transform: 'scale(1)' }], { d: 420, delay: t, e: CURVE.standard });
+  sparks(phone, { x: B.cx + 40, y: B.cy - 30, n: 8, color: '#FFE3C2', delay: t, dist: 70, len: 26 });
+  // número de dano: pula (200 ms) e flutua/some (600 ms)
+  const n = el('div', { left: B.cx - 60 + 'px', top: B.cy - 130 + 'px', font: '900 46px "Inter Display", Inter', color: '#fff', WebkitTextStroke: '2px #FF2D55', textShadow: '0 0 18px rgba(255,45,85,.8)', whiteSpace: 'nowrap', transformOrigin: '0 100%' }, phone, dmg); n.className = 'abs';
+  A(n, [
+    { transform: 'translateY(0) scale(.5)', opacity: 0 },
+    { transform: 'translateY(-8px) scale(1.2)', opacity: 1, offset: 0.12 },
+    { transform: 'translateY(-14px) scale(1)', opacity: 1, offset: 0.25 },
+    { transform: 'translateY(-50px) scale(1)', opacity: 1, offset: 0.62 },
+    { transform: 'translateY(-78px) scale(.96)', opacity: 0 },
+  ], { d: 800, delay: t, e: 'linear' });
+  if (mine) {
+    const m = el('div', { left: B.cx - 150 + 'px', top: B.cy + 120 + 'px', width: '300px', textAlign: 'center' }, phone, `<span class="pill" style="display:inline-flex;border-color:#FF6A13;color:#FF7A2A">${mine}</span>`); m.className = 'abs';
+    A(m, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { d: 400, delay: t + 200, e: CURVE.enter });
+  }
+  A(B.front, [{ transform: sx(from) }, { transform: sx(to) }], { d: 150, delay: t + 80, e: CURVE.standard });
+  A(B.ghost, [{ transform: sx(from) }, { transform: sx(from), offset: 0.42 }, { transform: sx(to) }], { d: 720, delay: t + 80, e: CURVE.reveal });
+  A(B.bar, [{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }], { d: 180, delay: t + 80, e: 'linear' });
+}
+function sceneChefao() {
+  TOTAL = 1400;
+  const max = 3600, from = 1288, to = 1104;
+  const B = bossFrame({ hpFrom: from, hpTo: to, max });
+  ticker(B.hp, { from, to, delay: REDUCED ? 300 : 380, d: REDUCED ? 1 : 500, fmt: (n) => `${Math.round(n).toLocaleString('pt-BR')} / 3.600 km` });
+  hit(B, { t: 300, from, to, max, dmg: '−184 km', mine: 'Sua parte: 8,4 km' });
+  const foot = el('div', { left: '20px', right: '20px', top: '660px', textAlign: 'center' }, phone, '<div class="small">Dano da cidade desde a sua última visita.<br>Cada quilômetro seu conta.</div>'); foot.className = 'abs';
+  haptic(300, REDUCED ? 'média' : 'média');
+  if (REDUCED) { step(300, 1100, 'Sem tremor nem clarão: número aparece e some (fade); barra desce, fantasma em 300 ms.'); return; }
+  step(0, 300, 'Parado: respira 1,025× (1,2 s ida e volta, loop; pausa fora da tela).');
+  step(300, 460, '300 ms · pisca branco (160 ms) + treme 14 px amortecido (320 ms) + achata 1,06×0,92.');
+  step(300, 1100, '300 ms · dano "−184 km" pula 1,2× e flutua 78 px (800 ms). Vibração média.');
+  step(380, 530, '380 ms · barra da frente desce em 150 ms; a barra dá um tranco de 3 px.');
+  step(380, 1100, '380–1.100 ms · barra fantasma espera 300 ms e escoa (expo.out).');
+  step(500, 900, '500 ms · selo "Sua parte" sobe (400 ms).');
+}
+function sceneChefaoDerrota() {
+  TOTAL = 2600;
+  const max = 3600, from = 46, to = 0;
+  const B = bossFrame({ hpFrom: from, hpTo: to, max });
+  B.hp.textContent = '0 / 3.600 km';
+  ticker(B.hp, { from, to, delay: 80, d: 200, fmt: (n) => `${Math.round(n).toLocaleString('pt-BR')} / 3.600 km` });
+  hit(B, { t: 0, from, to, max, dmg: '−46 km' });
+  const team = TEAM[ME];
+  const flashAll = el('div', { inset: 0, background: '#fff', opacity: 0, zIndex: 30 }, phone); flashAll.className = 'abs';
+  const title = el('div', { left: 0, right: 0, top: '300px', textAlign: 'center', zIndex: 35 }, phone, '<div style="font:900 44px/0.95 \'Inter Display\',Inter;letter-spacing:-1px;color:#fff;text-shadow:0 0 24px rgba(255,106,19,.9)">CHEFÃO<br>DERROTADO</div>'); title.className = 'abs';
+  const sub = el('div', { left: 0, right: 0, top: '420px', textAlign: 'center', zIndex: 35 }, phone, '<div class="h-title">Goiânia venceu junta</div><div class="small" style="margin-top:6px">4 times, 21 mil corredores</div>'); sub.className = 'abs';
+  const mine = el('div', { left: 0, right: 0, top: '500px', textAlign: 'center', zIndex: 35 }, phone, '<div class="caption">SUA PARTE</div><div class="h-hero" style="font-size:56px;color:#FF7A2A"><span class="num">0</span> km</div>'); mine.className = 'abs';
+  const chest = el('div', { left: '0', right: '0', top: '640px', display: 'flex', justifyContent: 'center', zIndex: 35 }, phone, `<div class="pill" style="height:44px;border-color:${RARE.lendario};color:${RARE.lendario}">Baú do raid liberado</div>`); chest.className = 'abs';
+  ticker(mine.querySelector('span'), { to: 42.3, delay: REDUCED ? -1 : 1400, d: REDUCED ? 1 : 600, fmt: (n) => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) });
+  if (REDUCED) {
+    A(B.idle, [{ opacity: 1 }, { opacity: 0 }], { d: 300, delay: 400 });
+    [title, sub, mine, chest].forEach((n, i) => fade(n, 500 + i * 100, 150));
+    haptic(0, 'forte'); haptic(500, 'sucesso');
+    step(0, 300, 'Golpe final sem tremor; chefão some com fade (300 ms).'); step(500, 800, 'Textos com fade de 150 ms, um após o outro (100 ms). Vibração forte → sucesso.');
+    return;
+  }
+  // 300–700 tremor que cresce + vira branco
+  A(B.shake, [0, -4, 5, -7, 8, -10, 11, -12, 0].map((x) => ({ transform: `translateX(${x}px)` })), { d: 400, delay: 300, e: 'linear' });
+  A(B.white, [{ opacity: 0 }, { opacity: 1 }], { d: 400, delay: 300, e: 'ease-in' });
+  // 700: explode
+  A(B.squash, [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(1.25)', opacity: 0 }], { d: 260, delay: 700, e: CURVE.enter });
+  A(flashAll, [{ opacity: 0 }, { opacity: 0.85, offset: 0.2 }, { opacity: 0 }], { d: 360, delay: 700, e: CURVE.standard });
+  confetti(phone, { x: B.cx, y: B.cy, n: 36, colors: ['#FFD36B', '#FF7A2A', '#C8341A', '#fff'], delay: 700, spread: [-180, 180], speed: [300, 700], g: 600, life: [700, 1100], seed: 5, size: 1.3 });
+  A(title, [{ opacity: 0, transform: 'scale(1.8)' }, { opacity: 1, transform: 'scale(1)' }], { d: SPRING.stamp.d, delay: 900, e: SP.stamp });
+  A(sub, [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { d: 500, delay: 1150, e: CURVE.enter });
+  confetti(phone, { x: 195, y: -10, n: 24, colors: [TEAM.striders, TEAM.volt, TEAM.owls, TEAM.coyotes], delay: 1100, spread: [60, 120], speed: [100, 320], g: 900, life: [1300, 1700], seed: 9, xs: 190 });
+  A(mine, [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { d: 450, delay: 1350, e: CURVE.enter });
+  A(chest, [{ opacity: 0, transform: 'scale(.7)' }, { opacity: 1, transform: 'scale(1)' }], { d: SPRING.bouncy.d, delay: 1800, e: SP.bouncy });
+  haptic(0, 'forte'); haptic(700, 'sucesso'); haptic(1800, 'leve');
+  step(0, 300, '0 ms · golpe final (mesmo do golpe comum), barra zera. Vibração forte.');
+  step(300, 700, '300–700 ms · tremor crescente (4→12 px) e o chefão vira branco.');
+  step(700, 1060, '700 ms · explode: escala 1,25× + some (260 ms), clarão de tela (360 ms), 36 partículas. Sucesso.');
+  step(900, 1450, '900 ms · "CHEFÃO DERROTADO" carimba (mola "stamp", 1,8× → 1×).');
+  step(1100, 2000, '1.100 ms · frase coletiva + confete com as 4 cores (a vitória é da cidade). 1.400 ms "Sua parte" conta.');
+  step(1800, 2450, '1.800 ms · baú do raid aparece (mola "bouncy"). Vibração leve.');
+}
+
+/* CENA 4 — Escolha do time: a cor inunda a tela, vibração, frase do líder (~2 s) */
+function sceneTime() {
+  TOTAL = 2400;
+  const team = TEAM[ME];
+  const list = el('div', { left: '16px', right: '16px', top: '60px', display: 'flex', flexDirection: 'column', gap: '12px' }, phone); list.className = 'abs';
+  el('div', { marginBottom: '6px' }, list, '<div class="h-head">Escolha seu time</div><div class="small" style="margin-top:6px">Seus quilômetros pintam a cidade com a cor dele.</div>');
+  [['striders', 'Neon Striders', 'Ritmo e precisão'], ['volt', 'Volt Runners', 'Resistência sem fim'], ['owls', 'Night Owls', 'Donos da madrugada'], ['coyotes', 'Urban Coyotes', 'Correm em matilha']].forEach(([k, n, m]) => {
+    const on = k === ME;
+    const c = el('div', { display: 'flex', gap: '14px', alignItems: 'center', padding: '14px', borderRadius: '18px', background: on ? 'rgba(255,45,85,0.12)' : C.surface, border: `1.5px solid ${on ? TEAM[k] : C.line}`, boxShadow: on ? `0 0 22px ${TEAM[k]}55` : 'none' }, list);
+    const b = el('div', { width: '56px', height: '56px', borderRadius: '16px', background: '#15161A', border: `2px solid ${TEAM[k]}` }, c);
+    el('div', { flex: 1 }, c, `<div class="h-title">${n}</div><div class="small">${m}</div>`);
+    if (on) el('div', { color: TEAM[k], fontWeight: 800 }, c, '✓');
+    b.className = 'center';
+  });
+  const btn = el('div', { left: '16px', right: '16px', top: '720px', background: team, color: '#fff', boxShadow: `0 0 28px ${team}88` }, phone, 'Entrar para os Night Owls'); btn.className = 'btn abs';
+  const bx = 195, by = 750;
+  const flood = el('div', { left: bx - 40 + 'px', top: by - 40 + 'px', width: '80px', height: '80px', borderRadius: '50%', background: team, zIndex: 20 }, phone); flood.className = 'abs';
+  const dark = el('div', { inset: 0, background: 'radial-gradient(circle at 50% 38%, rgba(7,7,8,0) 0%, rgba(7,7,8,0.55) 55%, rgba(7,7,8,0.9) 100%)', zIndex: 21 }, phone); dark.className = 'abs';
+  const scene = el('div', { inset: 0, zIndex: 22 }, phone); scene.className = 'abs';
+  const rings = [0, 1].map(() => { const r = el('div', { left: '95px', top: '170px', width: '200px', height: '200px', borderRadius: '50%', border: '3px solid #fff' }, scene); r.className = 'abs'; return r; });
+  const em = el('div', { left: '95px', top: '170px', width: '200px', height: '200px', filter: 'drop-shadow(0 0 24px #fff)' }, scene); em.className = 'abs center';
+  emblem(em, 170, '#fff');
+  el('div', { left: '95px', top: '388px', width: '200px', textAlign: 'center' }, scene, '<div class="caption" style="color:#fff;opacity:.8">MASCOTE (E4)</div>').className = 'abs';
+  const title = el('div', { left: 0, right: 0, top: '420px' }, scene); title.className = 'abs';
+  el('div', { textAlign: 'center', marginBottom: '6px' }, title, '<span class="caption" style="color:#fff">VOCÊ AGORA CORRE COM OS</span>');
+  const nameEl = reveal(title, 'NIGHT OWLS', { delay: 750, stagger: 70, cls: 'h-hero', color: '#fff' });
+  nameEl.style.fontSize = '58px'; nameEl.style.whiteSpace = 'nowrap';
+  const quote = el('div', { left: '28px', right: '28px', top: '540px', textAlign: 'center', color: '#fff' }, scene, '<div style="font:600 20px/1.35 Inter">“A cidade dorme. A gente pinta.”</div><div class="small" style="color:#ffffffcc;margin-top:8px">Lua, líder dos Night Owls (texto provisório)</div>'); quote.className = 'abs';
+  const cta = el('div', { left: '16px', right: '16px', top: '720px', background: '#fff', color: '#111', boxShadow: '0 0 28px rgba(255,255,255,.5)' }, scene, 'Bora correr'); cta.className = 'btn abs';
+  const k = 2.2 * Math.hypot(390, 844) / 80;
+  if (REDUCED) {
+    flood.style.transform = `scale(${k})`;
+    A(flood, [{ opacity: 0 }, { opacity: 1 }], { d: 250 });
+    fade(dark, 0, 250); rings.forEach((r) => (r.style.opacity = 0));
+    [em, title, quote, cta].forEach((n, i) => fade(n, 100 + i * 80, 150));
+    haptic(0, 'sucesso');
+    step(0, 250, 'A cor do time aparece com fade de 250 ms (sem círculo crescendo).'); step(100, 400, 'Emblema, nome, frase e botão com fade de 150 ms, 80 ms entre eles. Uma vibração de sucesso.');
+    return;
+  }
+  A(btn, [{ transform: 'scale(1)' }, { transform: 'scale(0.97)' }, { transform: 'scale(1)' }], { d: 240, e: CURVE.standard });
+  A(scene, [{ opacity: 0 }, { opacity: 1 }], { d: 200, delay: 450, e: CURVE.standard });
+  A(flood, [{ transform: 'scale(0)' }, { transform: `scale(${k})` }], { d: 560, delay: 150, e: CURVE.screen });
+  A(dark, [{ opacity: 0 }, { opacity: 1 }], { d: 400, delay: 600, e: CURVE.standard });
+  A(em, [{ transform: 'scale(.3) rotate(-90deg)', opacity: 0 }, { transform: 'scale(1) rotate(0deg)', opacity: 1 }], { d: SPRING.bouncy.d, delay: 450, e: SP.bouncy });
+  rings.forEach((r, i) => A(r, [{ transform: 'scale(.6)', opacity: 0 }, { transform: 'scale(.62)', opacity: 0.8, offset: 0.02 }, { transform: 'scale(2.6)', opacity: 0 }], { d: 800, delay: 710 + i * 160, e: CURVE.standard }));
+  A(quote, [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }], { d: 500, delay: 1150, e: CURVE.enter });
+  A(cta, [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }], { d: 400, delay: 1600, e: CURVE.enter });
+  confetti(scene, { x: 195, y: 270, n: 24, colors: ['#fff', '#fff', '#FFB3C1'], delay: 710, spread: [-180, 0], speed: [300, 600], seed: 21 });
+  haptic(150, 'forte'); haptic(710, 'sucesso');
+  step(0, 240, '0 ms · toque: botão 0,97× (120 ms) e volta.');
+  step(150, 710, '150 ms · a cor do time inunda a tela a partir do botão (círculo, expo.inOut 560 ms). Vibração forte.');
+  step(450, 1100, '450 ms · emblema/mascote gira e assenta (mola "bouncy").');
+  step(710, 1670, '710 ms · tela cheia: 2 ondas de choque (160 ms entre elas), 24 confetes. Vibração de sucesso.');
+  step(750, 1500, '750 ms · "NIGHT OWLS" sobe por palavras (70 ms).');
+  step(1150, 1650, '1.150 ms · frase do líder (fade + 16 px, 500 ms).');
+  step(1600, 2000, '1.600 ms · "Bora correr" aparece; tocável desde já.');
+}
+
+/* CENA 5 — Resumo cinematográfico: rota → números → conquistas (uma por vez) → nível → compartilhar, com "Pular" */
+function sceneResumo() {
+  TOTAL = 9000;
+  const team = TEAM[ME];
+  // Ato 0: mapa
+  const map = el('div', { left: 0, right: 0, top: 0, height: '330px', background: '#0b0c0f' }, phone); map.className = 'abs';
+  const s = svgEl('svg', { width: 390, height: 330 }, map);
+  for (let i = 0; i < 9; i++) svgEl('path', { d: `M${-20 + i * 55} 0 L${40 + i * 45} 330`, stroke: '#18191e', 'stroke-width': 6 }, s);
+  for (let i = 0; i < 6; i++) svgEl('path', { d: `M0 ${30 + i * 60} L390 ${10 + i * 62}`, stroke: '#18191e', 'stroke-width': 5 }, s);
+  svgEl('path', { d: 'M260 40 C330 30 380 80 370 140 C360 190 300 180 280 140 C262 104 220 60 260 40Z', fill: TEAM.striders, 'fill-opacity': 0.22 }, s);
+  svgEl('path', { d: 'M20 220 C40 180 110 190 120 230 C130 270 80 300 50 290 C20 280 8 250 20 220Z', fill: TEAM.coyotes, 'fill-opacity': 0.18 }, s);
+  const zones = [
+    'M60 120 C90 80 150 90 160 130 C168 170 120 190 90 180 C60 170 45 150 60 120Z',
+    'M170 170 C200 140 250 150 255 190 C260 230 215 245 190 235 C165 225 150 200 170 170Z',
+    'M250 230 C290 205 340 220 335 260 C330 295 290 305 265 290 C240 278 230 250 250 230Z',
+  ].map((d) => svgEl('path', { d, fill: team, 'fill-opacity': 0, stroke: team, 'stroke-opacity': 0, 'stroke-width': 2, transform: 'translate(10 10) scale(0.92)' }, s));
+  const routeD = 'M40 300 C50 240 70 170 100 140 S 170 120 200 190 S 260 250 300 255 S 350 200 345 150';
+  const route = svgEl('path', { d: routeD, fill: 'none', stroke: team, 'stroke-width': 6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', pathLength: 1, 'stroke-dasharray': '1 1', style: `filter: drop-shadow(0 0 6px ${team})` }, s);
+  const comet = svgEl('circle', { r: 7, fill: '#fff', stroke: team, 'stroke-width': 3 }, s);
+  const startPin = svgEl('circle', { cx: 40, cy: 300, r: 7, fill: C.ink }, s);
+  const endPin = svgEl('circle', { cx: 345, cy: 150, r: 10, fill: '#fff', stroke: C.orange, 'stroke-width': 4 }, s);
+  const shade = el('div', { left: 0, right: 0, top: '230px', height: '100px', background: 'linear-gradient(rgba(7,7,8,0),#070708)' }, map); shade.className = 'abs';
+  const skip = el('div', { right: '14px', top: '50px', zIndex: 55 }, phone, 'Pular ›'); skip.className = 'pill abs';
+  // Ato 2: números
+  const nums = el('div', { left: '20px', right: '20px', top: '300px' }, phone); nums.className = 'abs';
+  const dist = el('div', { display: 'flex', alignItems: 'baseline', gap: '8px' }, nums, '<span class="h-hero num" id="km">0,00</span><span class="h-title" style="color:#A8A6A1">km</span>');
+  const row = el('div', { display: 'flex', gap: '28px', marginTop: '8px' }, nums);
+  const tTime = el('div', {}, row, '<div class="caption">TEMPO</div><div class="h-head num" id="tm">0:00</div>');
+  const tPace = el('div', {}, row, '<div class="caption">RITMO</div><div class="h-head num" id="pc">0\'00"</div>');
+  const tRp = el('div', {}, row, '<div class="caption">PONTOS</div><div class="h-head num" id="rp" style="color:#FF7A2A">0</div>');
+  // Ato 3: conquistas
+  const list = el('div', { left: '16px', right: '16px', top: '446px', display: 'flex', flexDirection: 'column', gap: '8px' }, phone); list.className = 'abs';
+  const hdr = el('div', { margin: '0 4px 2px' }, list, '<span class="caption">CONQUISTAS DA CORRIDA</span>');
+  function rowCard(icon, title, sub, value, color) {
+    const c = el('div', { height: '54px', borderRadius: '16px', background: C.surface, border: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', gap: '12px', padding: '0 12px', position: 'relative', overflow: 'hidden' }, list);
+    const ic = el('div', { width: '38px', height: '38px', borderRadius: '12px', background: '#15161A', border: `2px solid ${color}`, position: 'relative' }, c); ic.className = 'center';
+    if (icon) icon(ic);
+    const tx = el('div', { flex: 1 }, c, `<div style="font-weight:700;font-size:15px">${title}</div><div class="caption">${sub}</div>`);
+    const v = el('div', { font: '800 18px Inter', color: '#FF7A2A' }, c, value);
+    v.className = 'num';
+    return { c, ic, v, title: tx.firstChild };
+  }
+  const zoneRow = rowCard((ic) => emblem(ic, 26, team), 'Zona conquistada', 'Setor Bueno · era dos Coyotes', '+<span>0</span>', team);
+  const chestRow = rowCard(null, 'Baú raro', 'Caça · Praça Tamandaré', '+<span>0</span> XP', RARE.raro);
+  const chestIc = el('div', { width: '20px', height: '15px', borderRadius: '3px', border: `2px solid ${RARE.raro}` }, chestRow.ic);
+  const bossRow = rowCard(null, 'Dano no chefão', 'Mormaço de Outubro', '−<span>0,0</span> km', '#FF2D55');
+  const mini = el('div', { position: 'absolute', left: '62px', right: '84px', bottom: '7px', height: '5px', borderRadius: '3px', background: '#1d1e23', overflow: 'hidden' }, bossRow.c);
+  const miniGhost = el('div', { position: 'absolute', inset: 0, background: '#FFE3C2', transformOrigin: 'left', transform: 'scaleX(.36)' }, mini);
+  const miniFront = el('div', { position: 'absolute', inset: 0, background: '#FF2D55', transformOrigin: 'left', transform: 'scaleX(.36)' }, mini);
+  el('div', { color: '#FF2D55', fontWeight: 900, fontSize: '15px' }, bossRow.ic, '!');
+  const xpRow = rowCard(null, 'Nível 6 → 7', '+215 XP nesta corrida', '', C.orange);
+  el('div', { color: C.orange, fontWeight: 900, fontSize: '13px' }, xpRow.ic, 'XP');
+  const xpBar = el('div', { position: 'absolute', left: '62px', right: '20px', bottom: '8px', height: '6px', borderRadius: '3px', background: '#1d1e23', overflow: 'hidden' }, xpRow.c);
+  const xpFill = el('div', { position: 'absolute', inset: 0, background: C.orange, transformOrigin: 'left', boxShadow: '0 0 10px #FF6A13' }, xpBar);
+  // Ato 4: nível novo (épico) e final
+  const lvl = el('div', { inset: 0, zIndex: 52, background: 'rgba(7,7,8,0.88)' }, phone); lvl.className = 'abs';
+  const lrays = el('div', { left: '-35px', top: '150px', width: '460px', height: '460px', borderRadius: '50%', background: 'repeating-conic-gradient(rgba(255,106,19,.35) 0deg 8deg, transparent 8deg 22deg)', WebkitMaskImage: 'radial-gradient(circle,#000 15%,transparent 66%)' }, lvl); lrays.className = 'abs';
+  const lnum = el('div', { left: 0, right: 0, top: '250px', textAlign: 'center' }, lvl, '<div class="caption" style="color:#fff">NÍVEL NOVO</div><div style="font:900 180px/1 \'Inter Display\',Inter;color:#fff;text-shadow:0 0 40px rgba(255,106,19,.9)">7</div><div class="h-title" style="margin-top:10px">Moldura neon liberada</div>'); lnum.className = 'abs';
+  const cta = el('div', { left: '16px', right: '16px', top: '736px', zIndex: 10 }, phone, 'Compartilhar no Instagram'); cta.className = 'btn abs';
+
+  const fmtKm = (n) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtT = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
+  const fmtP = (sec) => `${Math.floor(sec / 60)}'${String(Math.floor(sec % 60)).padStart(2, '0')}"`;
+
+  // tempos do roteiro (o orquestrador calcula isto a partir da fila; ver relatório §6)
+  const T = { route: 200, routeD: 1500, nums: 1700, moments: 2700, zone: 2700, chest: 4000, boss: 5200, xp: 6200, level: 6800, levelD: 1500, end: 8400 };
+  const R = REDUCED;
+  // rota (traço + cometa) — seekável
+  tickers.push((t) => {
+    const p = R ? 1 : Math.min(1, Math.max(0, (t - T.route) / T.routeD));
+    const e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; // power2.inOut
+    route.style.strokeDashoffset = String(1 - e);
+    const L = route.getTotalLength();
+    const pt = route.getPointAtLength(L * e);
+    comet.setAttribute('cx', pt.x); comet.setAttribute('cy', pt.y);
+    comet.style.opacity = !R && p > 0 && p < 1 ? 1 : 0;
+  });
+  ticker(dist.querySelector('#km'), { to: 8.42, delay: R ? -1 : T.nums, d: R ? 1 : 900, fmt: fmtKm });
+  ticker(tTime.querySelector('#tm'), { to: 2832, delay: R ? -1 : T.nums + 150, d: R ? 1 : 700, fmt: fmtT });
+  ticker(tPace.querySelector('#pc'), { from: 456, to: 336, delay: R ? -1 : T.nums + 270, d: R ? 1 : 700, fmt: fmtP });
+  ticker(tRp.querySelector('#rp'), { to: 310, delay: R ? -1 : T.nums + 390, d: R ? 1 : 700 });
+  ticker(zoneRow.v.querySelector('span'), { to: 120, delay: R ? -1 : T.zone + 400, d: R ? 1 : 500 });
+  ticker(chestRow.v.querySelector('span'), { to: 40, delay: R ? -1 : T.chest + 450, d: R ? 1 : 400 });
+  ticker(bossRow.v.querySelector('span'), { to: 8.4, delay: R ? -1 : T.boss + 100, d: R ? 1 : 400, fmt: (n) => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) });
+
+  if (R) {
+    [map, nums, hdr, zoneRow.c, chestRow.c, bossRow.c, xpRow.c, cta].forEach((n, i) => fade(n, i * 60, 150));
+    zones.forEach((z) => z.setAttribute('fill-opacity', 0.45));
+    xpFill.style.transform = 'scaleX(0.18)'; lvl.style.display = 'none'; skip.style.display = 'none';
+    xpRow.title.textContent = 'Nível 7 alcançado';
+    haptic(0, 'sucesso');
+    step(0, 500, 'Sem roteiro: tudo já no estado final, entra com fade de 150 ms em cascata curta (60 ms).');
+    step(0, 150, 'Uma vibração de sucesso. Leitor de tela ouve um resumo único (ver relatório).');
+    return;
+  }
+  A(map, [{ opacity: 0 }, { opacity: 1 }], { d: 300, e: CURVE.standard });
+  A(startPin, [{ transform: 'scale(0)', transformOrigin: '40px 300px' }, { transform: 'scale(1)', transformOrigin: '40px 300px' }], { d: 300, delay: 150, e: SP.snappy });
+  A(endPin, [{ transform: 'scale(0)', transformOrigin: '345px 150px' }, { transform: 'scale(1)', transformOrigin: '345px 150px' }], { d: SPRING.bouncy.d, delay: T.route + T.routeD - 50, e: SP.bouncy });
+  [700, 1050, 1450].forEach((t, i) => {
+    A(zones[i], [{ fillOpacity: 0, strokeOpacity: 0 }, { fillOpacity: 0.55, strokeOpacity: 1, offset: 0.35 }, { fillOpacity: 0.3, strokeOpacity: 0.7 }], { d: 500, delay: t, e: CURVE.standard });
+    haptic(t, 'seleção');
+  });
+  A(nums, [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }], { d: 500, delay: T.nums, e: CURVE.enter });
+  [tTime, tPace, tRp].forEach((n, i) => A(n, [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }], { d: 450, delay: T.nums + 150 + i * 120, e: CURVE.enter }));
+  haptic(T.nums + 900, 'leve');
+  A(hdr, [{ opacity: 0 }, { opacity: 1 }], { d: 300, delay: T.moments - 100 });
+  const enter = (n, t) => A(n, [{ opacity: 0, transform: 'translateY(28px) scale(.96)' }, { opacity: 1, transform: 'none' }], { d: SPRING.gentle.d, delay: t, e: SP.gentle });
+  const glowRow = (n, t, color) => A(n, [{ boxShadow: `0 0 0 ${color}00`, borderColor: C.line }, { boxShadow: `0 0 26px ${color}88`, borderColor: color, offset: 0.3 }, { boxShadow: `0 0 0 ${color}00`, borderColor: C.line }], { d: 1000, delay: t, e: CURVE.standard });
+  // momento 1: zona (médio, 1.100 ms)
+  enter(zoneRow.c, T.zone); glowRow(zoneRow.c, T.zone + 200, team);
+  A(zoneRow.ic, [{ transform: 'scale(.5) rotate(-90deg)' }, { transform: 'scale(1) rotate(0)' }], { d: SPRING.bouncy.d, delay: T.zone + 150, e: SP.bouncy });
+  confetti(list, { x: 30, y: 40, n: 12, colors: [team, '#fff'], delay: T.zone + 400, spread: [-120, -10], speed: [250, 420], g: 900, life: [700, 900], seed: 31 });
+  haptic(T.zone + 400, 'sucesso');
+  // momento 2: baú (médio, 1.000 ms)
+  enter(chestRow.c, T.chest); glowRow(chestRow.c, T.chest + 300, RARE.raro);
+  A(chestIc, [0, -8, 8, -12, 12, 0].map((a) => ({ transform: `rotate(${a}deg)` })), { d: 300, delay: T.chest + 150, e: 'linear' });
+  A(chestIc, [{ scale: 1 }, { scale: 1.5, offset: 0.4 }, { scale: 1 }], { d: 400, delay: T.chest + 450, e: SP.snappy });
+  sparks(list, { x: 31, y: 99, n: 8, color: RARE.raro, delay: T.chest + 450, dist: 40, len: 14 });
+  haptic(T.chest + 150, 'leve'); haptic(T.chest + 450, 'média');
+  // momento 3: chefão (pequeno, 800 ms)
+  enter(bossRow.c, T.boss);
+  A(bossRow.ic, [0, -6, 5, -3, 0].map((x) => ({ transform: `translateX(${x}px)` })), { d: 280, delay: T.boss + 100, e: 'linear' });
+  A(miniFront, [{ transform: 'scaleX(.36)' }, { transform: 'scaleX(.30)' }], { d: 150, delay: T.boss + 120, e: CURVE.standard });
+  A(miniGhost, [{ transform: 'scaleX(.36)' }, { transform: 'scaleX(.36)', offset: 0.4 }, { transform: 'scaleX(.30)' }], { d: 650, delay: T.boss + 120, e: CURVE.reveal });
+  haptic(T.boss + 100, 'média');
+  // momento 4: XP enche e vira nível (épico)
+  enter(xpRow.c, T.xp);
+  A(xpFill, [{ transform: 'scaleX(.72)' }, { transform: 'scaleX(1)' }], { d: 600, delay: T.xp + 100, e: CURVE.enter });
+  A(xpFill, [{ transform: 'scaleX(1)' }, { transform: 'scaleX(.18)' }], { d: 1, delay: T.level + T.levelD - 200 });
+  A(lvl, [{ opacity: 0, visibility: 'hidden' }, { opacity: 1, visibility: 'visible', offset: 0.12 }, { opacity: 1, visibility: 'visible', offset: 0.85 }, { opacity: 0, visibility: 'hidden' }], { d: T.levelD, delay: T.level, e: 'linear' });
+  A(lrays, [{ transform: 'scale(.4) rotate(0deg)', opacity: 0 }, { transform: 'scale(1) rotate(40deg)', opacity: 1 }], { d: 900, delay: T.level, e: CURVE.reveal });
+  A(lnum, [{ transform: 'scale(.3)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], { d: SPRING.stamp.d, delay: T.level + 120, e: SP.stamp });
+  confetti(lvl, { x: 195, y: 380, n: 60, colors: [C.orange, team, '#fff', '#FFB800'], delay: T.level + 200, seed: 41 });
+  haptic(T.level + 120, 'sucesso');
+  tickers.push((t) => { if (t > T.level + T.levelD - 200) xpRow.title.textContent = 'Nível 7 alcançado'; });
+  // final
+  A(cta, [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }], { d: 400, delay: T.end - 200, e: CURVE.enter });
+  A(cta, [{ boxShadow: '0 0 28px rgba(255,106,19,.55)' }, { boxShadow: '0 0 60px rgba(255,106,19,.95)', offset: 0.4 }, { boxShadow: '0 0 28px rgba(255,106,19,.55)' }], { d: 700, delay: T.end + 200, e: CURVE.standard });
+  A(skip, [{ opacity: 1 }, { opacity: 0 }], { d: 200, delay: T.end - 200 });
+  step(0, 1700, 'Ato 1 · Rota (200–1.700 ms): traço da rota desenha em 1,5 s (power2.inOut) com cometa; 3 zonas pintam quando a rota passa (seleção leve em cada).');
+  step(1700, 2700, 'Ato 2 · Números (1.700 ms): distância conta 900 ms; tempo, ritmo e pontos entram a cada 120 ms. Vibração leve quando a distância "pousa".');
+  step(2700, 3800, 'Ato 3a · Zona conquistada (médio, 1.100 ms): card entra (mola "gentle"), selo gira, 12 confetes, +120. Sucesso.');
+  step(4000, 5000, 'Ato 3b · Baú raro (médio, 1.000 ms): ícone treme e estoura, +40 XP. Leve → média.');
+  step(5200, 6000, 'Ato 3c · Dano no chefão (pequeno, 800 ms): barra com fantasma, −8,4 km. Média.');
+  step(6200, 8300, 'Ato 4 · XP enche (600 ms) → NÍVEL 7 (épico, 1.500 ms no resumo): raios, carimbo, 60 confetes. Sucesso.');
+  step(8200, 9000, 'Final (8,4 s): "Compartilhar no Instagram" pulsa uma vez. "Pular" some.');
+}
+
+/* ---------- montagem, painel e relógio ---------- */
+const SCENES = { zona: ['Zona conquistada (resumo)', sceneZona], 'zona-corrida': ['Zona conquistada (corrida)', sceneZonaCorrida], bau: ['Abertura de baú', sceneBau], chefao: ['Golpe no chefão', sceneChefao], 'chefao-derrota': ['Chefão derrotado', sceneChefaoDerrota], time: ['Confirmação do time', sceneTime], resumo: ['Resumo cinematográfico', sceneResumo] };
+const [TITLE, build] = SCENES[SCENE] || SCENES.zona;
+build();
+const HCOLOR = { 'seleção': '#7d7b77', leve: '#C9C6BF', 'média': '#FF7A2A', forte: '#FF2D55', sucesso: '#19E6A8' };
+const panel = document.getElementById('panel');
+const vibra = document.getElementById('vibra');
+function renderPanel(t) {
+  const tt = Math.round(t);
+  const on = (s) => t >= s.t0 && t <= s.t1 + 60;
+  panel.innerHTML = `
+    <h1>${TITLE}</h1>
+    <div><span class="tag ${REDUCED ? 'on' : ''}">Reduzir movimento: ${REDUCED ? 'ligado' : 'desligado'}</span>${SKIP_AT !== null ? ` <span class="tag on">Pular em ${SKIP_AT} ms</span>` : ''}</div>
+    <div class="t">${tt.toLocaleString('pt-BR')}<small> ms</small></div>
+    <div class="caption">VIBRAÇÃO (expo-haptics) · mínimo 150 ms entre toques</div>
+    <div class="track">${haptics.map((h) => `<div class="mk" style="left:${(h.t / TOTAL) * 100}%;background:${HCOLOR[h.kind]}"></div><div class="lbl" style="left:${(h.t / TOTAL) * 100}%">${h.t}</div>`).join('')}<div class="ph" style="left:${Math.min(100, (t / TOTAL) * 100)}%"></div></div>
+    <div class="legend">${[...new Set(haptics.map((h) => h.kind))].map((k) => `<div><i style="background:${HCOLOR[k]}"></i>${k}</div>`).join('')}</div>
+    <div class="caption" style="margin-top:4px">COREOGRAFIA</div>
+    <div class="steps">${steps.map((s) => `<div class="${on(s) ? 'on' : ''}">${s.text}</div>`).join('')}</div>`;
+  const h = haptics.find((x) => t >= x.t && t < x.t + 160);
+  vibra.style.opacity = h ? 1 : 0;
+  vibra.textContent = h ? `VIBRA · ${h.kind}` : '';
+  if (h) vibra.style.background = HCOLOR[h.kind];
+}
+window.seek = (t) => {
+  const eff = SKIP_AT !== null && t >= SKIP_AT ? 1e6 : t;
+  document.getAnimations().forEach((a) => { a.pause(); a.currentTime = eff; });
+  tickers.forEach((f) => f(eff));
+  renderPanel(t);
+};
+window.TOTAL = TOTAL;
+if (FIXED_T !== null) window.seek(FIXED_T);
+else {
+  let t0 = performance.now();
+  const loop = (now) => { let t = now - t0; if (t > TOTAL + 800) { t0 = now; t = 0; } window.seek(t); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>

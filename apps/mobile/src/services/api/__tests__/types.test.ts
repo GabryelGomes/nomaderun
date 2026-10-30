@@ -23,6 +23,11 @@ describe('toProfile', () => {
     });
     expect(p).toMatchObject({ id: 'u1', username: 'ana', faction: 'owls', city: 'Goiânia', unit: 'mi', xp: 120, trust: 90, role: 'moderator' });
     expect(p.notificationPrefs).toEqual({ invasions: false, conquests: true, missions: true, moderation: true });
+    expect(p.factionChangedSeason).toBeNull();
+  });
+
+  it('lê a temporada da última troca de facção (RF-003)', () => {
+    expect(toProfile({ id: 'u3', faction: 'volt', faction_changed_season: '2026-10' }).factionChangedSeason).toBe('2026-10');
   });
 
   it('tolera colunas notify_*, distance_unit e valores inválidos', () => {

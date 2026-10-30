@@ -1,0 +1,191 @@
+{
+  "resumo": {
+    "geradoEm": "2026-10-29T11:22:24.268Z",
+    "relogioDaDemonstracao": "2026-10-23T12:00:00.000Z",
+    "export": "/tmp/claude-0/-home-user-nomaderun/fc6c6825-489b-5478-95eb-ab2a4c07f1ba/scratchpad/demo-depois2",
+    "capturas": 6,
+    "refeitasNestaExecucao": 1,
+    "minutos": 0,
+    "bytesDestaExecucao": {
+      "before": 89961,
+      "after": 27383
+    },
+    "bytesNaPasta": 368619,
+    "paginasComErro": [],
+    "pedidosAoServidor": 0,
+    "pedidosExternosBloqueados": []
+  },
+  "capturas": [
+    {
+      "file": "perfil-conta__cheio__390.png",
+      "route": "/perfil/conta",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/conta?cenario=cheio",
+      "loadMs": 2657,
+      "fcpMs": 1176,
+      "screens": [
+        "tela-conta"
+      ],
+      "audit": {
+        "interactive": 10,
+        "small": [],
+        "unlabeled": [],
+        "words": 70,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 18
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-time__cheio__390.png",
+      "route": "/perfil/time",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/time?cenario=cheio",
+      "loadMs": 2438,
+      "fcpMs": 1056,
+      "screens": [
+        "tela-faccao"
+      ],
+      "audit": {
+        "interactive": 8,
+        "small": [],
+        "unlabeled": [],
+        "words": 43,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 19
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "resumo__cheio__390.png",
+      "route": "/resumo?id=demo-corrida-1",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/resumo?id=demo-corrida-1&cenario=cheio",
+      "loadMs": 2642,
+      "fcpMs": 904,
+      "screens": [
+        "tela-resumo"
+      ],
+      "audit": {
+        "interactive": 3,
+        "small": [],
+        "unlabeled": [],
+        "words": 48,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 26
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "zona-parque__cheio__390.png",
+      "route": "/zona/89a8c0ce2c3ffff",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/zona/89a8c0ce2c3ffff?cenario=cheio",
+      "loadMs": 2457,
+      "fcpMs": 920,
+      "screens": [
+        "tela-zona"
+      ],
+      "audit": {
+        "interactive": 2,
+        "small": [],
+        "unlabeled": [],
+        "words": 36,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 10
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "onboarding__sem-time__390.png",
+      "route": "/onboarding",
+      "state": "sem-time",
+      "scenario": "sem-time",
+      "width": 390,
+      "finalUrl": "/onboarding?cenario=sem-time",
+      "loadMs": 2246,
+      "fcpMs": 616,
+      "screens": [
+        "tela-onboarding"
+      ],
+      "audit": {
+        "interactive": 1,
+        "small": [],
+        "unlabeled": [],
+        "words": 25,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 12
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    },
+    {
+      "file": "perfil-editar__cheio__390.png",
+      "route": "/perfil/editar",
+      "state": "cheio",
+      "scenario": "cheio",
+      "width": 390,
+      "finalUrl": "/perfil/editar?cenario=cheio",
+      "loadMs": 2436,
+      "fcpMs": 1000,
+      "screens": [
+        "tela-editar-perfil"
+      ],
+      "audit": {
+        "interactive": 15,
+        "small": [
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          },
+          {
+            "id": "input",
+            "w": 40,
+            "h": 20
+          }
+        ],
+        "unlabeled": [],
+        "words": 71,
+        "sealOverlap": [],
+        "lowContrast": [],
+        "contrastChecked": 22
+      },
+      "errors": [],
+      "serverRequests": [],
+      "blockedExternal": []
+    }
+  ]
+}

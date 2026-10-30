@@ -19,16 +19,23 @@ const VARIANTS: Record<Variant, { fontFamily: string; fontSize: number; lineHeig
   label: { fontFamily: fonts.textBold, fontSize: scale.caption, lineHeight: scale.caption * 1.3, letterSpacing: 0.6 },
 };
 
+/**
+ * Teto da fonte do sistema por variante (acessibilidade, fonte grande): os números de display têm altura de linha
+ * fixa e estouram a largura com 200%; os textos corridos crescem sem teto.
+ */
+export const FONT_SCALE_MAX: Partial<Record<Variant, number>> = { hero: 1.2, metric: 1.3, headline: 1.3 };
+
 /** Métricas de cada variante (usadas pelo `RevealText` para medir a máscara). */
 export const TEXT_VARIANTS: Readonly<typeof VARIANTS> = VARIANTS;
 
 export type AppTextProps = TextProps & { variant?: Variant; color?: string; muted?: boolean; tabular?: boolean };
 
-export function Text({ variant = 'body', color, muted, tabular, style, ...rest }: AppTextProps) {
+export function Text({ variant = 'body', color, muted, tabular, style, maxFontSizeMultiplier, ...rest }: AppTextProps) {
   const { colors } = useTheme();
   return (
     <RNText
       {...rest}
+      maxFontSizeMultiplier={maxFontSizeMultiplier ?? FONT_SCALE_MAX[variant]}
       style={[
         VARIANTS[variant],
         { color: color ?? (muted ? colors.textSecondary : colors.text) },

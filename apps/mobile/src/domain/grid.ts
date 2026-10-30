@@ -1,7 +1,7 @@
 // Must load before h3-js (see h3-runtime.ts).
 import './h3-runtime';
 
-import { cellToBoundary, cellToLatLng, cellToParent, gridDisk, latLngToCell } from 'h3-js';
+import { cellToBoundary, cellToChildrenSize, cellToLatLng, cellToParent, gridDisk, latLngToCell } from 'h3-js';
 
 import type { LatLng } from './types';
 
@@ -28,3 +28,6 @@ export function cellBoundary(cell: string): LatLng[] {
 
 /** Cells within `k` rings around a cell, including itself. */
 export const cellsAround = (cell: string, k: number) => gridDisk(cell, k);
+
+/** Quantas células de Neblina/Atlas (res 10) cabem num distrito (res 7): 343, ou menos num pentágono. */
+export const fogCellsInDistrict = (district: string) => cellToChildrenSize(district, FOG_RES);

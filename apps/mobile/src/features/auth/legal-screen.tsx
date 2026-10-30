@@ -58,6 +58,7 @@ const PRIVACY: Section[] = [
     body: [
       'Cadastro: e-mail, nome de usuário, data de nascimento e seus aceites. Perfil: cidade, unidade de medida e preferências de notificação.',
       'Corridas: pontos de GPS (posição, horário, precisão, velocidade e altitude), passos do sensor de movimento e o resultado calculado. Aparelho: um identificador e uma chave usada só para assinar os envios.',
+      'Estatísticas de uso (opcional, desligadas por padrão): só se você ligar em Ajustes, guardamos eventos como abrir o app, terminar uma corrida ou compartilhar, com o dia e sem localização. Ficam 30 dias; ao desligar, apagamos os que já foram enviados.',
     ],
   },
   {

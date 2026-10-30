@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import { useState, type ReactNode } from 'react';
 import { Pressable, type PressableProps, View } from 'react-native';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
@@ -8,6 +7,7 @@ import { floating, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { Icon, type IconName } from './icon';
+import { haptic } from './motion/haptics';
 import { pressFeedback } from './press-feedback';
 import { Text } from './text';
 
@@ -20,18 +20,24 @@ export type ButtonProps = Omit<PressableProps, 'children' | 'style'> & {
   size?: 'md' | 'lg';
   wide?: boolean;
   trailing?: ReactNode;
+  /** Ocupado (ex.: "Entrando…"): anunciado ao leitor de tela junto com o desativado. */
+  busy?: boolean;
 };
 
+/** Teto da fonte do sistema nos rótulos de botão: acima disso o rótulo quebra a pílula (QA, fonte grande). */
+export const BUTTON_FONT_MAX = 1.4;
+
 /** Press feedback per expo-animation: scale 0.97 on press-in, 120 ms (sem escala com "Reduzir movimento"). */
-export function Button({ label, kind = 'primary', icon, size = 'md', wide, trailing, onPress, disabled, ...rest }: ButtonProps) {
+export function Button({ label, kind = 'primary', icon, size = 'md', wide, trailing, onPress, disabled, busy, accessibilityState, ...rest }: ButtonProps) {
   const { colors } = useTheme();
   const [pressed, setPressed] = useState(false);
   const reduced = useReducedMotion();
   const palette = {
     primary: { bg: colors.action, fg: colors.onAction, border: 'transparent' },
-    secondary: { bg: colors.surface, fg: colors.text, border: colors.line },
+    // D-75: borda de controle com 3:1 e texto escuro no laranja e no vermelho.
+    secondary: { bg: colors.surface, fg: colors.text, border: colors.lineControl },
     ghost: { bg: 'transparent', fg: colors.text, border: 'transparent' },
-    danger: { bg: colors.danger, fg: '#FFFFFF', border: 'transparent' },
+    danger: { bg: colors.danger, fg: colors.onDanger, border: 'transparent' },
   }[kind];
   const height = size === 'lg' ? 60 : 48;
 
@@ -40,20 +46,25 @@ export function Button({ label, kind = 'primary', icon, size = 'md', wide, trail
       {...rest}
       accessibilityRole="button"
       accessibilityLabel={label}
+      // O desativado e o ocupado são anunciados (antes o leitor de tela lia um botão comum).
+      accessibilityState={{ ...accessibilityState, disabled: !!disabled, busy: !!busy }}
       disabled={disabled}
       hitSlop={8}
       pressRetentionOffset={16}
       onPressIn={() => setPressed(true)}
       onPressOut={() => setPressed(false)}
       onPress={(e) => {
-        if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        // E5: módulo único de vibração (respeita "Vibração" e o intervalo mínimo; nada na web).
+        haptic('tap');
         onPress?.(e);
       }}
       style={wide ? { alignSelf: 'stretch' } : undefined}>
       <Animated.View
         style={{
-          height,
+          // minHeight (não height): com fonte grande o rótulo cresce sem ser cortado.
+          minHeight: height,
           paddingHorizontal: space[6],
+          paddingVertical: space[1],
           borderRadius: radius.pill,
           borderCurve: 'continuous',
           backgroundColor: palette.bg,
@@ -68,7 +79,7 @@ export function Button({ label, kind = 'primary', icon, size = 'md', wide, trail
           ...pressFeedback(pressed, reduced, disabled ? 0.45 : 1),
         }}>
         {icon ? <Icon name={icon} size={size === 'lg' ? 22 : 18} color={palette.fg} /> : null}
-        <Text variant={size === 'lg' ? 'title' : 'bodyBold'} color={palette.fg}>
+        <Text variant={size === 'lg' ? 'title' : 'bodyBold'} color={palette.fg} maxFontSizeMultiplier={BUTTON_FONT_MAX} style={{ flexShrink: 1, textAlign: 'center' }}>
           {label}
         </Text>
         {trailing ? <View>{trailing}</View> : null}
@@ -97,7 +108,7 @@ export function IconButton({
   const [pressed, setPressed] = useState(false);
   const reduced = useReducedMotion();
   const bg = { surface: colors.surface, action: colors.action, danger: colors.danger, sunken: colors.surfaceSunken }[tone];
-  const fg = tone === 'danger' ? '#FFFFFF' : tone === 'action' ? colors.onAction : colors.text;
+  const fg = tone === 'danger' ? colors.onDanger : tone === 'action' ? colors.onAction : colors.text;
   return (
     <Pressable
       testID={testID}

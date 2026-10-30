@@ -1,7 +1,7 @@
 # Contrato da API (app ↔ Supabase)
 
 > Dono: **Backend (A2)**. O app (frontend e GPS) programa contra este contrato. Qualquer mudança aqui precisa de registro em `DECISOES_TECNICAS.md` e aviso no `PROGRESSO.md`.
-> Última revisão: 2026-10-22 (Fase 4 do A2, correções do QA — D-50: convite de crew só para membros e `public_crews`, `ghostPace` só na Fuga, `/zones` com até 2.000, `avatar_url` só do bucket, conta inativa barrada no PostgREST, limites de pontos/corridas abertas, `endedAt`, staff por `staff_profiles`, exclusão com senha, cidade no cadastro). Anterior: 2026-10-20 (Fase 3, D-39 a D-44).
+> Última revisão: 2026-10-28 (Fase 7, fechamento F6 — contrato v2 completo, das ondas 1 a 3 e das correções da revisão; índice em **Contrato v2: onde está cada parte**). Anterior: 2026-10-23 (Fase 7, onda 1 da E9 — contrato v2 atrás de flags: `server_info`, `game_config`, livro de XP, baú do dia, cosméticos e medalhas, Raid, Liga, missões e trilha). Anterior: 2026-10-22 (Fase 4 do A2, correções do QA — D-50: convite de crew só para membros e `public_crews`, `ghostPace` só na Fuga, `/zones` com até 2.000, `avatar_url` só do bucket, conta inativa barrada no PostgREST, limites de pontos/corridas abertas, `endedAt`, staff por `staff_profiles`, exclusão com senha, cidade no cadastro). Anterior: 2026-10-20 (Fase 3, D-39 a D-44).
 
 Base das functions: `${EXPO_PUBLIC_SUPABASE_URL}/functions/v1/<nome>`. Todas exigem `Authorization: Bearer <JWT do usuário>` (o servidor confere o token no Auth a cada chamada; conta excluída ou banida recebe 401).
 Erros: HTTP 4xx/5xx com corpo `{ "error": { "code": "<CODIGO>", "message": "<texto em pt-BR>", "details"?: { ... } } }`. O campo `details` é opcional (hoje só `lastSeq`, ver ingest/finish).
@@ -152,7 +152,7 @@ LGPD (RF-002, RNF-013). Export devolve JSON (com `Content-Disposition` de anexo)
 | `devices` | ler os próprios | sem a coluna `secret` |
 | `activities`, `activity_points`, `activity_zones` | ler os próprios (staff lê todos) | escrita só pelas functions. `activities.result` guarda a resposta oficial do `finish-activity`. **RN-010:** em `activity_points` de outra pessoa (painel de moderação) não vêm os pontos dentro das zonas de privacidade do dono (o `seq` fica com buraco); o dono vê tudo |
 | `safety_contacts` | CRUD dos próprios (`name`, `phone`) | máx. 5 (`CONTACTS_LIMIT`); `phone` aceita `+`, dígitos, espaço, `()` e `-` (8–20) |
-| `notifications` | ler e marcar `read_at` nas próprias | `type` ∈ `invasion, territory_lost, conquest, moderation, mission, system`; `data` traz `zoneId`, `lat`, `lng` (abrir o mapa na zona, RF-009) ou `activityId`. **Realtime ligado (P-13):** `channel('notif').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.<uid>' }, ...)`; a RLS vale no Realtime (sem o filtro, cada um continua recebendo só as suas). A consulta periódica pode virar só fallback |
+| `notifications` | ler e marcar `read_at` nas próprias | `type` ∈ `invasion, territory_lost, conquest, moderation, mission, system` e, desde a v2 (superconjunto), `raid, league, kudos, medal, reward, engagement` (o tipo fino vai em `data.kind`; app antigo mostra o desconhecido como `system`); `data` traz `zoneId`, `lat`, `lng` (abrir o mapa na zona, RF-009) ou `activityId`. **Realtime ligado (P-13):** `channel('notif').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.<uid>' }, ...)`; a RLS vale no Realtime (sem o filtro, cada um continua recebendo só as suas). A consulta periódica pode virar só fallback |
 | `fog_cells`, `chest_opens` | ler as próprias | escrita pelo servidor no finish (neblina; `chest_opens.chest_id` = `chests.id`) |
 | `chests` | ler os próprios | baús sorteados por dia (`id, day, lat, lng, rarity, xp, opened_at, activity_id`); use `rpc('daily_chests')`, que sorteia na primeira chamada do dia. Escrita só pelo servidor |
 | `privacy_zones` | CRUD dos próprios (`label?`, `lat`, `lng`, `radius_m`) | RN-010: até 3 (`PRIVACY_ZONES_LIMIT`); `radius_m` padrão 200, de 50 a 1000; `label` de 1 a 40 caracteres ou nulo. Cadastro: `from('privacy_zones').insert({ label: 'Casa', lat, lng })`; editar: `update({ lat, lng, radius_m }).eq('id', id)`; remover: `delete().eq('id', id)`. Os pontos dentro do raio pontuam normalmente, mas não aparecem para terceiros |
@@ -199,3 +199,305 @@ Erros de RPC chegam do PostgREST com `message = "CODIGO: texto em pt-BR"` (separ
 | `job_decay_zones` | todo dia 03:00 | RN-005: influência × 0,90; < 5 vira 0; dono < 30 perde a zona |
 | `job_close_week` | segunda 00:10 | RN-014: 2+ corridas válidas na semana somam 1 à sequência; senão gasta congelamento ou zera |
 | `job_season_rollover` | dia 1, 00:15 | RN-006: abre a temporada, influência × 0,30, devolve o congelamento mensal |
+| `job_raid_tick` (v2) | a cada 10 min | D-67: fecha o chefão que fugiu (domingo 21:00), premia uma vez, sorteia os pontos fracos do dia (fase ≥ 2) e abre a semana (segunda 06:00, só com `features.raid`) |
+| `job_close_league` (v2) | segunda 03:20 | D-68: fecha os grupos da semana (idempotente), sobe/desce, notifica e reserva os grupos da semana seguinte |
+| `job_fade_cells` (v2) | todo dia 03:00 | D-62: desbota 1 camada dos trechos sem passada do time há 7 dias, reavalia o dono e limpa `paint_marks`. Com `territory_rule = 'v2'`, substitui `job_decay_zones` e `job_fortify_zones` (que passam a rodar só na v1) |
+| `job_telemetry_retention` (v2) | todo dia 03:40 | D-82: apaga eventos de telemetria com mais de 30 dias |
+
+Nomes no `cron.job`: `nomaderun-fortify-zones`, `-decay-zones`, `-close-week`, `-season-rollover`, `-raid-tick`, `-close-league`, `-fade-cells` e `-telemetry-retention` (horários gravados em UTC = Brasília + 3 h).
+
+## Contrato v2: onde está cada parte
+
+Tudo é aditivo e fica atrás de `server_info().features` (todas `false` por padrão) ou de `territory_rule`. App novo com servidor antigo: `server_info` responde `PGRST202` e as telas novas mostram "indisponível". App antigo com servidor novo: não vê diferença enquanto as flags estiverem desligadas.
+
+| Parte | Flag | Leitura / ação do app | Gravação (servidor) | Realtime | Seção |
+|---|---|---|---|---|---|
+| Contrato e flags | — | `server_info()` | `game_config` (só os autores) | — | onda 1 |
+| Território por pintura (D-62) | `territory_rule = 'v2'` | `zone_paint_near` (+ `paintedToday`) | `finish-activity` → `extras.paint`; `job_fade_cells`; virada por trigger | `zones` | ondas 2 e 3 |
+| Raid (D-67) | `raid` | `raid_current` | `finish-activity` → `extras.raid`; `job_raid_tick` | `raids` | onda 1 |
+| Liga (D-68) | `league` | `league_current` | `finish-activity` → `extras.league`; `job_close_league` | — | onda 1 |
+| XP, níveis, missões, trilha (D-64, D-65) | `missions`, `track` | `my_engagement`, `my_missions`, `reroll_mission`, `claim_mission`, `my_track`, `claim_track_step`, `xp_history`, `equip_cosmetic`, `unequip_cosmetic` | `finish-activity` → `extras.engagement` | — | ondas 1 e 2 |
+| Baú do dia (D-66) | `dailyChest` | `my_daily_chest`, `open_daily_chests` | `extras.engagement.dailyChests` | — | onda 1 |
+| Sequência e pausa de saúde (D-63) | `streakV2` | `my_engagement().streak` (+ `pauseAvailable`), `start_health_pause`, `end_health_pause` | `job_close_week` | — | ondas 1 e 3 |
+| Recordes e parciais | `records` | `my_records` | `extras.records`; `activity_stats`, `personal_records` | — | onda 2 |
+| Feed da crew e aplausos (D-79) | `feed` | `crew_feed`, `react_feed_item`, `feed_item_kudos`, `delete_feed_item`, `my_feed_settings`, `set_feed_settings` | `extras.feed` | `feed_kudos_counts` | onda 2 e revisão (M1, M3, M4) |
+| Missões sociais | `missions` | `record_share`, `record_ranking_opened` | — | — | onda 1 |
+| Minha semana (recap) | — | `POST /weekly-recap` (ou `rpc('weekly_recap')`, sem rotas) | — | — | onda 3 e revisão (M5) |
+| Telemetria opt-in (D-82) | `telemetry` + consentimento | `my_telemetry_consent`, `set_telemetry_consent`, `track_events` | `job_telemetry_retention` | — | onda 3 e revisão (M2) |
+| LGPD v2 | — | `GET /account-export` (`account_export_v2`), `POST /account-delete` | cascata em todas as tabelas novas | — | ondas 2 e 3 |
+| Zonas de privacidade (D-87) | — | (sem RPC nova) | máscara estável em `zone_paint_near` e no percurso da staff | — | revisão (A1) |
+
+## Contrato v2 (Fase 7, onda 1 da E9) — tudo atrás de flags
+
+> Migrations `20261023120000_v2_contract` a `20261023120600_streak_pause`. Regras puras: `src/domain/progression.ts`, `missions.ts` (E7), `raid.ts`, `league.ts` (E3). O SQL guarda, trava e confere; a gravação v2 do `finish-activity` (onda 2) chama o domain e as funções `private.*` listadas no fim.
+
+**Compatibilidade.** Nada antigo mudou de forma ou de comportamento com as flags desligadas (padrão). O app novo chama `rpc('server_info')`: se a RPC não existir (`PGRST202`), o servidor é o antigo (contrato 1) e as telas novas mostram o estado "indisponível". Com o servidor novo, cada tela confere `features.<nome>`. RPC de feature desligada responde `FEATURE_DISABLED: …` (trate como indisponível).
+
+### `server_info()` e `game_config`
+
+`rpc('server_info')` (só logado) → `{ contract: 2, territoryRule: "v1"|"v2", features: { raid, league, missions, medals, track, dailyChest, streakV2, feed, records, telemetry }, params: { raid, league, missions, daily_chest, track }, serverTime (ms), brToday: "AAAA-MM-DD" }`. Todas as flags começam `false`. `params` traz os números públicos (chances do baú, tetos do raid, vagas da liga) para as telas mostrarem a verdade. `game_config` (tabela) é só leitura para o cliente; os autores ligam uma flag com `update game_config set value = value || '{"raid": true}' where key = 'features';`.
+
+### Tabelas novas (leitura pelo cliente; escrita só pelo servidor)
+
+| Tabela | Cliente lê | Observação |
+|---|---|---|
+| `game_config` | tudo | flags e parâmetros; nunca segredo |
+| `xp_ledger` | as próprias linhas | `source`, `ref`, `amount`, `season_id`; único por `(user_id, source, ref)`. `profiles.xp` nunca diminui (`XP_DECREASE`) |
+| `cosmetic_defs`, `medal_defs`, `mission_defs`, `raid_bosses`, `track_rewards` | catálogo (ativos) | ids estáveis (chefões = `RAID_BOSS_IDS`; missões = `MISSION_CATALOG`) |
+| `user_cosmetics`, `user_medals`, `daily_rewards`, `bonus_chests`, `user_missions`, `engagement_marks`, `track_claims`, `raid_hits`, `raid_rewards`, `raid_visits`, `league_members`, `league_entries`, `league_standings` | só as próprias | — |
+| `user_equipped` | de todos | o que a pessoa equipou é público (moldura, título, rastro) |
+| `raids`, `raid_weak_points` | tudo | `raids` está no **Realtime** (vida, fase, status; sem coluna de usuário): `channel('raid').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'raids' }, …)` |
+| `league_groups`, `league_reservations` | nada | o grupo sai pelo `league_current()` |
+
+`profiles` ganhou colunas lidas pelo dono e escritas só pelo servidor: `best_streak_weeks`, `pause_from`, `pause_until`, `pause_used_season`, `daily_chest_pity` (0..19), `lifetime_meters`, `ftue_started_at` (contas novas; as antigas ficam sem primeira semana), `last_activity_at`. Nenhuma vai para `public_profiles`.
+
+`notifications.type` aceita também `raid`, `league`, `kudos`, `medal`, `reward` e `engagement` (o tipo fino em `data.kind`: `raid_result`, `league_result`, `sequencia`…). Preferências novas em `notification_prefs` (`raid`, `league`, `streak`…): chave ausente = ligada.
+
+### RPCs novas (`authenticated`)
+
+| RPC | Parâmetros | Retorno | Erros |
+|---|---|---|---|
+| `server_info` | — | ver acima | — |
+| `xp_history` | `p_limit` (1–200, padrão 50) | `[{ source, ref, amount, seasonId, createdAt, label }]` | — |
+| `equip_cosmetic` | `p_cosmetic`, `p_variant` (`''` ou temporada `AAAA-MM` / id do chefão) | `{ slot, cosmeticId, variant }` | `COSMETIC_NOT_OWNED` |
+| `unequip_cosmetic` | `p_slot` (`trail\|frame\|effect\|title\|emblem`) | `{ slot, cosmeticId: null }` | `INVALID_SLOT` |
+| `my_daily_chest` | — | `{ stored (0..3), maxStored, bonus: [raridade mínima], pityLeft, openedToday, odds, xp, cosmeticChance, minMeters }` | `FEATURE_DISABLED` |
+| `open_daily_chests` | — | `{ prizes: [{ n, rarity, xp, cosmeticId, duplicate, guaranteed }], bonus: [...], pityLeft, odds, alreadyOpened }` | `DAILY_CHEST_LOCKED` (sem atividade pontuada de 1 km hoje), `DAILY_CHEST_REVIEW` (confiança < 40), `FEATURE_DISABLED` |
+| `my_missions` | — | `{ periods: { daily, weekly }, daily: [M], weekly: [M], ftue: [M], ftueStartedAt, comeback: M\|null, rerollsLeft }` com `M = { id, defId, kind, tier, slot, variant, title, metric, progress, target, xp, bonus, periodKey, availableFrom, availableUntil, completedAt, claimedAt, rerolled }` | `FEATURE_DISABLED` |
+| `reroll_mission` | `p_id` | `M` (mesmo `id` e `slot`, progresso 0) | `MISSION_NOT_REROLLABLE`, `MISSION_COMPLETED`, `MISSION_REROLL_LIMIT`, `MISSION_NO_OPTION`, `NOT_FOUND` |
+| `claim_mission` | `p_id` | `{ id, claimed: false, alreadyClaimed: true, xp, claimedAt }` (a conclusão já paga) | `MISSION_NOT_COMPLETED`, `NOT_FOUND` |
+| `record_share` | `p_activity` | `{ completed: [M] }` (1 por dia) | `NOT_FOUND` |
+| `record_ranking_opened` | — | `{ completed: [M] }` (alternativa do passo 6 sem liga) | — |
+| `my_track` | — | `{ seasonId, endsAt, xp, step, stepXp, steps, intoStep, nextStepXp, prestigeStars, medal, rewards: [{ step, unlocked, claimed, items }] }` | `FEATURE_DISABLED` |
+| `claim_track_step` | `p_step` (1..24) | `{ step, seasonId, alreadyClaimed, items }` | `TRACK_LOCKED`, `INVALID_STEP` |
+| `start_health_pause` | `p_weeks` (1..4) | `{ from, until, seasonId }` | `PAUSE_WEEKS`, `PAUSE_ACTIVE`, `PAUSE_USED`, `FEATURE_DISABLED` |
+| `end_health_pause` | — | `{ from, until, seasonId }` ou `null` | — |
+| `raid_current` | — | `{ raid: { id, bossId, name, theme, weakness, introLine, defeatLine, artKey, city, weekStart, startsAt, endsAt, hp, hpMax, phase (1..3), status, participants, defeatedAt, isDemo, weakPoints: [{ zoneId, name, center: [lng, lat] }] } \| null, me: { damage, meters, hits, todayMeters, rank, rewards }, sinceLastVisit: { damage, since } \| null, topRunners: [{ position, username, faction, avatarUrl, damage, you }], topCrews: [{ name, tag, faction, damage }], params }` (sem ids de corrida nem de usuário) | `FEATURE_DISABLED` |
+| `league_current` | — | `{ weekStart, closesAt, division, divisionName, joined, groupSize, smallGroup, promoteSlots, relegateSlots, members: [{ position, username, faction, avatarUrl, points, you, zone: 'promote'\|'relegate'\|null }], lastResult }` | `FEATURE_DISABLED` |
+
+### Funções do servidor para a gravação v2 (onda 2; só `service_role` / `private`)
+
+| Função | Uso |
+|---|---|
+| `svc_grant_xp(user, source, ref, amount)` / `private.grant_xp` | crédito idempotente no livro (devolve o XP creditado agora) |
+| `svc_raid_hit(activity, meters, damage, weak_meters, pack)` / `private.apply_raid_hit` | golpe idempotente por atividade (`raidDamage` → servidor confere crítico, tetos 21/30 km e 300 de dano/dia) |
+| `private.add_league_points(activity, points)` | pontos da liga, idempotente por atividade (`WEEK_CLOSED` depois de segunda 03:20) |
+| `private.ensure_missions(user, at, exclude)` + `private.advance_missions(user, { "<user_missions.id>": progresso absoluto }, at)` | sorteio/volta e progresso de `settleMission` (paga na conclusão) |
+| `private.open_daily_chests(user, activity, now)` | abre os baús do dia e os bônus |
+| `private.award_medal`, `private.grant_cosmetic`, `private.add_bonus_chest` | recompensas idempotentes |
+
+## Contrato v2 — onda 2 da E9 (gravação v2, pintura, feed, recordes, engajamento, LGPD v2)
+
+> Migrations `20261023120700_paint`, `20261023120800_records_social`, `20261023120900_v2_recording` e `20261023121000_engagement_lgpd`. Functions: `finish-activity`, `moderate-activity` e `account-export` (código em `supabase/functions/_shared/v2.ts`, `v2-run.ts`, `records.ts`, `feed.ts`). Tudo atrás das flags de `game_config`; com elas desligadas (padrão), a resposta e o banco ficam exatamente como na onda 1.
+
+### `POST /finish-activity` (e `POST /moderate-activity` → `result`): bloco opcional `extras`
+
+Depois da gravação v1 (que **não mudou**), se alguma flag v2 estiver ligada (`territory_rule = 'v2'` ou `features.raid|league|missions|dailyChest|records|feed`), a resposta ganha `extras`. App antigo ignora o campo. **Sem flag ligada, não há `extras`** (a function só lê as flags em `server_info`; nada mais é lido nem gravado). Chamar o finish de novo devolve o mesmo `extras` (gravado em `activities.v2_extras`); se a v2 tinha falhado, a repetição a aplica (idempotente). Se a v2 falhar, o finish responde a v1 sem `extras` (nunca derruba a corrida).
+
+```jsonc
+"extras": {
+  "contract": 2,
+  "paint": {                         // só com territory_rule = 'v2'; null em corrida não pontuada
+    "rule": "v2", "cells": 42, "new": 30, "reinforced": 8, "flipped": 3, "weakened": 1,
+    "track": ["8ba8c0ce2c04fff", "…"],  // trechos que ESTA corrida pintou (só para o próprio corredor: resumo e card)
+    "zones": [{ "zoneId": "89a8…", "name": "Setor Sul 4", "ownerBefore": "volt", "ownerAfter": "owls",
+                "countsBefore": { "striders": 0, "coyotes": 0, "owls": 2, "volt": 4 },
+                "countsAfter":  { "striders": 0, "coyotes": 0, "owls": 5, "volt": 3 },
+                "outcome": "conquistada|defendida|reforcada|atacada|pintada", "touched": 5, "flipped": 1 }]
+  },
+  "points": { "total": 123, "zones": [{ "zoneId": "89a8…", "rp": 80, "capped": false }] },  // scoreRunV2 (liga ou território v2)
+  "league": { "weekStart": "2026-10-19", "points": 123, "total": 340, "division": 0, "divisionName": "Calçada",
+              "groupSize": 28, "rank": 7, "repeated": false },   // ou { weekStart, error: "WEEK_CLOSED" }; null fora da liga
+  "raid": { "raidId": "…", "bossId": "mormaco", "damage": 70, "crit": false, "critChance": 0.1, "countedKm": 5, "weakKm": 2,
+            "pack": false, "capped": false, "hpAfter": 14230, "hpMax": 15000, "phaseBefore": 1, "phaseAfter": 1,
+            "phaseChanged": false, "finalBlow": false, "defeated": false, "repeated": false },   // null sem chefão ativo
+  "engagement": {                     // features.missions (contrato E7 §8)
+    "xp": { "total": 145, "lines": [{ "source": "run_distance", "amount": 50, "label": "Distância" }] },
+    "level": { "before": 4, "after": 5, "titleAfter": { "id": "pe-na-rua", "name": "Pé na Rua" } },  // titleAfter só se mudou
+    "band": { "before": "asfalto", "after": "bronze" },
+    "dailyChests": { "opened": [{ "n": 1, "rarity": "comum", "xp": 15, "cosmeticDrop": false, "cosmeticId": null, "guaranteed": false }], "pityLeft": 19 },
+    // ou { "opened": [], "reason": "status|distance|review|already", "stored": 2 }; null com features.dailyChest desligada
+    "missions": [{ "id": "d-1500m", "userMissionId": "uuid", "cadence": "diaria|semanal|ftue|volta", "text": "Caminhe ou corra 1,5 km", "xp": 20 }],
+    "streak": { "activitiesThisWeek": 2, "weekKept": true, "weeks": 3, "best": 5, "freezesLeft": 1, "paused": false },
+    "season": { "stepBefore": 7, "stepAfter": 8, "medal": "bronze" },          // medal só quando muda
+    "ftue": { "stepDone": 1, "nextUnlocksAt": 1761188400000 },                  // opcional: passo da primeira semana feito agora
+    "comeback": { "missionId": "v-7" }                                           // opcional: missão de volta criada
+  },
+  "records": { "new": [{ "kind": "1k|5k|10k|21k|longest", "value": 300, "previous": 312 }] },   // features.records
+  "feed": { "itemId": "uuid" }                                                                     // features.feed + crew
+}
+```
+
+Regras da gravação v2 (todas com o domain, D-02):
+- **Território v2** (`territory_rule = 'v2'`): `paintCellsOfRun` + `applyPaint` com **todos** os trechos das zonas tocadas. A v1 só cria as zonas novas (neutras) e não emite eventos; dono, placar (`zones.influence` = trechos × 10, para o app antigo), herança, ataque, `zone_events` e notificações vêm da pintura. `zones[].outcome/ownerBefore/ownerAfter` da resposta e `activity_zones` passam a refletir a pintura (`conquistada` → `conquered`, `defendida` → `defended`, o resto → `influence`). Os `rp` continuam os da v1 (rankings).
+- **Engajamento** (`features.missions`): o XP sai em linhas no `xp_ledger` (`runXp`, `weekKeptXp`, baús do dia, missões); a v1 **não** credita XP (sem pagar em dobro) e `response.xp` = XP da própria atividade na v2 (`run_distance + run_complete + fog + ghost + hunt_chest + week_kept`). Missões: progresso absoluto de `settleMission` (`greatest`), pago na conclusão.
+- **Corrida em revisão/rejeitada:** nada é gravado; `extras.engagement` mostra XP 0 e o baú com `reason: "review"|"status"`. A aprovação da moderação aplica tudo.
+- **Raid:** `raidDamage` (semente = id da atividade); o banco confere crítico e tetos de novo (`apply_raid_hit`).
+
+### Tabelas novas (onda 2)
+
+| Tabela | Cliente lê | Observação |
+|---|---|---|
+| `zone_cells` | **nada** | trechos pintados (H3 res 11, 1–3 camadas, sem autor). Leitura só por `zone_paint_near` |
+| `paint_marks` | **nada** | "já pintou hoje"; apagada depois de 2 dias |
+| `activity_stats` | as próprias (staff: todas) | `splits` (s por km), `pace_series` (s/km, ≤ 200), `best_1k_s` … `best_21k_s` |
+| `personal_records` | as próprias | `kind` (`1k`, `5k`, `10k`, `21k` em segundos; `longest` em metros), `value`, `previous`, `day` (sem hora). Só corrida `valid` |
+| `user_settings` | a própria | `share_runs_to_feed`, `feed_show_map` (padrão `true`); escrita por `set_feed_settings` |
+| `feed_items` | **nada** (só `crew_feed`) | 1 item por corrida aceita, só a crew vê, sem horário |
+| `kudos` | dos itens que a pessoa vê | `feed_item_id`, `user_id`, `reaction` (`bora\|fogo\|raio`), `day`. **Fora do Realtime desde a revisão (M4)**: para aplausos ao vivo, assinar `feed_kudos_counts` (abaixo) |
+
+`zones` ganhou `rule_version`, `inherit_faction`, `inherit_cells`, `inherit_until`, `attack_last_at`, `attack_flips` (lidas por quem já lê `zones`). `activities` ganhou `v2_extras` (o que a v2 aplicou; o dono lê).
+
+### RPCs novas (`authenticated`)
+
+| RPC | Parâmetros | Retorno | Erros |
+|---|---|---|---|
+| `zone_paint_near` | `p_lat`, `p_lng`, `p_radius_m` (100–3000, padrão 1500) | `LiveSnapshot` do `live-events.ts`: `{ rule, cells: { "<h3 res 11>": { faction, layers } }, zones: { "<h3 res 9>": { owner, name, inherited, blocked, underAttack } } }` — sem autor, sem hora e sem trechos dentro de zonas de privacidade de qualquer pessoa | `VALIDATION`, `ACCOUNT_INACTIVE` |
+| `crew_feed` | `p_limit` (1–50, padrão 20), `p_before` (id do último item da página) | `{ crew: { id, name, tag, faction } \| null, items: [F], next: uuid \| null }` com `F = { id, day ("AAAA-MM-DD"), you, author: { username, faction, avatarUrl }, meters, movingSeconds, avgPace, highlights, route: string[] \| null, routeHidden, kudos: { bora, fogo, raio }, myReaction, isDemo }` | `FEATURE_DISABLED` |
+| `react_feed_item` | `p_item`, `p_reaction` (`bora\|fogo\|raio`; `null` desfaz) | `F` atualizado | `KUDOS_SELF`, `KUDOS_LIMIT` (200/dia), `NOT_FOUND` (item invisível), `VALIDATION`, `FEATURE_DISABLED` |
+| `feed_item_kudos` | `p_item` | `[{ username, faction, avatarUrl, reaction }]` | `NOT_FOUND`, `FEATURE_DISABLED` |
+| `delete_feed_item` | `p_item` | `boolean` (só o próprio item) | — |
+| `my_feed_settings` | — | `{ shareRunsToFeed, feedShowMap }` | — |
+| `set_feed_settings` | `p_share_runs`, `p_show_map` (`null` = não muda) | idem. Desligar "mostrar corridas" apaga os itens; desligar o mapa tira as rotas já publicadas | — |
+| `my_records` | — | `{ records: [{ kind, value, activityId, day, previous }] }` | `FEATURE_DISABLED` |
+| `my_engagement` | — | `{ level, xp, intoLevel, needed, isMax, title: { id, name }, band: { id, name, next, metersToNext }, lifetimeMeters, streak: { weeks, best, freezesLeft, activitiesThisWeek, pause: { from, until } \| null }, dailyChest: { stored, openedToday, pityLeft, odds } \| null, missions: { daily, weekly, ftue, comeback } \| null, season: { id, xp, step, intoStep, medal, prestigeStars } \| null }` (parte `null` = feature desligada) | — |
+| `account_export_v2` | — | a exportação v1 + `exportVersion: 2`, `zoneEvents`, `crewsLed`, `moderationDecisions`, `xpLedger`, `cosmetics`, `equipped`, `medals`, `dailyRewards`, `bonusChests`, `raidHits`, `raidRewards`, `raidVisits`, `leagueMembers`, `leagueReservations`, `leagueEntries`, `leagueStandings`, `missions`, `engagementMarks`, `trackClaims`, `paintMarks`, `activityStats`, `personalRecords`, `settings`, `feedItems`, `kudosGiven`, `kudosReceived` | — |
+
+`record_share(p_activity)` e `record_ranking_opened()` já existem (onda 1). Notificação de aplauso: `type = 'kudos'`, 1 por item por dia (o texto é atualizado com o total), `data = { kind: 'kudos', feedItemId, count }`; preferência `notification_prefs.kudos` (ausente = ligada).
+
+**Rota do feed (`route`) — tipo `ServerClippedRoute` no app (E8):** lista de polylines (algoritmo do Google, **precisão 4**), uma por pedaço visível, **até 80 pontos** somando todos. O corte é o `clipRouteForSharing` do domain na Edge Function, com semente nova a cada geração (pontas de 150–250 m e folga sorteada em volta das zonas de privacidade), depois simplificação e uma conferência: nenhum ponto da linha desenhada fica dentro de zona de privacidade nem a menos de ~135 m das pontas, senão o item vai sem rota. `routeHidden = true` quando parte da rota foi escondida ou não há rota. Decodificar com precisão 4 e **nunca** tratar como `SharedRoute` (não serve para o card nem para GPX). `highlights` (até 6): `{ kind: 'zone_conquered', name }`, `{ kind: 'raid_damage', damage, km }`, `{ kind: 'pr', distance }`.
+
+### Funções do servidor (onda 2; só `service_role` / `private`)
+
+| Função | Uso |
+|---|---|
+| `svc_v2_context(user, activity, zone_ids)` | flags, perfil, pintura das zonas tocadas, raid ativo, missões garantidas + evidência, baú, recordes e feed. `done` = o que já foi aplicado |
+| `svc_apply_v2(p jsonb)` | grava tudo numa transação; `ZONE_CONFLICT` (a function recarrega e tenta 3 vezes), `NOT_SCORED` |
+| `svc_account_export_v2(user)` | exportação da function `account-export` (cai na v1 com `PGRST202`) |
+| `job_fade_cells(now)` | diário 03:00 BRT: desbotar, temporada da pintura, dono reavaliado, limpeza de `paint_marks` |
+| `job_territory_switch(now)` / trigger em `game_config` | virada v1 → v2 com herança (3 trechos virtuais do dono por 7 dias) |
+| `private.domain_constants()` | constantes do domain repetidas no SQL (teste Deno `parity.test.ts`) |
+
+## Contrato v2 — onda 3 da E9 (T7.3.8)
+
+Tudo aditivo: campos novos em RPCs que já existem, uma RPC e uma Edge Function de leitura e a telemetria opt-in.
+Servidor antigo: o campo novo não vem (o app trata ausente como "não informado"); RPC nova responde `PGRST202` e a
+function nova responde 404 — o app trata como indisponível.
+
+### Campos novos em RPCs existentes
+
+| RPC | Campo novo | Conteúdo |
+|---|---|---|
+| `zone_paint_near(p_lat, p_lng, p_radius_m)` | `paintedToday: string[]` | ids (H3 res 11) dos trechos que **a própria pessoa** pintou hoje (Brasília), no mesmo raio e com o mesmo corte de zonas de privacidade de `cells`, ordenados. Sem hora, sem autor de ninguém. Sempre lista (vazia = nada). Trecho que já sumiu de `zone_cells` não vem |
+| `my_engagement()` | `streak.pauseAvailable: boolean \| null` | `true` = a pausa de saúde pode ser usada agora (sem pausa valendo e sem pausa usada nesta temporada); `false` = indisponível; `null` = sequência v2 desligada (`start_health_pause` responderia `FEATURE_DISABLED`) |
+
+**Preferências de notificação (`profiles.notification_prefs`):** só valores **booleanos** (CHECK novo
+`profiles_notification_prefs_boolean`; antes, um valor como `"abc"` derrubava a transação de outra pessoa). Chave
+ausente = ligada. Chaves que o servidor lê hoje: `invasion` e `conquest` (v1), `streak`, `league`, `raid` e `kudos` (v2).
+As chaves `chests`, `season`, `recap` e `comeback` do app são aceitas e guardadas, mas só os lembretes locais as usam.
+O `NotificationPrefs` do app já tem `kudos` (aplausos).
+
+### Resumo da semana (card "Minha semana", E8)
+
+| Endpoint | Entrada | Retorno | Erros |
+|---|---|---|---|
+| `POST /weekly-recap` (ou `GET ?weekStart=`) — **o app usa este** | `{ weekStart?: "AAAA-MM-DD" }` (segunda-feira; ausente = semana atual; até 52 semanas atrás) | `WeeklyRecap` (abaixo) com `routes` | 400 `VALIDATION`, 401 `UNAUTHORIZED` / `ACCOUNT_INACTIVE`, 404 `NOT_AVAILABLE` (servidor antigo) |
+| `rpc('weekly_recap', { p_week_start })` | idem (`null` = semana atual) | `WeeklyRecap` com `routes: []` | `VALIDATION`, `UNAUTHORIZED`, `ACCOUNT_INACTIVE` |
+
+```ts
+type WeeklyRecap = {
+  weekStart: string;        // "AAAA-MM-DD" (segunda)
+  weekEnd: string;          // domingo
+  final: boolean;           // a semana já acabou
+  days: number[];           // 7 inteiros, metros por dia, segunda primeiro (dia do início da corrida, Brasília)
+  meters: number; runs: number; movingSeconds: number;
+  zones: number;            // zonas conquistadas (distintas) na semana
+  streakWeeks: number; isDemo: boolean;
+  routes: { pieces: string[]; routeHidden: boolean }[];  // até 3 (as corridas mais longas)
+};
+```
+Contam as corridas `scored` com status `valid` ou `partial`. **Sem horário** em lugar nenhum. Cada rota é feita como a
+do feed: só os trechos válidos → `clipRouteForSharing` com **semente nova a cada chamada** → até 80 pontos →
+polylines de **precisão 4** → conferência (nada dentro de zona de privacidade nem a menos de ~135 m das pontas; se
+falhar, a rota fica de fora). Decodificar como o `route` do feed; o app precisa de um adaptador próprio para o card
+(`SharedRoute` só nasce do `clipRouteForSharing` local).
+
+### Telemetria opt-in (D-82) — para a E7
+
+Desligada por padrão em dois níveis: `server_info().features.telemetry` (flag do servidor) e o consentimento da
+pessoa (sem linha = sem consentimento). O cliente não lê nem escreve as tabelas; só as RPCs:
+
+| RPC | Parâmetros | Retorno | Erros |
+|---|---|---|---|
+| `my_telemetry_consent` | — | `{ optedIn, policyVersion, enabled }` (`enabled` = flag do servidor) | `UNAUTHORIZED` |
+| `set_telemetry_consent` | `p_opt_in` (boolean), `p_policy_version` (1–100, padrão 1) | `{ optedIn, policyVersion, deletedEvents }` — **retirar apaga na hora** todos os eventos da pessoa | `VALIDATION` |
+| `track_events` | `p_events`: lista de 1 a 50 `{ event, day?, props?, appVersion?, platform? }` | `{ accepted, dropped }` | `TELEMETRY_CONSENT` (sem consentimento: nada é gravado), `FEATURE_DISABLED`, `VALIDATION` (o lote inteiro é recusado) |
+
+- **`event` (lista fechada):** `app_open` (abrir; 1 por dia, o resto vira `dropped`), `run_finish` (correr), `zone_conquer`
+  (conquistar), `share` (compartilhar), `mission_complete` (missão concluída).
+- **`day`:** `"AAAA-MM-DD"` de hoje ou até 2 dias atrás (fila offline); ausente = hoje. Não há horário.
+- **`props`** (opcional, ≤ 256 bytes, até 6 chaves): só `model`, `format`, `withRoute`, `kind`, `source`, `missionId`,
+  `count`; valor booleano, inteiro de 0 a 100.000 ou texto `^[a-z0-9_-]{1,32}$` (sem ponto, vírgula ou espaço: nada de
+  coordenada nem texto livre). Ex.: `share` → `{ model: "run", format: "stories", withRoute: true }`.
+- **`appVersion`:** `^[0-9A-Za-z.+-]{1,20}$`; **`platform`:** `ios | android | web`.
+- **Tetos:** 200 eventos por pessoa por dia (o excedente é descartado e contado em `dropped`, para o app não reenviar).
+- **Retenção:** 30 dias (`job_telemetry_retention`, 03:40 BRT). **LGPD:** `telemetryConsent` e `telemetryEvents` no
+  `account_export_v2`; exclusão da conta apaga em cascata.
+
+### Tabelas novas (onda 3; o cliente não lê nem escreve)
+
+| Tabela | Colunas |
+|---|---|
+| `telemetry_consent` | `user_id` (PK), `opted_in`, `policy_version`, `updated_at` |
+| `telemetry_events` | `id`, `user_id`, `event`, `day`, `props`, `app_version`, `platform` (sem horário, sem localização) |
+
+### Funções do servidor (onda 3; só `service_role` / `private`)
+
+| Função | Uso |
+|---|---|
+| `svc_weekly_recap(user, week_start)` | números + `routeIds` (até 3) + `privacyZones`, só para a function `weekly-recap` (que remove os dois) |
+| `job_telemetry_retention(today)` | diário 03:40 BRT (`nomaderun-telemetry-retention`), apaga eventos com mais de 30 dias |
+| `private.cell_in_privacy_zone(lat, lng)` | o corte de privacidade de `zone_paint_near` (`cells`; o `paintedToday` deixou de usar na B2, `20261029120000`) |
+
+## Correções da revisão da lógica v2 (revisor-onda4-logica.md: A1, M1–M5, B4)
+
+Migration `20261028120000_review_fixes` (aditiva). O que muda para o app:
+
+| Item | Mudança |
+|---|---|
+| **A1 (D-87)** | `zone_paint_near` (`cells` e `paintedToday`) e o percurso visto pela staff escondem a **máscara** de cada zona de privacidade, não o círculo exato: centro deslocado de 0,6 a 1,0 × raio numa direção sorteada e raio = raio + deslocamento + folga (25–85 m). Sorteio gravado uma vez por zona (`private.privacy_zone_masks`, nunca sai do banco); mover a zona move a máscara com o mesmo sorteio. O buraco no retrato fica maior e fora do centro da casa. Formato da resposta igual |
+| **M1** | `react_feed_item`: o teto de 200 conta os **itens aplaudidos no dia** (`kudos_log`, só servidor); desfazer não libera o teto; refazer no mesmo item não conta de novo nem reabre o aviso do autor. Texto: "Sua corrida ganhou 1 reação da crew." / "N reações". Erros iguais |
+| **M2** | `track_events` e `set_telemetry_consent` usam a mesma trava por pessoa: desligar durante um envio espera o envio e apaga os eventos dele. Formato igual |
+| **M3** | criar ou mover uma zona de privacidade tira na hora as rotas da pessoa já publicadas no feed (`route = null`, `routeHidden = true`; o item fica) |
+| **M4** | `kudos` **saiu** do Realtime (o DELETE não passa pela RLS e levava `user_id`). Entra **`feed_kudos_counts`** (`feed_item_id`, `bora`, `fogo`, `raio`, `total`; sem `user_id`, com a RLS de `can_see_feed_item`). Assinatura: `channel('feed-kudos').on('postgres_changes', { event: '*', schema: 'public', table: 'feed_kudos_counts' }, …)`; quem reagiu continua em `feed_item_kudos(p_item)` |
+| **M5** | `weekly_recap` / `weekly-recap`: `zones` conta só as zonas que ficaram com o **time da pessoa** |
+| **B4** | `league_current` mostra a semana anterior até o fechamento (segunda 03:20) |
+
+Tabelas novas: `kudos_log` (`user_id`, `day`, `feed_item_id`; cliente não lê; entra no `account_export_v2` como `kudosLog`, guarda 2 dias) e `feed_kudos_counts` (leitura pela crew, Realtime).
+
+## Ajustes finais (revisor-onda4-logica.md B1–B4; meta da crew D-88)
+
+Migration `20261029120000_final_fixes` (aditiva; pgTAP `30_final_fixes`). O que muda:
+
+| Item | Mudança |
+|---|---|
+| **B1** | `svc_v2_context` devolve **`stamp`** (número de gravações v2 da pessoa, lido antes do resto do contexto); a function o repete no plano e `svc_apply_v2`, com o perfil travado, recusa plano com carimbo velho: `ZONE_CONFLICT: outra corrida sua foi gravada durante o cálculo` (a function já repete com um contexto novo, até 3 vezes). Duas corridas da mesma pessoa finalizadas juntas não pagam mais o XP do dia em dobro nem gravam missão com evidência velha. Plano **sem** `stamp` (function antiga) é aceito como antes. Só `service_role` |
+| **B2** | `zone_paint_near().paintedToday` não corta mais as zonas de privacidade: a lista só tem os trechos **da própria pessoa** (ela vê os próprios trechos perto de casa; ninguém mais recebe a lista). `cells` continua cortado pela máscara (D-87). Formato igual |
+| **B3** | Par de demonstração de `react_feed_item` e `set_feed_settings` igual ao servidor: teto de 200 **itens** por dia (`kudos_log`), trocar/tirar a reação não gasta nem devolve o teto, ordem dos erros `VALIDATION` → `NOT_FOUND` → `KUDOS_SELF`; desligar "mostrar minhas corridas" apaga os itens publicados (religar não os traz) e desligar o mapa tira a rota dos itens existentes |
+| **B4 (app)** | `leagueWeek(now)` (domain) devolve a semana que ainda não fechou: entre segunda 00:00 e 03:20 é a anterior, igual a `league_current()` |
+| **D-88** | RPC nova **`crew_week_goal()`** (`authenticated`, `security definer`): meta semanal de km da crew de quem chama |
+
+### `crew_week_goal()` → `jsonb | null`
+
+`null` quando a pessoa não tem crew. Só totais da crew (nada por pessoa):
+
+```json
+{ "crewId": "uuid", "weekStart": "2026-10-26", "weekEnd": "2026-11-01", "members": 4, "ran": 3,
+  "meters": 18250, "goalMeters": 40000, "progress": 0.4563, "reached": false }
+```
+
+- **Meta** (`goalMeters`): 10 km por membro atual, piso 20 km, teto 300 km (`private.crew_week_goal_m`, mesma conta de `crewWeekGoalMeters` em `src/domain/crew-goal.ts`).
+- **Progresso**: soma de `meters` das corridas **aceitas** (pontuadas, `valid`/`partial`) dos membros **atuais** que terminaram na semana de Brasília (segunda 00:00 a domingo 23:59). `progress` = `meters / goalMeters`, entre 0 e 1 (4 casas). `ran` = membros com pelo menos 1 corrida aceita na semana.
+- Erros: `UNAUTHORIZED`, `ACCOUNT_INACTIVE`. Sem tabela nova, sem Realtime, nada novo no export LGPD (só leitura do que já existe).
+- App: `getCrewWeekGoal()` em `crews-repo.ts`; a barra do herói do Clube usa `progress` (km ÷ meta). Servidor antigo (sem a RPC): o Clube volta para a conta pelo `ranking_runners` (quem correu ÷ membros).
+

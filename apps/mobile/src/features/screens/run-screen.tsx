@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Pressable, Switch, useWindowDimensions, View } from 'react-native';
@@ -7,20 +6,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, IconButton } from '@/components/button';
 import { ChipRow } from '@/components/chip-row';
-import { FadeUp, PressableScale, RevealText, ScreenEnter, Stagger } from '@/components/motion';
+import { useDemoSealSpace } from '@/components/demo-badge';
+import { RewardToast } from '@/components/celebration';
+import { FadeUp, haptic, PressableScale, ProgressBar, ProgressRing, RevealText, ScreenEnter, ShimmerSkeleton, Stagger } from '@/components/motion';
 import { Screen, ScreenScroll } from '@/components/screen';
 import { TeamBadge } from '@/components/team-badge';
 import { HoldButton } from '@/components/hold-button';
 import { Icon, type IconName } from '@/components/icon';
 import { Text } from '@/components/text';
-import { ProgressBar } from '@/components/territory-bar';
 import TerritoryMap from '@/components/territory-map';
 import { ghostStatus } from '@/domain/games';
 import { formatDuration, formatKm, formatPace } from '@/domain/geo';
-import { CAPTURE_THRESHOLD, defenseWindowOpen, TAKEOVER_RATIO } from '@/domain/territory';
+import { isUnderAttackAt } from '@/domain/territory';
 import { DEMO_CENTER, zoneName } from '@/demo/demo-data';
 import { mapZonesNear } from '@/features/map-data';
 import { readableBackground } from '@/features/run/banner-color';
+import { anchorFromKey, hudFor, mapAnchorKey } from '@/features/run/live-hud';
 import { loadSafetyContacts } from '@/features/run/run-controller';
 import { timeFontSize, TickerText } from '@/features/run/ticker-text';
 import { useGpsPreflight } from '@/features/run/use-gps-preflight';
@@ -28,6 +29,8 @@ import { bootstrapOfflineSync } from '@/features/run/use-offline-sync';
 import { useRunSession, type RunMode } from '@/features/run/use-run-session';
 import { useRunSafety } from '@/features/safety/use-run-safety';
 import { useNow } from '@/features/use-now';
+import { bboxAround } from '@/services/api/zones-repo';
+import { isDemoActive } from '@/services/demo-mode';
 import { accessMessage, openAppSettings } from '@/services/location/permissions';
 import { WEAK_ACCURACY_M } from '@/services/location/signal';
 import { useGame, type MissionId } from '@/store/game-store';
@@ -35,13 +38,14 @@ import { useSession } from '@/store/session-store';
 import { useZones } from '@/store/zones-store';
 import { cssEasings, durations } from '@/theme/motion';
 import { factions, floating, palette, radius, space } from '@/theme/tokens';
-import { neon } from '@/theme/neon';
+import { neon, neonTeam } from '@/theme/neon';
 import { useTheme } from '@/theme/use-theme';
 
+// D-74: 1 linha curta por modo (antes, 13 palavras cada).
 const MISSIONS: { id: MissionId; title: string; body: string; icon: IconName }[] = [
-  { id: 'livre', title: 'Corrida livre', body: 'Só correr. Território e neblina contam do mesmo jeito.', icon: 'activities' },
-  { id: 'fuga', title: 'Fuga', body: 'Um fantasma corre no ritmo que você escolher. Termine à frente: pontos ×1,5.', icon: 'ghost' },
-  { id: 'caca', title: 'Caça', body: 'Baús escondidos pela cidade. Passe a 25 m para abrir.', icon: 'chest' },
+  { id: 'livre', title: 'Corrida livre', body: 'Corra e pinte a cidade.', icon: 'activities' },
+  { id: 'fuga', title: 'Fuga', body: 'Vença o seu fantasma.', icon: 'ghost' },
+  { id: 'caca', title: 'Caça', body: 'Abra baús a 25 m.', icon: 'chest' },
 ];
 
 /** Ritmos do fantasma oferecidos na Fuga (s/km). */
@@ -58,7 +62,9 @@ export function RunScreen() {
   const toggleEscort = useGame((s) => s.toggleEscort);
   const contacts = useGame((s) => s.contacts);
   const [mode, setMode] = useState<RunMode | null>(null);
-  const [source, setSource] = useState<RunMode>('simulacao');
+  // D-76: o GPS real é o padrão. A simulação só existe no modo demonstração (E10: `isDemoActive`).
+  const demo = isDemoActive();
+  const [source, setSource] = useState<RunMode>('gps');
   const [checkingGps, setCheckingGps] = useState(false);
 
   useEffect(() => {
@@ -73,11 +79,15 @@ export function RunScreen() {
     return (
       <GpsPreflight
         onReady={() => setMode('gps')}
-        onSimulate={() => {
-          setSource('simulacao');
-          setCheckingGps(false);
-          setMode('simulacao');
-        }}
+        onSimulate={
+          demo
+            ? () => {
+                setSource('simulacao');
+                setCheckingGps(false);
+                setMode('simulacao');
+              }
+            : undefined
+        }
         onCancel={() => setCheckingGps(false)}
       />
     );
@@ -94,8 +104,8 @@ export function RunScreen() {
           size="lg"
           wide
           onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            if (source === 'gps') setCheckingGps(true);
+            haptic('impact');
+            if (source === 'gps' || !demo) setCheckingGps(true);
             else setMode(source);
           }}
         />
@@ -167,44 +177,48 @@ export function RunScreen() {
           </FadeUp>
         ) : null}
 
-        <Text variant="title" accessibilityRole="header" style={{ marginTop: space[2] }}>
-          Sinal
-        </Text>
-        <View style={{ flexDirection: 'row', gap: space[2] }}>
-          {(
-            [
-              ['simulacao', 'Simulação', 'Volta no Flamboyant em 10×'],
-              ['gps', 'GPS real', 'Use na rua'],
-            ] as const
-          ).map(([key, title, body]) => (
-            <PressableScale
-              key={key}
-              testID={`corrida-sinal-${key}`}
-              accessibilityLabel={title}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: source === key }}
-              hitSlop={0}
-              onPress={() => setSource(key)}
-              containerStyle={{ flex: 1 }}
-              style={{
-                flexGrow: 1,
-                minHeight: 56,
-                padding: space[4],
-                gap: 2,
-                borderRadius: radius.lg,
-                borderCurve: 'continuous',
-                backgroundColor: colors.surface,
-                borderWidth: 2,
-                borderColor: source === key ? colors.action : 'transparent',
-                boxShadow: source === key ? neon.cardGlow : undefined,
-              }}>
-              <Text variant="bodyBold">{title}</Text>
-              <Text variant="caption" muted>
-                {body}
-              </Text>
-            </PressableScale>
-          ))}
-        </View>
+        {demo ? (
+          <>
+            <Text variant="title" accessibilityRole="header" style={{ marginTop: space[2] }}>
+              Sinal
+            </Text>
+            <View style={{ flexDirection: 'row', gap: space[2] }}>
+              {(
+                [
+                  ['gps', 'GPS real', 'Use na rua'],
+                  ['simulacao', 'Simulação (demonstração)', 'Volta no parque em 10×'],
+                ] as const
+              ).map(([key, title, body]) => (
+                <PressableScale
+                  key={key}
+                  testID={`corrida-sinal-${key}`}
+                  accessibilityLabel={title}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: source === key }}
+                  hitSlop={0}
+                  onPress={() => setSource(key)}
+                  containerStyle={{ flex: 1 }}
+                  style={{
+                    flexGrow: 1,
+                    minHeight: 56,
+                    padding: space[4],
+                    gap: 2,
+                    borderRadius: radius.lg,
+                    borderCurve: 'continuous',
+                    backgroundColor: colors.surface,
+                    borderWidth: 2,
+                    borderColor: source === key ? colors.action : 'transparent',
+                    boxShadow: source === key ? neon.cardGlow : undefined,
+                  }}>
+                  <Text variant="bodyBold">{title}</Text>
+                  <Text variant="caption" muted>
+                    {body}
+                  </Text>
+                </PressableScale>
+              ))}
+            </View>
+          </>
+        ) : null}
 
         <Text variant="title" accessibilityRole="header" style={{ marginTop: space[2] }}>
           Segurança
@@ -214,23 +228,22 @@ export function RunScreen() {
           <View style={{ flex: 1 }}>
             <Text variant="bodyBold">Corrida Segura</Text>
             <Text variant="small" muted>
-              {contacts.length === 0
-                ? 'Cadastre até 5 contatos para a Escolta e o SOS.'
-                : escortOn
-                  ? `Ao começar, sua localização vai para ${contacts.join(' e ')}.`
-                  : 'Compartilhe sua localização com seus contatos.'}
+              {contacts.length === 0 ? 'Adicione alguém de confiança.' : escortOn ? `${contacts.join(' e ')} veem onde você está.` : 'Desligada.'}
             </Text>
           </View>
           <Switch testID="corrida-escolta" value={escortOn} onValueChange={toggleEscort} accessibilityLabel="Corrida Segura" />
         </View>
-        <Button testID="corrida-contatos" label="Contatos de segurança" icon="shield" kind="secondary" wide onPress={() => router.push('/contatos-seguranca')} />
+        <Button testID="corrida-contatos" label="Contatos de segurança" kind="ghost" wide onPress={() => router.push('/contatos-seguranca')} />
       </ScreenEnter>
     </ScreenScroll>
   );
 }
 
 function ActiveRun({ mode }: { mode: RunMode }) {
-  const insets = useSafeAreaInsets();
+  // E10 (onda 4): na demonstração, a faixa do território e os avisos descem a altura do selo "Demonstração".
+  const safeInsets = useSafeAreaInsets();
+  const sealSpace = useDemoSealSpace();
+  const insets = { ...safeInsets, top: safeInsets.top + sealSpace };
   const { colors } = useTheme();
   const reduced = useReducedMotion();
   const s = useRunSession(mode);
@@ -241,26 +254,31 @@ function ActiveRun({ mode }: { mode: RunMode }) {
   const safety = useRunSafety({ position: s.position, active: s.phase === 'running' || s.phase === 'paused' });
   const [finishError, setFinishError] = useState<string | null>(null);
 
-  const mapZones = useMemo(() => mapZonesNear(zones, s.position ?? DEMO_CENTER, 1400), [zones, s.position]);
+  // Regiões do mapa: a âncora só muda ao cruzar a grade de ~500 m, então a suavização das zonas não é
+  // refeita a cada ponto de GPS (só quando as zonas ou a âncora mudam).
+  const anchorKey = mapAnchorKey(s.position ?? DEMO_CENTER);
+  const mapZones = useMemo(() => mapZonesNear(zones, anchorFromKey(anchorKey), 1600), [zones, anchorKey]);
+  // Zonas em volta da corrida: carga por área a cada troca de âncora (~500 m), não a cada ponto.
+  useEffect(() => {
+    void useZones.getState().loadBbox(bboxAround(anchorFromKey(anchorKey), 2000));
+  }, [anchorKey]);
 
-  const zoneId = s.run.currentZone;
+  // Zona atual: a da previsão ao vivo (E3) quando houver; senão a do motor da corrida.
+  const zoneId = s.live.current?.zoneId ?? s.run.currentZone;
   const zone = zoneId ? zones[zoneId] : undefined;
-  const owner = zone?.owner ?? null;
+  const owner = s.live.current ? s.live.current.owner : (zone?.owner ?? null);
   const rival = owner !== null && owner !== faction;
-  const defending = !!zone && owner === faction && defenseWindowOpen(zone, now);
+  const defending = !!zone && owner === faction && isUnderAttackAt(zone, now);
   // Faixa "Defendendo" amarela (ERS, QA-12): texto escuro sobre o amarelo para manter o contraste.
   const bannerInk = rival ? factions[owner!].onColor : defending ? palette.ink : palette.white;
-  const myInfluence = zone ? zone.influence[faction] : 0;
-  const runRp = zoneId ? (s.run.zoneMeters[zoneId] ?? 0) * 0.1 : 0;
-  const target = owner === null ? CAPTURE_THRESHOLD : rival ? zone!.influence[owner!] * TAKEOVER_RATIO : 0;
-  const progress = target > 0 ? (myInfluence + runRp) / target : 1;
+  const hud = hudFor(s.live.current, faction, s.live.conquered);
 
-  // One warning haptic when entering a rival zone, in the same frame as the banner (expo-animation).
+  // Uma vibração de aviso ao entrar em zona rival, no mesmo quadro da faixa.
   const lastRival = useRef<string | null>(null);
   useEffect(() => {
     if (rival && zoneId && lastRival.current !== zoneId) {
       lastRival.current = zoneId;
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      haptic('warning');
     }
     if (!rival) lastRival.current = null;
   }, [rival, zoneId]);
@@ -282,6 +300,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
 
   const timeText = formatDuration(s.elapsed);
   const bannerOn = rival || defending;
+  const toast = s.toasts[0] ?? null;
 
   // Layout (RNF-015, 360×640): o painel tem a altura do conteúdo e o mapa fica com o resto. Nada de
   // reticências nos números: 3 métricas (tempo ≥ 72 pt, distância e ritmo em 48 pt); controles ≥ 56 pt
@@ -296,6 +315,9 @@ function ActiveRun({ mode }: { mode: RunMode }) {
           span={900}
           user={s.position}
           path={s.path}
+          pathVersion={s.pathVersion}
+          // "A cidade pinta": o rastro sai na cor neon do time (D-70), nunca em hexágonos.
+          pathColor={neonTeam[faction]}
           chests={s.chests}
           followUser
           interactive={false}
@@ -332,11 +354,30 @@ function ActiveRun({ mode }: { mode: RunMode }) {
               {defending ? 'Defendendo seu território' : rival ? `Território dos ${factions[owner!].name}` : ''}
             </Text>
             <Text variant="caption" color={bannerInk}>
-              {defending ? 'Pontos em dobro nesta zona' : rival ? 'Corra aqui para conquistar' : ''}
+              {defending ? 'Pontos em dobro aqui' : rival ? 'Pinte as ruas para virar' : ''}
             </Text>
           </View>
         </Animated.View>
-        <View style={{ position: 'absolute', bottom: space[6] + space[3], left: space[4], right: space[4], flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3] }}>
+        {toast ? (
+          // Avisos de recompensa ao vivo (E5): pequeno ou médio, sem partículas (o GPS vem primeiro).
+          <View pointerEvents="box-none" style={{ position: 'absolute', top: insets.top + (bannerOn ? 72 : 0), left: space[4], right: space[4] }}>
+            <RewardToast
+              key={toast.id}
+              testID="corrida-aviso"
+              size={toast.size}
+              placement="top"
+              particles={false}
+              edgeGlow={toast.edgeGlow}
+              haptics={toast.haptics}
+              color={neonTeam[toast.faction]}
+              title={toast.title}
+              subtitle={toast.subtitle}
+              onDone={() => s.dismissToast(toast.id)}
+            />
+          </View>
+        ) : null}
+        <View
+          style={{ position: 'absolute', bottom: space[6] + space[3], left: space[4], right: space[4], flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3] }}>
           <Pressable
             testID="corrida-escolta-alternar"
             accessibilityRole="switch"
@@ -344,7 +385,17 @@ function ActiveRun({ mode }: { mode: RunMode }) {
             accessibilityLabel={safety.escortOn ? 'Escolta ligada. Toque para desligar' : 'Escolta desligada. Toque para ligar e compartilhar sua localização'}
             onPress={safety.toggleEscort}
             hitSlop={12}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.surface, paddingHorizontal: space[3], height: 32, borderRadius: radius.pill, boxShadow: floating, opacity: safety.escortOn ? 1 : 0.85 }}>
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              backgroundColor: colors.surface,
+              paddingHorizontal: space[3],
+              height: 32,
+              borderRadius: radius.pill,
+              boxShadow: floating,
+              opacity: safety.escortOn ? 1 : 0.85,
+            }}>
             <Icon name="shield" size={14} color={colors.text} />
             <Text variant="caption">{safety.escortOn ? 'Escolta ligada' : 'Escolta desligada'}</Text>
           </Pressable>
@@ -367,7 +418,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
         <View style={{ gap: space[1] }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: space[2] }}>
             <Text variant="caption" muted>
-              {mode === 'simulacao' ? 'Simulação 10×' : 'GPS'}
+              {mode === 'simulacao' ? 'Simulação (demonstração)' : 'GPS'}
               {s.run.autoPaused ? '  Pausa automática' : s.phase === 'paused' ? '  Pausada' : ''}
             </Text>
             <Text variant="caption" muted>
@@ -381,54 +432,67 @@ function ActiveRun({ mode }: { mode: RunMode }) {
           </View>
         </View>
 
-        <View testID="corrida-zona" style={{ gap: space[2], paddingHorizontal: space[3], paddingVertical: space[3], borderRadius: radius.md, borderCurve: 'continuous', backgroundColor: colors.surfaceSunken }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
-            <TeamBadge faction={owner} size={26} attack={!!zone?.attackStartedAt} />
-            <Text variant="bodyBold" style={{ flex: 1 }} numberOfLines={1}>
-              {zoneLabel ?? 'Procurando sinal'}
-            </Text>
-            <Text variant="small" tabular muted>
-              +{Math.round(runRp)} RP
-            </Text>
-          </View>
-          {owner === faction ? (
-            <Text variant="small" muted>
-              Zona do seu time. Cada metro reforça a defesa.
-            </Text>
-          ) : (
-            <>
-              <ProgressBar value={progress} color={factions[faction].color} />
-              <Text variant="small" muted numberOfLines={2}>
-                {progress >= 1 ? 'Conquista garantida ao terminar' : `Faltam ${Math.ceil(target - myInfluence - runRp)} RP para conquistar`}
+        <View
+          testID="corrida-zona"
+          style={{ gap: space[2], paddingHorizontal: space[3], paddingVertical: space[3], borderRadius: radius.md, borderCurve: 'continuous', backgroundColor: colors.surfaceSunken }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
+            {hud.kind === 'gap' ? (
+              <ProgressRing
+                testID="corrida-anel"
+                value={hud.progress}
+                size={52}
+                stroke={6}
+                color={neonTeam[faction]}
+                pulseAt={[0.25, 0.5, 0.75]}
+                accessibilityLabel={`${Math.round(hud.progress * 100)}% para conquistar`}>
+                <Text variant="caption" tabular>
+                  {Math.round(hud.progress * 100)}%
+                </Text>
+              </ProgressRing>
+            ) : (
+              <TeamBadge faction={hud.kind === 'searching' ? owner : faction} size={40} attack={!!zone && isUnderAttackAt(zone, now)} />
+            )}
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text variant="bodyBold" numberOfLines={1}>
+                {zoneLabel ?? 'Procurando sinal'}
               </Text>
-            </>
-          )}
+              <Text variant="small" muted numberOfLines={2} accessibilityLiveRegion="polite" testID="corrida-zona-status">
+                {/* E-01: previsão do aparelho com a regra de pintura (E3); quem decide é o servidor. */}
+                {hud.kind === 'conquered'
+                  ? 'Conquista provável: confirma no fim'
+                  : hud.kind === 'mine'
+                    ? 'Seu time: cada rua reforça'
+                    : hud.kind === 'gap'
+                      ? `Faltam ~${hud.gapMeters} m para conquistar`
+                      : 'Corra para pintar'}
+              </Text>
+            </View>
+          </View>
           {s.ghost !== null ? (
-            <Text variant="small" accessibilityLiveRegion="polite">
-              {ghost === 'ahead' ? `${Math.round(s.ghost)} m à frente do fantasma` : ghost === 'tied' ? 'Lado a lado com o fantasma' : `O fantasma está ${Math.round(-s.ghost)} m à frente`}
-            </Text>
+            // Ícone do fantasma + 2 palavras; o leitor de tela recebe a frase inteira.
+            <View
+              accessible
+              accessibilityLiveRegion="polite"
+              accessibilityLabel={ghost === 'ahead' ? `${Math.round(s.ghost)} metros à frente do fantasma` : ghost === 'tied' ? 'Lado a lado com o fantasma' : `Fantasma ${Math.round(-s.ghost)} metros à frente`}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+              <Icon name="ghost" size={16} color={ghost === 'caught' ? colors.textSecondary : neonTeam[faction]} />
+              <Text variant="small">{ghost === 'ahead' ? `Você +${Math.round(s.ghost)} m` : ghost === 'tied' ? 'Lado a lado' : `Fantasma +${Math.round(-s.ghost)} m`}</Text>
+            </View>
           ) : null}
           {s.mission === 'caca' ? (
             <Text variant="small">
               {s.chestToast
-                ? `Baú ${s.chestToast.rarity === 'lendario' ? 'lendário' : s.chestToast.rarity} aberto: +${s.chestToast.xp} XP`
+                ? `Baú ${s.chestToast.rarity === 'lendario' ? 'lendário' : s.chestToast.rarity}: +${s.chestToast.xp} XP`
                 : s.nearestChest
-                  ? `Baú mais próximo a ${Math.round(s.nearestChest.meters)} m`
-                  : 'Procurando baús por perto'}
+                  ? `Baú a ${Math.round(s.nearestChest.meters)} m`
+                  : 'Procurando baús'}
             </Text>
           ) : null}
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-around' }}>
           <View style={{ width: 88, alignItems: 'center', paddingTop: 10 }}>
-            <IconButton
-              testID="corrida-voz"
-              icon={s.voice ? 'speaker' : 'mute'}
-              label={s.voice ? 'Silenciar o Guia' : 'Ativar o Guia'}
-              tone="sunken"
-              size={56}
-              onPress={s.toggleVoice}
-            />
+            <IconButton testID="corrida-voz" icon={s.voice ? 'speaker' : 'mute'} label={s.voice ? 'Silenciar Guia' : 'Ativar Guia'} tone="sunken" size={56} onPress={s.toggleVoice} />
           </View>
           <HoldButton testID="corrida-encerrar" label="Segure para encerrar" onConfirm={finish} />
           <View style={{ width: 88, alignItems: 'center', paddingTop: 6 }}>
@@ -448,14 +512,28 @@ function ActiveRun({ mode }: { mode: RunMode }) {
         <Pressable
           testID="corrida-aviso-seguranca"
           accessibilityRole="alert"
-          accessibilityLabel="Fechar aviso"
+          accessibilityLabel={`${safety.notice.result.message} Toque para fechar o aviso.`}
           onPress={safety.dismissNotice}
-          style={{ position: 'absolute', top: insets.top + space[2], left: space[4], right: space[4], backgroundColor: safety.notice.kind === 'escort' ? colors.surface : colors.danger, padding: space[4], borderRadius: radius.lg, gap: 2, boxShadow: floating }}>
-          <Text variant="bodyBold" color={safety.notice.kind === 'escort' ? colors.text : '#FFFFFF'}>
-            {safety.notice.kind === 'sos' ? 'SOS com sua localização' : safety.notice.kind === 'stop' ? 'Alerta de parada enviado' : 'Escolta: localização compartilhada'}
-          </Text>
-          <Text variant="small" color={safety.notice.kind === 'escort' ? colors.text : '#FFFFFF'}>
-            {safety.notice.result.message} Toque para fechar.
+          style={{
+            position: 'absolute',
+            top: insets.top + space[2],
+            left: space[4],
+            right: space[4],
+            backgroundColor: safety.notice.kind === 'escort' ? colors.surface : colors.danger,
+            padding: space[4],
+            borderRadius: radius.lg,
+            gap: 2,
+            boxShadow: floating,
+          }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+            <Text variant="bodyBold" color={safety.notice.kind === 'escort' ? colors.text : colors.onDanger} style={{ flex: 1 }}>
+              {safety.notice.kind === 'sos' ? 'SOS com sua localização' : safety.notice.kind === 'stop' ? 'Alerta de parada enviado' : 'Escolta: localização compartilhada'}
+            </Text>
+            {/* O "x" substitui o "Toque para fechar." (o aviso inteiro fecha no toque). */}
+            <Icon name="close" size={18} color={safety.notice.kind === 'escort' ? colors.text : colors.onDanger} />
+          </View>
+          <Text variant="small" color={safety.notice.kind === 'escort' ? colors.text : colors.onDanger}>
+            {safety.notice.result.message}
           </Text>
         </Pressable>
       ) : null}
@@ -464,11 +542,19 @@ function ActiveRun({ mode }: { mode: RunMode }) {
           testID="corrida-alerta-parada"
           accessibilityRole="alert"
           accessibilityLiveRegion="assertive"
-          style={{ position: 'absolute', left: space[4], right: space[4], top: insets.top + 80, backgroundColor: colors.surface, padding: space[6], borderRadius: radius.lg, gap: space[3], boxShadow: floating }}>
+          style={{
+            position: 'absolute',
+            left: space[4],
+            right: space[4],
+            top: insets.top + 80,
+            backgroundColor: colors.surface,
+            padding: space[6],
+            borderRadius: radius.lg,
+            gap: space[3],
+            boxShadow: floating,
+          }}>
           <Text variant="title">Está tudo bem?</Text>
-          <Text muted>
-            Você está parado há mais de 10 minutos. Sem resposta em {safety.asking.secondsLeft} s, avisamos seus contatos com a sua localização.
-          </Text>
+          <Text muted>Parado há 10 min: sem resposta em {safety.asking.secondsLeft} s, seus contatos recebem sua localização.</Text>
           <Button testID="corrida-alerta-estou-bem" label="Estou bem" icon="check" size="lg" wide onPress={() => safety.confirmOk()} />
         </View>
       ) : null}
@@ -477,14 +563,26 @@ function ActiveRun({ mode }: { mode: RunMode }) {
           testID="corrida-finalizando"
           accessibilityLiveRegion="polite"
           style={{ position: 'absolute', inset: 0, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', gap: space[3], padding: space[6] }}>
+          <ShimmerSkeleton shape="circle" width={56} height={56} accessibilityLabel="Enviando" />
           <Text variant="title">Enviando sua corrida…</Text>
           <Text muted style={{ textAlign: 'center' }}>
-            O servidor confere os trechos e calcula os pontos oficiais. Sem internet, você vê o resumo provisório e ele é confirmado depois.
+            Sem internet, enviamos depois.
           </Text>
         </View>
       ) : null}
       {finishError ? (
-        <View style={{ position: 'absolute', left: space[4], right: space[4], bottom: insets.bottom + space[4], backgroundColor: colors.surface, padding: space[4], borderRadius: radius.lg, gap: space[3], boxShadow: floating }}>
+        <View
+          style={{
+            position: 'absolute',
+            left: space[4],
+            right: space[4],
+            bottom: insets.bottom + space[4],
+            backgroundColor: colors.surface,
+            padding: space[4],
+            borderRadius: radius.lg,
+            gap: space[3],
+            boxShadow: floating,
+          }}>
           <Text variant="bodyBold">{finishError}</Text>
           <Button testID="corrida-curta-fechar" label="Fechar" wide onPress={() => router.back()} />
         </View>
@@ -522,6 +620,9 @@ export const COUNTDOWN_STEP_MS = 800;
  */
 function Countdown({ count }: { count: number }) {
   const reduced = useReducedMotion();
+  const { colors } = useTheme();
+  // D-75: texto escuro sobre o laranja (7:1); antes era branco (2,9:1).
+  const ink = colors.onAction;
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const size = Math.round(Math.min(width * 0.62, height * 0.42, 280));
@@ -531,45 +632,39 @@ function Countdown({ count }: { count: number }) {
       testID="corrida-contagem"
       accessibilityLiveRegion="assertive"
       accessibilityLabel={count > 0 ? `Começa em ${count}` : 'Vai!'}
-      style={{ position: 'absolute', inset: 0, backgroundColor: palette.orange, alignItems: 'center', justifyContent: 'center', gap: space[4], paddingTop: insets.top, paddingBottom: insets.bottom }}>
+      style={{ position: 'absolute', inset: 0, backgroundColor: colors.action, alignItems: 'center', justifyContent: 'center', gap: space[4], paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <View style={{ height: size, overflow: 'hidden', justifyContent: 'center' }} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
         <Animated.View
           key={count}
           style={{
-            animationName: reduced
-              ? { from: { opacity: 0 }, to: { opacity: 1 } }
-              : { from: { transform: [{ translateY: size }] }, to: { transform: [{ translateY: 0 }] } },
+            animationName: reduced ? { from: { opacity: 0 }, to: { opacity: 1 } } : { from: { transform: [{ translateY: size }] }, to: { transform: [{ translateY: 0 }] } },
             animationDuration: reduced ? durations.reducedFade : durations.screen,
             animationTimingFunction: reduced ? cssEasings.standard : cssEasings.reveal,
             animationFillMode: 'both',
           }}>
-          <Text variant="hero" tabular color={palette.white} style={{ fontSize: count > 0 ? size : size * 0.45, lineHeight: size, letterSpacing: -4, textAlign: 'center' }}>
+          <Text variant="hero" tabular color={ink} style={{ fontSize: count > 0 ? size : size * 0.45, lineHeight: size, letterSpacing: -4, textAlign: 'center' }}>
             {label}
           </Text>
         </Animated.View>
       </View>
-      <Text variant="lead" color={palette.white}>
+      <Text variant="lead" color={ink}>
         Prepare-se
       </Text>
       <View style={{ flexDirection: 'row', gap: space[2] }} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
         {[3, 2, 1].map((n) => (
-          <View key={n} style={{ width: 40, height: 4, borderRadius: 2, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.35)' }}>
-            {n > count ? (
-              <View style={{ flex: 1, backgroundColor: palette.white }} />
-            ) : n === count ? (
-              <Animated.View
-                key={count}
-                style={{
-                  height: '100%',
-                  width: '100%',
-                  backgroundColor: palette.white,
-                  animationName: reduced ? { from: { opacity: 0 }, to: { opacity: 1 } } : { from: { width: '0%' }, to: { width: '100%' } },
-                  animationDuration: reduced ? durations.reducedFade : COUNTDOWN_STEP_MS,
-                  animationTimingFunction: 'linear',
-                  animationFillMode: 'both',
-                }}
-              />
-            ) : null}
+          // Barrinha de cada número: `ProgressBar` só com transform (enche em 0,8 s; antes animava `width`).
+          <View key={n} style={{ width: 40 }}>
+            <ProgressBar
+              key={n === count ? `agora-${count}` : n > count ? 'cheia' : 'vazia'}
+              value={n >= count ? 1 : 0}
+              from={n > count ? 1 : 0}
+              color={ink}
+              trackColor="rgba(7,7,8,0.22)"
+              ghost={false}
+              height={4}
+              duration={COUNTDOWN_STEP_MS}
+              accessibilityLabel={`Número ${n}`}
+            />
           </View>
         ))}
       </View>
@@ -581,7 +676,7 @@ function Countdown({ count }: { count: number }) {
  * GPS real: permissão com explicação antes do pedido, GPS desligado, negado de vez (Ajustes) e
  * sinal fraco por mais de 15 s com "iniciar mesmo assim" (UC-01 passo 2 e E3, RNF-013).
  */
-function GpsPreflight({ onReady, onSimulate, onCancel }: { onReady: () => void; onSimulate: () => void; onCancel: () => void }) {
+function GpsPreflight({ onReady, onSimulate, onCancel }: { onReady: () => void; onSimulate?: () => void; onCancel: () => void }) {
   const { colors } = useTheme();
   const pf = useGpsPreflight(true);
   const ready = pf.step.kind === 'ready';
@@ -627,7 +722,7 @@ function GpsPreflight({ onReady, onSimulate, onCancel }: { onReady: () => void; 
     const acc = step.accuracy !== null ? `Precisão atual: ${Math.round(step.accuracy)} m.` : 'Ainda sem posição.';
     if (step.signal === 'weak') {
       title = 'Sinal do GPS fraco';
-      body = `A precisão está pior que ${WEAK_ACCURACY_M} m há mais de 15 segundos. ${acc} Trechos com sinal ruim não contam pontos. Vá para um lugar aberto ou inicie mesmo assim.`;
+      body = `Precisão pior que ${WEAK_ACCURACY_M} m. ${acc} Trechos com sinal ruim não contam. Vá para um lugar aberto.`;
       actions = <Button testID="gps-iniciar-mesmo-assim" label="Iniciar mesmo assim" icon="play" size="lg" wide onPress={pf.startAnyway} />;
     } else {
       title = 'Procurando sinal do GPS';
@@ -642,7 +737,8 @@ function GpsPreflight({ onReady, onSimulate, onCancel }: { onReady: () => void; 
       footer={
         <>
           {actions}
-          <Button testID="gps-usar-simulacao" label="Usar simulação" kind="ghost" wide onPress={onSimulate} />
+          {/* D-76: a simulação só existe no modo demonstração. */}
+          {onSimulate ? <Button testID="gps-usar-simulacao" label="Usar simulação (demonstração)" kind="ghost" wide onPress={onSimulate} /> : null}
         </>
       }>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space[3] }}>

@@ -1,3 +1,4 @@
+import { DAILY_ZONE_CAP, DEFENSE_BONUS, effortMultiplier } from './scoring';
 import { FACTION_IDS, type FactionId } from './types';
 
 /**
@@ -60,6 +61,10 @@ function strongestRival(influence: Influence, except: FactionId | null) {
   return { faction: best, value };
 }
 
+/**
+ * @deprecated v1: o ataque nunca expira (E-03). Use `isUnderAttackAt(zone, now)`. Fica igual enquanto a
+ * gravação v1 do servidor estiver no ar.
+ */
 export const isUnderAttack = (z: Zone) => z.attackStartedAt !== null;
 
 /** RN-004: rival RP is reduced by the zone's shield level. */
@@ -70,7 +75,11 @@ export function effectiveRp(zone: Zone, faction: FactionId, rp: number): number 
   return rp;
 }
 
-/** Re-evaluates ownership and attack state after influence changed (RN-002, RN-003). */
+/**
+ * Re-evaluates ownership and attack state after influence changed (RN-002, RN-003).
+ * @deprecated v1, usada pela gravação atual do servidor: empate favorece os Striders (E-06), a zona neutra vai
+ * para o time mais forte mesmo que não tenha corrido (E-07) e o ataque não expira (E-03). Use `resolveZoneV2`.
+ */
 export function resolveZone(zone: Zone, now: number): { zone: Zone; events: ZoneEvent[] } {
   const events: ZoneEvent[] = [];
   const z: Zone = { ...zone, influence: { ...zone.influence } };
@@ -112,7 +121,10 @@ export function resolveZone(zone: Zone, now: number): { zone: Zone; events: Zone
   return { zone: z, events };
 }
 
-/** Adds a faction's RP to a zone, applying the shield, then resolves ownership. */
+/**
+ * Adds a faction's RP to a zone, applying the shield, then resolves ownership.
+ * @deprecated v1 (usa `resolveZone`). Use `applyRunPointsV2`.
+ */
 export function applyRunPoints(zone: Zone, faction: FactionId, rp: number, now: number) {
   if (zone.blocked || rp <= 0) return { zone, events: [] as ZoneEvent[] };
   const added = effectiveRp(zone, faction, rp);
@@ -154,9 +166,189 @@ export function fortifyZone(zone: Zone, ownerMetersToday: number): Zone {
   return { ...zone, shield };
 }
 
-/** RN-006: season reset multiplies every faction's influence by 0.3. */
+/**
+ * RN-006: season reset multiplies every faction's influence by 0.3.
+ * @deprecated v1: não reavalia o dono, que fica com influência < 30 até o decaimento das 03:00 (E-08).
+ * Use `seasonResetV2`.
+ */
 export function seasonReset(zone: Zone): Zone {
   const influence = { ...zone.influence };
   for (const f of FACTION_IDS) influence[f] *= SEASON_RESET_FACTOR;
   return { ...zone, influence };
+}
+
+/* ---------- v2: correções E-03, E-06, E-07 e E-08 (funções novas; as v1 acima ficam iguais) ---------- */
+
+/** E-03: o ataque vale por 24 h (a janela de defesa); depois disso expira sozinho. */
+export const attackExpired = (z: Zone, now: number) => z.attackStartedAt !== null && now - z.attackStartedAt > DEFENSE_WINDOW_MS;
+
+/** E-03: sob ataque só dentro das 24 h. Substitui `isUnderAttack` nas telas e nos alertas. */
+export const isUnderAttackAt = (z: Zone, now: number) => z.attackStartedAt !== null && !attackExpired(z, now);
+
+/** E-03: limpa o ataque vencido (para o job diário e antes de reavaliar a zona). */
+export function clearExpiredAttack(zone: Zone, now: number): Zone {
+  return attackExpired(zone, now) ? { ...zone, attackStartedAt: null, attacker: null } : zone;
+}
+
+/**
+ * E-06: o time mais forte (sem `except`), ou `null` quando há empate no topo. Não depende da ordem de
+ * FACTION_IDS, então nenhum time leva vantagem no desempate.
+ */
+export function strongestRivalV2(influence: Influence, except: FactionId | null): { faction: FactionId | null; value: number; tied: FactionId[] } {
+  let value = 0;
+  for (const f of FACTION_IDS) if (f !== except && influence[f] > value) value = influence[f];
+  const tied = value > 0 ? FACTION_IDS.filter((f) => f !== except && influence[f] === value) : [];
+  return { faction: tied.length === 1 ? tied[0] : null, value, tied };
+}
+
+/**
+ * Reavalia dono e ataque (RN-002, RN-003) com as correções:
+ * - E-06: empate no topo não dá a zona a ninguém (antes, os Striders venciam todo empate);
+ * - E-07: com `actor` (quem correu), só ele pode conquistar; a zona neutra não vai para quem não correu;
+ * - E-03: ataque vencido (mais de 24 h) é limpo antes, e um ataque novo volta a disparar o alerta.
+ */
+export function resolveZoneV2(zone: Zone, now: number, actor?: FactionId): { zone: Zone; events: ZoneEvent[] } {
+  const events: ZoneEvent[] = [];
+  const z: Zone = { ...clearExpiredAttack(zone, now), influence: { ...zone.influence } };
+  if (z.blocked) return { zone: { ...z, owner: null, attackStartedAt: null, attacker: null }, events };
+  const canCapture = (f: FactionId | null): f is FactionId => f !== null && (actor === undefined || f === actor);
+
+  if (z.owner === null) {
+    const top = strongestRivalV2(z.influence, null);
+    if (canCapture(top.faction) && top.value >= CAPTURE_THRESHOLD) {
+      z.owner = top.faction;
+      z.shield = 0;
+      events.push({ type: 'captured', zoneId: z.id, faction: top.faction, from: null });
+    }
+    return { zone: z, events };
+  }
+
+  const ownerValue = z.influence[z.owner];
+  const rival = strongestRivalV2(z.influence, z.owner);
+
+  if (canCapture(rival.faction) && rival.value >= ownerValue * TAKEOVER_RATIO && rival.value >= CAPTURE_THRESHOLD) {
+    const from = z.owner;
+    z.owner = rival.faction;
+    z.shield = 0;
+    z.attackStartedAt = null;
+    z.attacker = null;
+    events.push({ type: 'captured', zoneId: z.id, faction: rival.faction, from });
+    return { zone: z, events };
+  }
+
+  const ratio = ownerValue > 0 ? rival.value / ownerValue : rival.value > 0 ? Infinity : 0;
+  // Atacante: o rival mais forte; no empate, quem correu (se estiver no empate).
+  const attacker = rival.faction ?? (actor !== undefined && rival.tied.includes(actor) ? actor : null);
+  if (z.attackStartedAt === null && attacker && ratio >= ATTACK_RATIO) {
+    z.attackStartedAt = now;
+    z.attacker = attacker;
+    events.push({ type: 'under_attack', zoneId: z.id, owner: z.owner, attacker });
+  } else if (z.attackStartedAt !== null && ratio < ATTACK_CLEAR_RATIO) {
+    z.attackStartedAt = null;
+    z.attacker = null;
+    events.push({ type: 'defended', zoneId: z.id, owner: z.owner });
+  }
+  return { zone: z, events };
+}
+
+/** Soma os pontos de quem correu (com o escudo) e reavalia com `resolveZoneV2` (E-03, E-06, E-07). */
+export function applyRunPointsV2(zone: Zone, faction: FactionId, rp: number, now: number): { zone: Zone; events: ZoneEvent[] } {
+  if (zone.blocked || !(rp > 0)) return { zone, events: [] };
+  const added = effectiveRp(zone, faction, rp);
+  const next: Zone = { ...zone, influence: { ...zone.influence, [faction]: zone.influence[faction] + added } };
+  return resolveZoneV2(next, now, faction);
+}
+
+/**
+ * E-08: virada de temporada que reavalia o dono na hora. Influência × 0,3; dono abaixo de 30 perde a zona
+ * (antes ficava com ela até as 03:00). Ninguém conquista na virada: a próxima corrida decide.
+ */
+export function seasonResetV2(zone: Zone, now: number): { zone: Zone; events: ZoneEvent[] } {
+  const influence = { ...zone.influence };
+  for (const f of FACTION_IDS) influence[f] *= SEASON_RESET_FACTOR;
+  const z: Zone = { ...clearExpiredAttack(zone, now), influence };
+  if (z.owner && influence[z.owner] < CAPTURE_THRESHOLD) {
+    return {
+      zone: { ...z, owner: null, shield: 0, attackStartedAt: null, attacker: null },
+      events: [{ type: 'neutralized', zoneId: z.id, from: z.owner }],
+    };
+  }
+  return { zone: z, events: [] };
+}
+
+/* ---------- "faltam X m" na regra v1 (pedido da E6, E-01) ---------- */
+
+/** O que a pessoa precisa fazer na zona: conquistar, defender (é sua e está sob ataque), manter ou nada (bloqueada). */
+export type ZoneGoal = 'conquistar' | 'defender' | 'manter' | 'bloqueada';
+
+export type InfluenceGapInput = {
+  /** A zona como estava no começo da corrida (retrato do servidor). */
+  zone: Zone;
+  faction: FactionId;
+  now: number;
+  /** Ritmo da corrida até aqui e ritmo-base (esforço relativo, `effortMultiplier`). */
+  paceSecPerKm: number;
+  basePaceSecPerKm: number;
+  /** Outros multiplicadores que a pessoa já tem (sequência da v1, grupo). Padrão 1; menor que 1 vira 1. */
+  bonus?: number;
+  /** Pontos que a pessoa já fez nesta zona hoje (teto de 300 por zona e dia). */
+  earnedTodayInZone?: number;
+  /** Metros válidos que esta corrida já fez dentro da zona. */
+  runMetersInZone?: number;
+};
+
+export type InfluenceGap = {
+  goal: ZoneGoal;
+  /** Pontos de domínio que ainda faltam na zona (já descontado o escudo). */
+  points: number;
+  /** "Faltam X m" dentro da zona, no ritmo atual. */
+  meters: number;
+  /** Cabe no teto diário de pontos da zona (senão, só amanhã). */
+  reachableToday: boolean;
+};
+
+const finiteOr = (v: number | undefined, fallback: number) => (v !== undefined && Number.isFinite(v) ? v : fallback);
+
+/** Para ser o rival mais forte, precisa PASSAR de `other` quando ele vem antes na ordem de FACTION_IDS (E-06). */
+const mustExceed = (me: FactionId, other: FactionId) => FACTION_IDS.indexOf(other) < FACTION_IDS.indexOf(me);
+
+/**
+ * Metros (e pontos) que faltam para conquistar ou defender a zona na regra v1 (influência), com esforço,
+ * escudo, janela de defesa e teto diário: o espelho de `applyRunPoints` + `resolveZone`, que o servidor usa
+ * enquanto `territory_rule = 'v1'`. Troca a estimativa `metros × 0,1` do HUD (pedido da E6). Nunca promete
+ * menos do que é preciso: arredonda para cima e exige passar o rival mais forte.
+ */
+export function influenceGapV1(input: InfluenceGapInput): InfluenceGap {
+  const { zone, faction, now } = input;
+  if (zone.blocked) return { goal: 'bloqueada', points: 0, meters: 0, reachableToday: false };
+  const runMeters = Math.max(0, finiteOr(input.runMetersInZone, 0));
+  const earned = Math.max(0, finiteOr(input.earnedTodayInZone, 0));
+  const perMeter = 0.1 * effortMultiplier(input.basePaceSecPerKm, input.paceSecPerKm) * Math.max(1, finiteOr(input.bonus, 1));
+
+  /** `missing` pontos de domínio; cada ponto da corrida vale `perPoint` (escudo) e cada metro `perMeterHere`. */
+  const gap = (goal: ZoneGoal, missing: number, perPoint: number, perMeterHere: number): InfluenceGap => {
+    if (!(missing > 0)) return { goal: goal === 'defender' ? 'manter' : goal, points: 0, meters: 0, reachableToday: true };
+    // Pontos da corrida na zona; o servidor arredonda (Math.round) os metros × 0,1 × multiplicadores.
+    const raw = Math.ceil(missing / perPoint - 1e-9);
+    const meters = Math.max(0, Math.ceil((raw - 0.49) / perMeterHere) - runMeters);
+    return { goal, points: Math.ceil(missing - 1e-9), meters, reachableToday: earned + raw <= DAILY_ZONE_CAP };
+  };
+
+  const mine = zone.influence[faction];
+  if (zone.owner === faction) {
+    if (zone.attackStartedAt === null) return { goal: 'manter', points: 0, meters: 0, reachableToday: true };
+    // Defendida quando o rival mais forte fica abaixo de 40% do dono; na janela de 24 h o dono vale 2×.
+    let rival = 0;
+    for (const f of FACTION_IDS) if (f !== faction) rival = Math.max(rival, zone.influence[f]);
+    const defense = defenseWindowOpen(zone, now) ? DEFENSE_BONUS : 1;
+    return gap('defender', rival / ATTACK_CLEAR_RATIO - mine + (rival > 0 ? 1e-6 : 0), 1, perMeter * defense);
+  }
+
+  let target = zone.owner === null ? CAPTURE_THRESHOLD : Math.max(zone.influence[zone.owner] * TAKEOVER_RATIO, CAPTURE_THRESHOLD);
+  for (const f of FACTION_IDS) {
+    if (f === faction || f === zone.owner) continue;
+    target = Math.max(target, zone.influence[f] + (mustExceed(faction, f) ? 1e-6 : 0));
+  }
+  const shield = zone.owner ? 1 - SHIELD_REDUCTION[Math.min(Math.max(0, zone.shield), SHIELD_MAX)] : 1;
+  return gap('conquistar', target - mine, shield, perMeter);
 }

@@ -102,6 +102,20 @@ Auditoria inicial (A1, 2026-10-23, navegador em 375×667 e 390×844): `docs/ui-a
 | T6.5 | QA visual e de acessibilidade em 360×640, 375×667, 390×844 e 430×932; regerar imagens de referência; reduzir movimento; desempenho | A5 | T6.2–T6.4 | ✅ (`QA.md` §14; 60 fps e leitor de tela no aparelho: P-45) |
 | T6.6 | Docs e fechamento (README/guia de apresentação com os novos motions) | A1/A6 | T6.5 | ⬜ |
 
+### Fase 7 — Reformulação v2 (D-61 a D-82)
+Prompt: `docs/melhoria/00-PROMPT-MELHORIA-COLOSSAL.md`. Equipes: `.claude/agents/` (coordenador + E1–E10). **Plano detalhado, donos de pastas e critérios de aceite: `docs/melhoria/PLANO-MESTRE.md`.**
+
+| ID | Etapa | Dono | Depende | Status |
+|---|---|---|---|---|
+| T7.F0 | Prompt mestre e agentes de cada frente | Coordenador | — | ✅ |
+| T7.F1 | Descoberta e design: 10 relatórios em `docs/melhoria/F1/` | E1–E10 | T7.F0 | ✅ |
+| T7.F2 | Plano mestre e decisões D-62 a D-82 | Coordenador | T7.F1 | ✅ |
+| T7.1 | Onda 1 — Fundação (domain v2, arte, motion, componentes base, modo demonstração, CI, backend v2) | E3–E10 | T7.F2 | ✅ |
+| T7.2 | Onda 2 — Jogo de verdade e fluxos (gravação v2, engajamento, compartilhar, primeira abertura, Mapa, Correr, Resumo) | E4–E9 | T7.1 | ✅ |
+| T7.3 | Onda 3 — Outras telas (Arena, Você, Clube, zona, secundárias) e medição depois | E6, E3, E7, E9, E10 | T7.2 | ✅ |
+| T7.4 | Onda 4 — QA adversarial e polimento | E10 + revisor + donos | T7.3 | ✅ |
+| T7.5 | Fechamento: docs, apresentação, ERS v1.2 (proposta), push final | Coordenador | T7.4 | 🟡 docs ✅; slides da v2 ✅ (P-41); falta o push (autores) |
+
 ## 5. Pós-MVP / próximos passos
 
 Em ordem de prioridade. Os três primeiros grupos são necessários antes de qualquer piloto com corredores reais.

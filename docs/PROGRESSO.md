@@ -5,11 +5,11 @@
 
 ## Estado atual (resumo)
 
-- **Fase:** **5 concluída — MVP pronto para apresentação** (T0–T5 ✅ no `PLANO_DESENVOLVIMENTO.md`). **Fase 6 em andamento** (D-54): T6.1 ✅ (fundação de motion e layout, `docs/DESIGN_MOBILE_MOTION.md`); T6.2 ✅ (telas de conta e perfil, D-57); T6.3 ✅ (telas de jogo); T6.4 ✅ (fluxo da corrida, D-56); T6.5 ✅ (QA visual, motion e acessibilidade, `QA.md` §14); T6.6 liberada.
-- **Requisitos (61):** 32 ✅ · 22 🟡 · 5 ⬜ · 2 ➖. Nenhum P0 sem fazer (P0: 16 ✅, 9 🟡). Detalhes em `REQUISITOS.md`.
-- **Testes (2026-10-21, T6.5, banco local):** app `npm test` 398 ✅ (26 de integração ignorados sem `NOMADE_IT`; integração 26/26 com o backend) · `typecheck` ok · eslint 0 · domain 99,5% ramos/100% linhas · Playwright demo 14/14, auth 17/17, imagem 4/4 (referências regeneradas na T6.5) · varredura visual de 31 telas × 8 combinações sem rolagem horizontal, sem nada fora da tela e sem erros de console. Backend (Fase 5): pgTAP 285/285 · Deno 58 ok · e2e 56/56 · segurança `STRICT=1` 89/89.
-- **Como rodar e apresentar:** `README.md` (instalação e testes), `docs/COMO_APRESENTAR.md` (checklist, roteiro de 10 min, banca, plano B), `apps/mobile/README.md`.
-- **O que falta para a equipe humana:** validar em aparelho (P-05, P-07, P-17, P-21, P-28), deploy no Cloud se for apresentar pela nuvem (P-08, P-09/P-34), `npx expo install --fix` (P-37), revisão do ERS (P-02 → `ERS-ALTERACOES-PROPOSTAS.md`).
+- **Fase:** **7 — Reformulação v2: ondas 1 a 4 integradas e documentação fechada (F6)** (`docs/melhoria/PLANO-MESTRE.md`). Falta só o que depende dos autores: deploy do backend v2 e das flags, push final e prévia web. Slides da v2 prontos (P-41). Fases 0–6 concluídas (MVP + visual neon).
+- **Requisitos (61):** 39 ✅ · 17 🟡 · 3 ⬜ · 2 ➖. Nenhum P0 sem fazer (P0: 18 ✅, 7 🟡). Detalhes em `REQUISITOS.md` (o resumo antigo, 32/22, tinha um erro de soma).
+- **Testes (2026-10-28, branch `claude/affectionate-gauss-e8gm77`, banco local sem Docker):** app Jest **1.423 ✅** (26 de integração pulados sem `NOMADE_IT`) · `typecheck` ok · eslint 0 · pgTAP **846/846** em 30 arquivos · Deno **88 ok, 1 ignorado** · `demo-mode-flow` **21/21** (0 pedidos ao servidor) · 165 capturas "depois" sem erro de página · bundle web **1.186.919 B gzip** (orçamento 1.250.000). Não rodados aqui (precisam do Supabase local com Docker): `demo-flow`, `auth-flow`, e2e, segurança HTTP (`run.sh`, `run-v2.sh`).
+- **Como rodar e apresentar:** `README.md` (modo demonstração, instalação e testes), `docs/COMO_APRESENTAR.md` (roteiro da v2 em 10 min, cenários `?cenario=`, banca, plano B), `apps/mobile/README.md`, `supabase/DEPLOY.md` §10 (deploy da v2).
+- **O que falta para a equipe humana:** A-1 (senhas das contas demo no Cloud), deploy do backend v2 e flags (`DEPLOY.md` §10), nomes dos mascotes e líderes (D-70), validar em aparelho (P-05, P-07, P-17, P-21, P-28, P-45 e os itens da v2), `npx expo install --fix` (P-37), revisão do ERS (P-02 → `ERS-ALTERACOES-PROPOSTAS.md`, agora v1.1 + v1.2).
 - **Backend local:** API `http://127.0.0.1:54321` · chaves com `npx supabase status -o env` · e-mails em `http://127.0.0.1:54324` (`npm run mail`). Banco resetado no fim da Fase 5 (estado do seed).
 - **Bloqueios:** nenhum no código. Dependem de fora: aparelho físico, conta no Supabase Cloud, credenciais Google/Apple.
 
@@ -19,7 +19,7 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 | # | Pendência | Depende de | Dono | Origem |
 |---|---|---|---|---|
-| P-02 | ERS §6.2 descreve a paleta "Asfalto & Giz", mas o visual aprovado é o "Pista" (D-15). **Proposta pronta** em `docs/ERS-ALTERACOES-PROPOSTAS.md` (ERS v1.1, com outras diferenças); falta os autores editarem `docs/ERS/ERS-NOMADE-RUN.md` e regerarem o PDF/DOCX | 🧑 | Autores | Baseline |
+| P-02 | O ERS v1.0 não bate com o que foi construído (visual, mapas, painel web) nem com as regras da v2 (pintura, Raid semanal, Liga, sequência, feed da crew, telemetria, máscara das zonas de privacidade). **Proposta pronta** em `docs/ERS-ALTERACOES-PROPOSTAS.md` (Parte 1: v1.1; Parte 2: v1.2); falta os autores editarem `docs/ERS/ERS-NOMADE-RUN.md` e regerarem o PDF/DOCX | 🧑 | Autores | Baseline, Fase 7 |
 | P-05 | Validar em aparelho: seletor de foto, notificação local de invasão com o app aberto, SecureStore em partes, deep link `nomaderun://nova-senha?code=…` e diálogo "Trocar de conta?", permissão de notificações no Expo Go Android, compartilhamento do JSON exportado | 📱 | Equipe/A5 | T1.4–T1.6 |
 | P-06 | Login Google/Apple só com credenciais reais (código pronto, aparece com `EXPO_PUBLIC_AUTH_PROVIDERS`) | 🔑 ☁️ | Equipe | T1.5 |
 | P-07 | Fluxos Maestro feitos (`apps/mobile/.maestro/`), falta **rodar em aparelho**. Testes de tela com React Native Testing Library não feitos | 📱 | Equipe/A5 | T1.5 |
@@ -32,7 +32,6 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 | P-28 | Validar a Caça com GPS real (baús do servidor perto da última corrida, abrem no resumo oficial). Comentário de `listMyChestOpens` em `activities-repo.ts` desatualizado | 📱 💻 | A5/A4 | Fase 3 |
 | P-37 | QA-15: `npm audit` com avisos em ferramentas de build do SDK 57 (`npx expo install --fix` antes da entrega; bloqueado neste ambiente). A parte QA-14 (`apps/mobile/coverage/` no git) já foi resolvida pela coordenação | 🧑 | Equipe | T4.2 |
 | P-38 | QA-10 (risco aceito): o HMAC não prova que o cliente é o app oficial. Pós-MVP: Play Integrity/App Attest | 💻 | Pós-MVP | T4.2 |
-| P-41 | **Novo (A6):** slide "O que entregamos e o que falta" (`docs/apresentacao/slides/slides/entregas.html`, PDF e página web) ainda diz "60 testes" e "sem servidor". Atualizar com os números de `COMO_APRESENTAR.md` §5 e regerar | 🧑 | Autores | T5.1 |
 | P-43 | **Novo (A5, T6.5):** ajustes Baixa de layout — QA-20 alerta do mapa corta "pontos em dobro" (A8); QA-21 mais de 4 tamanhos de fonte em 21 de 28 telas (A7 com os donos); QA-23 "2 não lidas" quebra em 360 (A3); QA-24 nome "(você)" cortado no ranking em 360 (A8); QA-25 links do cadastro com 20 pt (A3) | 💻 | A3/A7/A8 | T6.5 |
 | P-44 | **Novo (A5, T6.5):** QA-22 — botões laranja, aba ativa e card "Sob ataque" com texto branco a 3,12:1 (marca aprovada, D-15). Decidir: rótulo ≥ 19 pt negrito, texto escuro sobre laranja ou `orangeText` no card | 🧑 | Autores + A7 | T6.5 |
 | P-45 | **Novo (A5, T6.5):** checklist do aparelho da Fase 6 (`QA.md` §14.7: folha 0,55/0,9, teclado, barra fixa acima das abas nativas, 60 fps, vibração, VoiceOver/TalkBack, reduzir movimento do sistema, tela bloqueada, área segura) | 📱 | Equipe/A5 | T6.5 |
@@ -64,6 +63,7 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 | P-35 | QA-11: pgTAP independente do estado do banco | A2 |
 | P-36 | QA-12/13: "Reduzir movimento", 44 pt, faixa amarela, testIDs (D-52) | A3 |
 | P-39 | App acompanhou o contrato da D-50 (D-53) | A3 |
+| P-41 | Apresentação refeita para a v2 (12 slides, capturas reais no modo demonstração); entregas com os números reais (1.419 Jest, pgTAP 832 em 29 arquivos, Deno 87, fluxo demo 21/21, 87 decisões); PDF e página web regerados | Coordenação (F6) |
 
 ## Modelo de entrada
 
@@ -79,10 +79,140 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
-### 2026-10-29 — APK para testes no Android (A1 Arquiteto)
-- **Feito:** `apps/mobile/eas.json` (perfil `preview`: APK, distribuição interna, canal `demo` do EAS Update, ambiente `preview`) e `npm run apk` (`scripts/apk.sh`): valida `.env.production` como o `publicar`, grava URL e chave anon no ambiente `preview` do EAS (`eas env:set`) e roda `eas build -p android --profile preview` na nuvem.
-- **Testes:** `bash -n` no script; o build em si precisa da conta EAS dos autores (não roda no container).
-- **Próximo:** na primeira vez o EAS pergunta o `android.package` e cria a keystore (aceitar o padrão). iPhone não instala APK: para iOS segue o Expo Go + EAS Update.
+### 2026-10-29 — Fase 7: rodada final antes do deploy (Coordenador)
+- **Feito:** Vercel pronta (`apps/mobile/vercel.json` + `supabase/DEPLOY.md` §11); texto final de Resumo, Zona, Corrida, Meu time, Quiz, Conta e Editar perfil dentro da meta (0 telas de jogo acima); servidor: B1 (corridas simultâneas sem XP em dobro), B2 (`paintedToday` perto de casa só para a própria pessoa), B3 (reações da demo iguais ao servidor), meta semanal de km da crew (**D-88**, `crew_week_goal()`), liga no app antes do fechamento de segunda 03:20.
+- **Testes:** app Jest 1.423 ✅ (26 pulados) · typecheck ok · eslint 0 · pgTAP 846/846 em 30 arquivos · Deno 88 ok, 1 ignorado. Slide "Entregas", PDF e página web regerados com esses números.
+- **Entrega:** pull request da branch `claude/affectionate-gauss-e8gm77` para a `main`.
+- **Depende dos autores:** A-1, deploy do backend v2 (`DEPLOY.md` §10, 16 migrations), Vercel (§11), nomes dos mascotes, testes em aparelho, `demo-flow`/`auth-flow` com Supabase local.
+
+### 2026-10-29 — Fase 7 — Editar perfil dentro da meta de texto (E6 UX)
+- **Feito:** Editar perfil 102 → 67 palavras (meta 80). Mudanças: avisos com ícone e 4 palavras; ajudas de usuário e de cidade numa linha só, mantendo "1 troca por temporada" e os formatos e o limite de 2 MB da foto; "Tudo salvo." no aviso de salvar. A captura do quiz foi refeita com "Refazer quiz". A tela de moderação (só da equipe) ficou como estava.
+- **Arquivos:** `apps/mobile/src/features/screens/edit-profile-screen.tsx`; capturas `perfil-editar__cheio__390.png`, `perfil-editar-fim__390.png` (antes/depois) e `quiz-resultado__390.png` (depois) em `docs/melhoria/capturas/e6-texto-*`.
+- **Testes:** typecheck ok; ESLint 0 problemas; `npx jest src/features/screens src/__tests__` → 16 suítes, 114 testes, 0 falhas.
+
+### 2026-10-29 — Fase 7 — Ajuste final de texto em 6 telas (E6 UX)
+- **Feito:** as 6 telas que passavam da meta da régua (`docs/melhoria/F1/ux/medir-texto.mjs --comparar antes`) ficaram dentro dela: Resumo 76 → 59 (meta 60), Zona 76 → 44 (50), Corrida ativa 109 → 87 (90), Meu time 72 → 53 (60), Quiz do time 71 → 44 (45), Conta e privacidade 84 → 73 (80). Blocos longos nessas telas: 6 → 0. Frases viraram ícone + 2–3 palavras (fantasma no resumo e na corrida, escudo na contagem da defesa, selo do time em cada acontecimento da zona, ícone em cada resposta do quiz e em cada consequência da troca de time); o texto completo continua no `accessibilityLabel`. As 3 consequências da troca de time, o alerta de parada da Corrida Segura, o que o export contém e o que a exclusão apaga continuam na tela (mais curtos). A régua ganhou `--detalhe <tela>` (cada fatia de texto com arquivo:linha).
+- **Arquivos:** `apps/mobile/src/features/screens/{summary-screen,zone-sheet,run-screen,faction-screen,account-screen}.tsx`, `onboarding/{quiz.ts,team-quiz.tsx}`, `apps/mobile/.maestro/05-uc01-corrida-simulada.yaml` (texto novo da conquista provável), `docs/melhoria/F1/ux/medir-texto.mjs`, capturas em `docs/melhoria/capturas/e6-texto-{antes,depois}/`.
+- **Testes:** `npm run typecheck` → ok; `./node_modules/.bin/eslint src` → 0 problemas; `npx jest --silent --maxWorkers=2` → 128 suítes, 1.419 passaram, 26 puladas, 0 falhas. Capturas antes/depois (modo demo, 390 px, pngquant): 0 erros de página, 0 pedidos ao servidor, sem texto cortado nem sobreposição.
+- **Pendências:** nenhuma nova.
+- **Para o próximo:** antes de pôr texto numa tela de jogo, rode `node docs/melhoria/F1/ux/medir-texto.mjs --detalhe "<rota>"` e confira a meta.
+
+### 2026-10-28 — Fase 7, F6 — Apresentação da v2 (P-41) (Coordenação)
+- **Feito:** a apresentação passou de 10 para 12 slides e trocou as telas da v1 pelas capturas reais da v2 (modo demonstração, com o selo "Demonstração" visível e a marca "Telas reais · modo demonstração" nos slides de produto). Slides novos: **Primeira abertura** (escolha do time com mascote, cor e forma) e **Juntos** (card para Stories, feed da crew com "Bora!", recap semanal). Refeitos: **Correr** (corrida ao vivo com SOS, conquista provável, resumo com recompensas), **Conquistar** (pintura de trechos que desbotam em 7 dias, zona com o time que pintou mais ruas, regiões suavizadas, 13% → 62% na simulação), **Arena** (chefão do Raid ilustrado, Liga semanal, missões e baú do dia), **Como construímos** (servidor, mesmo código das regras no app e no servidor, RLS/HMAC), **Demonstração** (roteiro da v2) e **Entregas** (1.419 testes do app, 832 do banco em 29 arquivos, 87 das funções, 21/21 do fluxo demo, 39/61 requisitos, 87 decisões). Rodapés só com o número do slide; crédito do OpenStreetMap saiu do rodapé para o canto superior do mapa. A página web passou a ter os mesmos 12 slides do PDF (os 2 slides do mockup interativo mostravam telas da v1 e saíram; o mockup continua em `docs/apresentacao/mockup/`).
+- **Arquivos:** `docs/apresentacao/slides/deck.json`, `slides/slides/*.html` (novos `times.html` e `social.html`), `telas-v2/` (12 capturas comprimidas com pngquant, ~300 KB no total), `pdf/montar_pdf.py`, `pdf/gerar_pdf.js` (sem limite de 10 páginas), `web/montar_web.py`, `package.json` (script `web`), `NOMADE RUN - Apresentação.pdf` (3,7 MB, antes 4,3 MB), `web/NOMADE RUN Apresentação.html` e `web/img/` (telas antigas `tel-*.png` removidas), `README.md` da apresentação.
+- **Testes:** `npm run pdf` → 12 páginas; `npm run web` → 12 slides; cada slide renderizado em PNG (1920×1080) e revisado (texto cortado, sobreposição, contraste); página web aberta no Chromium: 0 imagens quebradas, 0 pedidos falhos. Busca por "TCC", "Claude", IA e agentes no PDF e nos slides: 0. Nenhum código do app mudou.
+- **Problemas encontrados:** a tela de corrida ao vivo no navegador não desenha o mapa (área vazia no topo); no slide Correr ela aparece recortada, só com o painel de baixo (tempo, ritmo, SOS e conquista provável).
+- **Pendências:** P-41 fechada. Os nomes dos mascotes e líderes ainda dependem da D-70 (os slides não citam nomes de mascote). As cópias online antigas da apresentação continuam na v1.
+- **Para o próximo:** ao trocar números ou telas, editar `docs/apresentacao/slides/slides/*.html` e rodar `npm run pdf` e `npm run web` em `docs/apresentacao` (passo a passo no README dali).
+
+### 2026-10-28 — Fase 7: onda 4 integrada e documentação (F6) (Coordenador)
+- **Feito:**
+  - **Onda 4 (E10, `docs/melhoria/relatorios/E10-onda4.md`):** 165 capturas "depois" (55 rota×estado × 360/390/430, 0 erros, 0 pedidos ao servidor); `demo-mode-flow.cjs` novo (fluxo inteiro da v2 sem servidor, 21/21); `demo-flow`/`auth-flow` atualizados para o onboarding v2; régua de texto comparada (jogo: média 37 palavras, 5 telas acima da meta); teste de 5 s 4,3/5; contraste do texto renderizado sem falha real; checklist ético ok. Corrigidos: selo "Demonstração" por cima de texto (Alto), card de boas-vindas empilhado no Mapa, contraste de Missões/Recompensas, nome cortado no cartão do jogador.
+  - **Documentação (F6):** `REQUISITOS.md` (status da v2 e resumo), `API_CONTRATO.md` (índice do contrato v2 e jobs `fade-cells`/`telemetry-retention`), `supabase/DEPLOY.md` §10 (deploy completo da v2), `COMO_APRESENTAR.md` (roteiro da v2 no modo demonstração), `README.md` e `apps/mobile/README.md`, proposta de ERS v1.2 em `ERS-ALTERACOES-PROPOSTAS.md` (Parte 2), status da Fase 7 no `PLANO_DESENVOLVIMENTO.md`.
+- **Arquivos:** os docs acima. Nenhum código mudou nesta entrada.
+- **Testes (branch `claude/affectionate-gauss-e8gm77`, números da integração):** app Jest 1.411 ✅ (26 pulados) · typecheck ok · eslint 0 · pgTAP 832/832 (29 arquivos) · Deno 87 ok, 1 ignorado · `demo-mode-flow` 21/21 · bundle 1.186.919 B gzip de 1.250.000.
+- **Problemas encontrados na revisão dos docs:**
+  - o resumo de `REQUISITOS.md` somava 32 ✅/22 🟡, mas as linhas davam 31/23 (RNF e P1); corrigido junto com a v2;
+  - a Simulação só existe no modo demonstração (D-76): o roteiro antigo, que corria em Simulação com o servidor real, não funciona mais; o novo roteiro usa o modo demonstração;
+  - a política de privacidade (`/privacidade`, `features/auth/legal-screen.tsx`) agora cita a telemetria opt-in (corrigido pelo coordenador no fechamento).
+- **Pendências do dono (autores):**
+  - **A-1:** trocar no Supabase Cloud as senhas públicas de `admin.demo` e `moderador.demo`;
+  - **deploy do backend v2** e das flags, na ordem do `supabase/DEPLOY.md` §10 (território v2 só na troca de temporada; telemetria por último);
+  - **nomes** dos mascotes e líderes (D-70);
+  - **validar em aparelho:** fluxos Maestro, ícone da aba Correr no Android, splash no Android 12+, fps do baú lendário num Android de entrada, `toDataURL` do card, título do cabeçalho sob o selo no iOS, leitores de tela (TalkBack, VoiceOver, NVDA);
+  - **rodar `demo-flow` e `auth-flow`** com o Supabase local (Docker);
+  - **CI:** pôr o `demo-mode-flow.cjs` no job `web` (precisa de `npx playwright install chromium`);
+  - revisar e aplicar o ERS v1.2 (P-02) e atualizar os slides (P-41).
+- **Pendências técnicas abertas (baixas ou médias, não bloqueiam a apresentação):** XP do nível ≠ total do bloco Recompensas no Resumo; Resumo de corridas antigas sem o bloco v2 (`v2_extras` fora do `COLUMNS`); meta oficial de km da crew; `league.ts:53` com a regra da B4 (E3); consultas D1/D7/D30 da telemetria; B1–B3 da revisão da lógica; Mapa a 360 com chips cortados (E6b); Missões com 198 palavras e 2 selos (E7); título duplicado no Feed (E8); rótulos cortados na Arena (E6c); "48 zonas em Anápolis" no Mapa (E6b); erro/offline da demonstração vão para `/indisponivel` (E10); régua estática sem `/missoes`, `/recompensas` e `/compartilhar/*`.
+- **Para o próximo:** com o ok do dono, push final e prévia web na Vercel; depois do deploy da v2 no Cloud, ensaiar o roteiro de `COMO_APRESENTAR.md` também com o servidor real.
+
+### 2026-10-28 — Fase 7: terceira pausa a pedido do dono (Coordenador)
+- **Onda 4 (QA, E10) parada no meio**; nada dela integrado. Trabalho parcial (capturas "depois" e ajustes) no commit WIP `124423c` da branch `worktree-agent-a2bf11ee3fc2dce5c` (`.claude/worktrees/agent-a2bf11ee3fc2dce5c`). As capturas de rascunho ficaram em `tmp/` na raiz (ignorada só localmente).
+- **Para continuar:** retomar a E10 a partir do WIP (fluxo completo na demo, régua comparada, auditorias, bundle, ética e achados), integrar, e depois o fechamento (F6).
+
+### 2026-10-28 — Fase 7: onda 3 integrada e revisão corrigida (Coordenador)
+- **Retomada:** as frentes continuaram do próprio WIP (a entrada da pausa, logo abaixo, ficou superada). Por economia, no máximo 3 agentes ao mesmo tempo, com CodeGraph e rtk. Uma parada no limite de uso da conta foi salva em commits WIP e retomada sem perda.
+- **Integrado (merge `--no-ff`, um por frente):**
+  - E9 (servidor): `paintedToday`, `pauseAvailable`, CHECK booleano em `notification_prefs`, `weekly_recap` + Edge Function `weekly-recap`, telemetria com consentimento e retenção de 30 dias;
+  - E6a (Você com cartão de jogador, Ajustes, Corridas com mini-mapa), E6b (Mapa com a faixa de hoje, pintura ao vivo, Resumo com recompensas, folha da zona v2), E6c (Arena com chefão e modos, Clube com herói da crew, feed e pódio);
+  - E7 (telemetria opt-in, primeira semana nas missões, `/recompensas` enxuta, chave `kudos`), E4 (chama/gelo da sequência, ícone da aba Correr, splash, 5 vazios), E5 (StreakArt, arte da E4 nos momentos, leitor de tela na web, custo medido), E8 (arte no card, Bora!, aplausos ao vivo, recap semanal).
+- **Encaixes do coordenador:** telemetria em Ajustes; splash escuro no `app.json`; ícone da aba Correr; arte `sem-endereco` nas zonas de privacidade; botão do recap em Corridas; rota `compartilhar/semana` (modal); notificação do recap abrindo a semana; contorno do leitor de tela tirado do Resumo.
+- **Revisão da lógica e segurança** (`docs/melhoria/relatorios/revisor-onda4-logica.md`): 1 Alto, 5 Médios, 4 Baixos. Corrigidos pela E9 (`20261028120000_review_fixes.sql`, pgTAP 29): A1 (máscara estável das zonas de privacidade, **D-87**), M1 (teto de aplausos), M2 (trava da telemetria), M3 (feed recortado ao criar zona), M4 (`kudos` fora do Realtime → `feed_kudos_counts`, app ajustado pela E8), M5 (recap) e B4 (liga antes das 03:20). B1–B3 abertos (baixos).
+- **Testes (branch `claude/affectionate-gauss-e8gm77`):** app `typecheck` ok · eslint 0 · Jest 1.409 ✅ (26 de integração pulados) · pgTAP 832/832 (29 arquivos) · Deno 87 ok, 1 ignorado · régua de texto ok.
+- **Pendências abertas da onda 3:** XP do nível (+98) ≠ total do bloco Recompensas (153) no Resumo; Resumo de corridas antigas sem o bloco (`v2_extras` fora do `COLUMNS`); meta oficial de km da crew; `league.ts:53` com a regra da B4 (E3); consultas D1/D7/D30 da telemetria; validar em aparelho (ícone da aba no Android, splash no Android 12+, fps do baú lendário num Android de entrada, Maestro).
+- **Deploy (dono):** migrations novas + `functions deploy weekly-recap`; ligar `features.telemetry` só depois do app com a seção de consentimento (`DEPLOY.md` §9).
+- **Próximo:** onda 4 (E10: capturas "depois", régua comparada, teste de 5 s, auditorias, fluxos completos, bundle, ética) e o fechamento (F6).
+
+### 2026-10-28 — Fase 7: segunda pausa a pedido do dono (Coordenador)
+- **Feito antes da pausa:**
+  - merge da `main` (artigo científico);
+  - CI corrigida (D-86) e **verde nos 4 jobs** (app, Deno, banco e export web).
+- **Onda 3:** foi relançada (T7.3.1 a T7.3.8) a partir de `092497c` e **parada no meio**, a pedido do dono. **Nada dela foi integrado.** O trabalho parcial de cada frente ficou num commit "WIP" na branch da worktree (`.claude/worktrees/agent-*`). Só serve se o contêiner ainda for o mesmo.
+- **Revisor (onda 4):** a revisão da lógica e da segurança (`docs/melhoria/relatorios/revisor-onda4-logica.md`) foi parada antes de produzir resultado.
+- **Para continuar:**
+  - relançar a onda 3 do `docs/melhoria/PLANO-MESTRE.md` §2. Se as worktrees ainda existirem, cada frente pode partir do próprio WIP: conferir, terminar e testar;
+  - em seguida, a revisão da lógica e a onda 4 (QA);
+  - por fim, o fechamento (F6).
+
+### 2026-10-23 — Fase 7: pausa a pedido do dono (Coordenador)
+- **Estado:** ondas 1 e 2 integradas e enviadas (branch em `7dbdbba`). A **onda 3 foi interrompida** logo depois de começar, a pedido do dono, e **nada dela foi integrado**.
+- **Para continuar:** relançar a onda 3 do `docs/melhoria/PLANO-MESTRE.md` §2 (T7.3.1 a T7.3.8) a partir da branch atual; depois, a onda 4 (QA) e o fechamento. As worktrees parciais em `.claude/worktrees/` (se ainda existirem) não devem ser aproveitadas.
+
+### 2026-10-23 — Fase 7, onda 2 (o jogo de verdade e os fluxos) integrada (Coordenador + 9 frentes)
+- **Feito:**
+  - **E9:** gravação v2 atrás de flags (pintura, Raid, Liga, XP, missões, baú, recordes), pintura no banco, feed e aplausos, LGPD v2 e seed v2.
+  - **E3:** D-84, simulação do território como teste de regressão e repositórios de Raid, Liga e pintura.
+  - **E7:** `/missoes`, `/recompensas`, bloco de recompensas, lembretes locais, bem-vindo de volta e pausa de saúde.
+  - **E8:** compartilhar com imagem (nativo e web), GPX, feed da crew com "Bora!", convites e `expo-clipboard`.
+  - **E6a:** primeira abertura nova (D-72), abas Mapa · Arena · Correr · Clube · Você (D-73), "Ver demonstração" e selo.
+  - **E6b:** Mapa v2, Correr v2 com HUD ao vivo e Resumo cinematográfico.
+  - **E4:** líderes, mascotes em corrida, logo e ícone oficial (no `app.json`).
+  - **E5:** arte real nas celebrações, adaptador de eventos ao vivo, "Bora!" e preferências.
+  - **E10:** interruptor do modo demonstração, teste "só transform e opacidade" e CI com pgTAP e contraste estrito.
+- **Correções do coordenador na integração:**
+  - formato do `zone_paint_near` no `paint-repo`;
+  - índices de pares da demonstração;
+  - rotas de compartilhar no `_layout`;
+  - texto novo da corrida no e2e e no guia.
+- **Testes:** app 1.287 ✅ (26 de integração pulados) · typecheck ok · eslint 0 · **pgTAP 716/716 ✅** · Deno 82 ✅ · CI no GitHub.
+- **Decisões:** D-85.
+- **Para o próximo:** onda 3 (`PLANO-MESTRE.md` §2): Arena, Você, Clube, folha da zona e os encaixes entre as frentes.
+
+### 2026-10-23 — Fase 7, onda 1 (fundação) integrada (Coordenador + E3–E10)
+- **Feito:**
+  - **E3:** território v2 (`paint.ts`), eventos ao vivo, Raid, Liga e correções do domain em funções v2 (as v1 ficam iguais).
+  - **E7:** `progression.ts`, `missions.ts`, `reminders.ts`.
+  - **E8:** `share-privacy.ts`, `gpx.ts` e os cards SVG.
+  - **E4:** sistema de arte em `components/art` e `/dev/arte`.
+  - **E5:** tokens de motion v2, primitivas, celebrações e `/dev/motion`.
+  - **E6:** honestidade (GPS como padrão, sem textos falsos), contraste D-75 e componentes base.
+  - **E10:** modo demonstração (`EXPO_PUBLIC_DEMO=1`), teste de contrato, capturas "antes cheio", vazamento do Jest e CI no GitHub.
+  - **E9:** banco local no repositório (`npm run db:test:local`), contrato v2 com flags desligadas, Raid, Liga, missões, trilha, baú do dia e sequência com pausa.
+- **Testes:**
+  - app 986 ✅ (26 de integração pulados) · typecheck ok · eslint 0 · domain 100% linhas;
+  - Deno 58 ✅;
+  - **pgTAP 574/574 ✅ no banco local**;
+  - CI no GitHub ativa (jobs app, web e functions).
+- **Decisões:** D-83 (detalhes da onda 1) e D-84 (Fuligem fora de agosto e setembro).
+- **Para o próximo:** onda 2 conforme o `PLANO-MESTRE.md` §2 (9 frentes).
+
+### 2026-10-23 — Fase 7 (F0–F2) — Reformulação v2: prompt, agentes, descoberta e plano (Coordenador)
+- **Feito:**
+  - **F0:** prompt mestre `docs/melhoria/00-PROMPT-MELHORIA-COLOSSAL.md`; 11 agentes em `.claude/agents/` (coordenador + E1–E10); D-61 (substitui a D-15); nota da Fase 7 no `CLAUDE.md`.
+  - **F1:** 10 relatórios em `docs/melhoria/F1/` (pesquisa, skills e MCPs, jogo e território com simulação, arte com 57 SVGs, motion com protótipos, UX com régua de texto e wireframes, engajamento, social com cards, backend com banco local, qualidade com linha de base e capturas "antes"); 20 skills novas em `.claude/skills/`.
+  - **F2:** `docs/melhoria/PLANO-MESTRE.md`; decisões D-62 a D-82; Fase 7 no `PLANO_DESENVOLVIMENTO.md`.
+- **Correção:** `src/domain/season.ts` (tela Meu time) não estava registrado na ponte das functions. Os 3 testes de `domain_bridge.test.ts` falhavam; agora passam (Deno 58/58).
+- **Testes:** app `npx jest` 417 ✅ (26 de integração pulados) · typecheck ok · eslint 0 · Deno 58 ✅ · **banco local sem Docker: pgTAP 285/285 ✅** (`docs/melhoria/F1/backend/banco-local.sh`).
+- **Achados importantes da F1:**
+  - a Nova corrida começa em "Simulação" (`run-screen.tsx:61`);
+  - textos que prometem o que o jogo não faz (E-01, E-04, E-18, E-21 a E-24);
+  - texto branco no laranja a 2,87:1;
+  - 8 s de tela branca sem servidor;
+  - o decaimento roda todo dia (não toda semana).
+  Todos entram na onda 1.
+- **Pendências do dono:** A-1 (trocar as senhas das contas de demonstração no Cloud); deploy do backend v2 e flags (depois da onda 2); aprovar os nomes de mascotes e líderes (D-70); MCPs opcionais.
+- **Para o próximo:** seguir as ondas do `PLANO-MESTRE.md` §2; regras de execução no §4.
+
 
 ### 2026-10-21 — Correções da revisão nº 1 (A1 Arquiteto)
 - **Feito:** A-2 mapa centraliza na posição real (`services/location/current.ts`, testado) e, sem localização, mostra Goiânia rotulada como demonstração; A-3 `npm run publicar` (`scripts/publicar.sh`) publica no EAS Update sempre com `apps/mobile/.env.production` (recusa URL local e chave secreta), `.env.production.example`; M-1 folga de 14 pt para o brilho dos chips (`GLOW_ROOM`) nas linhas roláveis e nos filtros do mapa; docs: aviso das senhas demo só locais + como trocar na nuvem (README, COMO_APRESENTAR §1 com a opção C), RNF-010 como desvio (D-59), RNF-011 atualizado.

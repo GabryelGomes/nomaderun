@@ -1,0 +1,204 @@
+{
+  "rates": [
+    1,
+    4,
+    6
+  ],
+  "reps": 3,
+  "rows": [
+    {
+      "cena": "galeria parada (referência)",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "galeria parada (referência)",
+      "cpu": "4×",
+      "fps": 60,
+      "p95": 16.8,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "galeria parada (referência)",
+      "cpu": "6×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "confete 60 (sozinho)",
+      "cpu": "1×",
+      "fps": 59.1,
+      "p95": 16.8,
+      "max": 33.4,
+      "jank": 1.5
+    },
+    {
+      "cena": "confete 60 (sozinho)",
+      "cpu": "4×",
+      "fps": 56.4,
+      "p95": 16.8,
+      "max": 99.9,
+      "jank": 2.4
+    },
+    {
+      "cena": "confete 60 (sozinho)",
+      "cpu": "6×",
+      "fps": 53.2,
+      "p95": 16.8,
+      "max": 183.3,
+      "jank": 4.3
+    },
+    {
+      "cena": "baú lendário (5 Svg + 60 confetes + item)",
+      "cpu": "1×",
+      "fps": 58.2,
+      "p95": 16.7,
+      "max": 66.6,
+      "jank": 0.8
+    },
+    {
+      "cena": "baú lendário (5 Svg + 60 confetes + item)",
+      "cpu": "4×",
+      "fps": 51.8,
+      "p95": 16.8,
+      "max": 233.3,
+      "jank": 3.4
+    },
+    {
+      "cena": "baú lendário (5 Svg + 60 confetes + item)",
+      "cpu": "6×",
+      "fps": 45.5,
+      "p95": 33.4,
+      "max": 383.3,
+      "jank": 14.8
+    },
+    {
+      "cena": "golpe no chefão (3 Svg + silhueta)",
+      "cpu": "1×",
+      "fps": 58.3,
+      "p95": 16.8,
+      "max": 33.3,
+      "jank": 2.9
+    },
+    {
+      "cena": "golpe no chefão (3 Svg + silhueta)",
+      "cpu": "4×",
+      "fps": 52.5,
+      "p95": 16.8,
+      "max": 150,
+      "jank": 3.2
+    },
+    {
+      "cena": "golpe no chefão (3 Svg + silhueta)",
+      "cpu": "6×",
+      "fps": 45.2,
+      "p95": 33.3,
+      "max": 250,
+      "jank": 5.9
+    },
+    {
+      "cena": "nível novo (raios + mascote + 60 confetes)",
+      "cpu": "1×",
+      "fps": 58.6,
+      "p95": 16.8,
+      "max": 66.6,
+      "jank": 0.8
+    },
+    {
+      "cena": "nível novo (raios + mascote + 60 confetes)",
+      "cpu": "4×",
+      "fps": 50.5,
+      "p95": 16.8,
+      "max": 266.7,
+      "jank": 4.5
+    },
+    {
+      "cena": "nível novo (raios + mascote + 60 confetes)",
+      "cpu": "6×",
+      "fps": 50.9,
+      "p95": 33.3,
+      "max": 166.7,
+      "jank": 5.1
+    },
+    {
+      "cena": "baú lendário, movimento reduzido",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "baú lendário, movimento reduzido",
+      "cpu": "4×",
+      "fps": 55,
+      "p95": 16.8,
+      "max": 116.7,
+      "jank": 1.5
+    },
+    {
+      "cena": "baú lendário, movimento reduzido",
+      "cpu": "6×",
+      "fps": 50.1,
+      "p95": 16.8,
+      "max": 216.6,
+      "jank": 1.6
+    },
+    {
+      "cena": "onboarding: 4 MascotRunner leve + 1 LeaderBust, vivos",
+      "cpu": "1×",
+      "fps": 58.8,
+      "p95": 16.7,
+      "max": 50,
+      "jank": 0.7
+    },
+    {
+      "cena": "onboarding: 4 MascotRunner leve + 1 LeaderBust, vivos",
+      "cpu": "4×",
+      "fps": 52,
+      "p95": 16.8,
+      "max": 333.3,
+      "jank": 1.5
+    },
+    {
+      "cena": "onboarding: 4 MascotRunner leve + 1 LeaderBust, vivos",
+      "cpu": "6×",
+      "fps": 48.4,
+      "p95": 16.8,
+      "max": 483.4,
+      "jank": 2.4
+    },
+    {
+      "cena": "arte viva (8 LeaderBust + 4 MascotRunner + outros)",
+      "cpu": "1×",
+      "fps": 53.2,
+      "p95": 16.8,
+      "max": 250,
+      "jank": 3
+    },
+    {
+      "cena": "arte viva (8 LeaderBust + 4 MascotRunner + outros)",
+      "cpu": "4×",
+      "fps": 20.7,
+      "p95": 83.3,
+      "max": 1249.9,
+      "jank": 33.3
+    },
+    {
+      "cena": "arte viva (8 LeaderBust + 4 MascotRunner + outros)",
+      "cpu": "6×",
+      "fps": 3.7,
+      "p95": 1949.9,
+      "max": 1949.9,
+      "jank": 60
+    }
+  ],
+  "errors": [],
+  "nota": "Medianas de 3 repetições por linha (Chromium headless, 420×900, DPR 2). fps = quadros/s na janela; p95 e max = intervalo entre quadros (ms); jank = % de quadros > 25 ms. CPU 4×/6× = Emulation.setCPUThrottlingRate (aproxima Android médio/de entrada)."
+}

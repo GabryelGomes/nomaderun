@@ -2,7 +2,9 @@ import * as Location from 'expo-location';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
+import { EmptyArt } from '@/components/art';
 import { Button, IconButton } from '@/components/button';
+import { EmptyState } from '@/components/empty-state';
 import { Icon } from '@/components/icon';
 import { FadeUp, RevealText, staggerDelay } from '@/components/motion';
 import { Surface } from '@/components/surface';
@@ -151,10 +153,7 @@ export function PrivacyZonesScreen() {
           />
         )
       }>
-      <Text muted>
-        Até {MAX_PRIVACY_ZONES} endereços, como casa ou trabalho. O trecho da corrida a menos de {DEFAULT_PRIVACY_RADIUS} m deles continua valendo pontos, mas não aparece para
-        outras pessoas.
-      </Text>
+      <Text muted>A {DEFAULT_PRIVACY_RADIUS} m deles, sua rota vale pontos, mas ninguém vê.</Text>
 
       {/* Ao adicionar, o mapa e o formulário vêm primeiro: o ponto é escolhido tocando no mapa. */}
       {adding ? (
@@ -194,7 +193,9 @@ export function PrivacyZonesScreen() {
               <ActivityIndicator color={colors.action} />
             </View>
           ) : null}
-          {loaded && zones.length === 0 ? <Text muted>Nenhum endereço ainda. Adicione sua casa para esconder o começo e o fim das corridas.</Text> : null}
+          {loaded && zones.length === 0 ? (
+            <EmptyState testID="zonas-privacidade-vazio" compact art={<EmptyArt kind="sem-endereco" size={160} />} title="Nenhum endereço" body="Adicione sua casa para escondê-la do mapa." />
+          ) : null}
           {zones.map((z, i) => {
             const name = z.label ?? `Endereço ${i + 1}`;
             return (

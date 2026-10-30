@@ -3,15 +3,17 @@ import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Button } from '@/components/button';
-import { Icon } from '@/components/icon';
+import { Icon, type IconName } from '@/components/icon';
 import { FadeUp, Pressable, RevealText, Stagger } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
+import { trustLevel } from '@/domain/trust';
 import { ErrorNotice, InfoNotice, TextField } from '@/features/auth/form-ui';
 import { signOut, signOutAfterDeletion } from '@/features/auth/session-controller';
 import { saveAndShareJson } from '@/lib/share-json';
 import { DELETE_CONFIRMATION, deleteMyAccount, exportMyData, isWrongPasswordError } from '@/services/api/account-repo';
+import { useGame } from '@/store/game-store';
 import { useSession } from '@/store/session-store';
 import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
@@ -20,6 +22,7 @@ import { useTheme } from '@/theme/use-theme';
 export function AccountScreen() {
   const { colors } = useTheme();
   const email = useSession((s) => s.session?.email);
+  const trust = useGame((s) => s.trust);
   const [exporting, setExporting] = useState(false);
   const [exportMsg, setExportMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -89,14 +92,28 @@ export function AccountScreen() {
           </Text>
         </Surface>
 
+        {/* Saiu do perfil (F1 §5.8): o índice de confiança fica aqui e no resumo, quando cai. */}
+        <Surface>
+          <Text testID="conta-confianca" variant="bodyBold">
+            Índice de confiança: {trust}
+          </Text>
+          <Text variant="small" muted>
+            {trustLevel(trust) === 'ok'
+              ? 'Suas corridas contam normalmente.'
+              : trustLevel(trust) === 'review'
+                ? 'Suas corridas são revisadas antes de pontuar.'
+                : 'Competição suspensa por 30 dias.'}
+          </Text>
+        </Surface>
+
         <View style={{ gap: space[3] }}>
           <RevealText variant="title" header delay={100} style={{ paddingHorizontal: space[1] }}>
             Seus dados
           </RevealText>
           <Surface>
-            <Text variant="bodyBold">Exportar meus dados</Text>
+            {/* O botão já diz "Exportar meus dados": o título repetido saiu (ajuste de texto E6). */}
             <Text variant="small" muted>
-              Gera um arquivo JSON com seu perfil, corridas, pontos de GPS, contatos da Corrida Segura e notificações.
+              JSON com perfil, corridas, trajetos de GPS, contatos da Corrida Segura e notificações.
             </Text>
             <Button testID="conta-exportar" label={exporting ? 'Gerando arquivo…' : 'Exportar meus dados'} kind="secondary" icon="share" wide disabled={exporting} onPress={doExport} />
             <ErrorNotice message={error} testID="conta-exportar-erro" />
@@ -120,10 +137,12 @@ export function AccountScreen() {
         <View style={{ gap: space[3] }}>
           <SectionHeader title="Excluir conta" />
           <Surface>
-            <Text variant="small" muted>
-              Apaga seu perfil, corridas, pontos de GPS, contatos e notificações. As zonas continuam no mapa, sem seu nome.
-              Não dá para desfazer.
-            </Text>
+            {/* O que a exclusão faz, em 3 linhas com ícone (antes, 1 parágrafo de 3 frases). */}
+            <View style={{ gap: space[2] }}>
+              <DeleteFact icon="close" text="Apaga perfil, corridas, GPS, contatos e notificações." />
+              <DeleteFact icon="map" text="As zonas ficam no mapa, sem seu nome." />
+              <DeleteFact icon="warning" text="Não dá para desfazer." />
+            </View>
             {deleteOpen ? (
               <FadeUp style={{ gap: space[3] }}>
                 <TextField
@@ -183,5 +202,17 @@ function LinkRow({ label, onPress, testID }: { label: string; onPress: () => voi
       </Text>
       <Icon name="chevron" size={18} color={colors.textSecondary} />
     </Pressable>
+  );
+}
+
+function DeleteFact({ icon, text }: { icon: IconName; text: string }) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+      <Icon name={icon} size={16} color={colors.textSecondary} />
+      <Text variant="small" muted style={{ flex: 1 }}>
+        {text}
+      </Text>
+    </View>
   );
 }

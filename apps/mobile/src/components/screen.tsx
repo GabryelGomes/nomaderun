@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
+import { useDemoSealSpace } from './demo-badge';
 import { NeonAmbient } from './neon-ambient';
 
 /**
@@ -120,7 +121,10 @@ type CommonProps = {
 };
 
 function useReserve(footer: ReactNode, edges: Edge[], footerProps?: CommonProps['footerProps']) {
-  const insets = useSafeAreaInsets();
+  const safe = useSafeAreaInsets();
+  // E10 (onda 4): na demonstração, o selo fixo do alto ocupa ~22 px; o conteúdo começa abaixo dele.
+  const seal = useDemoSealSpace();
+  const insets = seal ? { ...safe, top: safe.top + seal } : safe;
   const [barHeight, setBarHeight] = useState(0);
   const safeBottom = footer ? (footerProps?.safeBottom ?? true) : edges.includes('bottom');
   const reserve = bottomBarReserve({ barHeight, insetBottom: insets.bottom, hasBar: Boolean(footer), safeBottom });

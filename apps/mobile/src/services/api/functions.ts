@@ -14,7 +14,8 @@ export type FunctionName =
   | 'zone'
   | 'moderate-activity'
   | 'account-export'
-  | 'account-delete';
+  | 'account-delete'
+  | 'weekly-recap';
 
 export type CallOptions = {
   method?: 'GET' | 'POST';

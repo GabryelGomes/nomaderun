@@ -434,3 +434,71 @@ Faça em um iPhone (de preferência SE ou 13 mini) e em um Android médio, com o
 | QA-19 (Média) | ✅ corrigido | `readableBackground` (`src/features/run/banner-color.ts`) escurece só o necessário o fundo da faixa: Volt −16% (4,64:1), Owls −6% (4,67:1); Striders e Coyotes inalterados | `src/features/run/__tests__/banner-color.test.ts` (4 times ≥ 4,5:1) |
 | QA-20, QA-23, QA-24, QA-25 (Baixa) | ⬜ abertos | Textos cortados/quebrados em 360 pt e links de 20 pt | P-42 a P-45 |
 | QA-21, QA-22 (Baixa) | ⬜ decisão | Mais de 4 tamanhos de fonte; branco sobre o laranja da marca 3,12:1 (já existia, D-15) | Decisão dos autores |
+
+## 15. Fase 7 — modo demonstração, contrato, capturas e CI (E10, onda 1, 2026-10-23)
+
+Relatório completo: `docs/melhoria/relatorios/E10-onda1.md`. Decisões: D-77 (modo demonstração) e D-81 (CI).
+
+### 15.1 Modo demonstração (T7.1.18)
+- **O que é:** um servidor em memória (`apps/mobile/src/services/api/demo/`) atrás de `getSupabase()`. Imita as 18 tabelas/views do PostgREST e o bucket `avatars`, as 11 RPCs, as 8 Edge Functions (o `finish-activity` calcula com o próprio `src/domain` e confere a assinatura HMAC do sync), o Auth, os 2 canais Realtime e o Storage. O mundo (Goiânia, corredores `*.demo`, crews, zonas, histórico, notificações) vem de `src/demo/world.ts`.
+- **Ligar:** `EXPO_PUBLIC_DEMO=1`. Com ela, a URL e a chave do Supabase são ignoradas e o app abre direto na sessão de demonstração.
+  - web: `cd apps/mobile && EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear --output-dir /tmp/nomade-demo` (o `--clear` é obrigatório: o cache do Metro ignora mudança de `EXPO_PUBLIC_*`) e `node e2e-web/serve.cjs /tmp/nomade-demo 8098`;
+  - desenvolvimento: `EXPO_PUBLIC_DEMO=1 npx expo start --clear`.
+- **Roteiros (só na web, `?cenario=`):** `cheio` (padrão), `vazio`, `sem-time`, `primeira-abertura`, `sob-ataque`, `erro`, `offline`, `lento`, `moderador`. Exemplo: `http://127.0.0.1:8098/notificacoes?cenario=sob-ataque`.
+- **Isolamento:** caches de zonas e perfil com chave `nomade.demo.*`; fila offline em `nomade-queue.demo.db` (na web, só em memória); o transporte real recusa sessão `demo-…` (`DEMO_ISOLATION`); nenhum `fetch` (testado).
+- **Ainda não (onda 2, com a E6):** botão "Ver demonstração" e o selo "Demonstração" no `_layout`. Até lá, as capturas recebem o selo do próprio script.
+
+### 15.2 Testes novos
+| Teste | O que garante |
+|---|---|
+| `src/__tests__/demo-flow.test.ts` | Entrar → correr com a simulação → resumo oficial pelo código do app (session-controller, run-controller, fila, sync com HMAC, transporte), sem nenhum `fetch`/`XMLHttpRequest`; provisório = oficial |
+| `src/__tests__/demo-contract.test.ts` | Toda tabela, bucket, RPC e function usada no app tem par na demonstração (falha com o nome e arquivo:linha); nome dinâmico falha; par órfão falha |
+| `src/__tests__/demo-isolation.test.ts` | Chaves e arquivos separados, fila da web só em memória, transporte real recusa `demo-…`, variável ignora URL/chave |
+| `src/services/api/demo/__tests__/repos.test.ts` | Cada função dos repositórios (contrato da F1 §2.5) responde pela costura real |
+| `src/services/api/demo/__tests__/scoring-parity.test.ts` | O `finish-activity` da demonstração = `computeOfficialResult` das Edge Functions (válida, parcial, rejeitada, revisão, aprovação, Fuga, Caça) |
+| `src/services/api/demo/__tests__/postgrest.test.ts` | Erros e semântica do PostgREST (PGRST205, 42703, PGRST116, RLS, roteiros `erro`/`offline`) |
+| `src/demo/__tests__/world.test.ts` | Mundo determinístico, tudo marcado como demonstração, `src/demo` sem React/Expo |
+
+**Vazamento do Jest corrigido:** `src/services/location/__tests__/current.test.ts` deixava o temporizador de 8 s do `currentPosition` armado; o worker era encerrado à força. Agora os testes usam prazo de 20 ms e o aviso "A worker process has failed to exit gracefully" sumiu.
+
+### 15.3 Capturas automáticas (T7.1.19)
+`apps/mobile/e2e-web/capturas.cjs`: rota × estado × 360/390/430, sobre o export do modo demonstração, com relógio fixo (2026-10-23 09:00), "Reduzir movimento", mapa-base trocado por um estilo vazio e WebGL por software. Saída comprimida com `pngquant --quality=85-98` em `docs/melhoria/capturas/<pasta>/` e `relatorio.json` (FCP, palavras, alvos < 44 px, interativos sem nome, erros e pedidos ao servidor, que devem ser zero).
+```bash
+cd apps/mobile
+EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear --output-dir /tmp/nomade-demo
+NODE_PATH=$(npm root -g) node e2e-web/capturas.cjs /tmp/nomade-demo depois-onda2   # --rotas=, --estados=, --larguras=
+```
+"Antes cheio" (telas atuais com dados de demonstração): `docs/melhoria/capturas/antes-cheio/`.
+
+### 15.4 CI (T7.1.20)
+`.github/workflows/ci.yml`: jobs `app` (tipos, lint, Jest, cobertura do domain ≥ 90%, contraste como relatório), `web` (export do modo demonstração com `--clear` e orçamento de 980.000 B gzip) e `functions` (Deno test/check, `gen-seed.ts` e `domain-copy --check`). O contraste estrito liga depois da D-75.
+
+## 16. Fase 7 — interruptor da demonstração, estilos animados e CI do banco (E10, onda 2, 2026-10-23)
+
+Relatório completo: `docs/melhoria/relatorios/E10-onda2.md`. Decisões: D-77 (modo demonstração), D-75 (contraste), D-81 (CI).
+
+### 16.1 Interruptor do modo demonstração (T7.2.10)
+`apps/mobile/src/services/demo-mode.ts` liga e desliga o modo demonstração com o app aberto (botão "Ver demonstração" e selo, E6a):
+
+| Nome | O que faz |
+|---|---|
+| `enterDemo(opts?: { scenario?: DemoScenario }): Promise<boolean>` | Liga. Zera fila (`setQueueStore(null)`), motor do sync (`setSyncEngine(null)`) e servidor em memória (`setDemoClient`), apaga sobras de uma demonstração interrompida e avisa os ouvintes com `true`. A conta real (sessão no SecureStore, fila, caches, chave HMAC) não é tocada. `false` se já estava ligado. |
+| `exitDemo(): Promise<boolean>` | Desliga. Apaga corridas e pontos da fila da demonstração, os caches `nomade.demo.*`, a chave HMAC do `demo-corredor` e o mundo em memória; para o GPS em segundo plano se uma corrida da demonstração estava gravando; zera os mesmos singletons e avisa os ouvintes com `false`. `false` se não estava ligado ou se o build é `EXPO_PUBLIC_DEMO=1`. |
+| `isDemoActive(): boolean` | Build de demonstração ou interruptor ligado. |
+| `isDemoBuild(): boolean` | `EXPO_PUBLIC_DEMO=1` (não há servidor real para onde voltar). |
+| `onDemoSwitch(fn): () => void` | Avisa depois de cada troca. Também serve de `subscribe` para `useSyncExternalStore(onDemoSwitch, isDemoActive)`. |
+
+- **Stores:** `src/services` não importa `src/store` (ARQUITETURA §2). Quem zera as stores é o ouvinte que a camada de features registra com `onDemoSwitch` (ver o relatório, pedido à E6a). Sem ouvinte, `enterDemo` avisa no console em desenvolvimento.
+- **Envio em andamento durante a troca:** o transporte guarda o modo em que nasceu; se o modo mudou, responde `MODE_SWITCHED` (como sem conexão) e a corrida fica para depois. Nem corrida real vai ao servidor de demonstração, nem corrida de demonstração ao servidor real.
+- **Espelho fila → store:** os ouvintes do sync (`wireSyncEvents`) sobrevivem à troca do motor; o motor antigo deixa de repassar eventos.
+- **Teste:** `src/__tests__/demo-switch.test.ts` (entrar → correr → sair: nada da demonstração em fila SQLite, kv-store, chave ou store; conta real intacta; nenhum `fetch`).
+
+### 16.2 Estilos animados: só transform e opacidade
+`src/__tests__/animated-styles.test.ts` lê o `src/` pela AST e falha com `arquivo:linha` se `width`, `height`, `top`, `left` ou `margin*` aparecerem no retorno do `useAnimatedStyle`, nos quadros do `animationName` (literal, constante ou função do mesmo arquivo) ou numa transição (`transitionProperty` com esses nomes, `'all'`, ou duração sem `transitionProperty`). Exceções em `BASELINE_LAYOUT_ANIMATIONS`, com motivo e dono; hoje, 5 ocorrências em telas da E6b (saem na T7.2.7). `NOMADE_ANIM_REPORT=1 npx jest animated-styles` imprime o levantamento.
+
+### 16.3 Contrato da demonstração
+O `demo-contract.test.ts` também resolve o nome por constante do arquivo e por tipo importado de outro arquivo (ex.: `type RaidRpc` no `types.ts`). Nos índices da demonstração (`DEMO_TABLE_COLUMNS`, `DEMO_RPC_HANDLERS`, `DEMO_FUNCTION_HANDLERS` + `FunctionName`) cada equipe só acrescenta linhas; as listas `DEMO_*` saem deles.
+
+### 16.4 CI
+- **Job `db`:** instala `postgresql-16-postgis-3`, `postgresql-16-pgtap`, `postgresql-16-cron` (e `pg_prove`) pelo apt no `ubuntu-latest` (se a imagem não tiver o Postgres 16, usa o repositório oficial PGDG) e roda `npm run db:test:local` (migrations, seed e pgTAP, sem Docker). O resumo vai para a página do job.
+- **Contraste estrito:** o job `app` roda `contraste.cjs --strict` (D-75 aplicada): par do tema escuro abaixo do mínimo derruba a CI.

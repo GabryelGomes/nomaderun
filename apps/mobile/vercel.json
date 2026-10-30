@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci",
+  "buildCommand": "npx expo export -p web",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/zona/:id", "destination": "/zona/[id]" },
+    { "source": "/compartilhar/convite/:codigo", "destination": "/compartilhar/convite/[codigo]" },
+    { "source": "/compartilhar/:id", "destination": "/compartilhar/[id]" },
+    { "source": "/moderacao/:id", "destination": "/moderacao/[id]" }
+  ]
+}

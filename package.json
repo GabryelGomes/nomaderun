@@ -8,6 +8,7 @@
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
     "db:test:psql": "bash supabase/scripts/test-db.sh",
+    "db:test:local": "bash supabase/scripts/banco-local.sh",
     "functions:serve": "supabase functions serve",
     "functions:test": "deno test --allow-read --config supabase/functions/deno.json supabase/functions/tests",
     "functions:check": "deno check --config supabase/functions/deno.json supabase/functions/*/index.ts",

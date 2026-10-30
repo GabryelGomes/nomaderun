@@ -41,21 +41,37 @@ select is(
 select is(
   (select array_agg(t order by t) from unnest(array[
       'activities', 'activity_points', 'activity_zones', 'zones', 'zone_events', 'notifications', 'fog_cells',
-      'chest_opens', 'chests', 'moderation_reviews', 'devices', 'seasons', 'crew_members', 'profiles']) t
+      'chest_opens', 'chests', 'moderation_reviews', 'devices', 'seasons', 'crew_members', 'profiles',
+      -- v2 (D-80): flags, livro de XP e o estado das features novas também só pelo servidor
+      'game_config', 'xp_ledger', 'cosmetic_defs', 'user_cosmetics', 'user_equipped', 'medal_defs', 'user_medals',
+      'bonus_chests', 'daily_rewards', 'raid_bosses', 'raids', 'raid_hits', 'raid_weak_points', 'raid_rewards', 'raid_visits',
+      'league_groups', 'league_members', 'league_reservations', 'league_entries', 'league_standings', 'mission_defs', 'user_missions', 'engagement_marks', 'track_rewards',
+      'track_claims', 'zone_cells', 'paint_marks', 'activity_stats', 'personal_records', 'user_settings', 'feed_items', 'kudos',
+      'telemetry_consent', 'telemetry_events', 'kudos_log', 'feed_kudos_counts']) t
     where has_any_column_privilege('authenticated', ('public.' || t)::regclass, 'insert')),
-  null, 'cliente não insere direto em tabelas escritas só pelo servidor (corridas, pontos, zonas, notificações, perfis...)');
+  null, 'cliente não insere direto em tabelas escritas só pelo servidor (corridas, pontos, zonas, notificações, perfis, XP...)');
 
 select is(
   (select array_agg(t order by t) from unnest(array[
       'activities', 'activity_points', 'activity_zones', 'zones', 'zone_events', 'fog_cells', 'chest_opens', 'chests',
-      'moderation_reviews', 'devices', 'seasons', 'crew_members']) t
+      'moderation_reviews', 'devices', 'seasons', 'crew_members',
+      'game_config', 'xp_ledger', 'cosmetic_defs', 'user_cosmetics', 'user_equipped', 'medal_defs', 'user_medals',
+      'bonus_chests', 'daily_rewards', 'raid_bosses', 'raids', 'raid_hits', 'raid_weak_points', 'raid_rewards', 'raid_visits',
+      'league_groups', 'league_members', 'league_reservations', 'league_entries', 'league_standings', 'mission_defs', 'user_missions', 'engagement_marks', 'track_rewards',
+      'track_claims', 'zone_cells', 'paint_marks', 'activity_stats', 'personal_records', 'user_settings', 'feed_items', 'kudos',
+      'telemetry_consent', 'telemetry_events', 'kudos_log', 'feed_kudos_counts']) t
     where has_any_column_privilege('authenticated', ('public.' || t)::regclass, 'update')),
   null, 'cliente não altera tabelas escritas só pelo servidor');
 
 select is(
   (select array_agg(t order by t) from unnest(array[
       'activities', 'activity_points', 'activity_zones', 'zones', 'zone_events', 'notifications', 'fog_cells',
-      'chest_opens', 'chests', 'moderation_reviews', 'devices', 'seasons', 'profiles']) t
+      'chest_opens', 'chests', 'moderation_reviews', 'devices', 'seasons', 'profiles',
+      'game_config', 'xp_ledger', 'cosmetic_defs', 'user_cosmetics', 'user_equipped', 'medal_defs', 'user_medals',
+      'bonus_chests', 'daily_rewards', 'raid_bosses', 'raids', 'raid_hits', 'raid_weak_points', 'raid_rewards', 'raid_visits',
+      'league_groups', 'league_members', 'league_reservations', 'league_entries', 'league_standings', 'mission_defs', 'user_missions', 'engagement_marks', 'track_rewards',
+      'track_claims', 'zone_cells', 'paint_marks', 'activity_stats', 'personal_records', 'user_settings', 'feed_items', 'kudos',
+      'telemetry_consent', 'telemetry_events', 'kudos_log', 'feed_kudos_counts']) t
     where has_table_privilege('authenticated', ('public.' || t)::regclass, 'delete')),
   null, 'cliente não apaga corridas, zonas, notificações, perfis (exclusão de conta só pela function)');
 
@@ -85,7 +101,9 @@ select ok(
 
 select is(
   (select array_agg(tablename::text order by tablename) from pg_publication_tables where pubname = 'supabase_realtime'),
-  array['notifications', 'zones'], 'Realtime publica só zones e notifications (RLS vale na assinatura)');
+  -- v2 (D-67): raids entra de propósito; só tem números públicos (vida, fase, status), sem coluna de usuário
+  -- v2 (D-79): kudos saiu na revisão (M4: o DELETE não passa pela RLS e levava user_id); entra feed_kudos_counts, só contadores
+  array['feed_kudos_counts', 'notifications', 'raids', 'zones'], 'Realtime publica só zones, notifications, raids e feed_kudos_counts (sem dado pessoal; RLS vale na assinatura)');
 
 select results_eq(
   $$ select public, file_size_limit, allowed_mime_types from storage.buckets where id = 'avatars' $$,

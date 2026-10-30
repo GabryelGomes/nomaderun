@@ -28,6 +28,13 @@ export type TerritoryMapProps = {
   onlyMine?: boolean;
   user?: LatLng | null;
   path?: LatLng[];
+  /**
+   * Muda quando a rota cresce. Na corrida o vetor `path` é sempre o mesmo (`appendPoint`, E-12): sem isto o
+   * mapa não veria os pontos novos. Padrão: `path.length`.
+   */
+  pathVersion?: number;
+  /** Cor do rastro (na corrida, a cor do time: "a cidade pinta"). Padrão: laranja da marca. */
+  pathColor?: string;
   /** Stretches of the path that did not count (UC-01 E1), drawn in gray over the route. */
   invalidPaths?: LatLng[][];
   /** Circles in meters (privacy zones, RN-010), drawn as quiet gray discs. */

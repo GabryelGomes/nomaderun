@@ -1,4 +1,4 @@
-# UC-01 (RF-004, RF-006, RF-008): conta nova → Correr → Simulação → contagem → corrida (~4 min de relógio até
+# UC-01 (RF-004, RF-006, RF-008): conta nova → Correr → Simulação (demonstração; o GPS real é o padrão, D-76) → contagem → corrida (~4 min de relógio até
 # passar pela zona neutra) → segurar para encerrar → resumo OFICIAL com "Zona conquistada".
 appId: ${APP_ID}
 name: UC-01 Corrida simulada e conquista
@@ -24,10 +24,11 @@ tags: [uc-01, rf-004, rf-006, rf-008]
     timeout: 20000
 - assertVisible:
     id: "corrida-sos"
-# a simulação passa pelo desvio até a zona neutra mais próxima: o painel avisa quando a conquista está garantida
+# a simulação passa pelo desvio até a zona neutra mais próxima: o painel avisa quando a conquista é provável
+# (E-01: é estimativa; quem confirma é o servidor, no resumo)
 - extendedWaitUntil:
     visible:
-      text: "Conquista garantida ao terminar"
+      text: "Conquista provável: confirma no fim"
     timeout: 300000
 - longPressOn:
     id: "corrida-encerrar"

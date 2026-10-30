@@ -100,7 +100,7 @@ export function TextField({ label, error, help, testID, secret, inputRef, onSurf
           }}
           placeholderTextColor={colors.textSecondary}
           style={{
-            height: 52,
+            minHeight: 52,
             borderRadius: radius.md,
             paddingHorizontal: space[4],
             paddingRight: secret ? 56 : space[4],
@@ -109,8 +109,9 @@ export function TextField({ label, error, help, testID, secret, inputRef, onSurf
             fontFamily: fonts.text,
             fontSize: 17,
             // Foco com borda e brilho na cor de ação (D-58): indicador de foco visível em todos os formulários.
-            borderWidth: error || focused ? 1 : 0,
-            borderColor: error ? colors.danger : focused ? colors.action : 'transparent',
+            // D-75: o campo em repouso tem borda de controle com 3:1 (antes sumia no fundo).
+            borderWidth: 1,
+            borderColor: error ? colors.danger : focused ? colors.action : colors.lineControl,
             boxShadow: focused && !error ? neon.focusGlow : undefined,
             // Sem o contorno padrão do navegador por cima da borda de foco (web).
             outlineWidth: 0,
@@ -214,7 +215,7 @@ export function CheckRow({
               justifyContent: 'center',
               backgroundColor: checked ? colors.action : colors.surface,
               borderWidth: checked ? 0 : 2,
-              borderColor: error ? colors.danger : colors.line,
+              borderColor: error ? colors.danger : colors.lineControl,
             }}>
             {checked ? <Icon name="check" size={16} color={colors.onAction} /> : null}
           </View>
@@ -227,6 +228,21 @@ export function CheckRow({
         </Text>
       ) : null}
     </View>
+  );
+}
+
+/**
+ * Link no meio de uma frase (ex.: "Termos de Uso" no aceite). Antes era um `Text onPress` com 20 pt de altura;
+ * agora o alvo de toque tem pelo menos 44 pt de altura sem mudar o desenho da frase.
+ */
+export function InlineLink({ label, testID, onPress }: { label: string; testID: string; onPress: () => void }) {
+  const { colors } = useTheme();
+  return (
+    <PressableScale testID={testID} accessibilityRole="link" accessibilityLabel={`Abrir ${label}`} onPress={onPress} hitSlop={{ left: 4, right: 4 }} style={{ minHeight: 44, justifyContent: 'center' }}>
+      <Text variant="bodyBold" color={colors.accentText}>
+        {label}
+      </Text>
+    </PressableScale>
   );
 }
 

@@ -1,0 +1,66 @@
+# Banco local sem Docker — resultado da prova F1/E9 (2026-10-23)
+# Postgres 16 + PostGIS 3.4.2 + pgTAP + pg_cron (apt do Ubuntu), shim supabase-shim.sql, 10 migrations + seed.sql
+
+## Execução 1: projeto como está (com seed)
+ok     01_schema.test.sql (14 testes)
+ok     02_signup_trigger.test.sql (10 testes)
+ok     03_rls_privacy.test.sql (19 testes)
+ok     04_client_writes.test.sql (16 testes)
+ok     05_contacts_crews_faction.test.sql (19 testes)
+ok     06_server_functions.test.sql (26 testes)
+ok     07_jobs_rankings.test.sql (20 testes)
+ok     08_realtime_privacy.test.sql (16 testes)
+ok     09_chests.test.sql (25 testes)
+ok     10_rankings_zone_names.test.sql (26 testes)
+ok     11_invasion_limits.test.sql (7 testes)
+ok     12_security_audit.test.sql (44 testes)
+ok     13_qa_fixes.test.sql (43 testes)
+Arquivos: 13 · com falha: 0 · testes executados: 285 · falhas: 0
+/home/user/nomaderun/supabase/tests/database/13_qa_fixes.test.sql ................ ok
+All tests successful.
+Files=13, Tests=285,  2 wallclock secs ( 0.08 usr  0.04 sys +  0.05 cusr  0.06 csys =  0.23 CPU)
+Result: PASS
+
+## Execução 2: sem seed (NR_SEED=0)
+Arquivos: 13 · com falha: 0 · testes executados: 285 · falhas: 0
+/home/user/nomaderun/supabase/tests/database/13_qa_fixes.test.sql ................ ok
+All tests successful.
+Files=13, Tests=285,  2 wallclock secs ( 0.08 usr  0.02 sys +  0.07 cusr  0.05 csys =  0.22 CPU)
+Result: PASS
+
+## Execução 3: projeto + rascunho-v2.sql + rascunho-v2.test.sql
+FALHOU 01_schema.test.sql (ok=12, not ok=2, plano=14, saída=0)
+    1..14
+    not ok 2 - 17 tabelas (15 do modelo + privacy_zones e chests da Fase 3)
+    # Failed test 2: "17 tabelas (15 do modelo + privacy_zones e chests da Fase 3)"
+    #         have: 33
+    #         want: 17
+    not ok 8 - jobs diários/semanais/mensais agendados no pg_cron (T3.6)
+    # Failed test 8: "jobs diários/semanais/mensais agendados no pg_cron (T3.6)"
+    #         have: 6
+    #         want: 4
+    # Looks like you failed 2 tests of 14
+ok     02_signup_trigger.test.sql (10 testes)
+ok     03_rls_privacy.test.sql (19 testes)
+ok     04_client_writes.test.sql (16 testes)
+ok     05_contacts_crews_faction.test.sql (19 testes)
+ok     06_server_functions.test.sql (26 testes)
+ok     07_jobs_rankings.test.sql (20 testes)
+ok     08_realtime_privacy.test.sql (16 testes)
+ok     09_chests.test.sql (25 testes)
+ok     10_rankings_zone_names.test.sql (26 testes)
+ok     11_invasion_limits.test.sql (7 testes)
+FALHOU 12_security_audit.test.sql (ok=43, not ok=1, plano=44, saída=0)
+    1..44
+    not ok 13 - Realtime publica só zones e notifications (RLS vale na assinatura)
+    # Failed test 13: "Realtime publica só zones e notifications (RLS vale na assinatura)"
+    #         have: {kudos,notifications,raids,zones}
+    #         want: {notifications,zones}
+    # Looks like you failed 1 test of 44
+ok     13_qa_fixes.test.sql (43 testes)
+ok     rascunho-v2.test.sql (47 testes)
+Arquivos: 14 · com falha: 2 · testes executados: 332 · falhas: 3
+/home/user/nomaderun/supabase/tests/database/12_security_audit.test.sql        (Wstat: 0 Tests: 44 Failed: 1)
+  Failed test:  13
+Files=13, Tests=285,  2 wallclock secs ( 0.10 usr  0.00 sys +  0.06 cusr  0.04 csys =  0.20 CPU)
+Result: FAIL
