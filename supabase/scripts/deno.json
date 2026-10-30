@@ -47,6 +47,8 @@
     "../../apps/mobile/src/domain/crew-goal": "../../apps/mobile/src/domain/crew-goal.ts",
     "@/domain/crew-goal": "../../apps/mobile/src/domain/crew-goal.ts",
     "../../apps/mobile/src/domain/faction-activity": "../../apps/mobile/src/domain/faction-activity.ts",
-    "@/domain/faction-activity": "../../apps/mobile/src/domain/faction-activity.ts"
+    "@/domain/faction-activity": "../../apps/mobile/src/domain/faction-activity.ts",
+    "../../apps/mobile/src/domain/team-bio": "../../apps/mobile/src/domain/team-bio.ts",
+    "@/domain/team-bio": "../../apps/mobile/src/domain/team-bio.ts"
   }
 }
