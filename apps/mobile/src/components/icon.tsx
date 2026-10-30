@@ -55,6 +55,11 @@ const ICONS = {
   home: { ios: 'house.fill', android: 'home', web: 'home' },
   // D-95: o aviso único de "sem conexão" (`OfflineNotice`).
   offline: { ios: 'wifi.slash', android: 'wifi_off', web: 'wifi_off' },
+  // F8-B3: reação "Raio" (antes, bandeira), regras da Liga e o "Copiar" do código da crew.
+  bolt: { ios: 'bolt.fill', android: 'bolt', web: 'bolt' },
+  arrowUp: { ios: 'arrow.up.circle.fill', android: 'arrow_circle_up', web: 'arrow_circle_up' },
+  arrowDown: { ios: 'arrow.down.circle.fill', android: 'arrow_circle_down', web: 'arrow_circle_down' },
+  copy: { ios: 'doc.on.doc', android: 'content_copy', web: 'content_copy' },
 } satisfies Record<string, SymbolName>;
 
 export type IconName = keyof typeof ICONS;

@@ -52,7 +52,5 @@ export function mapTodayFrom(input: { strip: StripInput | null; raid: RaidCurren
   const m = strip?.items.find((i) => i.key === 'missao');
   const featured = m ? { value: m.value, label: m.label } : null;
   const isDemoRaid = !!raid && raid.available && !!raid.raid?.isDemo;
-  // Recap de domingo (F8 B2): só com atividade de verdade na semana (sem semana vazia "pronta").
-  const recap = st && st.activities > 0 && weekdayIn(now, input.timeZone) === 0 ? { title: 'Sua semana está pronta', body: 'Veja o recap e compartilhe' } : null;
-  return { streak, chest, boss: bossOf(raid), mission, featured, recap, demo: input.demo || isDemoRaid };
+  return { streak, chest, boss: bossOf(raid), mission, featured, demo: input.demo || isDemoRaid };
 }

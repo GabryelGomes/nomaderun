@@ -81,7 +81,7 @@ function LevelCard({ s, now, onPause }: { s: EngagementStatus; now: number; onPa
             </Text>
           ) : null}
         </View>
-        <Button testID="recompensas-pausa" label={paused ? 'Ver pausa' : 'Pausar'} kind="ghost" icon="heart" onPress={onPause} />
+        <Button testID="recompensas-pausa" label={paused ? 'Ver pausa' : 'Pausa de saúde'} kind="ghost" icon="heart" onPress={onPause} />
       </View>
     </Surface>
   );

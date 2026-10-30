@@ -82,7 +82,7 @@ describe('resumo → entrada do card', () => {
         boss: { name: 'Mormaço de Outubro', defeated: true, myDamageMeters: 6300, cityName: 'Goiânia', cityMeters: 3_600_000, days: 5 },
       }),
     );
-    expect(pickCardModels(input).kinds).toEqual(['boss', 'level', 'zone', 'run']);
+    expect(pickCardModels(input).kinds).toEqual(['boss', 'zone', 'level', 'run']); // UX-33: zona antes do nível
   });
 
   it('propriedade (300 casos): nenhum ponto do card dentro de uma zona de privacidade', () => {

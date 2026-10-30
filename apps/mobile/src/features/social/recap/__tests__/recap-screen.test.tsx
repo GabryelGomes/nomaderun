@@ -95,12 +95,14 @@ describe('<RecapScreen> no modo demonstração', () => {
     expect(byId(r, 'semana-exportar').length).toBeGreaterThan(0);
   });
 
-  it('semana sem corrida: estado vazio com "Voltar"', async () => {
+  it('semana sem corrida: estado vazio com arte e "Correr" (UX-28), a saída é só o X', async () => {
     setDemoClient(createDemoClient({ clock: () => NOW }));
     mockParams.inicio = '2025-01-06';
     const r = await mount(<RecapScreen />);
     expect(byId(r, 'semana-vazia').length).toBeGreaterThan(0);
-    expect(byId(r, 'semana-voltar').length).toBeGreaterThan(0);
+    expect(byId(r, 'semana-correr').length).toBeGreaterThan(0);
+    expect(byId(r, 'semana-voltar')).toHaveLength(0);
+    expect(byId(r, 'semana-fechar').length).toBeGreaterThan(0);
     delete mockParams.inicio;
   });
 

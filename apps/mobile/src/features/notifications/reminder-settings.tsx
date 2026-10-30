@@ -5,6 +5,7 @@ import { Button } from '@/components/button';
 import { PressableScale } from '@/components/motion';
 import { SectionHeader } from '@/components/section-header';
 import { Surface } from '@/components/surface';
+import { switchColors } from '@/components/switch-colors';
 import { Text } from '@/components/text';
 import { brtCalendar } from '@/domain/progression';
 import { saveProfile } from '@/features/auth/session-controller';
@@ -93,6 +94,7 @@ export function ReminderSettings({ prefs, device, onChangePrefs, onChangeDevice,
               accessibilityLabel={`Lembrete: ${t.title}`}
               value={isOn(prefs, t.key)}
               onValueChange={(v) => onChangePrefs({ ...prefs, [t.key]: v })}
+              {...switchColors(colors)}
             />
           </View>
         ))}
@@ -131,8 +133,11 @@ export function ReminderSettings({ prefs, device, onChangePrefs, onChangeDevice,
  */
 export function ReminderSettingsSection({ testID }: { testID?: string }) {
   const now = useNow(60_000);
+  // A fonte é o perfil do store (F8 B3): nada de cópia que envelhece. Só o toque em andamento fica por cima, até o
+  // servidor responder (deu certo: o store já traz o valor novo; deu errado: volta ao do store e mostra o erro).
   const profilePrefs = useSession((s) => s.profile?.notificationPrefs ?? DEFAULT_NOTIFICATION_PREFS);
-  const [prefs, setPrefs] = useState<NotificationPrefs>(profilePrefs);
+  const [pending, setPending] = useState<NotificationPrefs | null>(null);
+  const prefs = pending ?? profilePrefs;
   const [device, setDevice] = useState<DeviceReminderPrefs>(EMPTY_DEVICE_PREFS);
   const [error, setError] = useState<string | null>(null);
 
@@ -145,13 +150,11 @@ export function ReminderSettingsSection({ testID }: { testID?: string }) {
   }, []);
 
   const changePrefs = async (next: NotificationPrefs) => {
-    setPrefs(next);
+    setPending(next);
     setError(null);
     const res = await saveProfile({ notificationPrefs: next });
-    if (!res.ok) {
-      setPrefs(profilePrefs);
-      setError(res.error.message);
-    }
+    setPending(null);
+    if (!res.ok) setError(res.error.message);
   };
 
   const changeDevice = async (next: DeviceReminderPrefs) => {

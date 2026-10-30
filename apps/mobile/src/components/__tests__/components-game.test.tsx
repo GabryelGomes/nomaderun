@@ -149,11 +149,12 @@ describe('DailyStrip', () => {
 describe('AlertSlot', () => {
   const mk = (kind: SlotAlert['kind'], id: string = kind): SlotAlert => ({ id, kind, title: `t-${id}`, body: 'b', onPress: noop });
 
-  it('a prioridade segue a ordem da F8 B2 (missão inicial > ataque > missão > baú > chefão > recap > sequência)', () => {
-    expect(ALERT_PRIORITY).toEqual(['welcome', 'attack', 'mission', 'chest', 'boss', 'recap', 'streak']);
+  it('a prioridade segue a ordem da F8 (missão inicial > ataque > missão > baú > chefão > sequência > recap)', () => {
+    expect(ALERT_PRIORITY).toEqual(['welcome', 'attack', 'mission', 'chest', 'boss', 'streak', 'recap']);
     expect(pickAlert([mk('attack'), mk('welcome')])?.kind).toBe('welcome');
     expect(pickAlert([mk('mission'), mk('attack')])?.kind).toBe('attack');
     expect(pickAlert([mk('recap'), mk('boss')])?.kind).toBe('boss');
+    expect(pickAlert([mk('recap'), mk('streak')])?.kind).toBe('streak');
     expect(pickAlert([mk('streak'), mk('boss'), mk('chest')])?.kind).toBe('chest');
     expect(pickAlert([mk('mission', 'm1'), mk('mission', 'm2')])?.id).toBe('m1');
     expect(pickAlert([])).toBeNull();

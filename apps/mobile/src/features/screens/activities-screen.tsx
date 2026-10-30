@@ -1,9 +1,9 @@
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { RefreshControl, View } from 'react-native';
 
 import { EmptyArt } from '@/components/art';
-import { Button } from '@/components/button';
+import { Button, IconButton } from '@/components/button';
 import { ChipRow } from '@/components/chip-row';
 import { EmptyState } from '@/components/empty-state';
 import { FeedRunCard } from '@/components/feed-run-card';
@@ -24,13 +24,14 @@ import { loadHistory, refreshLocalRuns } from '@/features/run/run-controller';
 import { bootstrapOfflineSync } from '@/features/run/use-offline-sync';
 import { RecapButton } from '@/features/social/recap';
 import { useNow } from '@/features/use-now';
-import { getActivityPath } from '@/services/api/activities-repo';
+import { getActivityPath, listMyActivities } from '@/services/api/activities-repo';
 import { useGame } from '@/store/game-store';
 import { useSession } from '@/store/session-store';
 import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { runBadges, runsThisWeek, weekKm } from './profile-screen.model';
+import { useResource } from './use-resource';
 
 const MISSION_LABEL = { livre: 'Livre', fuga: 'Fuga', caca: 'Caça', rabisco: 'Rabisco' } as const;
 /** Mini-mapas buscados no servidor por abertura (as primeiras corridas da lista; o resto fica só com o traço local). */
@@ -57,7 +58,7 @@ function useServerPaths(ids: readonly string[]): Record<string, LatLng[]> {
 }
 
 /**
- * Você › Corridas (T7.3.1, wireframe 12): o herói é a semana (quilômetros grandes + barras de segunda a domingo e a
+ * Você › Atividades (T7.3.1, wireframe 12): o herói é a semana (quilômetros grandes + barras de segunda a domingo e a
  * sequência); embaixo, cada corrida com o mini-mapa da rota (`FeedRunCard`). Vazio = arte + 1 frase + Correr.
  */
 export function ActivitiesScreen() {
@@ -96,6 +97,11 @@ export function ActivitiesScreen() {
 
   const history = mergeHistory(serverRuns, localRuns, periodStart(period, now));
   const everything = mergeHistory(serverRuns, localRuns);
+  // UX-14: o store só guarda o período escolhido. Lista vazia → 1 pergunta ao servidor ("tem alguma, em qualquer data?").
+  const emptyNow = historySync.at !== null && everything.length === 0;
+  const anyRun = useResource(() => (emptyNow && userId ? listMyActivities({ limit: 1 }) : Promise.resolve({ ok: true as const, data: null })), [emptyNow, userId, nonce]);
+  /** Conta nova: o servidor respondeu e não há nenhuma atividade, em período nenhum. */
+  const neverRan = emptyNow && Array.isArray(anyRun.data) && anyRun.data.length === 0;
   const week = weekKm(everything, now);
   const missing = Math.max(0, STREAK_RUNS_PER_WEEK - runsThisWeek(everything, now));
   const localPath = new Map(localRuns.map((l) => [l.id, l.path]));
@@ -180,33 +186,36 @@ export function ActivitiesScreen() {
               </Text>
             </View>
           ) : null}
-          {/* Sem a semana conhecida, nada para compartilhar (D-95). */}
-          {runsKnown ? <RecapButton testID="atividades-recap" wide /> : null}
+          {/* Sem a semana conhecida (D-95) ou com 0 km (UX-14), nada para compartilhar. */}
+          {runsKnown && week.total > 0 ? <RecapButton testID="atividades-recap" wide /> : null}
         </Surface>
       </FadeUp>
 
       <View style={{ gap: space[3] }}>
         <SectionHeader
-          title="Corridas"
+          title="Histórico"
           action={
             <Text testID="atividades-total-corridas" variant="small" muted tabular>
               {runsKnown ? history.length : NO_DATA}
             </Text>
           }
         />
-        {/* Filtros numa linha que rola na horizontal (não quebram mais em 2 linhas em 360 pt). */}
-        <ChipRow testID="atividades-periodo" accessibilityLabel="Período" size="md" value={period} onChange={setPeriod} chipLabel={(l) => `Período: ${l}`} options={PERIODS.map((p) => [p.id, p.label] as const)} />
-        {history.length === 0 && !runsKnown ? (
+        {/* Filtros numa linha que rola na horizontal. Sem nenhuma atividade ainda (UX-14), não há o que filtrar. */}
+        {neverRan ? null : (
+          <ChipRow testID="atividades-periodo" accessibilityLabel="Período" size="md" value={period} onChange={setPeriod} chipLabel={(l) => `Período: ${l}`} options={PERIODS.map((p) => [p.id, p.label] as const)} />
+        )}
+        {history.length === 0 && (!runsKnown || (emptyNow && anyRun.data === null && !anyRun.error)) ? (
           // D-95: sem o histórico do servidor, "Sua 1ª corrida aparece aqui" seria falso: esqueleto ou nada (o aviso explica).
           runsFailed ? null : <ShimmerSkeleton testID="atividades-lista-carregando" shape="row" height={88} accessibilityLabel="Carregando as corridas" />
         ) : history.length === 0 ? (
           <FadeUp delay={120}>
             <Surface>
+              {/* UX-14: quem nunca correu vê o convite certo; "Nada neste período" só quando há corridas fora do filtro. */}
               <EmptyState
                 testID="atividades-vazio"
                 art={<EmptyArt kind="sem-corridas" size={200} />}
-                title={period === 'tudo' ? 'Sua 1ª corrida aparece aqui' : 'Nada neste período'}
-                body={period === 'tudo' ? undefined : 'Escolha um período maior.'}
+                title={neverRan ? 'Sua 1ª corrida aparece aqui' : 'Nada neste período'}
+                body={neverRan ? undefined : 'Escolha um período maior.'}
                 action={<Button testID="atividades-correr" label="Correr" icon="play" onPress={() => router.push('/corrida')} />}
               />
             </Surface>
@@ -224,6 +233,12 @@ export function ActivitiesScreen() {
                   detail={`${formatDuration(h.movingSeconds)} · ${h.avgPace ? formatPace(h.avgPace) : '--:--'} /km`}
                   badges={runBadges(h, resultOf.get(h.id), (t) => TAG_LABEL[t])}
                   onPress={() => router.push({ pathname: '/resumo', params: { id: h.id } })}
+                  aside={
+                    // §4.3: compartilhar cada corrida já oficial (a local ainda não tem card no servidor).
+                    resultOf.has(h.id) ? (
+                      <IconButton testID={`atividade-${h.id}-compartilhar`} icon="share" label={`Compartilhar a corrida de ${when}`} tone="sunken" size={44} onPress={() => router.push(`/compartilhar/${encodeURIComponent(h.id)}` as Href)} />
+                    ) : undefined
+                  }
                 />
               </FadeUp>
             );

@@ -121,7 +121,8 @@ export function SafetyContactsScreen() {
             testID="contatos-adicionar"
             label={full ? 'Limite de 5 contatos atingido' : 'Adicionar contato'}
             icon="shield"
-            kind="secondary"
+            // UX-26: a ação da tela é a primária (laranja); cheio, volta a ser secundária e desativada.
+            kind={full ? 'secondary' : 'primary'}
             size="lg"
             wide
             disabled={full}

@@ -98,3 +98,12 @@ export function formatAgo(at: number | null | undefined, now: number): string | 
 export function orDash(known: boolean, value: string): string {
   return known ? value : NO_DATA;
 }
+
+/**
+ * Nome da zona na tela (UX-29, regra 2): "Jardim Goiás · perto do Estádio", sem o número que o servidor usa como
+ * id ("Jardim Goiás 59", "Setor Pedro Ludovico 35/36"). Sem nome: "Zona".
+ */
+export function zoneDisplayName(name: string | null | undefined): string {
+  const clean = (name ?? '').replace(/\s+\d+(?:\/\d+)?$/, '').trim();
+  return clean || 'Zona';
+}

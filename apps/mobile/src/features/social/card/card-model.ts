@@ -12,6 +12,7 @@ import { formatDuration, formatKm, formatPace, paceSecPerKm } from '@/domain/geo
 import type { SharedRoute } from '@/domain/share-privacy';
 import type { FactionId } from '@/domain/types';
 import { factions } from '@/theme/tokens';
+import { zoneDisplayName } from '@/features/format';
 
 import type { CardRoute } from './card-route';
 
@@ -195,6 +196,12 @@ export function cardDateLabel(date: CardDate, city: string | null | undefined, s
 }
 
 /** Inteiro com ponto de milhar (pt-BR): 3600 → "3.600". */
+/** UX-33: km de total com 1 casa abaixo de 10 km ("0,7"; antes "1" para 0,70 km) e inteiro com milhar acima ("1.204"). */
+export function formatKmTotal(km: number): string {
+  if (Math.abs(km) < 10) return (Math.round(km * 10) / 10).toFixed(1).replace('.', ',');
+  return formatThousands(km);
+}
+
 export function formatThousands(n: number): string {
   const r = Math.round(n);
   const s = String(Math.abs(r)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -289,7 +296,7 @@ export function buildZoneCard(input: ShareRunInput, choices: CardChoices = DEFAU
   if (!zone || !zone.ownerAfter) return null;
   const stats = runStats(input);
   const from = zone.ownerBefore && zone.ownerBefore !== zone.ownerAfter ? zone.ownerBefore : null;
-  const name = clean(zone.name) || 'Zona';
+  const name = zoneDisplayName(clean(zone.name));
   return {
     ...base(input, input.date, choices, input.status),
     kind: 'zone',
@@ -315,7 +322,7 @@ export function buildLevelCard(input: ShareRunInput, choices: CardChoices = DEFA
     next: `Faltam ${formatThousands(lv.xpToNext)} XP para o nível ${lv.reached + 1}`,
     progress,
     totals: [
-      { value: formatThousands(lv.totals.meters / 1000), label: 'KM NO TOTAL' },
+      { value: formatKmTotal(lv.totals.meters / 1000), label: 'KM NO TOTAL' },
       { value: formatThousands(lv.totals.zones), label: 'ZONAS' },
       { value: formatThousands(lv.totals.runs), label: 'CORRIDAS' },
     ],
@@ -327,13 +334,13 @@ export function buildBossCard(input: ShareRunInput, choices: CardChoices = DEFAU
   const boss = input.boss;
   if (!boss || !boss.defeated || boss.myDamageMeters <= 0) return null;
   const damage = formatKm(boss.myDamageMeters, 1);
-  const crew = boss.crew ? `${clean(boss.crew.name)} · ${boss.crew.rank}º lugar · ${formatThousands(boss.crew.meters / 1000)} km` : null;
+  const crew = boss.crew ? `${clean(boss.crew.name)} · ${boss.crew.rank}º lugar · ${formatKmTotal(boss.crew.meters / 1000)} km` : null;
   const city = clean(boss.cityName) || 'A cidade';
   return {
     ...base(input, input.date, choices, input.status),
     kind: 'boss',
     bossName: clean(boss.name),
-    cityLine: `${city} correu ${formatThousands(boss.cityMeters / 1000)} km em ${plural(boss.days, 'dia', 'dias')}`,
+    cityLine: `${city} correu ${formatKmTotal(boss.cityMeters / 1000)} km em ${plural(boss.days, 'dia', 'dias')}`,
     damage,
     crewChip: crew,
     a11yLabel: `Card de chefão derrotado: ${clean(boss.name)}. Meu dano: ${damage} quilômetros.`,

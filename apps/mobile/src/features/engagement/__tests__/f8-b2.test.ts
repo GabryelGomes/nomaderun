@@ -177,8 +177,8 @@ describe('missão de boas-vindas ligada ao estado real (UX-02, UX-32)', () => {
     expect(pickMapMission(null, null)).toBeNull();
   });
 
-  it('prioridade única da vaga: missão inicial → ataque → missão → baú → chefão → recap', () => {
-    expect(ALERT_PRIORITY.slice(0, 6)).toEqual(['welcome', 'attack', 'mission', 'chest', 'boss', 'recap']);
+  it('prioridade única da vaga: missão inicial → ataque → missão → baú → chefão → (sequência) → recap', () => {
+    expect(ALERT_PRIORITY).toEqual(['welcome', 'attack', 'mission', 'chest', 'boss', 'streak', 'recap']);
     const all = mapAlerts({
       attacked: [],
       ...names,

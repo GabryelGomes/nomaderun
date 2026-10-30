@@ -1,91 +1,50 @@
 import { router, type Href } from 'expo-router';
-import { useState, type ReactNode } from 'react';
-import { Switch, View } from 'react-native';
 
-import { Icon, type IconName } from '@/components/icon';
 import { Stagger } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
-import { SectionHeader } from '@/components/section-header';
-import { SettingsRow } from '@/components/settings-row';
-import { Surface } from '@/components/surface';
-import { switchColors } from '@/components/switch-colors';
-import { Text } from '@/components/text';
-import { HealthPauseSheet, TelemetrySettingsSection } from '@/features/engagement';
+import { SettingsGroup, SettingsRow, ToggleRow } from '@/components/settings-row';
 import { canModerate } from '@/features/moderation/guard';
-import { ReminderSettingsSection } from '@/features/notifications/reminder-settings';
-import { FeedSettings } from '@/features/social/feed';
-import { InviteCard } from '@/features/social/invite';
 import { useGame } from '@/store/game-store';
 import { useMotionPrefs } from '@/store/motion-prefs-store';
-import { selectUnreadCount, useNotifications } from '@/store/notifications-store';
 import { useSession } from '@/store/session-store';
 import { space } from '@/theme/tokens';
-import { useTheme } from '@/theme/use-theme';
+
+/** As 4 telas de Ajustes (UX-16, F8-B3). Cada uma com a sua rota, dentro da aba Você. */
+export const SETTINGS_ROUTES = {
+  conta: '/perfil/conta',
+  seguranca: '/perfil/seguranca',
+  privacidade: '/perfil/privacidade',
+  lembretes: '/perfil/lembretes',
+} as const;
 
 /**
- * Ajustes (engrenagem de "Você", T7.3.1). Tudo o que saiu do perfil mora aqui, em grupos curtos: conta,
- * Corrida Segura, privacidade (com o feed da crew, E8), jogo (vibração, celebrações e pausa, E5/E7), lembretes
- * (E7) e o convite do app (E8). Linhas sem subtítulo (D-74); só a Corrida Segura explica em 1 frase.
+ * Ajustes (engrenagem de "Você"). F8-B3 (UX-16): antes, 5 rolagens com notificações em 3 lugares, "Convidar" e
+ * "Sair" duplicados. Agora, 4 linhas que abrem 4 telas curtas (Conta · Segurança na corrida · Privacidade ·
+ * Lembretes) e as 2 preferências do aparelho (vibração e celebrações). O convite mora só no Clube; "Sair", só
+ * em Conta (com confirmação); os avisos e a Pausa de saúde, só em Lembretes.
  */
 export function SettingsScreen() {
-  const unread = useNotifications(selectUnreadCount);
   const staff = useSession((s) => canModerate(s.profile?.role));
-  const city = useSession((s) => s.profile?.city ?? null);
-  const faction = useSession((s) => s.profile?.faction ?? null);
-  const contacts = useGame((s) => s.safetyContacts.length);
   const escortOn = useGame((s) => s.escortOn);
   const stopAlertOn = useGame((s) => s.stopAlertOn);
-  const toggleEscort = useGame((s) => s.toggleEscort);
-  const toggleStopAlert = useGame((s) => s.toggleStopAlert);
   const haptics = useMotionPrefs((s) => s.haptics);
   const skipCelebrations = useMotionPrefs((s) => s.skipCelebrations);
-  const [pause, setPause] = useState(false);
+  const safetyOn = escortOn || stopAlertOn;
+  const go = (href: string) => () => router.push(href as Href);
 
   return (
     <ScreenScroll testID="tela-ajustes" edges={['bottom']} contentInsetAdjustmentBehavior="automatic" gap={space[6]}>
       <Stagger gap={space[6]}>
-        <Group title="Conta">
-          <SettingsRow testID="perfil-editar" icon="edit" title="Editar perfil" onPress={() => router.push('/perfil/editar' as Href)} />
-          <SettingsRow
-            testID="perfil-notificacoes"
-            icon="bell"
-            title="Notificações"
-            value={unread > 0 ? (unread === 1 ? '1 nova' : `${unread} novas`) : undefined}
-            onPress={() => router.push('/notificacoes' as Href)}
-          />
-          <SettingsRow
-            testID="perfil-conta"
-            icon="lock"
-            title="Conta e privacidade"
-            accessibilityLabel="Conta e privacidade: dados, termos e sair da conta"
-            onPress={() => router.push('/perfil/conta' as Href)}
-          />
-          {staff ? <SettingsRow testID="perfil-moderacao" icon="shield" title="Moderação" onPress={() => router.push('/moderacao' as Href)} /> : null}
-        </Group>
+        <SettingsGroup testID="ajustes-telas">
+          <SettingsRow testID="ajustes-conta" icon="profile" title="Conta" accessibilityLabel="Conta: perfil, dados e sair" onPress={go(SETTINGS_ROUTES.conta)} />
+          <SettingsRow testID="ajustes-seguranca" icon="shield" title="Segurança na corrida" value={safetyOn ? 'Ligada' : undefined} onPress={go(SETTINGS_ROUTES.seguranca)} />
+          <SettingsRow testID="ajustes-privacidade" icon="eye" title="Privacidade" onPress={go(SETTINGS_ROUTES.privacidade)} />
+          <SettingsRow testID="ajustes-lembretes" icon="bell" title="Lembretes" accessibilityLabel="Lembretes: avisos, horários e Pausa de saúde" onPress={go(SETTINGS_ROUTES.lembretes)} />
+          {staff ? <SettingsRow testID="perfil-moderacao" icon="eye" title="Moderação" onPress={go('/moderacao')} /> : null}
+        </SettingsGroup>
 
-        {/* UX-12: um nome só ("Corrida Segura") e as mesmas 2 opções da Nova corrida. */}
-        <Group title="Corrida Segura" note="No SOS e nestas opções, seus contatos recebem sua localização.">
-          <ToggleRow testID="perfil-escolta" icon="location" title="Compartilhar ao vivo" value={escortOn} onChange={toggleEscort} />
-          <ToggleRow testID="perfil-alerta-parada" icon="timer" title="Avisar se eu parar" value={stopAlertOn} onChange={toggleStopAlert} />
-          <SettingsRow
-            testID="perfil-contatos-seguranca"
-            icon="shield"
-            title="Contatos de segurança"
-            value={contacts > 0 ? String(contacts) : undefined}
-            onPress={() => router.push('/contatos-seguranca' as Href)}
-          />
-        </Group>
-
-        <Group title="Privacidade" note="O começo e o fim perto de casa ficam escondidos.">
-          <SettingsRow testID="perfil-zonas-privacidade" icon="home" title="Zonas de privacidade" onPress={() => router.push('/zonas-privacidade' as Href)} />
-          {/* E8: corridas e mapa no feed da crew. Some sozinho quando o servidor não tem o feed. */}
-          <View style={{ paddingHorizontal: space[4], paddingBottom: space[2] }}>
-            <FeedSettings />
-          </View>
-        </Group>
-
-        <Group title="Jogo">
-          {/* E5: preferências do aparelho. "Vibração" desligada não cala os alertas de segurança. */}
+        <SettingsGroup title="Neste aparelho">
+          {/* E5: "Vibração" desligada não cala os alertas de segurança. */}
           <ToggleRow testID="ajustes-vibracao" icon="vibrate" title="Vibração" value={haptics} onChange={() => useMotionPrefs.getState().setHaptics(!haptics)} />
           <ToggleRow
             testID="ajustes-pular-celebracoes"
@@ -94,49 +53,8 @@ export function SettingsScreen() {
             value={skipCelebrations}
             onChange={() => useMotionPrefs.getState().setSkipCelebrations(!skipCelebrations)}
           />
-          <SettingsRow testID="ajustes-pausa" icon="moon" title="Pausa de saúde" onPress={() => setPause(true)} />
-        </Group>
-
-        <ReminderSettingsSection testID="lembretes" />
-
-        <TelemetrySettingsSection />
-
-        <InviteCard kind="app" place={city} faction={faction} testID="convite-app" />
-
-        {/* UX-36/D-95: "Sair" mora só em Conta e privacidade, com confirmação (antes, aqui e lá, sem confirmar). */}
+        </SettingsGroup>
       </Stagger>
-      <HealthPauseSheet visible={pause} onClose={() => setPause(false)} testID="ajustes-pausa-folha" />
     </ScreenScroll>
-  );
-}
-
-/** Grupo de linhas: título, 1 frase opcional e as linhas num cartão só. */
-function Group({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
-  return (
-    <View style={{ gap: space[2] }}>
-      <SectionHeader title={title} />
-      {note ? (
-        <Text variant="caption" muted style={{ paddingHorizontal: space[1] }}>
-          {note}
-        </Text>
-      ) : null}
-      <Surface padded={false} style={{ overflow: 'hidden', gap: 0 }}>
-        {children}
-      </Surface>
-    </View>
-  );
-}
-
-/** Linha com interruptor (mesma altura e ícone da `SettingsRow`). */
-function ToggleRow({ testID, icon, title, value, onChange }: { testID: string; icon: IconName; title: string; value: boolean; onChange: () => void }) {
-  const { colors } = useTheme();
-  return (
-    <View style={{ minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: space[3], paddingHorizontal: space[4], paddingVertical: space[2] }}>
-      <Icon name={icon} size={22} color={colors.text} />
-      <Text variant="bodyBold" style={{ flex: 1 }}>
-        {title}
-      </Text>
-      <Switch testID={testID} accessibilityLabel={title} value={value} onValueChange={onChange} {...switchColors(colors)} />
-    </View>
   );
 }

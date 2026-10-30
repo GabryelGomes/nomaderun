@@ -33,20 +33,31 @@ const PLACES: { name: string; at: LatLng; landmark?: boolean }[] = [
 ];
 
 const zoneNames = new Map<string, string>();
-const hoodCounters = new Map<string, number>();
 const LANDMARK_ZONES = new Map(PLACES.filter((p) => p.landmark).map((p) => [zoneOf(p.at), p.name]));
 
-/** Unique human name: the zone that contains a landmark takes its name, others "<bairro> <n>". */
+/** Referência curta de cada marco ("perto do Estádio"). */
+const LANDMARK_SHORT: Record<string, string> = {
+  'Parque Flamboyant': 'Parque Flamboyant',
+  'Lago do Flamboyant': 'Lago',
+  'Shopping Flamboyant': 'Shopping',
+  'Estádio Serra Dourada': 'Estádio',
+  'Parque Areião': 'Parque Areião',
+};
+
+/**
+ * Human name: the zone that contains a landmark takes its name; the others "<bairro> · perto do <marco>" (UX-29,
+ * F8-B3: antes "<bairro> <n>", com um número que não dizia nada para quem corre).
+ */
 export function zoneName(id: string): string {
   const cached = zoneNames.get(id);
   if (cached) return cached;
   let name = LANDMARK_ZONES.get(id);
   if (!name) {
     const c = cellCenter(id);
-    const hood = PLACES.filter((p) => !p.landmark).sort((a, b) => distanceMeters(c, a.at) - distanceMeters(c, b.at))[0];
-    const n = (hoodCounters.get(hood.name) ?? 0) + 1;
-    hoodCounters.set(hood.name, n);
-    name = `${hood.name} ${n}`;
+    const byDistance = <T extends { at: LatLng }>(list: T[]) => [...list].sort((a, b) => distanceMeters(c, a.at) - distanceMeters(c, b.at))[0];
+    const hood = byDistance(PLACES.filter((p) => !p.landmark));
+    const mark = byDistance(PLACES.filter((p) => p.landmark));
+    name = `${hood.name} · perto do ${LANDMARK_SHORT[mark.name] ?? mark.name}`;
   }
   zoneNames.set(id, name);
   return name;

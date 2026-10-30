@@ -24,7 +24,7 @@ export type MapToday = {
   mission?: MapMission | null;
   /** Chip da missão aberta mais adiantada (E7: "40%" ou "Feitas"). */
   featured?: { value: string; label: string } | null;
-  /** Recap da semana pronto (domingo, com atividade na semana): alerta que abre "Minha semana". */
+  /** Recap da semana (F8 B3, `recapAlert`: sexta a domingo, ≥ 1 km): o último da vaga de alerta, abre "Minha semana". */
   recap?: { title: string; body: string } | null;
   demo?: boolean;
 };
@@ -93,7 +93,7 @@ export type MapAlert = { id: string; kind: AlertKind; title: string; body: strin
 
 /**
  * Candidatos ao espaço único de alerta (o `AlertSlot` escolhe 1 pela prioridade: missão inicial com 0 corridas >
- * ataque > missão em andamento > baú > chefão > recap de domingo > sequência). Textos ≤ 30 caracteres no título e
+ * ataque > missão em andamento > baú > chefão > sequência > recap da semana). Textos ≤ 30 caracteres no título e
  * 1 linha no apoio (D-74).
  */
 export function mapAlerts(input: {

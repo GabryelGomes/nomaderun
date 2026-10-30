@@ -13,7 +13,6 @@ import { Text } from '@/components/text';
 import type { FactionId } from '@/domain/types';
 import { springCss, springs } from '@/theme/motion';
 import { neon, neonTeam } from '@/theme/neon';
-import { factions } from '@/theme/tokens';
 
 import { ZONE_TIMELINE as Z } from './choreography';
 import { type MomentBaseProps, pop, rise, step, useMoment } from './moment';
@@ -70,7 +69,7 @@ function ZoneSummary(props: ZoneCapturedProps & { text: string }) {
           value={1}
           size={132}
           stroke={10}
-          color={factions[faction].color}
+          color={neonTeam[faction]}
           segments={6}
           pulseAt={[1]}
           duration={still ? 0 : at(Z.ringMs)}

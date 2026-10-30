@@ -2,7 +2,7 @@ import { FLAG_EXPLANATION, type CheatFlag } from '@/domain/anti-cheat';
 
 /** Textos do painel para os códigos do servidor (API_CONTRATO: `review.reason` e `flags`). */
 export const REVIEW_REASON_TEXT: Record<string, string> = {
-  LOW_TRUST: 'Índice de confiança abaixo de 40 (RN-009).',
+  LOW_TRUST: 'Índice de confiança abaixo de 40.',
   TRUST_SUSPENDED: 'Índice de confiança abaixo de 10: corredor suspenso por 30 dias.',
   SUSPENDED: 'Conta já estava suspensa da competição.',
   NO_PEDOMETER_LONG_RUN: 'Aparelho sem pedômetro em corrida de mais de 10 km (RN-008).',

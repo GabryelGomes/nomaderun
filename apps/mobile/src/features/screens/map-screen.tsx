@@ -18,7 +18,7 @@ import TerritoryMap from '@/components/territory-map';
 import type { MapBounds } from '@/components/territory-map.types';
 import { cellCenter } from '@/domain/grid';
 import type { LatLng } from '@/domain/types';
-import { DEMO_CENTER, DEMO_CITY, zoneName } from '@/demo/demo-data';
+import { DEMO_CENTER, zoneName } from '@/demo/demo-data';
 import { useOnboardingFlow } from '@/features/auth/onboarding-flow';
 import { ensureConquestHistory, TeamWeekBanner, useWelcomeDone, WelcomeDoneToast } from '@/features/engagement';
 import { mapZonesInBounds } from '@/features/map-data';
@@ -33,11 +33,13 @@ import { useSession } from '@/store/session-store';
 import { useZones } from '@/store/zones-store';
 import { factions, floating, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
+import { zoneDisplayName } from '@/features/format';
 
 import { CounterBadge } from './game-motion';
 import { mapControlsTop } from './game-motion-math';
 import { LayerChips, type Layer } from './map-layer-chips';
-import { changesSinceYesterday, changesText, mapCityOf, expiredAttackKey, mapAlerts, pickMapMission, todayChips, welcomeMission, zonesUnderAttack, type MapToday } from './map-screen.model';
+import { recapAlert } from './recap-alert';
+import { changesSinceYesterday, changesText, expiredAttackKey, mapAlerts, pickMapMission, todayChips, welcomeMission, zonesUnderAttack, type MapToday } from './map-screen.model';
 
 const MAP_CENTER: LatLng = { lat: DEMO_CENTER.lat - 0.0035, lng: DEMO_CENTER.lng };
 const MAP_SPAN = 2600;
@@ -49,7 +51,7 @@ const CHANGES_VISIBLE_MS = 4000;
 
 /** Nome do servidor quando houver; senão o nome local de demonstração. */
 export function displayZoneName(id: string, serverName: string | null | undefined): string {
-  return serverName ?? zoneName(id);
+  return zoneDisplayName(serverName ?? zoneName(id));
 }
 
 /** Centro pedido por uma notificação: coordenadas enviadas pelo servidor ou o centro da célula H3. */
@@ -190,7 +192,6 @@ export function MapScreen({ today }: MapScreenProps = {}) {
   const explored = useMemo(() => (layer === 'explorado' ? fog.slice(-600) : undefined), [fog, layer]);
 
   // Cidade do que está no mapa (zonas da área visível), não a cidade natal do perfil (QA E10).
-  const city = useMemo(() => mapCityOf(mapZones.map((z) => z.id), meta), [mapZones, meta]);
   const mine = useMemo(() => Object.values(zones).filter((z) => z.owner === faction).length, [zones, faction]);
   const attacked = useMemo(() => zonesUnderAttack(zones, faction, now), [zones, faction, now]);
   // F8 B2 (UX-02/UX-32): a missão de boas-vindas segue o estado real (corridas e 1ª zona) e some sozinha.
@@ -200,7 +201,10 @@ export function MapScreen({ today }: MapScreenProps = {}) {
   }, []);
   const welcome = welcomeMission(runCount, everConquered);
   const mission = pickMapMission(welcome, today?.mission);
-  const dayToday: MapToday = { ...today, mission };
+  // F8 B3/B2: recap da semana (sexta a domingo, ≥ 1 km) entra por último na vaga de alerta.
+  const weekMeters = useEngagement((s) => s.status.data?.week.meters ?? null);
+  const recap = weekMeters !== null ? recapAlert(now, weekMeters) : null;
+  const dayToday: MapToday = { ...today, mission, recap: recap ? { title: recap.title, body: recap.body } : null };
   const chips: DailyItem[] = todayChips(dayToday, streakWeeks).map(({ href, ...c }) => (href ? { ...c, onPress: () => router.push(href) } : c));
   const candidates = mapAlerts({
     attacked,
@@ -278,10 +282,8 @@ export function MapScreen({ today }: MapScreenProps = {}) {
                   : zonesError && !hasZones
                     ? 'Não deu para carregar as zonas'
                     : here
-                      ? city
-                        ? `${mine} zonas em ${city}`
-                        : `${mine} zonas por perto`
-                      : `${mine} zonas em ${DEMO_CITY} · demonstração`}
+                      ? `Seu time: ${mine} ${mine === 1 ? 'zona' : 'zonas'}`
+                      : `Seu time: ${mine} ${mine === 1 ? 'zona' : 'zonas'} · demonstração`}
             </Text>
           </View>
           {statusError ? (
