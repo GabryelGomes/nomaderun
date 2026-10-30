@@ -20,6 +20,7 @@ import { LOGO_BOX, logoNodes, type LogoVariant } from './logo/logo-art';
 import { type QualityProp } from './neon/core';
 import { InSvgArt, type SvgArtBox } from './neon/in-svg';
 import { ART } from './neon/palette';
+import { EMBLEM_BOX, emblemNodes, resolveEmblemVariant, type EmblemVariantProp } from './team/emblem-art';
 import { MASCOT_BOX, mascotNodes, type MascotPose } from './team/mascot-art';
 import { RUNNER_BOX, runnerNodes } from './team/runner-art';
 
@@ -35,6 +36,25 @@ export function RunnerSvgArt({ team, box, color, quality, opacity }: Common & { 
 
 export function LeaderSvgArt({ team, pose = 'parado', box, color, quality, opacity }: Common & { team: FactionId; pose?: LeaderPose }) {
   return <InSvgArt nodes={leaderNodes(team, pose, color ?? ART.team[team])} vb={LEADER_BOX} box={box} quality={quality} opacity={opacity} />;
+}
+
+/**
+ * Emblema do time (D-90) dentro do SVG do card. `box.size` está nas unidades do SVG de fora: num card de 1080
+ * de largura, 18 pt ≈ 54 unidades. Passe `variant` explícita (`auto` resolve pelo tamanho em unidades, não em
+ * pt) e `on` com a cor do fundo onde ele está (pílula, selo), porque as feições são polígonos nessa cor.
+ */
+export function TeamEmblemInSvg({
+  team,
+  box,
+  variant = 'auto',
+  color,
+  on,
+  mono,
+  quality,
+  opacity,
+}: Common & { team: FactionId | null; variant?: EmblemVariantProp; on?: string; mono?: boolean }) {
+  const v = resolveEmblemVariant(variant, box.size);
+  return <InSvgArt nodes={emblemNodes(team, { variant: v, size: box.size, color, on, mono })} vb={EMBLEM_BOX} box={box} quality={quality} opacity={opacity} />;
 }
 
 /** `silhouette` desenha só o corpo numa cor só (o clarão branco do golpe), sem chão nem impacto. */

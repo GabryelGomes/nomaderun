@@ -46,6 +46,7 @@ export type ArtNode =
   | { kind: 'neon'; shapes: Shape[]; color: string; w: number; opts: NeonOpts }
   | { kind: 'glow'; shapes: Shape[]; color: string; w: number; glow: number; opacity: number }
   | { kind: 'plain'; shapes: Shape[]; stroke: string; w: number; opacity?: number }
+  | { kind: 'solid'; shapes: Shape[]; color: string; opacity?: number }
   | { kind: 'group'; children: ArtNode[]; matrix?: Matrix; opacity?: number };
 
 /** Matriz SVG `matrix(a b c d e f)`. */
@@ -73,6 +74,14 @@ export function glowFill(shapes: Shape | Shape[], color: string, opt: { glow?: n
 /** Traço simples, sem brilho (ex.: cortes "synthwave" na cor do fundo). */
 export function plain(shapes: Shape | Shape[], stroke: string, w: number, opacity?: number): ArtNode {
   return { kind: 'plain', shapes: list(shapes), stroke, w, opacity };
+}
+
+/**
+ * Forma cheia, sem traço e sem brilho (a silhueta do emblema e as feições "recortadas" na cor do fundo).
+ * Igual em todas as qualidades: é o que faz o emblema mini ler a 18 pt.
+ */
+export function solid(shapes: Shape | Shape[], color: string, opacity?: number): ArtNode {
+  return { kind: 'solid', shapes: list(shapes), color, opacity };
 }
 
 export function group(children: ArtNode[], opt: { matrix?: Matrix; opacity?: number } = {}): ArtNode {
@@ -209,8 +218,13 @@ function expandNode(n: ArtNode, ctx: Ctx): Prim {
     case 'glow':
       return expandGlow(n, ctx);
     case 'plain': {
-      const a: Record<string, string | number> = { fill: 'none', stroke: paint(n.stroke, ctx), strokeWidth: r2(n.w), strokeLinecap: 'round' };
+      const a: Record<string, string | number> = { fill: 'none', stroke: paint(n.stroke, ctx), strokeWidth: r2(n.w), strokeLinecap: 'round', strokeLinejoin: 'round' };
       if (n.opacity !== undefined) a.opacity = n.opacity;
+      return layerGroup(n.shapes, a);
+    }
+    case 'solid': {
+      const a: Record<string, string | number> = { fill: paint(n.color, ctx), stroke: 'none' };
+      if (n.opacity !== undefined && n.opacity !== 1) a.fillOpacity = n.opacity;
       return layerGroup(n.shapes, a);
     }
     case 'group': {
