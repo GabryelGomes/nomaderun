@@ -113,8 +113,8 @@ export function RemindersSettingsScreen() {
           </Text>
         ) : null}
 
-        {/* A seção da E7 guarda uma cópia das preferências: remonta quando um aviso daqui muda, para não gravar a cópia velha. */}
-        <ReminderSettingsSection key={ALERTS.map((a) => String(prefs[a.key])).join('-')} testID="lembretes" />
+        {/* A seção da E7 lê as preferências do store (sem cópia): os avisos daqui e os lembretes gravam o mesmo perfil. */}
+        <ReminderSettingsSection testID="lembretes" />
 
         <SettingsGroup>
           <SettingsRow testID="ajustes-pausa" icon="moon" title="Pausa de saúde" onPress={() => setPause(true)} />
