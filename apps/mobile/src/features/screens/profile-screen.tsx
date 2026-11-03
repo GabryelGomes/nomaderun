@@ -1,9 +1,10 @@
 import { Image } from 'expo-image';
 import { router, type Href } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
-import { Medal, TeamEmblem } from '@/components/art';
-import { FadeUp, ProgressRing, ShimmerSkeleton, Stagger } from '@/components/motion';
+import { Medal, medalLabel, TeamEmblem } from '@/components/art';
+import { FadeUp, PressableScale, ProgressRing, ShimmerSkeleton, Stagger } from '@/components/motion';
 import { OfflineNotice } from '@/components/offline-notice';
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
@@ -14,7 +15,6 @@ import { Text } from '@/components/text';
 import { districtsExploration } from '@/domain/games';
 import { formatKm } from '@/domain/geo';
 import { levelProgress, titleForLevel } from '@/domain/progression';
-import { useEngagementData } from '@/features/engagement';
 import { formatInt, NO_DATA } from '@/features/format';
 import { mergeHistory } from '@/features/run/history-model';
 import { useNow } from '@/features/use-now';
@@ -25,7 +25,12 @@ import { neonTeam } from '@/theme/neon';
 import { factions, fonts, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-import { conqueredZones, initialsOf, medalShelf, weekKm } from './profile-screen.model';
+import { useEngagementData } from '@/features/engagement';
+import { AtlasStamps } from '@/features/engagement/atlas-stamps';
+import { MedalSheet, medalInfo, type MedalInfo } from '@/features/engagement/medal-sheet';
+import { districtStamps } from '@/features/engagement/moments';
+
+import { conqueredZones, initialsOf, medalShelf, SHELF_RULES, weekKm } from './profile-screen.model';
 import { useResource } from './use-resource';
 
 /** Rotas da aba "Você" (D-73). */
@@ -70,7 +75,15 @@ export function ProfileScreen() {
   const totalKm = history.filter((h) => h.tag !== 'rejeitada' && h.tag !== 'erro').reduce((s, h) => s + h.meters, 0);
   const week = weekKm(history, now);
   const atlas = districtsExploration(fog)[0]?.pct ?? 0;
-  const shelf = medalShelf({ runs: counted.length, zones, atlasCells: fog.length, streakWeeks });
+  const shelfInput = { runs: counted.length, zones, atlasCells: fog.length, streakWeeks };
+  const shelf = medalShelf(shelfInput);
+  // UX-34: medalha tocável → folha com nome, critério e progresso (número real). Atlas: carimbos de bairro (5.8).
+  const [medal, setMedal] = useState<MedalInfo | null>(null);
+  const openMedal = (kind: (typeof SHELF_RULES)[number]['kind']) => {
+    const rule = SHELF_RULES.find((r) => r.kind === kind);
+    if (rule) setMedal(medalInfo(kind, rule.metric, shelfInput[rule.metric], rule.steps));
+  };
+  const stamps = useMemo(() => (all.data ? districtStamps(all.data) : []), [all.data]);
   const season = track.data;
   // D-95: número só quando ele é conhecido (do servidor, agora ou antes); carregando = esqueleto; falhou = "—".
   const runsKnown = all.data !== null || historySync.at !== null;
@@ -158,13 +171,27 @@ export function ProfileScreen() {
         {runsKnown ? (
           <View testID="perfil-medalhas" style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: space[1] }}>
             {shelf.medals.map((m) => (
-              <Medal key={m.kind} kind={m.kind} tier={m.tier} locked={m.locked} size={64} quality="leve" />
+              <PressableScale
+                key={m.kind}
+                testID={`perfil-medalha-${m.kind}`}
+                accessibilityLabel={`${medalLabel(m.kind, m.tier, m.locked)}. Toque para ver como ganhar`}
+                onPress={() => openMedal(m.kind)}
+                hitSlop={0}
+                style={{ minWidth: 64, minHeight: 64, alignItems: 'center', justifyContent: 'center' }}>
+                <Medal kind={m.kind} tier={m.tier} locked={m.locked} size={64} quality="leve" />
+              </PressableScale>
             ))}
           </View>
         ) : runsFailed ? null : (
           <ShimmerSkeleton testID="perfil-medalhas-carregando" shape="card" height={64} accessibilityLabel="Carregando as medalhas" />
         )}
       </FadeUp>
+
+      {stamps.length > 0 ? (
+        <FadeUp delay={230}>
+          <AtlasStamps stamps={stamps} />
+        </FadeUp>
+      ) : null}
 
       <FadeUp delay={260}>
         <View style={{ borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, overflow: 'hidden' }}>
@@ -187,6 +214,7 @@ export function ProfileScreen() {
           />
         </View>
       </FadeUp>
+      <MedalSheet info={medal} onClose={() => setMedal(null)} />
     </ScreenScroll>
   );
 }

@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,12 +20,14 @@ import { cellCenter } from '@/domain/grid';
 import type { LatLng } from '@/domain/types';
 import { DEMO_CENTER, zoneName } from '@/demo/demo-data';
 import { useOnboardingFlow } from '@/features/auth/onboarding-flow';
+import { ensureConquestHistory, TeamWeekBanner, useWelcomeDone, WelcomeDoneToast } from '@/features/engagement';
 import { mapZonesInBounds } from '@/features/map-data';
 import { loadHistory } from '@/features/run/run-controller';
 import { useNow } from '@/features/use-now';
 import { bboxAround } from '@/services/api/zones-repo';
 import { currentPosition } from '@/services/location/current';
 import { useGame } from '@/store/game-store';
+import { useEngagement } from '@/store/engagement-store';
 import { selectUnreadCount, useNotifications } from '@/store/notifications-store';
 import { useSession } from '@/store/session-store';
 import { useZones } from '@/store/zones-store';
@@ -36,7 +38,8 @@ import { zoneDisplayName } from '@/features/format';
 import { CounterBadge } from './game-motion';
 import { mapControlsTop } from './game-motion-math';
 import { LayerChips, type Layer } from './map-layer-chips';
-import { changesSinceYesterday, changesText, expiredAttackKey, mapAlerts, todayChips, welcomeMission, zonesUnderAttack, type MapToday } from './map-screen.model';
+import { recapAlert } from './recap-alert';
+import { changesSinceYesterday, changesText, expiredAttackKey, mapAlerts, pickMapMission, todayChips, welcomeMission, zonesUnderAttack, type MapToday } from './map-screen.model';
 
 const MAP_CENTER: LatLng = { lat: DEMO_CENTER.lat - 0.0035, lng: DEMO_CENTER.lng };
 const MAP_SPAN = 2600;
@@ -84,17 +87,25 @@ function useLiveZones() {
 
 /** Quantas corridas a pessoa já tem (servidor + aparelho); `null` enquanto o servidor não respondeu. */
 function useRunCount(): number | null {
-  const [count, setCount] = useState<number | null>(null);
-  useEffect(() => {
-    let alive = true;
-    void loadHistory().then((res) => {
-      if (alive && res.ok) setCount(res.data.length + useGame.getState().localRuns.length);
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
-  return count;
+  const [fetched, setFetched] = useState<number | null>(null);
+  // O que o aparelho já sabe (corridas do servidor no store + as que ainda estão no aparelho): a corrida que acabou
+  // de terminar entra aqui na hora, e a missão de boas-vindas some sem esperar o servidor (UX-02).
+  const stored = useGame((s) => s.serverRuns.length + s.localRuns.length);
+  useFocusEffect(
+    useCallback(() => {
+      // Já tem corrida: a contagem nunca volta a 0 (não precisa reler).
+      if (fetched !== null && fetched > 0) return;
+      let alive = true;
+      void loadHistory().then((res) => {
+        if (alive && res.ok) setFetched(res.data.length + useGame.getState().localRuns.length);
+      });
+      return () => {
+        alive = false;
+      };
+    }, [fetched]),
+  );
+  if (fetched === null) return stored > 0 ? stored : null;
+  return Math.max(fetched, stored);
 }
 
 export type MapScreenProps = {
@@ -183,8 +194,17 @@ export function MapScreen({ today }: MapScreenProps = {}) {
   // Cidade do que está no mapa (zonas da área visível), não a cidade natal do perfil (QA E10).
   const mine = useMemo(() => Object.values(zones).filter((z) => z.owner === faction).length, [zones, faction]);
   const attacked = useMemo(() => zonesUnderAttack(zones, faction, now), [zones, faction, now]);
-  const mission = today?.mission ?? welcomeMission(runCount);
-  const dayToday: MapToday = { ...today, mission };
+  // F8 B2 (UX-02/UX-32): a missão de boas-vindas segue o estado real (corridas e 1ª zona) e some sozinha.
+  const everConquered = useEngagement((s) => s.everConquered);
+  useEffect(() => {
+    void ensureConquestHistory();
+  }, []);
+  const welcome = welcomeMission(runCount, everConquered);
+  const mission = pickMapMission(welcome, today?.mission);
+  // F8 B3/B2: recap da semana (sexta a domingo, ≥ 1 km) entra por último na vaga de alerta.
+  const weekMeters = useEngagement((s) => s.status.data?.week.meters ?? null);
+  const recap = weekMeters !== null ? recapAlert(now, weekMeters) : null;
+  const dayToday: MapToday = { ...today, mission, recap: recap ? { title: recap.title, body: recap.body } : null };
   const chips: DailyItem[] = todayChips(dayToday, streakWeeks).map(({ href, ...c }) => (href ? { ...c, onPress: () => router.push(href) } : c));
   const candidates = mapAlerts({
     attacked,
@@ -198,14 +218,21 @@ export function MapScreen({ today }: MapScreenProps = {}) {
     kind: a.kind,
     title: a.title,
     body: a.body,
-    onPress: () => (a.zoneId ? router.push({ pathname: '/zona/[id]', params: { id: a.zoneId } }) : router.push('/corrida')),
+    onPress: () => (a.zoneId ? router.push({ pathname: '/zona/[id]', params: { id: a.zoneId } }) : router.push(a.href ?? '/corrida')),
     onDismiss: () => setDismissed((d) => [...d, a.id]),
   }));
   // E10 (onda 4): na primeira sessão, o card de boas-vindas (WelcomeMissionOverlay, montado pelas abas) fica no mesmo
   // lugar; o Mapa cede a vaga a ele em vez de empilhar dois cards (um cobria o outro).
   const userId = useSession((s) => s.session?.userId ?? null);
   const welcomeOn = useOnboardingFlow((s) => !!userId && s.welcomeFor === userId);
-  const top = welcomeOn ? null : pickAlert(slot);
+  const dismissWelcome = useOnboardingFlow((s) => s.dismissWelcome);
+  // O card de boas-vindas das abas é estático: com a 1ª corrida feita, ele sai (UX-02).
+  const ranOnce = runCount !== null && runCount > 0;
+  useEffect(() => {
+    if (welcomeOn && ranOnce) dismissWelcome();
+  }, [welcomeOn, ranOnce, dismissWelcome]);
+  const top = welcomeOn && !ranOnce ? null : pickAlert(slot);
+  const welcomeDone = useWelcomeDone(welcomeOn || top?.kind === 'welcome' || mission?.id === 'boas-vindas-zona', ranOnce && everConquered === true);
 
   const statusError = !!zonesError && !hasZones && !zonesOffline && !zonesLoading;
   // E10 (onda 4): o selo "Demonstração" (DemoSeal, no alto e no centro) encostava no nome do time. Na
@@ -288,6 +315,9 @@ export function MapScreen({ today }: MapScreenProps = {}) {
           <DailyStrip items={chips} testID="mapa-hoje" />
         </ScrollView>
 
+        {/* "A semana do time" (E7, F8 · 5.10): na 1ª abertura da segunda, some com 1 toque ou em 4 s. */}
+        <TeamWeekBanner team={faction} now={now} />
+
         {changes && !changesGone ? (
           <FadeUp distance={-12} duration={400}>
             <View
@@ -331,9 +361,11 @@ export function MapScreen({ today }: MapScreenProps = {}) {
         ) : null}
       </View>
 
+      {welcomeDone.show ? <WelcomeDoneToast team={faction} onDone={welcomeDone.dismiss} /> : null}
+
       {/* Zona do polegar, acima da barra de abas flutuante do iOS: 1 alerta (ou a missão) e o CORRER. */}
       <View style={{ position: 'absolute', left: space[4], right: space[4], bottom: tabBarClearance(insets.bottom), gap: space[3] }}>
-        {top?.kind === 'mission' && mission ? (
+        {(top?.kind === 'mission' || top?.kind === 'welcome') && mission ? (
           <FadeUp key={top.id} distance={24} duration={600} curve="reveal" delay={200}>
             <MissionCoachCard
               testID="mapa-missao"

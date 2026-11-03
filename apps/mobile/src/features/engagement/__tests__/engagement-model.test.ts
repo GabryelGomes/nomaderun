@@ -238,18 +238,18 @@ describe('resumo: ordem pico-fim', () => {
 });
 
 describe('faixa de hoje do Mapa', () => {
-  it('só verdades: sequência, baús (com o bônus) e a missão mais adiantada; no máximo 3', () => {
+  it('só verdades: sequência, baús (com o bônus) e o chip fixo "Missões 0/3" (UX-17); no máximo 3', () => {
     const d = todayData({ status: status(), missions: missions(), chest: chest(), now: NOW });
-    expect(d.chips.map((c) => `${c.key}:${c.value}:${c.label}`)).toEqual(['sequencia:1/2:Semana', 'bau:3:Baús', 'missao:40%:Missão']);
+    expect(d.chips.map((c) => `${c.key}:${c.value}:${c.label}`)).toEqual(['sequencia:1/2:Semana', 'bau:3:Baús', 'missao:0/3:Missões']);
     expect(d.featured?.id).toBe('b');
     expect(d.coach).toBeNull();
   });
 
-  it('sem dado do servidor, o chip não existe; baú zerado some; tudo feito vira "Feitas"', () => {
+  it('sem dado do servidor, o chip não existe; baú zerado some; tudo feito vira "3/3"', () => {
     expect(todayData({ status: null, missions: null, chest: null, now: NOW }).chips).toEqual([]);
     const done = missions({ daily: missions().daily.map((m) => ({ ...m, completedAt: NOW })), weekly: [] });
     const d = todayData({ status: null, missions: done, chest: chest({ stored: 0, bonus: [], openedToday: true }), now: NOW });
-    expect(d.chips.map((c) => `${c.key}:${c.value}`)).toEqual(['missao:Feitas']);
+    expect(d.chips.map((c) => `${c.key}:${c.value}`)).toEqual(['missao:3/3']);
     expect(featuredMission(done)).toBeNull();
   });
 

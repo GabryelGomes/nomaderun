@@ -27,6 +27,8 @@ import { neon } from '@/theme/neon';
 import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
+import { useHowToPlayFirstVisit } from '@/features/engagement/how-to-play';
+
 import { LeagueSheet } from './arena-league-sheet';
 import { leagueStripLine, leagueTitle } from './arena-league.model';
 import { ArenaHelp, ArenaHelpButton } from './arena-screen-help';
@@ -45,6 +47,9 @@ import { useResource } from './use-resource';
 export function ArenaScreen() {
   const faction = useSession((s) => s.profile?.faction ?? null);
   const [helpOpen, setHelpOpen] = useState(false);
+  // UX-19 (E7): "Como jogar" abre sozinho 1 vez, na 1ª visita à Arena.
+  const firstVisit = useHowToPlayFirstVisit();
+  const [autoClosed, setAutoClosed] = useState(false);
   const [headerH, setHeaderH] = useState(240);
   // Parallax sutil (0,3) no herói; com "Reduzir movimento" ele só esmaece.
   const parallax = useParallax(headerH, 0.3);
@@ -98,7 +103,14 @@ export function ArenaScreen() {
 
       <LeagueStrip data={league.data} failed={league.error !== null && league.data === null} />
 
-      <ArenaHelp visible={helpOpen} team={faction ?? 'striders'} onClose={() => setHelpOpen(false)} />
+      <ArenaHelp
+        visible={helpOpen || (firstVisit && !autoClosed)}
+        team={faction ?? 'striders'}
+        onClose={() => {
+          setHelpOpen(false);
+          setAutoClosed(true);
+        }}
+      />
     </Animated.ScrollView>
   );
 }

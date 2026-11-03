@@ -6,7 +6,9 @@
  * Nunca pede permissão (a E6 pede depois da 1ª conquista, D-72): sem permissão, só registra o plano.
  */
 import { planReminders, type PlannedReminder } from '@/domain/reminders';
+import { cachedCrewEcho, loadCrewEcho } from '@/features/engagement/crew-echo';
 import { readLocal, writeLocal } from '@/features/engagement/local-store';
+import { readPendingPlan } from '@/features/engagement/next-run-plan';
 import { useEngagement } from '@/store/engagement-store';
 import { useSession } from '@/store/session-store';
 
@@ -37,7 +39,9 @@ export type Notifier = {
 };
 
 /** Para onde o toque leva (a rota abre a tela que explica o aviso). */
-export function reminderRoute(kind: PlannedReminder['kind']): '/missoes' | '/recompensas' | '/compartilhar/semana' | '/' {
+export function reminderRoute(kind: PlannedReminder['kind']): '/missoes' | '/recompensas' | '/compartilhar/semana' | '/notificacoes' | '/' {
+  // O plano abre o Mapa (o CORRER é o único "começar corrida", D-89); o eco abre a central, onde ele mora.
+  if (kind === 'eco') return '/notificacoes';
   if (kind === 'missao' || kind === 'ftue' || kind === 'volta') return '/missoes';
   // Sem semana na rota, o recap abre a semana que acabou quando a atual ainda está vazia (segunda de manhã).
   if (kind === 'recap') return '/compartilhar/semana';
@@ -117,7 +121,9 @@ export function replanReminders(opts: { now?: number; notifier?: Notifier } = {}
     if (session.status !== 'signedIn') return { plan: [], scheduled: 0, cancelled: 0, skipped: 'signed_out' };
     const eng = useEngagement.getState();
     const log = await readReminderLog(now);
-    const state = buildReminderState({ status: eng.status.data, missions: eng.missions.data, chest: eng.chest.data, log, now });
+    const nextRun = await readPendingPlan(now);
+    await loadCrewEcho(now);
+    const state = buildReminderState({ status: eng.status.data, missions: eng.missions.data, chest: eng.chest.data, log, now, plan: nextRun, crewEcho: cachedCrewEcho(now) });
     const plan = planReminders(state, toReminderPrefs(session.profile?.notificationPrefs, await readDevicePrefs()), now);
     const entries: ScheduledEntry[] = plan.map((p) => ({ identifier: p.identifier, id: p.id, key: p.key, at: p.at }));
     if (!notifier.supported()) return { plan, scheduled: 0, cancelled: 0, skipped: 'unsupported' };

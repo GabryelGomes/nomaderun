@@ -10,6 +10,7 @@ import { ScreenScroll } from '@/components/screen';
 import { EmptyState, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { brtCalendar } from '@/domain/progression';
+import { CrewEchoCard } from '@/features/engagement/crew-echo-card';
 import { useNow } from '@/features/use-now';
 import { zoneTarget, type AppNotification, type NotificationType } from '@/services/api/notifications-repo';
 import { selectUnreadCount, useNotifications } from '@/store/notifications-store';
@@ -106,6 +107,9 @@ export function NotificationsScreen() {
           <Button testID="notificacoes-marcar-todas" label="Marcar todas como lidas" kind="ghost" onPress={() => void markRead(null)} />
         </FadeUp>
       ) : null}
+
+      {/* Eco da crew (F8 · 5.7): 1 por dia, só entre 07h e 22h; sem eco, nada. */}
+      <CrewEchoCard now={now} />
 
       {error && items.length === 0 ? (
         <EmptyState

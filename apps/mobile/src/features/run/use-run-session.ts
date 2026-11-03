@@ -40,7 +40,7 @@ import { loadHuntChests } from './hunt-chests';
 import { createVoiceGuide, type VoiceGuide } from './voice-guide';
 import { enqueueToast, lazyLiveSnapshot, liveEffects, type RunToast } from './live-hud';
 import { createPaintedLiveTracker, PAINT_FETCH_IDLE, paintFetchDue, type PaintedLiveTracker } from './live-paint';
-import { firstConquestEverNow } from './first-conquest';
+import { firstConquestEverNow, firstPaintLiveNow, firstPaintToast } from './first-conquest';
 
 export type RunMode = 'gps' | 'simulacao';
 export type Phase = 'countdown' | 'running' | 'paused' | 'finishing';
@@ -106,6 +106,8 @@ export function useRunSession(mode: RunMode) {
     tracker: null as PaintedLiveTracker | null,
     feedback: null as ReturnType<typeof createLiveFeedback> | null,
     paint: PAINT_FETCH_IDLE,
+    /** E7 (F8 · 5.1): "Primeiro trecho!" ainda pode aparecer nesta corrida (a pessoa nunca correu). */
+    firstPaint: false,
   });
 
   const guideRef = useRef<VoiceGuide | null>(null);
@@ -181,6 +183,11 @@ export function useRunSession(mode: RunMode) {
           if (fx.voice) say(fx.voice);
           if (fx.toast) fresh.push(fx.toast);
         }
+        // "Primeiro trecho!" (1 vez na vida): só quando a E7 sabe que esta é a 1ª atividade da pessoa.
+        if (l.firstPaint && sum.cellsPainted > 0) {
+          l.firstPaint = false;
+          fresh.unshift(firstPaintToast(faction));
+        }
         if (fresh.length) setToasts((q) => fresh.reduce(enqueueToast, q));
         requestPaint(geo);
       }
@@ -235,6 +242,7 @@ export function useRunSession(mode: RunMode) {
         fallback: lazyLiveSnapshot(() => ({ zones: useZones.getState().zones, names: useZones.getState().meta }), startedAt),
         firstConquestEver: firstConquestEverNow(),
       });
+      live.current.firstPaint = firstPaintLiveNow();
       live.current.feedback = createLiveFeedback({ faction, zoneName: zoneTitle });
       live.current.paint = PAINT_FETCH_IDLE;
       const userId = useSession.getState().session?.userId;
