@@ -86,6 +86,10 @@ function ConquestChips({ events, headline }: { events: readonly CelebrationEvent
 export type SummaryScreenProps = {
   /** Encaixe do bloco "Recompensas" da E7 (missões, baú, XP da semana). */
   rewards?: ReactNode;
+  /** Encaixe dos momentos da E7 (F8 · B2): 1º trecho, recorde, bairro novo e a fala do líder. */
+  moments?: ReactNode;
+  /** Encaixe do "Quando você corre de novo?" da E7 (D-94), depois das recompensas. */
+  plan?: ReactNode;
   /** Encaixe do `<ShareButton>` da E8 (card com imagem). Sem ele, compartilha o texto. */
   /**
    * XP e nível que o servidor creditou de fato (bloco "Recompensas" da E7: corrida + baús + missões). Com ele, o
@@ -100,7 +104,7 @@ export type SummaryScreenProps = {
  * v2 (T7.2.7): sequência cinematográfica — a rota se desenha, os números contam, as conquistas aparecem uma
  * a uma (com "Pular"), o nível enche e o Compartilhar é a ação primária ("Concluir" vira link).
  */
-export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps = {}) {
+export function SummaryScreen({ rewards, moments, plan, renderShare, xp }: SummaryScreenProps = {}) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotionSetting();
@@ -362,8 +366,14 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
           </FadeUp>
         ) : null}
 
+        {/* Momentos da E7 (só com dado real): 1º trecho ou recorde, bairro novo e o líder comentando o feito. */}
+        {done && moments ? moments : null}
+
         {/* Encaixe do bloco "Recompensas" da E7 (missões, baú, semana). */}
         {done && rewards ? <FadeUp delay={at(200)}>{rewards}</FadeUp> : null}
+
+        {/* D-94: "Quando você corre de novo?" (E7). */}
+        {done && plan ? plan : null}
 
         <Button testID="resumo-detalhes" label={details ? 'Esconder detalhes' : 'Ver detalhes'} kind="ghost" icon="route" onPress={() => setDetails((d) => !d)} />
 

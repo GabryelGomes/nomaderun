@@ -73,8 +73,13 @@ export function buildReminderState(input: {
   chest: DailyChestState | null;
   log: ReminderLog;
   now: number;
+  /** D-94: o plano que a pessoa marcou (`features/engagement/next-run-plan`). */
+  plan?: { at: number } | null;
+  /** Eco da crew de hoje, já filtrado pela janela (`features/engagement/crew-echo`). */
+  crewEcho?: { mateUsername: string; cells: number; notifyFrom: number; notifyUntil: number } | null;
 }): ReminderState {
   const { status, missions, chest, log, now } = input;
+  const echo = input.crewEcho ?? null;
   const weekly = (missions?.weekly ?? [])
     .filter((m) => m.completedAt === null && m.metric === 'meters')
     .sort((a, b) => missionRatio(b) - missionRatio(a))[0];
@@ -95,5 +100,7 @@ export function buildReminderState(input: {
     pause: status?.streak.pause ?? null,
     sent: sentReminders(log, now),
     ignoredInARow: ignoredInARow(log, now),
+    plan: input.plan ?? null,
+    crewEcho: echo ? { mate: echo.mateUsername, cells: echo.cells, notifyFrom: echo.notifyFrom, notifyUntil: echo.notifyUntil } : null,
   };
 }

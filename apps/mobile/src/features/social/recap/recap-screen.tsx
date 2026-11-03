@@ -21,6 +21,9 @@ import { layout, ScreenScroll } from '@/components/screen';
 import { Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { trackTelemetry } from '@/features/engagement';
+import { leaderLine } from '@/features/engagement/leader-lines';
+import { recapLeaderFeat } from '@/features/engagement/moments';
+import { LeaderComment } from '@/features/engagement/summary-moments';
 import { isDemoMode } from '@/services/api/env';
 import { useGame } from '@/store/game-store';
 import { useSession } from '@/store/session-store';
@@ -156,6 +159,12 @@ export function RecapScreen() {
           A semana ainda não acabou: o card mostra até hoje.
         </Text>
       ) : null}
+
+      {/* E7 (F8 · 5.3): o líder comenta a semana real (zonas, senão corridas), 1 fala por tela. */}
+      {(() => {
+        const line = state.status === 'ready' ? leaderLine(faction, recapLeaderFeat(state.recap), `semana-${state.recap.weekStart}`) : null;
+        return line ? <LeaderComment team={faction} text={line} testID="semana-lider" /> : null;
+      })()}
 
       <ChipRow
         testID="semana-formato"

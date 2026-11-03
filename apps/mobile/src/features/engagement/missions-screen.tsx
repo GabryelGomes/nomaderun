@@ -12,7 +12,6 @@ import { ProgressBar, ProgressRing, ShimmerSkeleton } from '@/components/motion'
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Text } from '@/components/text';
-import { ftueBarProgress } from '@/domain/missions';
 import type { EngagementMission } from '@/services/api/engagement-repo';
 import { useEngagement } from '@/store/engagement-store';
 import { useGame } from '@/store/game-store';
@@ -22,15 +21,15 @@ import { useTheme } from '@/theme/use-theme';
 
 import { markRankingOpened, refreshEngagement, rerollDailyMission } from './controller';
 import { useEngagementData } from './hooks';
-import { canReroll, FTUE_PRIZE, ftueAction, ftueComplete, ftueDoneCount, ftueRows, missionA11y, missionProgressLabel, missionRatio, pct, TIER_LABEL, unlockLabel, type FtueAction, type FtueRow } from './model';
+import { canReroll, FTUE_PRIZE, ftueAction, ftueBarValue, ftueComplete, ftueDoneCount, ftueRows, missionA11y, missionGo, missionProgressLabel, missionRatio, pctInt, TIER_LABEL, unlockLabel, type FtueAction, type FtueRow } from './model';
 
 /** Volta à tela depois de fazer um passo (compartilhou, entrou na crew): relê se o dado tem mais de 15 s. */
 const STALE_MS = 15_000;
 /** E10 (onda 4): item bloqueado continua legível (WCAG AA 4,5:1 com o texto secundário e o laranja sobre o fundo). */
 const LOCKED_OPACITY = 0.8;
 
-/** Leva ao lugar onde o passo se faz de verdade; quem conta o passo é o servidor. */
-export function goToFtueStep(a: FtueAction) {
+/** Leva ao lugar onde o passo (ou a missão, botão "Ir") se faz de verdade; quem conta é o servidor. */
+export function goToFtueStep(a: Pick<FtueAction, 'href' | 'mode' | 'ranking'>) {
   if (a.mode) useGame.getState().setMission(a.mode);
   if (a.ranking) void markRankingOpened();
   router.push(a.href);
@@ -50,6 +49,7 @@ function MissionRow({ m, rerollsLeft, onReroll, busy }: { m: EngagementMission; 
   const { colors } = useTheme();
   const done = m.completedAt !== null;
   const ratio = missionRatio(m);
+  const go = missionGo(m);
   return (
     <View
       style={{
@@ -68,7 +68,7 @@ function MissionRow({ m, rerollsLeft, onReroll, busy }: { m: EngagementMission; 
           <Icon name="check" size={22} color={colors.accentText} />
         ) : (
           <Text variant="caption" tabular maxFontSizeMultiplier={1.2}>
-            {pct(ratio)}
+            {pctInt(ratio)}
           </Text>
         )}
       </ProgressRing>
@@ -84,6 +84,7 @@ function MissionRow({ m, rerollsLeft, onReroll, busy }: { m: EngagementMission; 
       </View>
       <View style={{ alignItems: 'flex-end', gap: space[1] }}>
         <Text variant="bodyBold" color={done ? colors.textSecondary : colors.accentText} tabular>{`+${m.xp} XP`}</Text>
+        {go ? <Button testID={`missao-ir-${m.cadence}-${m.slot}`} label={go.label} accessibilityHint={`Abre o lugar para fazer: ${m.title}`} kind="secondary" onPress={() => goToFtueStep(go)} /> : null}
         {canReroll(m, rerollsLeft) ? (
           <Button testID={`missao-trocar-${m.slot}`} label="Trocar" kind="ghost" disabled={busy} onPress={() => onReroll(m)} />
         ) : null}
@@ -190,7 +191,8 @@ export function MissionsScreen() {
   const rows = data ? ftueRows(data, now) : [];
   const ftueOpen = rows.length > 0 && ftueDoneCount(rows) < rows.length;
   const ftueDone = ftueComplete(rows);
-  const ftueValue = ftueBarProgress(rows.map((r) => ({ id: r.id, step: r.step, status: r.status, unlocksAt: r.unlocksAt, completedAt: null })));
+  // UX-27: barra honesta (0 de 7 = vazia de verdade).
+  const ftueValue = ftueBarValue(rows);
 
   return (
     <ScreenScroll testID="tela-missoes" edges={['bottom']} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={pull} />}>
@@ -205,7 +207,7 @@ export function MissionsScreen() {
       ) : null}
 
       {missions.status === 'unavailable' ? (
-        <EmptyState testID="missoes-indisponivel" tag="Em breve" title="Missões em breve" body="O servidor ainda não liberou as missões." art={<EmptyArt kind="sem-medalhas" size={160} />} />
+        <EmptyState testID="missoes-indisponivel" title="Missões desligadas" body="O servidor ainda não liberou as missões." art={<EmptyArt kind="sem-medalhas" size={160} />} />
       ) : null}
 
       {/* D-95: o mesmo aviso de "sem conexão" das outras telas (antes, ilustração com botão laranja). */}

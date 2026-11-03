@@ -12,7 +12,8 @@ import { cosmeticName } from './cosmetics';
 export const TITLE_MAX = 30;
 export const BLOCK_MAX = 90;
 
-export const TIER_LABEL: Record<MissionTier, string> = { leve: 'Leve', padrao: 'Padrão', desafio: 'Desafio' };
+/** UX-27 (F8 B2): "Fácil" no lugar de "Leve" (caminhar vale); só o fácil aparece na lista. */
+export const TIER_LABEL: Record<MissionTier, string> = { leve: 'Fácil', padrao: 'Padrão', desafio: 'Desafio' };
 export const RARITY_LABEL: Record<ChestRarity, string> = { comum: 'Comum', raro: 'Raro', lendario: 'Lendário' };
 
 /** Inteiro com ponto de milhar (pt-BR), sem depender do Intl do aparelho. */
@@ -24,6 +25,12 @@ export function fmtInt(n: number): string {
 export function pct(x: number): string {
   const v = Math.round(Math.max(0, x) * 1000) / 10;
   return `${String(v).replace('.', ',')}%`;
+}
+
+/** Porcentagem inteira para progresso de missão (UX-27: nunca "33,3%"); 0,999 não vira "100%" antes de concluir. */
+export function pctInt(x: number): string {
+  const v = Math.max(0, Math.min(1, x));
+  return `${v >= 1 ? 100 : Math.min(99, Math.floor(v * 100))}%`;
 }
 
 const km = (m: number) => String(Math.round((Math.max(0, m) / 1000) * 10) / 10).replace('.', ',');
@@ -54,8 +61,48 @@ export function deadlineLabel(m: Pick<EngagementMission, 'cadence'>): string {
   return 'Sem prazo';
 }
 
+/** Onde a missão se faz (UX-27, botão "Ir"): a Nova corrida no modo certo, ou a tela do passo. */
+export type MissionGo = { label: 'Ir'; href: FtueActionHref; mode?: 'livre' | 'caca' | 'fuga'; ranking?: boolean };
+
+export function missionGo(m: Pick<EngagementMission, 'metric' | 'completedAt'>): MissionGo | null {
+  if (m.completedAt !== null) return null;
+  switch (m.metric) {
+    case 'huntChests':
+      return { label: 'Ir', href: '/corrida', mode: 'caca' };
+    case 'ghostWins':
+      return { label: 'Ir', href: '/corrida', mode: 'fuga' };
+    case 'crewMember':
+      return { label: 'Ir', href: '/clube/crew' };
+    case 'rankingOpened':
+      return { label: 'Ir', href: '/clube', ranking: true };
+    case 'leaguePoints':
+      return { label: 'Ir', href: '/arena' };
+    case 'shares':
+      return { label: 'Ir', href: '/perfil/atividades' };
+    default:
+      return { label: 'Ir', href: '/corrida', mode: 'livre' };
+  }
+}
+
 export function canReroll(m: EngagementMission, rerollsLeft: number): boolean {
   return m.cadence === 'diaria' && m.completedAt === null && rerollsLeft > 0;
+}
+
+/* ---------- Sequência (D-63; F8 B2: quebra consertável e sem culpa) ---------- */
+
+const weeksWord = (n: number) => (n === 1 ? '1 semana' : `${n} semanas`);
+
+/**
+ * Texto da sequência semanal com o recorde ao lado (a quebra nunca "apaga a história", Silverman e Barasch 2023):
+ * - em curso: "3 semanas seguidas · 1 de 2 nesta";
+ * - quebrou: "Sequência nova: 1 de 2 nesta semana" (consertável: 2 atividades e ela recomeça), nunca "você perdeu";
+ * - o recorde aparece sempre que for maior que a atual: "Sua melhor: 6 semanas".
+ */
+export function streakLine(s: { weeks: number; best: number; activitiesThisWeek: number }, goal = 2): { main: string; best: string | null } {
+  const done = Math.max(0, Math.min(goal, s.activitiesThisWeek));
+  const week = done >= goal ? 'semana garantida' : `${done} de ${goal} nesta`;
+  const main = s.weeks > 0 ? `${weeksWord(s.weeks)} ${s.weeks === 1 ? 'seguida' : 'seguidas'} · ${week}` : `Sequência nova: ${done} de ${goal} nesta semana`;
+  return { main, best: s.best > s.weeks ? `Sua melhor: ${weeksWord(s.best)}` : null };
 }
 
 /* ---------- Primeira semana ---------- */
@@ -111,6 +158,11 @@ export const ftueDoneCount = (rows: readonly FtueRow[]) => rows.filter((r) => r.
 
 /** Prêmio da primeira semana (o servidor dá ao concluir o 7º passo, que só abre depois dos outros 6). */
 export const FTUE_PRIZE = { cosmeticId: 'moldura-primeira-semana', name: 'Primeira Semana' } as const;
+
+/** Barra da primeira semana (UX-27): passos feitos / total, sem progresso "dado" (0 de 7 = barra vazia). */
+export function ftueBarValue(rows: readonly FtueRow[]): number {
+  return rows.length === 0 ? 0 : ftueDoneCount(rows) / rows.length;
+}
 
 /** Os 7 passos feitos. */
 export const ftueComplete = (rows: readonly FtueRow[]) => rows.length === FTUE_STEP_IDS.length && rows.every((r) => r.status === 'done');

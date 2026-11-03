@@ -174,11 +174,12 @@ describe('/missoes', () => {
     expect(r.host('missao-anel-diaria-0').props.accessibilityLabel).toContain('1 de 3 km');
   });
 
-  it('indisponível: estado "em breve", sem erro', () => {
+  it('indisponível: estado honesto (sem "em breve", regra 1 da F8), sem erro', () => {
     act(() => useEngagement.getState().setUnavailable('missions', 'old_server'));
     const r = render(<MissionsScreen />);
     expect(r.has('missoes-indisponivel')).toBe(true);
-    expect(r.text()).toContain('Missões em breve');
+    expect(r.text()).toContain('Missões desligadas');
+    expect(r.text()).not.toMatch(/em breve/i);
   });
 
   it('carregando: esqueleto', () => {

@@ -89,6 +89,10 @@ const SCREENS = [
   { rota: 'corrida · contagem', tipo: 'jogo', partes: [['features/screens/run-screen.tsx', 'Countdown']] },
   { rota: 'corrida · ativa', tipo: 'jogo', meta: 90, partes: [['features/screens/run-screen.tsx', 'ActiveRun', 'Metric']] },
   { rota: 'resumo', tipo: 'jogo', meta: 60, partes: [['features/screens/summary-screen.tsx']] }, // capture-celebration.tsx saiu (T7.3.2): estava sem uso
+  // F8 B2 (E7): os encaixes do resumo medidos à parte (aparecem só com dado real, 1 de cada vez no máximo).
+  { rota: 'resumo · momentos (1º trecho, recorde, bairro novo, líder)', tipo: 'jogo', meta: 20, partes: [['features/engagement/summary-moments.tsx']] },
+  { rota: 'resumo · plano da próxima corrida (D-94)', tipo: 'jogo', meta: 20, partes: [['features/engagement/next-run-plan-card.tsx']] },
+  { rota: 'missoes', tipo: 'jogo', meta: 90, partes: [['features/engagement/missions-screen.tsx']] },
   { rota: 'zona/[id]', tipo: 'jogo', meta: 50, partes: [['features/screens/zone-sheet.tsx']] },
   { rota: '(tabs)/arena', tipo: 'jogo', partes: [['features/screens/arena-screen.tsx']] },
   { rota: '(tabs)/atividades', tipo: 'jogo', partes: [['features/screens/activities-screen.tsx'], ['features/run/history-model.ts']] }, // hoje em perfil/atividades

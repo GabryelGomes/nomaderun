@@ -107,15 +107,16 @@ describe('mapTodayFrom', () => {
       demo: false,
     });
     const chips = todayChips(t, 0);
-    expect(chips.map((c) => c.testID)).toEqual(['mapa-hoje-sequencia', 'mapa-hoje-bau', 'mapa-hoje-chefao', 'mapa-hoje-missao']);
-    expect(chips.map((c) => c.href)).toEqual(['/recompensas', '/recompensas', '/arena', '/missoes']);
-    expect(chips[2]).toMatchObject({ value: '30%', tone: 'villain' });
+    // UX-17 (F8 B2): o chip de missões é fixo, logo depois da sequência (a faixa mostra 3; o chefão fica no 4º).
+    expect(chips.map((c) => c.testID)).toEqual(['mapa-hoje-sequencia', 'mapa-hoje-missao', 'mapa-hoje-bau', 'mapa-hoje-chefao']);
+    expect(chips.map((c) => c.href)).toEqual(['/recompensas', '/missoes', '/recompensas', '/arena']);
+    expect(chips[3]).toMatchObject({ value: '30%', tone: 'villain' });
   });
 
   it('Raid indisponível: sem chip do chefão (a missão ocupa o lugar)', () => {
     const t = mapTodayFrom({ strip: strip(), raid: { available: false, reason: 'desligada' }, now: WED, demo: false });
     expect(t.boss).toBeNull();
-    expect(todayChips(t, 0).map((c) => c.key)).toEqual(['streak', 'chest', 'mission']);
+    expect(todayChips(t, 0).map((c) => c.key)).toEqual(['streak', 'mission', 'chest']);
   });
 
   it('sem dado do engajamento: cai na sequência v1 do servidor e nada mais é inventado', () => {
