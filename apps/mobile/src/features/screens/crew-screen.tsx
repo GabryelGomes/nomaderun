@@ -11,6 +11,7 @@ import { SectionHeader } from '@/components/section-header';
 import { EmptyState, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { ErrorNotice, TextField } from '@/features/auth/form-ui';
+import { OfflineNotice } from '@/components/offline-notice';
 import { InviteCard } from '@/features/social/invite/invite-card';
 import { CREW_MAX_MEMBERS, createCrew, getMyCrew, joinCrew, leaveCrew, normalizeCrewTag, removeCrewMember, validateCrewName, validateCrewTag, validateInviteCode } from '@/services/api/crews-repo';
 import { useSession } from '@/store/session-store';
@@ -84,16 +85,13 @@ export function CrewScreen() {
       contentContainerStyle={{ padding: space[4], gap: space[8], paddingBottom: space[12] }}>
       <Stack.Screen options={{ title: data?.crew.name ?? 'Crew', headerLargeTitleEnabled: false }} />
       <ErrorNotice message={actionError} testID="crew-erro" />
+      {error && data ? <OfflineNotice testID="crew-sem-conexao" code={error.code} hasData onRetry={reload} busy={loading} /> : null}
 
       {loading && data === null && !error ? (
         <ActivityIndicator color={colors.action} />
       ) : error && data === null ? (
-        <EmptyState
-          art={<EmptyArt kind="sem-conexao" size={150} />}
-          title={error.code === 'NETWORK' ? 'Sem internet' : 'Não deu para carregar'}
-          body={error.code === 'NETWORK' ? 'Confira a conexão.' : error.message}
-          action={<Button testID="crew-tentar" label="Tentar de novo" kind="secondary" onPress={reload} />}
-        />
+        // D-95 (UX-38): o aviso único de "sem conexão", como no resto do app.
+        <OfflineNotice testID="crew-sem-conexao" code={error.code} hasData={false} onRetry={reload} busy={loading} />
       ) : data ? (
         <>
           <Animated.View style={parallax.headerStyle} onLayout={(e) => setHeaderH(Math.round(e.nativeEvent.layout.height))}>

@@ -171,9 +171,9 @@ export function ProfileScreen() {
           <SettingsRow
             testID="voce-atividades"
             icon="activities"
-            title="Corridas"
+            title="Atividades"
             value={week.total > 0 ? `${formatKm(week.total * 1000, 1)} km na semana` : undefined}
-            accessibilityLabel={week.total > 0 ? `Corridas, ${formatKm(week.total * 1000, 1)} quilômetros nesta semana` : 'Corridas'}
+            accessibilityLabel={week.total > 0 ? `Atividades, ${formatKm(week.total * 1000, 1)} quilômetros nesta semana` : 'Atividades'}
             onPress={() => router.push(VOCE_ROUTES.corridas as Href)}
           />
           <SettingsRow testID="perfil-time" icon="flag" title="Meu time" value={team.name} onPress={() => router.push(VOCE_ROUTES.time as Href)} />

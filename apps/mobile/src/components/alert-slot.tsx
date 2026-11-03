@@ -10,7 +10,7 @@ import { PressableScale } from './motion/pressable';
 import { Text } from './text';
 
 /** Tipos de alerta do Mapa, da maior para a menor prioridade (E6 F1 §4.1). */
-export const ALERT_PRIORITY = ['attack', 'mission', 'chest', 'boss', 'streak'] as const;
+export const ALERT_PRIORITY = ['attack', 'mission', 'chest', 'boss', 'streak', 'recap'] as const;
 export type AlertKind = (typeof ALERT_PRIORITY)[number];
 
 export type SlotAlert = {
@@ -26,7 +26,7 @@ export type SlotAlert = {
   art?: ReactNode;
 };
 
-const ICON: Record<AlertKind, IconName> = { attack: 'warning', mission: 'flag', chest: 'chest', boss: 'raid', streak: 'fire' };
+const ICON: Record<AlertKind, IconName> = { attack: 'warning', mission: 'flag', chest: 'chest', boss: 'raid', streak: 'fire', recap: 'share' };
 
 /** O alerta que aparece: o de maior prioridade; empate fica com o primeiro da lista. */
 export function pickAlert(alerts: readonly SlotAlert[]): SlotAlert | null {

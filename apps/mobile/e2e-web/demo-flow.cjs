@@ -95,7 +95,7 @@ async function api(method, url, token, body) {
     await signUp(page, user, 'striders');
     ok(true, 'cadastro com 16+ e aceite depois da cerimônia');
     await chooseTeam(page, 'striders');
-    await page.getByText(/zonas em/).first().waitFor({ timeout: 30_000 }).catch(() => {});
+    await page.getByText(/Seu time: /).first().waitFor({ timeout: 30_000 }).catch(() => {});
     ok(true, 'facção Neon Striders gravada e mapa com zonas do servidor');
     await shot('01-mapa');
 
