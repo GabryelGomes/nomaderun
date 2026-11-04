@@ -51,6 +51,7 @@ update public.profiles set is_demo = true where id = 'e9e9e9e9-0032-4000-8000-00
 select pg_temp.as_anon();
 create temp table an0 as select public.faction_activity() as r;
 select pg_temp.logout();
+create temp table c0 as select private.faction_counts(false, now()) as c;   -- B1 (34): sem sessão lê do cache
 insert into public.activities (id, user_id, status, started_at, ended_at, finished_at, meters, moving_seconds, avg_pace, scored)
 values ('e9e9e9e9-1032-4000-8000-000000000001', 'e9e9e9e9-0032-4000-8000-0000000000a1', 'valid',
         now() - interval '1 day 40 minutes', now() - interval '1 day', now() - interval '1 day', 5000, 1500, 300, true),
@@ -61,15 +62,17 @@ create temp table an1 as select public.faction_activity() as r;
 select throws_ok($$ select * from public.activities $$, '42501', null, 'anon continua sem ler activities');
 select throws_ok($$ select * from public.profiles $$, '42501', null, 'anon continua sem ler profiles');
 select pg_temp.logout();
+create temp table c1 as select private.faction_counts(false, now()) as c;
 
+-- B1 (20261104120300, pgTAP 34): sem sessão só { needsBoost, isDemo }, do cache; as contagens ficam no servidor
 select is((select array_agg(k order by k) from an1, jsonb_object_keys(r) k),
-  array['counts', 'isDemo', 'total', 'windowDays'], 'anon: só as contagens (sem since, sem id, nome ou lugar)');
-select is((select array_agg(k order by k) from an1, jsonb_object_keys(r -> 'counts') k),
-  array['coyotes', 'owls', 'striders', 'volt'], 'anon: os 4 times sempre aparecem');
+  array['isDemo', 'needsBoost'], 'anon: só needsBoost e isDemo (B1: sem contagens, sem since, sem id, nome ou lugar)');
+select is((select array_agg(k order by k) from c1, jsonb_object_keys(c) k),
+  array['coyotes', 'owls', 'striders', 'volt'], 'contagem por trás do cache: os 4 times sempre aparecem');
 select is((select (r ->> 'isDemo')::boolean from an1), false, 'anon: nunca demonstração');
-select is((select (a1.r #>> '{counts,owls}')::int - (a0.r #>> '{counts,owls}')::int from an0 a0, an1 a1), 1,
-  'anon: conta a conta real nova e NÃO a de demonstração');
-select is((select jsonb_typeof(r -> 'counts' -> 'owls') from an1), 'number', 'anon: contagem é número');
+select is((select (a1.c ->> 'owls')::int - (a0.c ->> 'owls')::int from c0 a0, c1 a1), 1,
+  'sem sessão: conta a conta real nova e NÃO a de demonstração');
+select ok((select jsonb_typeof(r -> 'needsBoost') in ('null', 'string') from an1), 'anon: needsBoost é um time ou null');
 select ok((select r::text !~* '(e9e9e9e9|v32_|username|lat|lng|zone)' from an1), 'anon: nada pessoal no corpo');
 -- com sessão continua como no 31 (com a janela)
 select pg_temp.login('e9e9e9e9-0032-4000-8000-0000000000a1');
