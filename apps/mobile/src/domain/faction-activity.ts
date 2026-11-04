@@ -2,7 +2,9 @@
  * F8 · A2 — regras puras que acompanham três dados novos do servidor (migration 20261031120000_f8_fundacao).
  *
  * - D-96 "Precisa de reforço": `faction_activity()` devolve só quantos corredores de cada time tiveram corrida aceita
- *   nos últimos 7 dias; `factionNeedingBoost` decide qual time ganha o selo (só cosmético, nunca vantagem).
+ *   nos últimos 7 dias; `factionNeedingBoost` decide qual time ganha o selo (só cosmético, nunca vantagem). A mesma
+ *   regra está no SQL (`private.faction_needing_boost`, migration 20261104120300): sem sessão o servidor manda só o
+ *   time (`asBoostFaction`), sem contagens (B1).
  * - Marcos da pintura no resultado da corrida (`extras.milestones`): "primeiro trecho pintado" (1 vez na vida) e
  *   "recorde de trechos numa corrida" (comparação só consigo). O oficial é o SQL (`svc_paint_milestones`);
  *   `paintMilestones` é a mesma regra para a demonstração e os testes.
@@ -32,6 +34,14 @@ export function factionNeedingBoost(counts: Partial<Record<FactionId, number>> |
   const min = Math.min(...values.map((v) => v.n));
   const atMin = values.filter((v) => v.n === min);
   return atMin.length === 1 ? atMin[0].f : null;
+}
+
+/**
+ * B1 (F8-D): sem sessão, o servidor devolve só o time do selo (`needsBoost`), sem as contagens. Aceita só um dos 4
+ * times; qualquer outra coisa vira `null` (sem selo, nunca um time inventado).
+ */
+export function asBoostFaction(v: unknown): FactionId | null {
+  return typeof v === 'string' && (FACTION_IDS as readonly string[]).includes(v) ? (v as FactionId) : null;
 }
 
 /* ---------- Marcos da pintura ---------- */

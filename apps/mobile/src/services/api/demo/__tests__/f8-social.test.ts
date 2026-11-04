@@ -44,15 +44,19 @@ function expectOk<T>(r: { ok: true; data: T } | { ok: false; error: { message: s
 }
 
 describe('C2 — faction_activity sem sessão (escolha do time antes da conta)', () => {
-  it('responde sem login, só com as 4 contagens, marcada como demonstração', async () => {
+  it('responde sem login, só com o time do selo (B1: sem contagens), marcada como demonstração', async () => {
     const client = createDemoClient({ clock: () => NOON_BRT });
     setDemoClient(client);
+    const logged = DEMO_RPC_HANDLERS.faction_activity(client.db, DEMO_USER_ID, {}) as Record<string, unknown>;
     await client.auth.signOut();
     const raw = DEMO_RPC_HANDLERS.faction_activity(client.db, null, {}) as Record<string, unknown>;
-    expect(Object.keys(raw).sort()).toEqual(['counts', 'isDemo', 'total', 'windowDays']);
+    expect(Object.keys(raw).sort()).toEqual(['isDemo', 'needsBoost']);
+    expect(raw.needsBoost).toBe(logged.needsBoost);
     const fa = expectOk(await getFactionActivity());
     if (!fa.available) throw new Error('esperava disponível');
-    expect(Object.keys(fa.counts).sort()).toEqual(['coyotes', 'owls', 'striders', 'volt']);
+    expect(fa.counts).toBeNull();
+    expect(fa.total).toBeNull();
+    expect(fa.needsBoost).toBe(logged.needsBoost ?? null);
     expect(fa.isDemo).toBe(true);
     expect(fa.since).toBe(0);
   });

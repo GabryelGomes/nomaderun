@@ -1,19 +1,22 @@
 /**
  * Pares de demonstração da F8 · A2 (migration 20261031120000_f8_fundacao), com as regras puras do domain:
- * - `faction_activity()` (D-96): corredores com corrida na semana de demonstração, por time; `isDemo = true`; sem
- *   sessão (C2, D-91) só as 4 contagens, como o servidor (migration 20261104120200);
- * - `crew_echo()`: o colega da crew que correu nesta semana "reforçou" alguns dos seus trechos; `isDemo = true`;
+ * - `faction_activity()` (D-96): corredores com corrida na semana de demonstração, por time, + `needsBoost`;
+ *   `isDemo = true`; sem sessão (C2, D-91 e B1 da F8-D) só `{ needsBoost, isDemo }`, como o servidor (20261104120300);
+ * - `crew_echo()`: o colega da crew que correu nesta semana "reforçou" alguns dos seus trechos; `isDemo = true`.
+ *   Como o servidor (M2/B5 da F8-D): fica fora o colega que esconde o mapa ou as corridas no feed e o colega de
+ *   outro tipo de conta (aqui todos são de demonstração);
  * - `extras.milestones` no `finish-activity`: "primeiro trecho pintado" e "recorde de trechos" (`paintMilestones`),
  *   com os trechos de cada corrida calculados pelo domain (`paintCellsOfRun`), guardados em `activities.v2_extras`.
  */
 import { validateActivity } from '@/domain/anti-cheat';
-import { isEchoHour, paintMilestones } from '@/domain/faction-activity';
+import { factionNeedingBoost, isEchoHour, paintMilestones } from '@/domain/faction-activity';
 import { paintCellsOfRun } from '@/domain/paint';
 import { FACTION_IDS } from '@/domain/types';
 
 import { msOf, raise, type DemoDb, type Row } from './db';
 import { toGeoPoints } from './scoring';
 import { storedPoints } from './server';
+import { demoFeedSettings } from './social';
 
 type RpcHandler = (db: DemoDb, userId: string | null, args: Row) => unknown;
 
@@ -79,25 +82,33 @@ export const DEMO_F8_RPC_HANDLERS: Record<string, RpcHandler> = {
     }
     const now = db.now();
     const total = Object.values(counts).reduce((a, b) => a + b, 0);
-    if (!userId) return { windowDays: 7, counts, total, isDemo: true };
+    const needsBoost = factionNeedingBoost(counts);
+    // B1: sem sessão, só o time do selo (sem as contagens)
+    if (!userId) return { needsBoost, isDemo: true };
     return {
       windowDays: 7,
       since: now - 7 * 86_400_000,
       counts,
       total,
+      needsBoost,
       isDemo: true,
     };
   },
 
   crew_echo: (db, userId) => {
-    requireUser(db, userId);
+    const me = requireUser(db, userId);
     const crewId = db.crewOf(userId!);
     const now = db.now();
     if (!crewId || !isEchoHour(now)) return null;
+    const sameKind = (p: Row) => (p.is_demo === true) === (me.is_demo === true);
+    const shares = (p: Row) => {
+      const s = demoFeedSettings(db, String(p.id));
+      return s.shareRunsToFeed && s.feedShowMap; // M2: mapa escondido no feed = sem eco
+    };
     const mates = db.tables.crew_members
       .filter((m) => m.crew_id === crewId && m.user_id !== userId)
       .map((m) => db.profile(String(m.user_id)))
-      .filter((p): p is Row => !!p && p.status === 'active' && db.stats(String(p.id), 'week').runs > 0)
+      .filter((p): p is Row => !!p && p.status === 'active' && sameKind(p) && shares(p) && db.stats(String(p.id), 'week').runs > 0)
       .sort((a, b) => String(a.username).localeCompare(String(b.username)));
     if (mates.length === 0) return null;
     const today = db.brToday();
@@ -112,7 +123,7 @@ export const DEMO_F8_RPC_HANDLERS: Record<string, RpcHandler> = {
       totalCells: cells,
       notifyFrom: start + 7 * 3_600_000,
       notifyUntil: start + 22 * 3_600_000,
-      isDemo: true,
+      isDemo: me.is_demo !== false, // a demonstração é toda de demonstração (B5: o tipo de quem pede)
     };
   },
 };

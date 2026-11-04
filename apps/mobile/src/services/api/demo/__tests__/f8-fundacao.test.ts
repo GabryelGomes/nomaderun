@@ -53,6 +53,7 @@ describe('D-96 — faction_activity na demonstração', () => {
     login(NOON_BRT);
     const fa = expectOk(await getFactionActivity());
     if (!fa.available) throw new Error('esperava disponível');
+    if (!fa.counts) throw new Error('com sessão vêm as contagens');
     expect(Object.keys(fa.counts).sort()).toEqual(['coyotes', 'owls', 'striders', 'volt']);
     expect(fa.total).toBe(Object.values(fa.counts).reduce((a, b) => a + b, 0));
     expect(fa.total).toBeGreaterThan(0);

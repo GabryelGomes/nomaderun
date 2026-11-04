@@ -93,6 +93,9 @@ function requireUser(db: DemoDb, userId: string | null): Row {
 
 const settingsOf = (db: DemoDb, userId: string) => stateOf(db).settings.get(userId) ?? { shareRunsToFeed: true, feedShowMap: true };
 
+/** `user_settings` de demonstração de uma pessoa (o eco da crew, em `f8.ts`, usa o mesmo filtro do servidor). */
+export const demoFeedSettings = settingsOf;
+
 /** Semente estável por item (no servidor real ela é sorteada a cada geração do item). */
 function seedOf(text: string): number {
   let h = 2166136261;

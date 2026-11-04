@@ -248,6 +248,18 @@ Depois da C3 (`20261104120100_rate_limit`). Mesma ordem: **migration → functio
 
 Na máquina com Docker: `npm run db:reset`, `npm run db:test:psql`, `npm run e2e` e `npm run functions:bundle-check`.
 
+### Fase 8 · D — correções da revisão (`20261104120300_f8_revisao`)
+
+Depois da C2 (`20261104120200_f8_social`). Ordem: **migration → EAS Update** (nenhuma function muda).
+
+| Passo | O quê | Observação |
+|---|---|---|
+| 1 | Testes locais | `NR_PORT=54353 npm run db:test:local` (**964** pgTAP em 34 arquivos), Deno em `supabase/functions` (`deno test -A`: 108 ok, 1 ignorado) e `deno check` das functions |
+| 2 | Migration | `npx supabase db push`: eco da crew sem colega de mapa oculto (M2) e sem colega de outro tipo de conta, com `isDemo` (B5); `join_crew` recusa crew de outro tipo de conta (B5); `faction_activity()` sem sessão só `{ needsBoost, isDemo }` do cache `private.faction_activity_cache` (B1). Sem job, flag ou Realtime novos |
+| 3 | App | EAS Update. Compatível nos dois sentidos (`docs/API_CONTRATO.md`, seção "Fase 8 · D") |
+
+**Volta atrás:** reaplicar as definições de `public.faction_activity()` (`20261104120200_f8_social`), `private.crew_echo_at(uuid, timestamptz)` (`20261031120000_f8_fundacao`) e `public.join_crew(text)` (`20261022120000_qa_hardening`). A tabela `private.faction_activity_cache` e as funções privadas novas podem ficar (ninguém de fora lê); se quiser tirar: `drop function private.faction_activity_anon_at(timestamptz), private.faction_counts(boolean, timestamptz), private.faction_needing_boost(jsonb); drop table private.faction_activity_cache;` (depois de reaplicar `faction_activity`).
+
 ## 11. Versão web na Vercel
 
 A Vercel hospeda só as telas (o export web do Expo). O servidor continua no Supabase Cloud (§10). A configuração está em `apps/mobile/vercel.json`.
