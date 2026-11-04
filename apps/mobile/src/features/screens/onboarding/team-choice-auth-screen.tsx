@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import type { FactionId } from '@/domain/types';
-import { getPendingTeam, savePendingTeam } from '@/features/auth/pending-team';
+import { getPendingTeam, PENDING_TEAM_FROM_CHOICE, savePendingTeam } from '@/features/auth/pending-team';
 
 import { TeamChoiceScreen } from './team-choice';
 
@@ -29,7 +29,8 @@ export function TeamChoiceAuthScreen() {
       onJoin={(f) => void savePendingTeam(f)}
       onContinue={async (f) => {
         await savePendingTeam(f);
-        router.push('/cadastro');
+        // F8-D · B3: o marcador de origem diz ao cadastro que o time guardado é desta escolha.
+        router.push({ pathname: '/cadastro', params: { origem: PENDING_TEAM_FROM_CHOICE } });
         return null;
       }}
     />

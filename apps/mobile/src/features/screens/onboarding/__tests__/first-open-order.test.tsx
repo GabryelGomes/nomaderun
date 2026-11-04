@@ -36,7 +36,8 @@ jest.mock('@/features/engagement/team-boost', () => ({
   useFactionBoost: () => ({ needsBoost: 'coyotes', isDemo: true }),
 }));
 const mockChoose = jest.fn<(f: string) => Promise<{ ok: true; data: unknown } | { ok: false; error: { message: string } }>>();
-jest.mock('@/features/auth/session-controller', () => ({ chooseFaction: (f: string) => mockChoose(f), saveProfile: jest.fn() }));
+// `chooseFactionOnce` (reserva, F8-D · M1b) relê o perfil antes; aqui os dois caem no mesmo mock da gravação.
+jest.mock('@/features/auth/session-controller', () => ({ chooseFaction: (f: string) => mockChoose(f), chooseFactionOnce: (f: string) => mockChoose(f), saveProfile: jest.fn() }));
 
 /* eslint-disable import/first */
 import { act } from 'react-test-renderer';
@@ -52,6 +53,9 @@ import { TeamChoiceScreen } from '../team-choice';
 import { TeamChoiceAuthScreen } from '../team-choice-auth-screen';
 /* eslint-enable import/first */
 
+/** Registro do time pendente como o aparelho guarda (F8-D · B3: hora e origem). */
+const pendingRecord = (team: string, origin = 'cadastro') => ({ team, at: Date.now(), origin });
+
 /** Espera as promessas e a medida do botão (250 ms de teto, `team-choice.tsx`). */
 const flush = async () => {
   await act(async () => {
@@ -62,7 +66,7 @@ const flush = async () => {
 beforeEach(() => {
   jest.clearAllMocks();
   mockStore.clear();
-  usePendingTeam.setState({ team: null, hydrated: false });
+  usePendingTeam.setState({ team: null, record: null, hydrated: false });
   useOnboardingFlow.getState().reset();
   useSession.getState().reset();
   useMotionPrefs.setState({ skipCelebrations: false } as never);
@@ -127,8 +131,43 @@ describe('escolha do time antes da conta (D-91)', () => {
     r.press('onboarding-confirmacao-pular');
     r.press('onboarding-confirmacao-continuar');
     await flush();
-    expect(mockStore.get('pending-team')).toBe('coyotes');
-    expect(mockRouter.push).toHaveBeenCalledWith('/cadastro');
+    expect(mockStore.get('pending-team')).toMatchObject({ team: 'coyotes', origin: 'escolha' });
+    // F8-D · B3: o cadastro sabe que veio da escolha (marcador de origem)
+    expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/cadastro', params: { origem: 'times' } });
+  });
+
+  it('F8-D · B4: dois toques rápidos em times diferentes reservam só o 1º; cards e botões ficam travados até a cerimônia', async () => {
+    const onJoin = jest.fn();
+    const r = render(<TeamChoiceScreen onJoin={onJoin} onContinue={async () => null} />);
+    r.press('onboarding-times-striders');
+    // 1º toque: "Entrar para os Volt" na folha do líder; logo depois, outro card e o botão de baixo
+    r.press('onboarding-times-volt-lider');
+    r.press('onboarding-lider-entrar');
+    r.press('onboarding-times-striders');
+    r.press('onboarding-entrar-time');
+    expect(onJoin).toHaveBeenCalledTimes(1);
+    expect(onJoin).toHaveBeenCalledWith('volt');
+    // enquanto reserva (antes da cerimônia): nenhum card ou botão responde
+    expect(r.host('onboarding-times-striders').props.accessibilityState).toMatchObject({ checked: false, disabled: true });
+    expect(r.host('onboarding-times-volt').props.accessibilityState).toMatchObject({ checked: true, disabled: true });
+    expect(r.host('onboarding-entrar-time').props.accessibilityState).toMatchObject({ disabled: true });
+    await flush();
+    expect(r.has('onboarding-confirmacao')).toBe(true);
+    expect(onJoin).toHaveBeenCalledTimes(1);
+  });
+
+  it('F8-D · B4: depois de um erro ao continuar, a escolha destrava e dá para tentar de novo', async () => {
+    const onJoin = jest.fn();
+    const r = render(<TeamChoiceScreen onJoin={onJoin} onContinue={async () => 'Não deu para salvar seu time.'} />);
+    r.press('onboarding-times-owls');
+    r.press('onboarding-entrar-time');
+    await flush();
+    r.press('onboarding-confirmacao-continuar');
+    await flush();
+    expect(r.host('onboarding-times-owls').props.accessibilityState).toMatchObject({ disabled: false });
+    r.press('onboarding-times-coyotes');
+    r.press('onboarding-entrar-time');
+    expect(onJoin.mock.calls).toEqual([['owls'], ['coyotes']]);
   });
 
   it('erro ao continuar fecha a cerimônia e mostra o erro com o time ainda marcado', async () => {
@@ -152,7 +191,7 @@ describe('onboarding depois do cadastro (D-91)', () => {
 
   it('com time pendente: grava uma vez (`choose_faction`), apaga a escolha do aparelho e vai direto ao GPS', async () => {
     signedIn();
-    mockStore.set('pending-team', 'volt');
+    mockStore.set('pending-team', pendingRecord('volt'));
     mockChoose.mockResolvedValue({ ok: true, data: {} });
     const r = render(<OnboardingScreen />);
     expect(r.has('onboarding-salvando')).toBe(true);
@@ -167,7 +206,7 @@ describe('onboarding depois do cadastro (D-91)', () => {
 
   it('gravar falhou: a pessoa escolhe de novo, com o erro e o time marcado; a 2ª tentativa segue ao GPS', async () => {
     signedIn();
-    mockStore.set('pending-team', 'owls');
+    mockStore.set('pending-team', pendingRecord('owls'));
     mockChoose.mockResolvedValueOnce({ ok: false, error: { message: 'Servidor fora do ar.' } });
     const r = render(<OnboardingScreen />);
     await flush();
@@ -176,6 +215,40 @@ describe('onboarding depois do cadastro (D-91)', () => {
     expect(r.host('onboarding-times-owls').props.accessibilityState).toMatchObject({ checked: true });
     mockChoose.mockResolvedValueOnce({ ok: true, data: {} });
     r.press('onboarding-entrar-time');
+    await flush();
+    r.press('onboarding-confirmacao-pular');
+    r.press('onboarding-confirmacao-continuar');
+    await flush();
+    expect(mockChoose).toHaveBeenCalledTimes(2);
+    expect(r.has('onboarding-localizacao')).toBe(true);
+  });
+
+  it('F8-D · M1: com time pendente mas o perfil já tem time (gravou antes), não chama `choose_faction` de novo e segue ao GPS', async () => {
+    useSession.getState().setSession({ userId: 'ana', email: 'ana@ex.com' } as never);
+    useSession.getState().setProfile({ id: 'ana', username: 'ana_corre', faction: 'volt', xp: 0, trust: 100 } as never);
+    // o perfil com time apaga a escolha da memória; aqui ela ainda está só no aparelho (app reaberto)
+    mockStore.set('pending-team', pendingRecord('owls'));
+    const r = render(<OnboardingScreen />);
+    await flush();
+    expect(mockChoose).not.toHaveBeenCalled();
+    expect(r.has('onboarding-localizacao')).toBe(true);
+    expect(mockStore.has('pending-team')).toBe(false);
+  });
+
+  it('F8-D · B4: na reserva, um 2º "Entrar" enquanto a 1ª gravação está em voo não grava outro time', async () => {
+    signedIn();
+    mockStore.set('pending-team', pendingRecord('owls'));
+    mockChoose.mockResolvedValueOnce({ ok: false, error: { message: 'Servidor fora do ar.' } });
+    const r = render(<OnboardingScreen />);
+    await flush();
+    let resolve: (v: { ok: true; data: unknown }) => void = () => undefined;
+    mockChoose.mockImplementationOnce(() => new Promise((res) => (resolve = res)));
+    r.press('onboarding-entrar-time');
+    r.press('onboarding-times-volt-lider');
+    r.press('onboarding-lider-entrar');
+    r.press('onboarding-entrar-time');
+    expect(mockChoose.mock.calls).toEqual([['owls'], ['owls']]);
+    await act(async () => resolve({ ok: true, data: { faction: 'owls' } }));
     await flush();
     r.press('onboarding-confirmacao-pular');
     r.press('onboarding-confirmacao-continuar');

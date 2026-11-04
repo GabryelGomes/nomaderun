@@ -15,7 +15,7 @@ import type { FactionId } from '@/domain/types';
 import { TextField } from '@/features/auth/form-ui';
 import { useOnboardingFlow } from '@/features/auth/onboarding-flow';
 import { clearPendingTeam, getPendingTeam } from '@/features/auth/pending-team';
-import { chooseFaction, saveProfile } from '@/features/auth/session-controller';
+import { chooseFaction, chooseFactionOnce, saveProfile } from '@/features/auth/session-controller';
 import { validateUsername } from '@/features/auth/validation';
 import type { Result } from '@/services/api/errors';
 import type { Profile } from '@/services/api/types';
@@ -166,6 +166,12 @@ export function OnboardingScreen() {
         return;
       }
       setPending(team);
+      // F8-D · M1: o perfil já tem time (ex.: gravou numa tentativa anterior) → não pede de novo, segue.
+      if (useSession.getState().profile?.faction) {
+        await clearPendingTeam();
+        if (alive) setStep('localizacao');
+        return;
+      }
       const res = await chooseFaction(team);
       if (!alive) return;
       if (res.ok) {
@@ -211,13 +217,19 @@ export function OnboardingScreen() {
         initial={pending}
         initialError={fallbackError}
         onJoin={(f) => {
-          save.current = chooseFaction(f);
+          // F8-D · B4: uma gravação por vez (a tela de times já trava os toques; aqui é a 2ª barreira).
+          if (save.current) return;
+          // F8-D · M1b: relê o perfil antes; se o servidor já tem time, segue com ele (outra escolha viraria troca).
+          save.current = chooseFactionOnce(f);
         }}
         onContinue={async (f) => {
           const res = (await save.current) ?? null;
-          if (!res || !res.ok) return saveTeamError(res ? res.error.message : undefined);
+          if (!res || !res.ok) {
+            save.current = null;
+            return saveTeamError(res ? res.error.message : undefined);
+          }
           await clearPendingTeam();
-          setJoinedTeam(f);
+          setJoinedTeam(res.data.faction ?? f);
           setStep('localizacao');
           return null;
         }}

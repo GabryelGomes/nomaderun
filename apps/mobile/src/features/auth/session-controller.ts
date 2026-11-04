@@ -15,7 +15,7 @@ import { useSession } from '@/store/session-store';
 import { useZones } from '@/store/zones-store';
 
 import { useOnboardingFlow } from './onboarding-flow';
-import { clearPendingTeam, usePendingTeam } from './pending-team';
+import { clearPendingTeam, resetPendingTeam, usePendingTeam } from './pending-team';
 
 /**
  * Orquestra sessão ↔ perfil ↔ jogo. Telas chamam estas funções; elas chamam os repositórios
@@ -82,11 +82,46 @@ export async function saveProfile(patch: ProfilePatch): Promise<Result<Profile>>
   return res;
 }
 
-/** Grava a facção pelo RPC e recarrega o perfil: no onboarding (o guarda libera as abas) e na troca em Perfil › Meu time. */
+/**
+ * Grava a facção pelo RPC e recarrega o perfil: no onboarding (o guarda libera as abas) e na troca em Perfil › Meu time.
+ *
+ * F8-D · M1: a RPC só responde ok quando o servidor ficou com **este** time (1ª escolha, repetição ou troca), então o
+ * time vale no perfil local na hora, mesmo que a releitura falhe ou volte da cópia salva (ainda sem time). A releitura
+ * é melhor esforço: sem isso, a pessoa ficava presa no passo do GPS ou escolhia de novo, e a 2ª escolha virava troca.
+ */
 export async function chooseFaction(faction: Parameters<typeof profileRepo.chooseFaction>[0]): Promise<Result<Profile>> {
+  const userId = useSession.getState().session?.userId;
+  if (!userId) return { ok: false, error: noSession() };
   const res = await profileRepo.chooseFaction(faction);
   if (!res.ok) return res;
-  return loadProfile();
+  const reload = await loadProfile();
+  const s = useSession.getState();
+  if (s.session?.userId !== userId) return reload; // trocou de usuário no meio
+  // Resposta nova do servidor (sem erro guardado) é a verdade, mesmo que diga outro time.
+  if (reload.ok && (reload.data.faction === faction || !s.profileError)) return reload;
+  const base = s.profile?.id === userId ? s.profile : null;
+  if (!base) return reload.ok ? { ok: false, error: noSession() } : reload;
+  const updated: Profile = { ...base, faction };
+  const { profileError, profileSavedAt } = s;
+  s.setProfile(updated, profileSavedAt);
+  // O aviso de "sem conexão" continua: só o time é novo; o resto do perfil é da última cópia.
+  if (profileError) useSession.getState().setProfileError(profileError);
+  applyToGame(updated, false);
+  if (usePendingTeam.getState().team) void clearPendingTeam();
+  // A cópia salva passa a ter o time: abrir sem internet depois não volta para a escolha.
+  void writeCachedProfile(updated);
+  return { ok: true, data: updated };
+}
+
+/**
+ * Reserva do onboarding (F8-D · M1b): antes de pedir o time de novo, relê o perfil. Se o servidor já tem um time (a
+ * gravação anterior deu certo, só a resposta se perdeu), segue com ele em vez de chamar `choose_faction` de novo, que
+ * contaria como troca (gasta a troca da temporada e tira da crew).
+ */
+export async function chooseFactionOnce(faction: Parameters<typeof profileRepo.chooseFaction>[0]): Promise<Result<Profile>> {
+  const current = await loadProfile();
+  if (current.ok && current.data.faction && !useSession.getState().profileError) return current;
+  return chooseFaction(faction);
 }
 
 /**
@@ -95,12 +130,14 @@ export async function chooseFaction(faction: Parameters<typeof profileRepo.choos
  * do modo que está entrando (ao sair da demonstração, o da conta real). Stores novas da onda 2 com dados do
  * usuário (engajamento da E7, feed da E8) entram aqui; preferências ficam.
  */
-export function resetStoresForDemoSwitch() {
+export async function resetStoresForDemoSwitch() {
   useGame.getState().resetForSignOut();
   useSession.getState().reset();
   useZones.getState().reset();
   useNotifications.getState().reset();
   useOnboardingFlow.getState().reset();
+  // F8-D · B3: o time escolhido antes da conta num modo não entra no outro.
+  await resetPendingTeam();
 }
 onDemoSwitch(resetStoresForDemoSwitch);
 
@@ -113,6 +150,8 @@ function clearLocal() {
 export async function signOut(): Promise<void> {
   await authRepo.signOut();
   clearLocal();
+  // F8-D · B3: quem sai deixa o aparelho sem time pendente (a próxima pessoa escolhe o dela).
+  await resetPendingTeam();
 }
 
 let endingInactive = false;
@@ -127,6 +166,7 @@ export async function endSessionForInactiveAccount(): Promise<void> {
   try {
     await authRepo.signOut();
     clearLocal();
+    await resetPendingTeam();
     useSession.getState().setSignedOutNotice(MESSAGES.accountInactive);
   } finally {
     endingInactive = false;
@@ -137,6 +177,7 @@ export async function endSessionForInactiveAccount(): Promise<void> {
 export async function signOutAfterDeletion(): Promise<void> {
   await authRepo.signOut();
   clearLocal();
+  await resetPendingTeam();
 }
 
 /**

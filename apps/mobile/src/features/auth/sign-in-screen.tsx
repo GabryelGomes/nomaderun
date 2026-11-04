@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { type TextInput, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -18,6 +18,7 @@ import { ErrorNotice, FormScaffold, TextField, TextLink } from './form-ui';
 import { HeroWordmark } from './hero-wordmark';
 import { NeonBackdrop } from './neon-backdrop';
 import { NeonBadges } from './neon-badges';
+import { clearPendingTeamOnSignIn } from './pending-team';
 import { providerLabel, signInWithProvider } from './oauth';
 import { validateEmail } from './validation';
 
@@ -35,6 +36,10 @@ export function SignInScreen() {
   const notice = useSession((s) => s.signedOutNotice);
   const demoOn = useDemoActive();
   const passwordRef = useRef<TextInput>(null);
+  // F8-D · B3: quem abre "Entrar" não herda o time que outra pessoa escolheu e largou (só quem acabou de se cadastrar).
+  useEffect(() => {
+    void clearPendingTeamOnSignIn();
+  }, []);
 
   const submit = async () => {
     const emailErr = validateEmail(email);
