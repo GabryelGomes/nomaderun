@@ -45,7 +45,8 @@ export function CrewFeedCard({ item, today, onReact, onRemove }: CrewFeedCardPro
           <Text variant="bodyBold" numberOfLines={1} style={{ flexShrink: 1 }}>
             {item.you ? 'Você' : item.author.username}
           </Text>
-          <Text variant="small" muted>
+          {/* F8 onda D: a 360 px, com o selo de demonstração, o "· Hoje" quebrava em 2 linhas. */}
+          <Text variant="small" muted numberOfLines={1} style={{ flexShrink: 0 }}>
             · {feedDateLabel(item.day, today)}
           </Text>
           <View style={{ flex: 1 }} />

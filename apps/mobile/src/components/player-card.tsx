@@ -67,7 +67,8 @@ export function PlayerCard({ name, faction, level, xp, title, avatar, mascot, ri
               {title}
             </Text>
           ) : null}
-          <Text variant="small" muted numberOfLines={1}>
+          {/* F8 onda D: a 360 px, em 1 linha, o nível sumia ("Neon Striders · …"). */}
+          <Text variant="small" muted numberOfLines={2}>
             {factions[faction].name} · nível {level}
           </Text>
           {frameName ? (

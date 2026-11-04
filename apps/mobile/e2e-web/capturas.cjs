@@ -68,6 +68,12 @@ const LOGGED = [
   ['compartilhar-semana', '/compartilhar/semana'],
   ['compartilhar-feed', '/compartilhar/feed'],
   ['convite', '/compartilhar/convite/DEMOFLR1'],
+  // F8 (D-99, UX-16): Ajustes em 4 telas, exclusão de conta pública e 404 em português.
+  ['ajustes-seguranca', '/perfil/seguranca'],
+  ['ajustes-privacidade', '/perfil/privacidade'],
+  ['ajustes-lembretes', '/perfil/lembretes'],
+  ['excluir-conta', '/excluir-conta'],
+  ['nao-encontrada', '/rota-que-nao-existe'],
 ];
 
 /** Matriz rota × estado (docs/melhoria/F1/10-qualidade.md §3.2), no que as telas atuais alcançam. */
@@ -89,6 +95,13 @@ const MATRIX = [
   { nome: 'recuperar-senha', rota: '/recuperar-senha', estado: 'primeira-abertura' },
   { nome: 'moderacao', rota: '/moderacao', estado: 'moderador' },
   { nome: 'moderacao-detalhe', rota: '/moderacao/demo-revisao-1', estado: 'moderador' },
+  // F8 (onda D): folhas e momentos que só aparecem com um toque (`passos` = testIDs tocados em ordem).
+  { nome: 'cerimonia', rota: '/times', estado: 'primeira-abertura', passos: ['onboarding-times-volt', 'onboarding-entrar-time'], espera: 3500 },
+  { nome: 'arena-como-jogar', rota: '/arena', estado: 'cheio', passos: ['?arena-ajuda-fechar', 'arena-ajuda-abrir'] },
+  { nome: 'arena-liga-folha', rota: '/arena', estado: 'cheio', passos: ['?arena-ajuda-fechar', 'arena-liga'] },
+  { nome: 'perfil-medalha', rota: '/perfil', estado: 'cheio', passos: ['perfil-medalha-*'] },
+  { nome: 'perfil-atlas', rota: '/perfil', estado: 'cheio', passos: ['perfil-atlas'] },
+  { nome: 'excluir-conta', rota: '/excluir-conta', estado: 'primeira-abertura' },
 ];
 
 function parseArgs(argv) {
@@ -302,6 +315,15 @@ async function shoot(browser, base, item, width, out, report) {
   const t0 = Date.now();
   await page.goto(url, { waitUntil: 'load' });
   if (!item.semTela) await page.waitForSelector('[data-testid^="tela-"]', { timeout: 8000 }).catch(() => undefined);
+  for (const raw of item.passos ?? []) {
+    // `prefixo-*` toca o primeiro elemento cujo testID começa com o prefixo; `?id` é opcional (ex.: fechar o "Como
+    // jogar" que abre sozinho na 1ª visita à Arena).
+    const optional = raw.startsWith('?');
+    const t = optional ? raw.slice(1) : raw;
+    const sel = t.endsWith('*') ? `[data-testid^="${t.slice(0, -1)}"]` : `[data-testid="${t}"]`;
+    await page.locator(sel).first().click({ timeout: optional ? 2500 : 8000 }).catch((e) => optional || errors.push(`passo ${t}: ${String(e.message).split('\n')[0]}`));
+    await page.waitForTimeout(500);
+  }
   await page.waitForTimeout(item.espera ?? 1500);
   const perf = await page.evaluate(() => ({ fcpMs: window.__fcp ?? null, screens: [...document.querySelectorAll('[data-testid^="tela-"]')].map((e) => e.getAttribute('data-testid')) }));
   const a = await audit(page);

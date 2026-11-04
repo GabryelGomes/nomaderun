@@ -54,7 +54,8 @@ export function StatTile({ label, value, unit, icon, accent, delta, valueSlot, s
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3, flexWrap: 'wrap' }}>
         {valueSlot ?? (
-          <Text variant={size === 'lg' ? 'metric' : 'headline'} color={accent} tabular numberOfLines={1}>
+          // F8 onda D: com fonte grande (1,3) a 360 px, "32,4" virava "3…": o número encolhe em vez de cortar.
+          <Text variant={size === 'lg' ? 'metric' : 'headline'} color={accent} tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
             {value}
           </Text>
         )}

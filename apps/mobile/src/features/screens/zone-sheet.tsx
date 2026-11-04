@@ -159,6 +159,20 @@ export function ZoneSheet() {
         </View>
       );
     }
+    // F8 onda D: link com id malformado (ex.: /zona/xyz) não mostra a mensagem técnica do servidor nem um
+    // "Tentar de novo" que nunca funciona.
+    if (error && error.code === 'VALIDATION') {
+      return (
+        <View testID="zona-invalida" style={{ flex: 1, justifyContent: 'center', backgroundColor: sheetBg }}>
+          <EmptyState
+            art={<EmptyArt kind="sem-localizacao" team={faction} size={160} />}
+            title="Essa zona não existe"
+            body="O link pode estar errado."
+            action={<Button testID="zona-invalida-voltar" label="Voltar ao mapa" icon="map" onPress={() => router.replace('/')} />}
+          />
+        </View>
+      );
+    }
     if (error && error.code !== 'NOT_FOUND') {
       return (
         <EmptyState

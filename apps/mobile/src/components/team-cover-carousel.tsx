@@ -115,7 +115,7 @@ export function TeamCoverCard({ faction, selected, focused, suggested, confirmin
           <Text variant="bodyBold" numberOfLines={2}>
             {b.style}
           </Text>
-          <Text variant="small" muted numberOfLines={1}>
+          <Text variant="small" muted numberOfLines={2}>
             {b.value} · líder {b.leader}
           </Text>
           {badge ? (

@@ -281,9 +281,12 @@ export function MapScreen({ today }: MapScreenProps = {}) {
                   ? `Sem internet: último mapa salvo`
                   : zonesError && !hasZones
                     ? 'Não deu para carregar as zonas'
-                    : here
-                      ? `Seu time: ${mine} ${mine === 1 ? 'zona' : 'zonas'}`
-                      : `Seu time: ${mine} ${mine === 1 ? 'zona' : 'zonas'} · demonstração`}
+                    : zonesError
+                      ? // F8 onda D (D-95): erro 5xx com o mapa salvo não se passa por dado novo.
+                        'Servidor fora do ar: último mapa salvo'
+                      : here
+                        ? `Seu time: ${mine} ${mine === 1 ? 'zona' : 'zonas'}`
+                        : `Seu time: ${mine} ${mine === 1 ? 'zona' : 'zonas'} · demonstração`}
             </Text>
           </View>
           {statusError ? (

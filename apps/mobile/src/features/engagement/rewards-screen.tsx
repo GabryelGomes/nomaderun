@@ -69,9 +69,10 @@ function LevelCard({ s, now, onPause }: { s: EngagementStatus; now: number; onPa
           </Text>
         </View>
       ) : null}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+      {/* F8 onda D: a 360 px o botão espremia a sequência em 5 linhas; agora ele desce para a linha de baixo. */}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space[2] }}>
         <Icon name="fire" size={18} color={colors.accentText} />
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, minWidth: 180 }}>
           <Text testID="recompensas-sequencia" variant="small">
             {paused ? `Pausa de saúde até ${shortDate(s.streak.pause!.until)}` : streak.main}
           </Text>
