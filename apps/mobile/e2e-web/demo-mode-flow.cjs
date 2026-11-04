@@ -149,6 +149,9 @@ function sealOverlap() {
     await screen('tela-resumo', 'Resumo');
     await id('resumo-recompensas').waitFor({ timeout: 15_000 });
     ok(await id('resumo-recompensas-demonstracao').isVisible(), 'Resumo: bloco de recompensas identificado como demonstração');
+    // F8-D · M-2: o total de baús guardados do Resumo é o mesmo de Recompensas (conferido no passo 8).
+    const chestsOf = (t) => (t.replace(/\s+/g, ' ').match(/(\d+ baús? guardados?|Nenhum baú guardado|Baús de hoje já abertos)/) || [null, null])[1];
+    const resumoBaus = chestsOf(await id('resumo-recompensas').innerText());
     await shot('05-resumo');
     // F8 B2 (D-94): no 1º resumo, "Quando você corre de novo?" com 3 horários e "Agora não".
     await id('plano-proxima').waitFor({ state: 'attached', timeout: 15_000 });
@@ -222,6 +225,10 @@ function sealOverlap() {
     await page.goBack();
     await id('perfil-recompensas').click();
     await screen('tela-recompensas', 'Recompensas');
+    {
+      const recompensasBaus = chestsOf(await page.locator('[data-testid="tela-recompensas"]').innerText());
+      ok(resumoBaus === null || resumoBaus === recompensasBaus, `M-2: baús guardados iguais no Resumo e em Recompensas (${resumoBaus ?? 'Resumo abriu os baús'} × ${recompensasBaus})`);
+    }
     await shot('11-recompensas');
 
     // 9. Links antigos e rota inexistente (D-89, UX-06): /correr abre a Nova corrida; 404 em português

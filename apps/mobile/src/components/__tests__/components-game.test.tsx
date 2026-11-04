@@ -189,3 +189,27 @@ describe('MissionCoachCard', () => {
     expect(r.text()).toContain('Demonstração');
   });
 });
+
+describe('F8-D · fonte ×1,3: títulos quebram em vez de virar reticências, e o leitor de tela lê tudo', () => {
+  /** `numberOfLines` do texto nativo que mostra exatamente `s`. */
+  const lines = (r: ReturnType<typeof render>, s: string) =>
+    r.renderer.root.findAll((n) => typeof n.type === 'string' && [n.props.children].flat().join('') === s)[0]?.props.numberOfLines as number | undefined;
+
+  it('alerta do mapa: título e prazo em até 2 linhas; o rótulo do botão tem os 2 inteiros', () => {
+    const a: SlotAlert = { id: 'z', kind: 'attack', title: 'Parque Flamboyant sob ataque', body: 'Urban Coyotes · Faltam 17 h 30 min', onPress: () => undefined };
+    const r = render(<AlertSlot alerts={[a]} testID="mapa-alerta" />);
+    expect(lines(r, a.title)).toBe(2);
+    expect(lines(r, a.body)).toBe(2);
+    expect(r.host('mapa-alerta-attack').props.accessibilityLabel).toBe(`Alerta: ${a.title}. ${a.body}`);
+  });
+
+  it('cartão do jogador: nome encolhe e quebra em 2; "time · nível" em até 3; rótulo completo', () => {
+    const r = render(<PlayerCard testID="perfil-cartao" name="voce.demo" faction="striders" level={6} xp={{ into: 510, needed: 560 }} title="Pé na Rua" />);
+    expect(lines(r, 'voce.demo')).toBe(2);
+    expect(r.renderer.root.findAll((n) => typeof n.type === 'string' && n.props.children === 'voce.demo')[0].props.adjustsFontSizeToFit).toBe(true);
+    expect(lines(r, 'Neon Striders · nível 6')).toBe(3);
+    const label = String(r.host('perfil-cartao').props.accessibilityLabel);
+    expect(label).toContain('voce.demo');
+    expect(label).toContain('nível 6');
+  });
+});

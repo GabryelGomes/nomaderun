@@ -60,10 +60,11 @@ export function AlertSlot({ alerts, testID = 'alerta' }: { alerts: readonly Slot
           {a.art ?? <Icon name={ICON[a.kind]} size={22} color={tint} />}
         </View>
         <View style={{ flex: 1 }}>
-          <Text variant="bodyBold" numberOfLines={1}>
+          {/* F8-D (fonte ×1,3): 2 linhas cada (o nome da zona e o prazo não somem); o rótulo do botão é o texto inteiro. */}
+          <Text variant="bodyBold" numberOfLines={2}>
             {a.title}
           </Text>
-          <Text variant="caption" muted numberOfLines={1}>
+          <Text variant="caption" muted numberOfLines={2}>
             {a.body}
           </Text>
         </View>

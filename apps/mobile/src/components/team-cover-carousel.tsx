@@ -115,10 +115,11 @@ export function TeamCoverCard({ faction, selected, focused, suggested, confirmin
           <TeamEmblem team={faction} size={40} variant="medio" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text variant="bodyBold" numberOfLines={2}>
+          {/* F8-D (fonte ×1,3): 3 linhas, para o estilo e o líder não virarem reticências a 360 px. */}
+          <Text variant="bodyBold" numberOfLines={3}>
             {b.style}
           </Text>
-          <Text variant="small" muted numberOfLines={2}>
+          <Text variant="small" muted numberOfLines={3}>
             {b.value} · líder {b.leader}
           </Text>
           {badge ? (

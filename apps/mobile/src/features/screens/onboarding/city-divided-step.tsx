@@ -88,7 +88,8 @@ export function CityDividedStep({ onNext }: { onNext: () => void }) {
                     <TeamShapeGlyph shape={factions[f].shape} size={20} color={neonTeam[f]} />
                   </Svg>
                 </View>
-                <Text variant="bodyBold" numberOfLines={1} style={{ width: 128 }}>
+                {/* F8-D (fonte ×1,3): o nome do time quebra em 2 linhas em vez de virar "Urban Coy…". */}
+                <Text variant="bodyBold" numberOfLines={2} style={{ width: 128 }}>
                   {factions[f].name}
                 </Text>
                 <View style={{ flex: 1, height: 8, borderRadius: radius.pill, backgroundColor: colors.surfaceSunken, overflow: 'hidden' }}>

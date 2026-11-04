@@ -21,7 +21,7 @@ import { useNow } from '@/features/use-now';
 import { listMyActivities } from '@/services/api/activities-repo';
 import { useGame } from '@/store/game-store';
 import { useSession } from '@/store/session-store';
-import { neonTeam } from '@/theme/neon';
+import { neon, neonTeam } from '@/theme/neon';
 import { factions, fonts, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
@@ -103,8 +103,9 @@ export function ProfileScreen() {
   const avatar = profile?.avatarUrl ? (
     <Image testID="perfil-avatar-foto" source={{ uri: profile.avatarUrl }} style={{ width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2 }} contentFit="cover" />
   ) : (
-    <View style={{ width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: team.color }}>
-      <Text style={{ fontFamily: fonts.display, fontSize: 22, lineHeight: 26 }} color={team.onColor} maxFontSizeMultiplier={1}>
+    // D-90 (F8-D): ao lado do emblema neon, o avatar usa o neon do time (não o sólido do mapa), com tinta escura (≥ 5:1).
+    <View testID="perfil-avatar-iniciais" style={{ width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: neonTeam[faction] }}>
+      <Text style={{ fontFamily: fonts.display, fontSize: 22, lineHeight: 26 }} color={neon.bg} maxFontSizeMultiplier={1}>
         {initialsOf(display)}
       </Text>
     </View>

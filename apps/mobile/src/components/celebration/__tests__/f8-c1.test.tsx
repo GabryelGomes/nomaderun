@@ -23,7 +23,10 @@ import { COVER_TAP } from '@/components/art/team/cover-art';
 import { TeamCoverCard } from '@/components/team-cover-carousel';
 import { cellCenter, zoneOf } from '@/domain/grid';
 import { BossPhaseMoment, DistrictStampMoment, FirstPaintMoment, LeaderComment } from '@/features/engagement/summary-moments';
+import { contrastRatio } from '@/features/run/banner-color';
 import { raidPhaseHitOf } from '@/features/run/summary-extras';
+import { neon, neonTeam } from '@/theme/neon';
+import { factions } from '@/theme/tokens';
 
 import { mockHapticCalls, mockState } from '../../motion/__tests__/render-mocks';
 import { resetHaptics, TEAM_HAPTIC_STEP_MS, TEAM_HAPTICS, teamHaptic } from '../../motion/haptics';
@@ -386,6 +389,24 @@ describe('componentes novos (renderizam, reduzido = só opacidade, não animam f
         ),
       ),
     ).toEqual([false]);
+  });
+
+  it('F8-D · fonte ×1,3: no card do time, estilo e "valor · líder" vão até 3 linhas (sem reticências)', () => {
+    const r = render(<TeamCoverCard faction="owls" selected={false} focused={false} onSelect={() => {}} width={300} testID="card" />);
+    const capped = r.root.findAll((n: ReactTestInstance) => typeof n.type === 'string' && typeof n.props.numberOfLines === 'number' && /líder|rua iluminada/.test([n.props.children].flat().join('')));
+    expect(capped.length).toBeGreaterThanOrEqual(2);
+    for (const n of capped) expect(n.props.numberOfLines).toBe(3);
+  });
+
+  it('F8-D · D-90: a semana do time usa o neon do time (nunca o sólido do mapa) e a tinta passa 4,5:1 nos 4 times', () => {
+    for (const team of ['striders', 'volt', 'owls', 'coyotes'] as const) {
+      const r = render(<TeamWeekCard testID="s" team={team} body="2º na temporada" first={false} onPress={() => {}} accessibilityLabel="x" />);
+      const flat = JSON.stringify(r.toJSON());
+      expect(flat).toContain(neonTeam[team]);
+      expect(flat).not.toContain(factions[team].color);
+      expect(contrastRatio(neonTeam[team], neon.bg)).toBeGreaterThanOrEqual(4.5);
+      expect(r.root.findAll((n: ReactTestInstance) => n.type === Mascot)[0].props.color).toBe(neon.bg);
+    }
   });
 
   it('o selo do 1º trecho vibra 1× leve, anuncia e termina em 1,5 s', () => {

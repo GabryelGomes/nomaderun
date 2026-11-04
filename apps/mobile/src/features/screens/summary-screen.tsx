@@ -92,7 +92,8 @@ function ConquestChips({ events, headline }: { events: readonly CelebrationEvent
             backgroundColor: colors.surface,
           }}>
           <Icon name={CHIP_ICON[e.kind] ?? 'check'} size={14} color={colors.accentText} />
-          <Text variant="caption" numberOfLines={1} style={{ flexShrink: 1 }}>
+          {/* F8-D (fonte ×1,3): o chip cresce para 2 linhas e a contagem "· 2 zonas" não some. */}
+          <Text variant="caption" numberOfLines={2} style={{ flexShrink: 1 }}>
             {n > 1 ? `${text(e)} · ${n} zonas` : text(e)}
           </Text>
         </View>

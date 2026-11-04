@@ -46,7 +46,8 @@ type EngagementState = EngagementSlots & {
   userId: string | null;
   loadedAt: number | null;
   /** Bloco `extras.engagement` da última corrida confirmada (o resumo mostra). */
-  lastRun: { activityId: string; block: RunEngagement } | null;
+  /** `at` = quando o resultado chegou: o baú do store só vale para o resumo se foi lido depois (F8-D · M-2). */
+  lastRun: { activityId: string; block: RunEngagement; at: number } | null;
   /**
    * A pessoa já conquistou alguma zona (T7.3.6, "Sua 1ª zona!" no HUD). `null` = ainda não se sabe; só `false`
    * conta como "nunca conquistou" (o HUD nunca promete uma 1ª zona por falta de dado).
@@ -61,7 +62,7 @@ type EngagementState = EngagementSlots & {
   setLoadedAt: (at: number) => void;
   /** Troca uma missão pelo id da atribuição (troca do dia, conclusão vista na tela). */
   replaceMission: (m: EngagementMission) => void;
-  setLastRun: (activityId: string, block: RunEngagement) => void;
+  setLastRun: (activityId: string, block: RunEngagement, at?: number) => void;
   reset: () => void;
 };
 
@@ -106,7 +107,7 @@ export const useEngagement = create<EngagementState>((set) => ({
         },
       };
     }),
-  setLastRun: (activityId, block) => set({ lastRun: { activityId, block } }),
+  setLastRun: (activityId, block, at = Date.now()) => set({ lastRun: { activityId, block, at } }),
   // Depois de uma conquista, nunca volta a "nunca conquistou" (só a troca de conta limpa).
   setEverConquered: (v) => set((s) => (s.everConquered === true && v !== true ? s : { everConquered: v })),
   reset: () => set({ ...initial }),

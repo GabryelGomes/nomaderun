@@ -73,8 +73,8 @@ function MissionRow({ m, rerollsLeft, onReroll, busy }: { m: EngagementMission; 
         )}
       </ProgressRing>
       <View style={{ flex: 1, gap: 2 }}>
-        {/* F8 onda D: 3 linhas, para a meta ("1,5 km") não sumir com a fonte grande a 360 px. */}
-        <Text variant="bodyBold" numberOfLines={3}>
+        {/* F8 onda D: 3 linhas, para a meta ("1,5 km") não sumir; F8-D (fonte ×1,3): 4, para "sob ataque" também. */}
+        <Text variant="bodyBold" numberOfLines={4}>
           {m.title}
         </Text>
         {m.tier === 'leve' ? (
@@ -112,7 +112,8 @@ function FtueStepRow({ row, now }: { row: FtueRow; now: number }) {
         {done ? <Icon name="check" size={20} color={colors.accentText} /> : locked ? <Icon name="lock" size={18} color={colors.textSecondary} /> : icon ? <ModeIcon kind={icon} size={32} /> : <Icon name="share" size={20} color={colors.accentText} />}
       </View>
       <View style={{ flex: 1 }}>
-        <Text variant={row.status === 'open' ? 'bodyBold' : 'body'} numberOfLines={2}>
+        {/* F8-D (fonte ×1,3): 3 linhas ("Abra seu primeiro baú na Caça" inteiro ao lado do botão). */}
+        <Text variant={row.status === 'open' ? 'bodyBold' : 'body'} numberOfLines={3}>
           {row.title}
         </Text>
         {caption ? (

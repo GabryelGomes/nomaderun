@@ -59,7 +59,8 @@ export function PlayerCard({ name, faction, level, xp, title, avatar, mascot, ri
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           {/* E10 (onda 4): com anel e mascote, sobram ~140 pt a 390 de largura e "voce.demo" já era cortado em 32 pt. */}
-          <Text variant={name.length > NAME_FITS_HEADLINE ? 'title' : 'headline'} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+          {/* F8-D (fonte ×1,3): no aparelho encolhe (0,75); se ainda não couber, quebra em 2 linhas. */}
+          <Text variant={name.length > NAME_FITS_HEADLINE ? 'title' : 'headline'} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
             {name}
           </Text>
           {title ? (
@@ -68,7 +69,7 @@ export function PlayerCard({ name, faction, level, xp, title, avatar, mascot, ri
             </Text>
           ) : null}
           {/* F8 onda D: a 360 px, em 1 linha, o nível sumia ("Neon Striders · …"). */}
-          <Text variant="small" muted numberOfLines={2}>
+          <Text variant="small" muted numberOfLines={3}>
             {factions[faction].name} · nível {level}
           </Text>
           {frameName ? (
