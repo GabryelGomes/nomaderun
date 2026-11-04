@@ -38,6 +38,8 @@ export const MESSAGES = {
   invalidCredentials: 'E-mail ou senha incorretos.',
   emailNotConfirmed: 'Confirme seu e-mail pelo link que enviamos antes de entrar.',
   rateLimited: 'Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.',
+  /** Limite por pessoa das Edge Functions (D-99): a janela é de 1 minuto, então "em instantes". */
+  tooManyRequests: 'Muitas tentativas. Tente de novo em instantes.',
   emailTaken: 'Já existe uma conta com este e-mail. Tente entrar ou recuperar a senha.',
   usernameTaken: 'Este nome de usuário já está em uso. Escolha outro.',
   signupDb:
@@ -118,7 +120,12 @@ export function fromHttp(status: number, body?: unknown): AppError {
   if (status === 403) return new AppError('UNAUTHORIZED', serverMsg ?? MESSAGES.forbidden, opts);
   if (status === 404) return new AppError('NOT_FOUND', serverMsg ?? MESSAGES.unavailable, opts);
   if (status === 409) return new AppError('CONFLICT', serverMsg ?? MESSAGES.conflict, opts);
-  if (status === 429) return new AppError('RATE_LIMITED', serverMsg ?? MESSAGES.rateLimited, opts);
+  // 429 das Edge Functions (D-99, código RATE_LIMITED, ou sem corpo): frase curta do app. Outro 429 com mensagem própria
+  // do servidor mantém a mensagem dele.
+  if (status === 429) {
+    const useServer = serverMsg && serverCode !== 'RATE_LIMITED';
+    return new AppError('RATE_LIMITED', useServer ? serverMsg : MESSAGES.tooManyRequests, opts);
+  }
   if (status >= 500) return new AppError('SERVER', serverMsg ?? MESSAGES.server, opts);
   return new AppError('UNKNOWN', serverMsg ?? MESSAGES.unknown, opts);
 }
