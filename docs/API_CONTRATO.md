@@ -521,7 +521,7 @@ Uma só: `levelProgress(totalXp)` em `src/domain/progression.ts` (`xpToNextLevel
 - **Ativo** = conta `active`, com time, com pelo menos 1 corrida **aceita** (pontuada, `valid`/`partial`) que terminou nos últimos 7 dias (janela móvel). Conta pessoas, não corridas. Os 4 times sempre aparecem (0 quando ninguém correu).
 - **Só números**: nenhum `user_id`, nome ou lugar.
 - **Demonstração separada**: conta real só conta contas reais; conta de demonstração (`profiles.is_demo`) só conta demonstração e recebe `isDemo: true` (a tela marca "demonstração").
-- O selo "Precisa de reforço" **não vem do servidor**: o app decide com `factionNeedingBoost(counts)` (`src/domain/faction-activity.ts`): o time com menos ativos, só se for o **único** no menor número e se o total for ≥ 4. Só cosmético.
+- O selo "Precisa de reforço": o app decide com `factionNeedingBoost(counts)` (`src/domain/faction-activity.ts`): o time com menos ativos, só se for o **único** no menor número e se o total for ≥ 4. Só cosmético. Desde a F8-D (B1) o servidor também manda `needsBoost` (mesma regra em `private.faction_needing_boost`) e, **sem sessão, manda só ele** (ver "Fase 8 · D").
 - Erros: `UNAUTHORIZED`, `ACCOUNT_INACTIVE`. App: `getFactionActivity()` (`services/api/faction-activity-repo.ts`); servidor antigo → `{ available: false, reason: 'servidor-antigo' }` (sem selo).
 
 ### `extras.milestones` no `POST /finish-activity` (e `moderate-activity`) — para a E7
@@ -548,13 +548,35 @@ Só com a **pintura v2** (`extras.paint` presente). Opcional: servidor antigo, r
 
 ```json
 { "day": "2026-11-03", "mate": { "username": "rafa" }, "cells": 3, "othersCount": 1, "totalCells": 4,
-  "notifyFrom": 1793786400000, "notifyUntil": 1793840400000 }
+  "notifyFrom": 1793786400000, "notifyUntil": 1793840400000, "isDemo": false }
 ```
 
 - `null` quando: sem crew, ninguém reforçou, ou **entre 22h e 7h** (o aviso nunca sai nesse horário). 1 agregado por dia (o de ontem); `notifyFrom`/`notifyUntil` = 07h–22h de hoje.
-- Fonte: `paint_marks` (o servidor guarda 2 dias). Fica de fora: colega com "mostrar minhas corridas na crew" desligado (`user_settings.share_runs_to_feed`), conta não ativa, trecho sem lugar conhecido e trecho dentro da **máscara** de uma zona de privacidade **do colega** (D-87, + 50 m). Só o nome do colega (que a crew já vê) e contagens; nada de lugar.
+- Fonte: `paint_marks` (o servidor guarda 2 dias). Fica de fora: colega com "mostrar minhas corridas na crew" desligado (`user_settings.share_runs_to_feed`) **ou com "mostrar mapa no feed" desligado** (`feed_show_map`, F8-D M2), colega de **outro tipo de conta** (real ↔ demonstração, F8-D B5), conta não ativa, trecho sem lugar conhecido e trecho dentro da **máscara** de uma zona de privacidade **do colega** (D-87, + 50 m). Só o nome do colega (que a crew já vê) e contagens; nada de lugar.
 - Erros: `UNAUTHORIZED`, `ACCOUNT_INACTIVE`, `FEATURE_DISABLED` (flag `feed`). App: `getCrewEcho()` (`crews-repo.ts`); servidor antigo ou flag desligada → `{ available: false }`. O aviso local respeita o limite de 1/dia e 4/semana (D-69) e `isEchoHour()` (domain).
 - Regra com relógio: `private.crew_echo_at(p_uid, p_now)` (não chamável pelo app; o pgTAP fixa a hora).
+
+## Fase 8 · D (E9): correções da revisão (`20261104120300_f8_revisao`)
+
+Só aditivo. Nenhuma RPC muda de assinatura. pgTAP `34_f8_revisao` (23), Deno `f8_revisao.test.ts` (paridade do selo SQL × domain), pares na demonstração (`services/api/demo/{f8,social}.ts`, Jest `demo/__tests__/f8-revisao.test.ts`).
+
+| O quê | Contrato |
+|---|---|
+| `crew_echo()` (M2) | Colega com **"mostrar mapa no feed" desligado** (`user_settings.feed_show_map = false`) fica fora do eco, como quem não compartilha corridas: o eco diria por onde a pessoa passou ontem |
+| `crew_echo()` (B5) | Só conta colega do **mesmo tipo de conta** de quem pede (`profiles.is_demo`: real ↔ real, demonstração ↔ demonstração). A resposta ganha **`isDemo`** (o tipo de quem pede). App: `CrewEcho.isDemo` (já lido por `parseCrewEcho`) |
+| `join_crew(p_code)` (B5) | Conta real não entra numa crew com líder ou membro de demonstração, nem o contrário. Resposta: **`CREW_NOT_FOUND`** (igual a código inválido; não confirma que o código existe). Os outros erros não mudam |
+| `faction_activity()` **sem sessão** (B1) | Só `{ "needsBoost": "owls" \| null, "isDemo": false }`: **sem contagens**, sem `since`, sem `windowDays`. Vem de um cache (`private.faction_activity_cache`, uma linha, só contas reais) refeito sob demanda quando tem 5 min ou mais, por **um** pedido de cada vez (`pg_try_advisory_xact_lock`); os outros leem o que está lá. Chamar em laço não varre `activities` mais que 1 vez a cada 5 min |
+| `faction_activity()` **com sessão** (B1) | Como antes (contagens ao vivo, `since`, demonstração só conta demonstração) **+ `needsBoost`** (mesma regra). A função passa a `volatile` (o caminho sem sessão grava o cache); o app chama por POST (`supabase.rpc`), como sempre |
+
+```json
+{ "needsBoost": "owls", "isDemo": false }
+{ "windowDays": 7, "since": 1793400000000, "counts": { "striders": 12, "coyotes": 9, "owls": 3, "volt": 10 }, "total": 34, "needsBoost": "owls", "isDemo": false }
+```
+
+- App: `FactionActivity.counts`/`total` passam a `null` quando o servidor não manda contagens; `needsBoost` sai das contagens pela regra do domain quando há contagens, senão do `needsBoost` do servidor validado por `asBoostFaction()` (domain). A escolha do time antes da conta (`team-boost.tsx`) usa só `needsBoost` e `isDemo`.
+- Funções novas (privadas, fora do `anon`/`authenticated`): `private.faction_needing_boost(jsonb)`, `private.faction_counts(boolean, timestamptz)`, `private.faction_activity_anon_at(timestamptz)`. Tabela nova: `private.faction_activity_cache` (RLS ligada, sem política, sem grant; só 4 contagens agregadas: não é dado pessoal, fora do export/delete LGPD). Sem job, flag ou Realtime novos.
+
+Compatibilidade: **app antigo × servidor novo** — com sessão, ignora `needsBoost`/`isDemo` a mais e segue com as contagens; sem sessão (escolha do time antes da conta), não acha contagens, lê tudo 0 e **não mostra o selo** (honesto, nada quebra); o eco só some quando o colega esconde o mapa ou é de outro tipo de conta; `join_crew` recusado entre tipos aparece como "código inválido", que o app já trata. **App novo × servidor antigo** — sem sessão chegam as contagens antigas e o app calcula o selo pelo domain (igual); com sessão, idem; eco sem `isDemo` → `false` (como antes).
 
 ## Fase 8 · C2 (E9 + E8 + E7): social que volta (`20261104120200_f8_social`)
 

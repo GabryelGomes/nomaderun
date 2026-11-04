@@ -105,14 +105,14 @@ select is((select (d1.r #>> '{counts,volt}')::int - (d0.r #>> '{counts,volt}')::
   'D-96: conta de demonstração só conta a demonstração');
 select is((select (r ->> 'isDemo')::boolean from fd1), true, 'D-96: e vem marcada como demonstração');
 select is((select array_agg(k order by k) from fa1, jsonb_object_keys(r) k),
-  array['counts', 'isDemo', 'since', 'total', 'windowDays'], 'D-96: só números (nenhum id, nome ou lugar)');
+  array['counts', 'isDemo', 'needsBoost', 'since', 'total', 'windowDays'], 'D-96: só números (nenhum id, nome ou lugar); B1: + needsBoost');
 select is((select array_agg(k order by k) from fa1, jsonb_object_keys(r -> 'counts') k),
   array['coyotes', 'owls', 'striders', 'volt'], 'D-96: os 4 times sempre aparecem');
 select is((select (r ->> 'total')::int = (select sum(v::int) from jsonb_each_text(r -> 'counts') e(k, v)) from fa1), true,
   'D-96: total = soma dos times');
 select pg_temp.logout();
 select is((select array_agg(k order by k) from jsonb_object_keys(public.faction_activity()) k),
-  array['counts', 'isDemo', 'total', 'windowDays'], 'D-96/C2: sem login, só as contagens (sem a janela em ms)');
+  array['isDemo', 'needsBoost'], 'D-96/C2/B1: sem login, só needsBoost e isDemo (sem contagens nem janela)');
 
 -- ===========================================================================
 -- Marcos da pintura: primeiro trecho (1 vez na vida) e recorde de trechos numa corrida
@@ -211,7 +211,7 @@ insert into public.paint_marks (user_id, day, cell) values
 create temp table eco as select private.crew_echo_at('e9e9e9e9-0031-4000-8000-0000000000e1',
                                                      timestamp '2026-11-04 12:00' at time zone 'America/Sao_Paulo') as r;
 select is((select r - 'notifyFrom' - 'notifyUntil' from eco),
-  '{"day": "2026-11-03", "mate": {"username": "v31_e2"}, "cells": 3, "othersCount": 0, "totalCells": 3}'::jsonb,
+  '{"day": "2026-11-03", "mate": {"username": "v31_e2"}, "cells": 3, "othersCount": 0, "totalCells": 3, "isDemo": false}'::jsonb,
   'eco: só o colega que compartilha, só os trechos de quem pede, fora da zona de privacidade do colega e fora da crew');
 select is((select (r ->> 'notifyFrom')::bigint from eco),
   private.ts_to_ms(timestamp '2026-11-04 07:00' at time zone 'America/Sao_Paulo'), 'eco: aviso a partir das 07h');
