@@ -39,6 +39,14 @@ export function Button({ label, kind = 'primary', icon, size = 'md', wide, trail
     ghost: { bg: 'transparent', fg: colors.text, border: 'transparent' },
     danger: { bg: colors.danger, fg: colors.onDanger, border: 'transparent' },
   }[kind];
+  // F8-D: desativado com tokens próprios (≥ 3:1), não com opacidade sobre a cor do tipo (dava 2,56:1 no laranja).
+  // O ghost desativado continua sem fundo nem borda (é um link), só com o texto em `onDisabled`.
+  const look = disabled
+    ? kind === 'ghost'
+      ? { bg: 'transparent', fg: colors.onDisabled, border: 'transparent' }
+      : { bg: colors.disabledSurface, fg: colors.onDisabled, border: colors.lineControl }
+    : palette;
+  const bordered = disabled ? kind !== 'ghost' : kind === 'secondary';
   const height = size === 'lg' ? 60 : 48;
 
   return (
@@ -67,19 +75,19 @@ export function Button({ label, kind = 'primary', icon, size = 'md', wide, trail
           paddingVertical: space[1],
           borderRadius: radius.pill,
           borderCurve: 'continuous',
-          backgroundColor: palette.bg,
-          borderWidth: kind === 'secondary' ? 1 : 0,
-          borderColor: palette.border,
+          backgroundColor: look.bg,
+          borderWidth: bordered ? 1 : 0,
+          borderColor: look.border,
           // Neon (D-59): o botão principal acende com o brilho laranja da apresentação.
           boxShadow: kind === 'primary' && !disabled ? neon.buttonGlow : kind === 'danger' && !disabled ? neon.dangerGlow : undefined,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
           gap: space[2],
-          ...pressFeedback(pressed, reduced, disabled ? 0.45 : 1),
+          ...pressFeedback(pressed, reduced),
         }}>
-        {icon ? <Icon name={icon} size={size === 'lg' ? 22 : 18} color={palette.fg} /> : null}
-        <Text variant={size === 'lg' ? 'title' : 'bodyBold'} color={palette.fg} maxFontSizeMultiplier={BUTTON_FONT_MAX} style={{ flexShrink: 1, textAlign: 'center' }}>
+        {icon ? <Icon name={icon} size={size === 'lg' ? 22 : 18} color={look.fg} /> : null}
+        <Text variant={size === 'lg' ? 'title' : 'bodyBold'} color={look.fg} maxFontSizeMultiplier={BUTTON_FONT_MAX} style={{ flexShrink: 1, textAlign: 'center' }}>
           {label}
         </Text>
         {trailing ? <View>{trailing}</View> : null}
