@@ -1,0 +1,109 @@
+{
+  "capturas": {
+    "voce__cheio": {
+      "url": "/perfil?cenario=cheio",
+      "texto": "Você  VD voce.demo Pé na Rua Neon Striders · nível 6 Moldura Recruta 510 / 560 XP Distância 32,4 km Zonas 13 Atlas 23 % do bairro Medalhas 4 de 4 Carimbos do Atlas 4 Jardim Goiás Setor Pedro Ludovico Shopping Flamboyant Vila Redenção  Atividades 12,2 km na semana   Meu time N",
+      "erros": []
+    },
+    "semana-do-time__owls": {
+      "url": "/dev/motion?cenario=cheio",
+      "texto": "Galeria de motion Dados de demonstração. Arte da E4 (baú com o prêmio, chefão com a silhueta, mascote e medalhas). AJUSTES Movimento: sistema Reduzido Completo Vibração ligada Pular celebrações: não Neon Striders Volt Runners Night Owls Urban Coyotes Baú comum Baú raro Baú lendar",
+      "erros": []
+    },
+    "zona__offline-quente": {
+      "url": "/zona/89a8c0ce2c3ffff?cenario=offline",
+      "texto": " Sem internet Mostrando o último salvo, agora. Tentar de novo Parque Flamboyant Dos Neon Striders · sob ataque Striders 1.240 812 Coyotes  Faltam 17 h 30 min para defender Corra aqui: seus pontos valem em dobro. Teto de hoje atingido: volte amanhã  Defender esta zona  DEMONST",
+      "erros": []
+    },
+    "zona__offline-frio": {
+      "url": "/indisponivel",
+      "texto": "Não deu para abrir seu perfil Sem internet. Confira a conexão e tente de novo. Tentar de novo  DEMONSTRAÇÃO",
+      "erros": []
+    }
+  },
+  "fonte130": {
+    "cidade": [],
+    "times": [
+      {
+        "id": "onboarding-times-coyotes",
+        "text": "Corrida em grupo",
+        "why": "fora da tela",
+        "rotuloCompleto": true
+      },
+      {
+        "id": "onboarding-times-coyotes",
+        "text": "União · líder Bento Rocha",
+        "why": "fora da tela",
+        "rotuloCompleto": false
+      },
+      {
+        "id": "onboarding-times-coyotes-lider",
+        "text": "Conhecer",
+        "why": "fora da tela",
+        "rotuloCompleto": true
+      },
+      {
+        "id": "onboarding-times-owls",
+        "text": "Fim do dia, rua iluminada",
+        "why": "fora da tela",
+        "rotuloCompleto": true
+      },
+      {
+        "id": "onboarding-times-owls",
+        "text": "Visão · líder Nara Lis",
+        "why": "fora da tela",
+        "rotuloCompleto": false
+      },
+      {
+        "id": "onboarding-times-owls-lider",
+        "text": "Conhecer",
+        "why": "fora da tela",
+        "rotuloCompleto": true
+      },
+      {
+        "id": "onboarding-times-volt",
+        "text": "Resistência e distância",
+        "why": "fora da tela",
+        "rotuloCompleto": true
+      },
+      {
+        "id": "onboarding-times-volt",
+        "text": "Energia · líder Téo Faria",
+        "why": "fora da tela",
+        "rotuloCompleto": false
+      },
+      {
+        "id": "onboarding-times-volt-lider",
+        "text": "Conhecer",
+        "why": "fora da tela",
+        "rotuloCompleto": true
+      }
+    ],
+    "mapa": [
+      {
+        "id": "mapa-hoje-bau",
+        "text": "2",
+        "why": "fora da tela",
+        "rotuloCompleto": true
+      },
+      {
+        "id": "mapa-hoje-bau",
+        "text": "Baús",
+        "why": "fora da tela",
+        "rotuloCompleto": true
+      }
+    ],
+    "arena": [],
+    "clube": [],
+    "voce": [
+      {
+        "id": "perfil-km",
+        "text": "32,4",
+        "why": "cortado",
+        "rotuloCompleto": true
+      }
+    ],
+    "resumo": [],
+    "missoes": []
+  }
+}
