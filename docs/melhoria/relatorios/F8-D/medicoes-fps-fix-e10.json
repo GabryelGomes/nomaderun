@@ -1,0 +1,87 @@
+{
+  "comando": "ONLY=cerim RATES=1,4 REPS=5 node docs/melhoria/relatorios/F8-C1/medir-fps.cjs <export demo --clear>",
+  "antes": {
+    "rates": [
+      1,
+      4
+    ],
+    "reps": 5,
+    "rows": [
+      {
+        "cena": "cerimônia \"Seu rastro\" (cor + mascote + rota + moldura + 24 confetes)",
+        "cpu": "1×",
+        "fps": 59.7,
+        "p95": 16.7,
+        "max": 33.3,
+        "jank": 0.6
+      },
+      {
+        "cena": "cerimônia \"Seu rastro\" (cor + mascote + rota + moldura + 24 confetes)",
+        "cpu": "4×",
+        "fps": 52,
+        "p95": 16.8,
+        "max": 316.6,
+        "jank": 1.8
+      },
+      {
+        "cena": "cerimônia, movimento reduzido",
+        "cpu": "1×",
+        "fps": 60,
+        "p95": 16.7,
+        "max": 16.8,
+        "jank": 0
+      },
+      {
+        "cena": "cerimônia, movimento reduzido",
+        "cpu": "4×",
+        "fps": 53.3,
+        "p95": 16.8,
+        "max": 150,
+        "jank": 2.5
+      }
+    ],
+    "errors": []
+  },
+  "depois": {
+    "rates": [
+      1,
+      4
+    ],
+    "reps": 5,
+    "rows": [
+      {
+        "cena": "cerimônia \"Seu rastro\" (cor + mascote + rota + moldura + 24 confetes)",
+        "cpu": "1×",
+        "fps": 59.7,
+        "p95": 16.8,
+        "max": 33.4,
+        "jank": 0.6
+      },
+      {
+        "cena": "cerimônia \"Seu rastro\" (cor + mascote + rota + moldura + 24 confetes)",
+        "cpu": "4×",
+        "fps": 55,
+        "p95": 16.8,
+        "max": 150,
+        "jank": 2.4
+      },
+      {
+        "cena": "cerimônia, movimento reduzido",
+        "cpu": "1×",
+        "fps": 60,
+        "p95": 16.7,
+        "max": 16.8,
+        "jank": 0
+      },
+      {
+        "cena": "cerimônia, movimento reduzido",
+        "cpu": "4×",
+        "fps": 56,
+        "p95": 16.8,
+        "max": 83.4,
+        "jank": 2.4
+      }
+    ],
+    "errors": []
+  }
+}
