@@ -205,7 +205,7 @@ describe('/recompensas', () => {
     // Trilha curta (4 degraus) e catálogo atrás de "Ver todos" (T7.3.6).
     expect(r.has('trilha-degrau-1')).toBe(false);
     expect(r.has('cosmetico-rastro-faisca')).toBe(false);
-    expect(r.text()).toContain('1 de 31 são seus');
+    expect(r.text()).toContain('1 de 32 são seus');
     r.press('recompensas-trilha-ver-toda');
     expect(r.has('trilha-degrau-1')).toBe(true);
     r.press('recompensas-cosmeticos-ver-todos');

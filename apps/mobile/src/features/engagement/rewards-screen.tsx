@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 
 import { Chest, EmptyArt, Medal } from '@/components/art';
@@ -24,7 +24,7 @@ import { useTheme } from '@/theme/use-theme';
 
 import { claimSeasonStep, openStoredChests } from './controller';
 import { CosmeticThumb } from './cosmetic-thumb';
-import { COSMETICS, howToEarn, SHOWN_SLOTS, SLOT_LABELS } from './cosmetics';
+import { COSMETICS, howToEarn, readLocalCosmetics, SHOWN_SLOTS, SLOT_LABELS } from './cosmetics';
 import { HealthPauseSheet } from './health-pause-sheet';
 import { useEngagementData } from './hooks';
 import { chestRefusal, fmtInt, oddsRows, pauseActive, pityLabel, RARITY_LABEL, shortDate, storedLabel, streakLine, trackItemLabel, trackWindow } from './model';
@@ -378,7 +378,18 @@ export function RewardsScreen() {
     await refresh();
     setRefreshing(false);
   };
-  const owned = status.data?.cosmetics ? new Set(status.data.cosmetics.map((c) => c.id)) : null;
+  // D-91: a moldura "Recruta" da cerimônia mora no aparelho (sem par no servidor ainda) e soma aos do servidor.
+  const [local, setLocal] = useState<string[]>([]);
+  useEffect(() => {
+    let alive = true;
+    void readLocalCosmetics().then((ids) => {
+      if (alive && ids.length) setLocal(ids);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const owned = status.data?.cosmetics ? new Set([...status.data.cosmetics.map((c) => c.id), ...local]) : null;
   const allUnavailable = chest.status === 'unavailable' && track.status === 'unavailable' && !status.data;
   const failed = [status, chest, track].find((sl) => sl.status === 'error' && sl.error)?.error ?? null;
 

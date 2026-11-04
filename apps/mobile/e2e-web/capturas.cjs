@@ -81,6 +81,9 @@ const MATRIX = [
   { nome: 'notificacoes', rota: '/notificacoes', estado: 'sob-ataque', espera: 7000 },
   { nome: 'onboarding', rota: '/onboarding', estado: 'sem-time' },
   { nome: 'boas-vindas', rota: '/boas-vindas', estado: 'primeira-abertura' },
+  // F8 B1 (D-91): valor antes da conta.
+  { nome: 'cidade', rota: '/cidade', estado: 'primeira-abertura', espera: 2500 },
+  { nome: 'times', rota: '/times', estado: 'primeira-abertura' },
   { nome: 'entrar', rota: '/entrar', estado: 'primeira-abertura' },
   { nome: 'cadastro', rota: '/cadastro', estado: 'primeira-abertura' },
   { nome: 'recuperar-senha', rota: '/recuperar-senha', estado: 'primeira-abertura' },

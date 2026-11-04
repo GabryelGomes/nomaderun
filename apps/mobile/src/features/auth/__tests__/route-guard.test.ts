@@ -21,6 +21,16 @@ describe('resolveRouteGroup (guardas do layout raiz)', () => {
   it('onboarding aberto e ainda sem time → onboarding', () =>
     expect(resolveRouteGroup({ ...base, hasFaction: false, onboardingInProgress: true })).toBe('onboarding'));
   it('último passo concluído (flag desligada) → abas', () => expect(resolveRouteGroup({ ...base, onboardingInProgress: false })).toBe('app'));
+  // D-91: valor antes da conta. As telas "cidade", "times" e a cerimônia moram no grupo `auth`; ninguém entra nas
+  // abas nem no onboarding sem sessão, e quem já tem conta com time nunca vê o onboarding.
+  it('D-91: sem conta → só o grupo auth, seja qual for o time escolhido antes (ele fica no aparelho)', () => {
+    expect(resolveRouteGroup({ ...base, status: 'signedOut', hasProfile: false, hasFaction: false })).toBe('auth');
+    expect(resolveRouteGroup({ ...base, status: 'signedOut', hasProfile: true, hasFaction: true })).toBe('auth');
+  });
+  it('D-91: quem entra com conta e time ("Entrar") vai direto às abas, sem onboarding', () =>
+    expect(resolveRouteGroup({ ...base, hasFaction: true, onboardingInProgress: false })).toBe('app'));
+  it('D-91: conta nova (sem time) → onboarding, onde o time pendente é gravado antes do GPS', () =>
+    expect(resolveRouteGroup({ ...base, hasFaction: false })).toBe('onboarding'));
   it('a flag não fura sessão, recuperação nem perfil faltando', () => {
     expect(resolveRouteGroup({ ...base, status: 'signedOut', onboardingInProgress: true })).toBe('auth');
     expect(resolveRouteGroup({ ...base, recovering: true, onboardingInProgress: true })).toBe('recovery');

@@ -43,7 +43,8 @@ const VISIBLE_ATTR = new Set(['title', 'body', 'label', 'placeholder', 'help', '
 const VISUAL = {
   mapa: ['TerritoryMap'],
   // E6a (onda 2): + as peças da E4 (`components/art`) e a arte feita com as primitivas dela (`StaticArt`).
-  ilustracao: ['CaptureCelebration', 'NeonBackdrop', 'HeroWordmark', 'NeonBadges', 'Svg', 'Image', 'Mascot', 'Boss', 'Chest', 'Medal', 'TutorialArt', 'EmptyArt', 'TeamEmblem', 'StaticArt'],
+  // F8 B1: + a capa do time, o corredor, o busto do líder e o logo oficial.
+  ilustracao: ['CaptureCelebration', 'NeonBackdrop', 'HeroWordmark', 'NeonBadges', 'Svg', 'Image', 'Mascot', 'Boss', 'Chest', 'Medal', 'TutorialArt', 'EmptyArt', 'TeamEmblem', 'StaticArt', 'TeamCover', 'MascotRunner', 'LeaderBust', 'Logo'],
   numeroGrande: ['CountUp', 'TickerText', 'StatCount', 'Metric', 'Countdown'],
   grafico: ['GrowBar', 'ProgressBar', 'InfluenceBar', 'GrowPillar', 'Podium', 'LineChart', 'StepProgress', 'StrengthMeter'],
   emblema: ['TeamBadge'],
@@ -59,17 +60,22 @@ const META = { jogo: 45, conta: 80, informativa: Infinity };
  */
 const SCREENS = [
   { rota: '(auth)/entrar', tipo: 'conta', partes: [['features/auth/sign-in-screen.tsx'], ['features/auth/neon-badges.tsx']] },
-  { rota: '(auth)/cadastro', tipo: 'conta', partes: [['features/auth/sign-up-screen.tsx']] },
+  // F8 B1 (D-91): o título vira "Garanta seu lugar nos <time>" (6 palavras dinâmicas) depois da cerimônia.
+  { rota: '(auth)/cadastro', tipo: 'conta', partes: [['features/auth/sign-up-screen.tsx']], extra: 6 },
   { rota: '(auth)/recuperar-senha', tipo: 'conta', partes: [['features/auth/forgot-password-screen.tsx']] },
   { rota: 'nova-senha', tipo: 'conta', partes: [['features/auth/new-password-screen.tsx']] },
   // E6a (onda 2, D-72): as boas-vindas viraram a 1ª tela do grupo (auth) e o onboarding foi para
   // `features/screens/onboarding/`. Os rótulos antigos continuam (para o --comparar antes); o passo de
   // notificações saiu da primeira abertura (vem depois da 1ª conquista).
-  { rota: 'onboarding · 1 boas-vindas', tipo: 'jogo', partes: [['features/auth/welcome-screen.tsx'], ['features/auth/neon-badges.tsx']] },
-  { rota: 'onboarding · 1b cidade dividida', tipo: 'jogo', partes: [['features/screens/onboarding/city-divided-step.tsx']], extra: 4 },
-  { rota: 'onboarding · 2 time', tipo: 'jogo', partes: [['features/screens/onboarding/onboarding-screen.tsx', "cond:step === 'times'"]], extra: 3 + 12 },
+  // F8 B1 (D-91): valor antes da conta. "cidade" e "times" viraram rotas do grupo (auth); a escolha usa as capas
+  // (`team-choice.tsx` + `team-cover-carousel.tsx`; nome, lema, 1ª linha da bio, líder, valor e estilo do card em foco
+  // são dinâmicos: `extra`); a cerimônia ganhou o quadro "Seu rastro agora é <cor>" (`trail-reveal.tsx`).
+  { rota: 'onboarding · 1 boas-vindas', tipo: 'jogo', partes: [['features/auth/welcome-screen.tsx']] },
+  { rota: 'onboarding · 1b cidade dividida', tipo: 'jogo', partes: [['features/screens/onboarding/city-divided-screen.tsx'], ['features/screens/onboarding/city-divided-step.tsx']], extra: 4 },
+  { rota: 'onboarding · 2 time', tipo: 'jogo', partes: [['features/screens/onboarding/team-choice.tsx'], ['features/screens/onboarding/team-choice-auth-screen.tsx'], ['components/team-cover-carousel.tsx']], extra: 3 + 3 + 7 + 6 },
   { rota: 'onboarding · 2b quiz', tipo: 'jogo', partes: [['features/screens/onboarding/team-quiz.tsx'], ['features/screens/onboarding/quiz.ts']] },
-  { rota: 'onboarding · 2c confirmação', tipo: 'jogo', partes: [['components/celebration/team-confirm.tsx']], extra: 4 },
+  { rota: 'onboarding · 2c confirmação', tipo: 'jogo', partes: [['components/celebration/team-confirm.tsx'], ['features/screens/onboarding/trail-reveal.tsx']], extra: 4 + 5 },
+  { rota: 'onboarding · 2d gravando o time', tipo: 'jogo', partes: [['features/screens/onboarding/onboarding-screen.tsx', 'SavingStep']], extra: 2 },
   { rota: 'onboarding · 3 localização', tipo: 'jogo', partes: [['features/screens/onboarding/onboarding-screen.tsx', 'LocationStep']] },
   { rota: 'onboarding · nome (só login social sem nome)', tipo: 'jogo', partes: [['features/screens/onboarding/onboarding-screen.tsx', "cond:step === 'nome'"]] },
   { rota: 'mapa · missão de boas-vindas', tipo: 'jogo', meta: 25, partes: [['features/screens/onboarding/welcome-mission-card.tsx'], ['features/screens/onboarding/welcome-mission.ts']] },

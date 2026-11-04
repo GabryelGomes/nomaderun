@@ -5,8 +5,11 @@
 import type { ChestRarity } from '@/domain/games';
 import { RUNNER_BANDS, RUNNER_TITLES } from '@/domain/progression';
 
+import { readLocal, writeLocal } from './local-store';
+
 export type CosmeticSlot = 'trail' | 'frame' | 'effect' | 'title' | 'emblem';
-export type CosmeticSource = 'bau' | 'trilha' | 'titulo' | 'faixa' | 'ftue' | 'raid';
+/** `time`: liberado na cerimônia de entrada no time (D-91, regra 9 de `F8/01`); fica no aparelho até a E9 ter o par no servidor. */
+export type CosmeticSource = 'bau' | 'trilha' | 'titulo' | 'faixa' | 'ftue' | 'raid' | 'time';
 
 export type CosmeticDef = { id: string; slot: CosmeticSlot; name: string; rarity: ChestRarity; source: CosmeticSource };
 
@@ -32,6 +35,7 @@ export const COSMETICS: readonly CosmeticDef[] = [
   c('moldura-lenda', 'frame', 'Lenda', 'lendario', 'faixa'),
   c('moldura-nomade', 'frame', 'Nômade', 'lendario', 'faixa'),
   c('moldura-primeira-semana', 'frame', 'Primeira Semana', 'raro', 'ftue'),
+  c('moldura-recruta', 'frame', 'Recruta', 'comum', 'time'),
   c('moldura-bairro', 'frame', 'Bairro', 'comum', 'titulo'),
   c('moldura-holofote', 'frame', 'Holofote', 'raro', 'titulo'),
   c('moldura-temporada', 'frame', 'Moldura do mês', 'comum', 'trilha'),
@@ -71,6 +75,8 @@ export function howToEarn(def: CosmeticDef): string {
       return 'Trilha do mês';
     case 'ftue':
       return 'Primeira semana';
+    case 'time':
+      return 'Entrar num time';
     case 'raid':
       return 'Golpe final no chefão';
     case 'titulo': {
@@ -82,4 +88,19 @@ export function howToEarn(def: CosmeticDef): string {
       return band ? (band.minKm === 0 ? 'Desde o início' : `${String(band.minKm).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} km no total`) : 'Por distância';
     }
   }
+}
+
+/** Cosméticos liberados só no aparelho (por ora, a moldura "Recruta" da cerimônia). Chave separada na demonstração. */
+const LOCAL_KEY = 'cosmetics-local';
+
+export async function readLocalCosmetics(): Promise<string[]> {
+  const raw = await readLocal<unknown>(LOCAL_KEY);
+  return Array.isArray(raw) ? raw.filter((x): x is string => typeof x === 'string' && BY_ID.has(x)) : [];
+}
+
+/** Marca um cosmético como ganho neste aparelho (idempotente). */
+export async function unlockLocalCosmetic(id: string): Promise<void> {
+  if (!BY_ID.has(id)) return;
+  const have = await readLocalCosmetics();
+  if (!have.includes(id)) await writeLocal(LOCAL_KEY, [...have, id]);
 }

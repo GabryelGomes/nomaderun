@@ -97,10 +97,12 @@ async function recoveryLink(to, after) {
     const id = (t) => page.locator(`[data-testid="${t}"]`).first();
     const shot = (n) => page.screenshot({ path: path.join(OUT, `${n}.png`) });
 
-    // 1. cadastro (v2: sem cidade) → onboarding → Mapa; a cidade natal mora em Você → Editar perfil (onda 2)
+    // 1. (D-91) cidade → capas → cerimônia (≤ 5 toques, sem digitar) → cadastro → GPS → Mapa; a cidade natal mora em
+    //    Você → Editar perfil (onda 2)
     await page.goto(`${BASE}/`);
-    await signUp(page, user);
+    await signUp(page, user, 'volt');
     await chooseTeam(page, 'volt');
+    ok(true, 'time escolhido antes da conta gravado depois do cadastro (sem escolher de novo)');
     await page.goto(`${BASE}/perfil/editar`);
     await id('perfil-cidade').waitFor({ timeout: 20_000 });
     await id('perfil-cidade').fill('G');

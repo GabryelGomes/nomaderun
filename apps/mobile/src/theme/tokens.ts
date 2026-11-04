@@ -69,15 +69,16 @@ export type ThemeColors = { [K in keyof typeof light]: string };
 /**
  * Cores dos times (D-70): `color` é para preenchimento (selo, região, barra) e `onColor` é o texto sobre ela.
  * Texto na cor do time usa o neon (`neonTeam` em `neon.ts`), que passa 4,5:1 no fundo escuro; `color` não passa.
+ * Lema, bio, mascote e líder moram em `src/domain/team-bio.ts` (D-93: uma fonte de texto por time).
  */
 /** Redundant cue for color-blind runners: every team badge carries its shape. */
 export type TeamShape = 'circulo' | 'triangulo' | 'losango' | 'quadrado';
 
-export const factions: Record<FactionId, { name: string; color: string; tint: string; onColor: string; shape: TeamShape; motto: string }> = {
-  striders: { name: 'Neon Striders', color: '#0072B2', tint: '#E3EEF6', onColor: palette.white, shape: 'circulo', motto: 'Ritmo e precisão' },
-  volt: { name: 'Volt Runners', color: '#009E73', tint: '#E0F2EC', onColor: '#070708', shape: 'triangulo', motto: 'Resistência sem fim' },
-  owls: { name: 'Night Owls', color: '#D7263D', tint: '#FADDE1', onColor: palette.white, shape: 'losango', motto: 'Donos das luzes da cidade' },
-  coyotes: { name: 'Urban Coyotes', color: '#D9B200', tint: '#FBF3D2', onColor: palette.ink, shape: 'quadrado', motto: 'Correm em matilha' },
+export const factions: Record<FactionId, { name: string; color: string; tint: string; onColor: string; shape: TeamShape }> = {
+  striders: { name: 'Neon Striders', color: '#0072B2', tint: '#E3EEF6', onColor: palette.white, shape: 'circulo' },
+  volt: { name: 'Volt Runners', color: '#009E73', tint: '#E0F2EC', onColor: '#070708', shape: 'triangulo' },
+  owls: { name: 'Night Owls', color: '#D7263D', tint: '#FADDE1', onColor: palette.white, shape: 'losango' },
+  coyotes: { name: 'Urban Coyotes', color: '#D9B200', tint: '#FBF3D2', onColor: palette.ink, shape: 'quadrado' },
 };
 
 /** Map fill of a team region: a bit stronger for your own team. */

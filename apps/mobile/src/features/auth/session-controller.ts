@@ -15,6 +15,7 @@ import { useSession } from '@/store/session-store';
 import { useZones } from '@/store/zones-store';
 
 import { useOnboardingFlow } from './onboarding-flow';
+import { clearPendingTeam, usePendingTeam } from './pending-team';
 
 /**
  * Orquestra sessão ↔ perfil ↔ jogo. Telas chamam estas funções; elas chamam os repositórios
@@ -35,6 +36,8 @@ function commitProfile(profile: Profile, fromCache?: { savedAt: number | null })
   const first = useSession.getState().profile?.id !== profile.id;
   useSession.getState().setProfile(profile, fromCache ? fromCache.savedAt : undefined);
   applyToGame(profile, first);
+  // D-91: com o time gravado, a escolha feita antes da conta não serve mais (nem para a próxima pessoa no aparelho).
+  if (profile.faction && usePendingTeam.getState().team) void clearPendingTeam();
   // A cópia salva não é regravada: a hora dela ("há 2 h") continua sendo a da última vez que o servidor respondeu.
   if (!fromCache) void writeCachedProfile(profile);
 }

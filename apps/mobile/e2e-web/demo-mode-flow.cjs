@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
- * E10 (onda 4, F5) — fluxo completo no MODO DEMONSTRAÇÃO (D-77), sem servidor e sem rede:
- * primeira abertura → cadastro → cidade dividida → escolher time → confirmação → localização → Mapa (missão de
- * boas-vindas) → Nova corrida → simulação → segurar para encerrar → Resumo (recompensas) → Compartilhar (card) →
- * Arena → Clube → Você → Ajustes → Missões → Recompensas → `/correr` (link antigo) → rota inexistente (404).
+ * E10 (onda 4, F5) / F8 B1 — fluxo completo no MODO DEMONSTRAÇÃO (D-77), sem servidor e sem rede:
+ * primeira abertura → cidade dividida → escolher time (capas) → cerimônia (≤ 5 toques, zero digitação) → cadastro
+ * ("Garanta seu lugar nos …") → localização → Mapa (missão de boas-vindas) → Nova corrida → simulação → segurar
+ * para encerrar → Resumo (recompensas) → Compartilhar (card) → Arena → Clube → Você → Ajustes → Missões →
+ * Recompensas → `/correr` (link antigo) → rota inexistente (404).
  *
  * Em cada tela confere: o selo "Demonstração" na tela e sem texto por baixo dele, nenhum erro de página e nenhum
  * pedido ao Supabase (o modo demonstração não usa rede).
@@ -17,7 +18,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const { chooseTeam, signUp } = require('./onboarding-steps.cjs');
+const { chooseTeamBeforeAccount, fillSignUp, finishOnboarding, MAX_TAPS_TO_CEREMONY } = require('./onboarding-steps.cjs');
 const { serve } = require('./serve.cjs');
 
 const DIST = path.resolve(process.argv[2] || path.join(os.tmpdir(), 'nomade-demo'));
@@ -100,15 +101,23 @@ function sealOverlap() {
       ok(under !== null && under.length === 0, `${label}: selo "Demonstração" na tela e sem texto por baixo`, under);
     };
 
-    // 1. Primeira abertura e cadastro
+    // 1. Primeira abertura (D-91): valor antes da conta — cidade → times (capas) → cerimônia, em ≤ 5 toques e sem digitar
     await page.goto(`${BASE}/?cenario=primeira-abertura`);
     await screen('tela-boas-vindas', 'primeira abertura (boas-vindas)');
+    ok((await page.locator('[data-testid="boas-vindas-titulo"]').getAttribute('aria-label')) === 'NOMADE RUN', 'boas-vindas com o logo oficial como herói (UX-20)');
     await shot('01-boas-vindas');
-    await signUp(page, { email: 'ana@exemplo.com', password: 'Corre@2026x', username: 'ana_corre' });
+    const taps = await chooseTeamBeforeAccount(page, 'volt');
+    ok(taps <= MAX_TAPS_TO_CEREMONY, `${taps} toques até a cerimônia, sem digitar (meta ≤ ${MAX_TAPS_TO_CEREMONY})`, taps);
+    await screen('tela-cadastro', 'cadastro depois da cerimônia');
+    // o título é revelado palavra a palavra (RevealText): o innerText vem com quebras entre as palavras
+    ok(/Garanta\s+seu\s+lugar\s+nos\s+Volt\s+Runners/.test(await id('tela-cadastro').innerText()), 'cadastro diz "Garanta seu lugar nos Volt Runners"');
+    await shot('02-cadastro');
+    await fillSignUp(page, { email: 'ana@exemplo.com', password: 'Corre@2026x', username: 'ana_corre' });
 
-    // 2. Onboarding: cidade dividida → time (Volt Runners) → confirmação → localização → Mapa
-    await screen('onboarding-cidade', 'onboarding: a cidade dividida');
-    await chooseTeam(page, 'volt');
+    // 2. Depois do cadastro: o time pendente é gravado e o app vai direto ao GPS → Mapa (sem escolher de novo)
+    await id('onboarding-localizacao-permitir').waitFor({ timeout: 30_000 });
+    ok((await page.locator('[data-testid="tela-onboarding-times"]').count()) === 0, 'sem escolher o time de novo depois do cadastro (choose_faction rodou sozinho)');
+    await finishOnboarding(page);
 
     // 3. Mapa com a missão de boas-vindas (sem o card de missão do Mapa por baixo)
     await screen('tela-mapa', 'Mapa');

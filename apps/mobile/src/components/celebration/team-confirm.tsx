@@ -1,5 +1,5 @@
-import { type ReactNode } from 'react';
-import { useWindowDimensions, View } from 'react-native';
+import { type ReactNode, useState } from 'react';
+import { Pressable, useWindowDimensions, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { Mascot } from '@/components/art';
@@ -29,6 +29,15 @@ export type TeamConfirmProps = MomentBaseProps & {
   variant?: 'ftue' | 'switch';
   /** Texto do botão final (padrão "Bora correr"). */
   ctaLabel?: string;
+  /**
+   * Último quadro (D-91): entra depois da frase do líder (ex.: "Seu rastro agora é amarelo" + moldura Recruta).
+   * Recebe `still` (sem coreografia) e o atraso em ms do quadro.
+   */
+  finale?: (ctx: { still: boolean; delay: number }) => ReactNode;
+  /** Texto do último quadro para o leitor de tela. */
+  finaleText?: string;
+  /** Um toque em qualquer lugar fora do botão pula para o estado final (padrão: sim na `ftue`). */
+  skippable?: boolean;
 };
 
 const BASE = 100;
@@ -41,12 +50,14 @@ const BASE = 100;
  * "Reduzir movimento": a cor aparece com fade de 250 ms e o conteúdo com fades curtos, sem aceno.
  */
 export function TeamConfirm(props: TeamConfirmProps) {
-  const { faction, mascot, leader, origin, onContinue, variant = 'ftue', ctaLabel = 'Bora correr', testID } = props;
+  const { faction, mascot, leader, origin, onContinue, variant = 'ftue', ctaLabel = 'Bora correr', testID, finale, finaleText, skippable = variant === 'ftue' } = props;
   const team = factions[faction];
   const glow = neonTeam[faction];
-  const text = `Você agora corre com os ${team.name}. ${leader.name}: ${leader.quote}`;
+  const text = `Você agora corre com os ${team.name}. ${leader.name}: ${leader.quote}${finaleText ? ` ${finaleText}` : ''}`;
   const reduced = useReducedMotionSetting();
-  const { still } = useMoment('team-confirm', 'epic', { ...props, compact: variant === 'switch' }, text, reduced, {
+  // "Pular": um toque fora do botão leva ao estado final (fade curto), como o orquestrador faria com `state: 'done'`.
+  const [skipped, setSkipped] = useState(false);
+  const { still } = useMoment('team-confirm', 'epic', { ...props, state: skipped ? 'done' : props.state, compact: variant === 'switch' }, text, reduced, {
     durationMs: variant === 'switch' ? 1200 : 2000,
     beats: [
       { offsetMs: TEAM_TIMELINE[variant].flood, pattern: 'heavy' },
@@ -77,7 +88,10 @@ export function TeamConfirm(props: TeamConfirmProps) {
         pointerEvents="none"
         style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.32)' }, step(still, { from: { opacity: 0 }, to: { opacity: 1 } }, 400, T.vignette, cssEasings.standard)]}
       />
-      <View accessible accessibilityLiveRegion="polite" accessibilityLabel={text} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[4], paddingHorizontal: space[6] }}>
+      {/* "Pular": um toque em qualquer lugar fora do botão leva ao estado final (o botão, mais fundo, ganha o toque). */}
+      {/* Sem `disabled`: na web ele viraria aria-disabled e "desligaria" o botão de dentro para o Playwright e o leitor. */}
+      <Pressable testID={`${testID}-pular`} accessible={false} focusable={false} role="none" accessibilityLabel="Pular a cerimônia" onPress={skippable && !still ? () => setSkipped(true) : undefined} style={{ flex: 1 }}>
+        <View accessible accessibilityLiveRegion="polite" accessibilityLabel={text} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[4], paddingHorizontal: space[6] }}>
         <View style={{ width: 160, height: 160, alignItems: 'center', justifyContent: 'center' }}>
           {variant === 'ftue' && !still
             ? [0, 160].map((d) => (
@@ -122,7 +136,8 @@ export function TeamConfirm(props: TeamConfirmProps) {
           {words.map((w, i) => (
             <View key={`${w}${i}`} style={{ overflow: 'hidden' }}>
               <Animated.View style={step(still, rise(40), durations.reveal * 0.75, T.name + i * 70, cssEasings.reveal)}>
-                <Text variant="headline" color={team.onColor} style={{ textShadowColor: glow, textShadowRadius: 16 }}>
+                {/* UX-18: sem brilho atrás do nome (na web virava uma faixa escura que parecia seleção) */}
+                <Text variant="headline" color={team.onColor}>
                   {w.toUpperCase()}
                 </Text>
               </Animated.View>
@@ -137,7 +152,8 @@ export function TeamConfirm(props: TeamConfirmProps) {
             {leader.name}
           </Text>
         </Animated.View>
-        <Animated.View style={step(still, rise(12), 400, T.cta)}>
+        {finale ? finale({ still, delay: T.finale }) : null}
+        <Animated.View style={step(still, rise(12), 400, finale ? T.ctaFinale : T.cta)}>
           <PressableScale
             testID={`${testID}-continuar`}
             accessibilityLabel={ctaLabel}
@@ -149,7 +165,8 @@ export function TeamConfirm(props: TeamConfirmProps) {
             </Text>
           </PressableScale>
         </Animated.View>
-      </View>
+        </View>
+      </Pressable>
       {variant === 'ftue' && !still ? <Confetti count={24} colors={['#FFFFFF', glow, team.tint]} width={width} height={height} origin={{ x: width / 2, y: height * 0.38 }} delay={T.waves} seed={13} /> : null}
     </View>
   );

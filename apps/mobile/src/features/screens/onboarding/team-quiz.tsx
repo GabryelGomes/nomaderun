@@ -33,7 +33,7 @@ export function TeamQuiz({ onPick, onClose, testID = 'onboarding-quiz' }: TeamQu
       <FadeUp testID={`${testID}-resultado`} style={{ gap: space[4], alignItems: 'center' }}>
         <Mascot team={result} pose="vitoria" size={120} />
         <Text variant="headline" accessibilityRole="header" style={{ textAlign: 'center' }}>
-          Sugerimos os {team.name}
+          Combina com você: {team.name}
         </Text>
         <Text muted style={{ textAlign: 'center' }}>
           A escolha é sua.
