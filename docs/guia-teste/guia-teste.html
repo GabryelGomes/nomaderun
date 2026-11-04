@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <title>NOMADE RUN — Como testar o app</title>
 <style>
-  @page { size: A4; margin: 18mm 18mm 18mm 18mm; }
+  @page { size: A4; margin: 15mm 16mm 15mm 16mm; }
   * { box-sizing: border-box; }
-  body { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1b1b1f; margin: 0; }
-  header { background: #070708; color: #fff; padding: 14pt 16pt; border-radius: 8pt; margin-bottom: 14pt; }
+  body { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 10pt; line-height: 1.4; color: #1b1b1f; margin: 0; }
+  header { background: #070708; color: #fff; padding: 12pt 16pt; border-radius: 8pt; margin-bottom: 10pt; }
   header h1 { margin: 0; font-size: 20pt; letter-spacing: .5pt; }
   header h1 span { color: #FF6A13; }
   header p { margin: 4pt 0 0; color: #c9c9d1; font-size: 10pt; }
-  h2 { font-size: 13pt; margin: 12pt 0 5pt; padding-bottom: 3pt; border-bottom: 2pt solid #FF6A13; }
+  h2 { font-size: 13pt; margin: 10pt 0 5pt; padding-bottom: 3pt; border-bottom: 2pt solid #FF6A13; }
   h3 { font-size: 11pt; margin: 10pt 0 4pt; }
   .tag { display: inline-block; font-size: 8.5pt; font-weight: bold; padding: 1pt 6pt; border-radius: 8pt; vertical-align: middle; margin-left: 6pt; }
   .easy { background: #e3f6e8; color: #17692f; }
@@ -48,7 +48,7 @@
 
 <table>
   <tr><th style="width:30%">Forma</th><th>Para quem</th><th style="width:30%">Precisa de</th></tr>
-  <tr><td><b>A. Expo Go</b> (recomendada)</td><td>Quem só quer usar o app no celular</td><td>Celular Android ou iPhone e o link/QR do app</td></tr>
+  <tr><td><b>A. Expo Go</b> (recomendada)</td><td>Quem só quer usar o app no celular</td><td>Celular Android ou iPhone e o link ou QR do app</td></tr>
   <tr><td><b>B. Código-fonte (zip)</b></td><td>Quem vai executar o projeto no próprio computador</td><td>PC com Node.js 22+, Expo Go no celular e a chave pública do backend (passo a passo na página 2)</td></tr>
 </table>
 
@@ -61,19 +61,20 @@
       <li><b>iPhone:</b> escaneie com a câmera do celular e toque em “Abrir no Expo Go”.</li>
     </ul>
   </li>
-  <li>Na primeira vez o app demora alguns segundos para baixar. Depois, abre direto pela lista de projetos do Expo Go.</li>
+  <li>Na primeira vez o app demora alguns segundos para baixar. Depois, abre direto pela lista de projetos do Expo Go. Funciona em qualquer rede e <b>sem computador ligado</b>.</li>
+  <li>Quando sair uma versão nova, ela chega sozinha: feche o app e abra de novo (às vezes, duas vezes).</li>
 </ol>
-<div class="box">Funciona em qualquer rede e <b>sem computador ligado</b>: app e servidor ficam na nuvem.</div>
 
 <h2>Primeiros passos no app</h2>
 <ol>
-  <li><b>Crie sua conta</b> em “Criar conta” com e-mail e senha (é preciso ter 16 anos ou mais e aceitar a política de privacidade).</li>
-  <li><b>Escolha seu time.</b> São 4 times, cada um com cor, mascote e jeito de correr. Na dúvida, toque em <b>“Não sei escolher”</b> e responda o quiz.</li>
+  <li><b>Toque em “Começar”.</b> Aparecem a cidade dividida e as <b>capas dos 4 times</b> (mascote, lema e jeito de correr). Na dúvida, <b>“Não sei escolher”</b>: o quiz sugere, você decide.</li>
+  <li><b>Escolha seu time</b> e toque em <b>“Entrar para os …”</b>. Na cerimônia, seu rastro ganha a cor do time e você ganha a moldura <b>Recruta</b>. Toque em <b>Continuar</b>. Até aqui, nada de digitar.</li>
+  <li><b>Crie sua conta</b> (“Garanta seu lugar nos …”): e-mail, senha, nome de usuário e data de nascimento (16 anos ou mais) e o aceite dos termos e da privacidade. O time escolhido é gravado sozinho.</li>
   <li><b>Permita a localização</b> quando o app pedir: é ela que mede a distância e pinta as ruas por onde você passa.</li>
-  <li>Toque na aba <b>Correr</b> e em <b>Começar</b>. Para terminar, <b>segure o botão de encerrar</b>. O Resumo mostra XP, ruas pintadas e recompensas, e gera um <b>card para os Stories</b>.</li>
-  <li>Explore as abas <b>Mapa</b> (território de cada time), <b>Arena</b> (chefão da semana, liga e missões), <b>Correr</b>, <b>Clube</b> (sua crew, feed com “Bora!” e ranking) e <b>Você</b> (perfil, corridas e ajustes).</li>
+  <li>No <b>Mapa</b>, toque no botão laranja <b>CORRER</b> (ou na missão de boas-vindas) e em <b>Começar</b>. Para terminar, <b>segure o botão de encerrar</b>. O Resumo mostra as ruas pintadas, o XP e as recompensas e gera um <b>card para os Stories</b>.</li>
+  <li>Explore as <b>4 abas</b>: <b>Mapa</b> (território e o CORRER), <b>Arena</b> (chefão, Liga, missões com “Ir” e “Como jogar”), <b>Clube</b> (crew, feed com “Bora!” e ranking) e <b>Você</b> (perfil, medalhas e <b>Ajustes</b>: Conta, Segurança na corrida, Privacidade e Lembretes).</li>
 </ol>
-<div class="box warn"><b>Atenção:</b> o selo <b>“Demonstração”</b> marca dados fictícios. Pintura das ruas, chefão, liga e feed aparecem quando o servidor novo estiver no ar; para ver tudo já, use o <b>modo demonstração</b> (página 2, passo 5).</div>
+<div class="box warn"><b>Atenção:</b> o selo <b>“Demonstração”</b> marca dados fictícios. Pintura, chefão, liga e feed aparecem quando o servidor novo estiver no ar; para ver tudo já, use o <b>modo demonstração</b> (passo 5 do modo B), que também tem a <b>Simulação</b> de corrida. Já tem conta? Use <b>“Já tenho conta”</b>: você vai direto ao Mapa.</div>
 
 <div class="pagebreak"></div>
 <h2>B. Executando o projeto pelo zip, passo a passo <span class="tag dev">no seu computador</span></h2>

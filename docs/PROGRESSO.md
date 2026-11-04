@@ -5,13 +5,14 @@
 
 ## Estado atual (resumo)
 
-- **Fase:** **7 — Reformulação v2: ondas 1 a 4 integradas e documentação fechada (F6)** (`docs/melhoria/PLANO-MESTRE.md`). Falta só o que depende dos autores: deploy do backend v2 e das flags, push final e prévia web. Slides da v2 prontos (P-41). Fases 0–6 concluídas (MVP + visual neon).
-- **Requisitos (61):** 39 ✅ · 17 🟡 · 3 ⬜ · 2 ➖. Nenhum P0 sem fazer (P0: 18 ✅, 7 🟡). Detalhes em `REQUISITOS.md` (o resumo antigo, 32/22, tinha um erro de soma).
-- **Testes (2026-10-28, branch `claude/affectionate-gauss-e8gm77`, banco local sem Docker):** app Jest **1.423 ✅** (26 de integração pulados sem `NOMADE_IT`) · `typecheck` ok · eslint 0 · pgTAP **846/846** em 30 arquivos · Deno **88 ok, 1 ignorado** · `demo-mode-flow` **21/21** (0 pedidos ao servidor) · 165 capturas "depois" sem erro de página · bundle web **1.186.919 B gzip** (orçamento 1.250.000). Não rodados aqui (precisam do Supabase local com Docker): `demo-flow`, `auth-flow`, e2e, segurança HTTP (`run.sh`, `run-v2.sh`).
-- **Como rodar e apresentar:** `README.md` (modo demonstração, instalação e testes), `docs/COMO_APRESENTAR.md` (roteiro da v2 em 10 min, cenários `?cenario=`, banca, plano B), `apps/mobile/README.md`, `supabase/DEPLOY.md` §10 (deploy da v2).
-- **O que falta para a equipe humana:** A-1 (senhas das contas demo no Cloud), deploy do backend v2 e flags (`DEPLOY.md` §10), nomes dos mascotes e líderes (D-70), validar em aparelho (P-05, P-07, P-17, P-21, P-28, P-45 e os itens da v2), `npx expo install --fix` (P-37), revisão do ERS (P-02 → `ERS-ALTERACOES-PROPOSTAS.md`, agora v1.1 + v1.2).
-- **Backend local:** API `http://127.0.0.1:54321` · chaves com `npx supabase status -o env` · e-mails em `http://127.0.0.1:54324` (`npm run mail`). Banco resetado no fim da Fase 5 (estado do seed).
-- **Bloqueios:** nenhum no código. Dependem de fora: aparelho físico, conta no Supabase Cloud, credenciais Google/Apple.
+- **Fase:** **8 — Finalização 100%: concluída (2026-11-04).** Ondas A (fundação), B (experiência), C (movimento, social e publicação) e D (QA adversarial e revisão até zerar) integradas na branch `claude/affectionate-gauss-e8gm77`. Os 10 critérios de "100%" de `docs/melhoria/01-PROMPT-FINALIZACAO-100.md` §5 estão verdes. Decisões D-89 a D-99. Fases 0–7 concluídas.
+- **O app agora:** 4 abas (Mapa · Arena · Clube · Você) e um CORRER só, no Mapa (D-89); emblema com a cabeça do mascote em todo lugar (D-90); primeira abertura antes da conta: boas-vindas com os 4 mascotes → cidade dividida → capas dos times → cerimônia "Seu rastro" → cadastro (D-91); uma curva de nível (D-92); estados honestos, nunca "0" falso (D-95); missões com "Ir", "Como jogar" e eco da crew; Ajustes em 4 telas; OTA, limite de chamadas e pacote legal (D-99).
+- **Requisitos (61):** 39 ✅ · 17 🟡 · 3 ⬜ · 2 ➖ (a Fase 8 não mudou status; atualizou 15 linhas). Nenhum P0 sem fazer (P0: 18 ✅, 7 🟡). Detalhes em `REQUISITOS.md`.
+- **Números finais (2026-11-04, branch `claude/affectionate-gauss-e8gm77`):** app Jest **1.672 ✅** (26 de integração pulados sem `NOMADE_IT`) · `typecheck` ok · eslint 0 · pgTAP **964/964** em 34 arquivos · Deno **108 ok, 1 ignorado** · `demo-mode-flow` **62/62** · teste de 5 s **96%** (meta 85%) · régua: **0 telas de jogo acima da meta** (30 telas, média 30 palavras) · primeira abertura: **4 toques e zero digitação** até a cerimônia · bundle web **1.238.936 B gzip** (orçamento 1.250.000) · revisão de segurança: **0 Alto**, Médios corrigidos · 30 migrations. Não rodados aqui (precisam do Supabase local com Docker): `demo-flow`, `auth-flow`, e2e, segurança HTTP (`run.sh`, `run-v2.sh`).
+- **Como rodar e apresentar:** `README.md` (demo, real e testes), `apps/mobile/README.md`, `docs/COMO_APRESENTAR.md` (roteiro em 10 min com a ordem nova), `docs/guia-teste/` (guia de teste em HTML e PDF, gerado por `gerar-pdf.cjs`), `docs/apresentacao/` (slides), `supabase/DEPLOY.md` §10–§12 (deploy e publicação).
+- **O que fica com os autores** (tabela abaixo): push da branch `sdk-58-expo-go` (vira D-100), `eas init` + UUID no `app.json` + APK novo, confirmar `br.com.nomaderun.app` e os contatos da Política (`legal-contacts.ts`), deploy do servidor (`DEPLOY.md` §10–§12), A-1, SMTP, testes em aparelho, nomes dos mascotes (D-70), ECA Digital com o orientador, build com push (D-97), revisão do ERS (P-02).
+- **Backend local:** API `http://127.0.0.1:54321` · chaves com `npx supabase status -o env` · e-mails em `http://127.0.0.1:54324` (`npm run mail`).
+- **Bloqueios:** nenhum no código. Dependem de fora: aparelho físico, conta no Supabase Cloud e no EAS, credenciais Google/Apple, decisões dos autores.
 
 ## Pendências abertas
 
@@ -19,7 +20,7 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 | # | Pendência | Depende de | Dono | Origem |
 |---|---|---|---|---|
-| P-02 | O ERS v1.0 não bate com o que foi construído (visual, mapas, painel web) nem com as regras da v2 (pintura, Raid semanal, Liga, sequência, feed da crew, telemetria, máscara das zonas de privacidade). **Proposta pronta** em `docs/ERS-ALTERACOES-PROPOSTAS.md` (Parte 1: v1.1; Parte 2: v1.2); falta os autores editarem `docs/ERS/ERS-NOMADE-RUN.md` e regerarem o PDF/DOCX | 🧑 | Autores | Baseline, Fase 7 |
+| P-02 | O ERS v1.0 não bate com o que foi construído (visual, mapas, painel web) nem com as regras da v2 (pintura, Raid semanal, Liga, sequência, feed da crew, telemetria, máscara das zonas de privacidade) e da Fase 8 (4 abas, time antes da conta, D-89 a D-99). **Proposta pronta** em `docs/ERS-ALTERACOES-PROPOSTAS.md` (Parte 1: v1.1; Parte 2: v1.2); falta os autores editarem `docs/ERS/ERS-NOMADE-RUN.md` e regerarem o PDF/DOCX | 🧑 | Autores | Baseline, Fase 7 |
 | P-05 | Validar em aparelho: seletor de foto, notificação local de invasão com o app aberto, SecureStore em partes, deep link `nomaderun://nova-senha?code=…` e diálogo "Trocar de conta?", permissão de notificações no Expo Go Android, compartilhamento do JSON exportado | 📱 | Equipe/A5 | T1.4–T1.6 |
 | P-06 | Login Google/Apple só com credenciais reais (código pronto, aparece com `EXPO_PUBLIC_AUTH_PROVIDERS`) | 🔑 ☁️ | Equipe | T1.5 |
 | P-07 | Fluxos Maestro feitos (`apps/mobile/.maestro/`), falta **rodar em aparelho**. Testes de tela com React Native Testing Library não feitos | 📱 | Equipe/A5 | T1.5 |
@@ -32,9 +33,19 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 | P-28 | Validar a Caça com GPS real (baús do servidor perto da última corrida, abrem no resumo oficial). Comentário de `listMyChestOpens` em `activities-repo.ts` desatualizado | 📱 💻 | A5/A4 | Fase 3 |
 | P-37 | QA-15: `npm audit` com avisos em ferramentas de build do SDK 57 (`npx expo install --fix` antes da entrega; bloqueado neste ambiente). A parte QA-14 (`apps/mobile/coverage/` no git) já foi resolvida pela coordenação | 🧑 | Equipe | T4.2 |
 | P-38 | QA-10 (risco aceito): o HMAC não prova que o cliente é o app oficial. Pós-MVP: Play Integrity/App Attest | 💻 | Pós-MVP | T4.2 |
-| P-43 | **Novo (A5, T6.5):** ajustes Baixa de layout — QA-20 alerta do mapa corta "pontos em dobro" (A8); QA-21 mais de 4 tamanhos de fonte em 21 de 28 telas (A7 com os donos); QA-23 "2 não lidas" quebra em 360 (A3); QA-24 nome "(você)" cortado no ranking em 360 (A8); QA-25 links do cadastro com 20 pt (A3) | 💻 | A3/A7/A8 | T6.5 |
-| P-44 | **Novo (A5, T6.5):** QA-22 — botões laranja, aba ativa e card "Sob ataque" com texto branco a 3,12:1 (marca aprovada, D-15). Decidir: rótulo ≥ 19 pt negrito, texto escuro sobre laranja ou `orangeText` no card | 🧑 | Autores + A7 | T6.5 |
-| P-45 | **Novo (A5, T6.5):** checklist do aparelho da Fase 6 (`QA.md` §14.7: folha 0,55/0,9, teclado, barra fixa acima das abas nativas, 60 fps, vibração, VoiceOver/TalkBack, reduzir movimento do sistema, tela bloqueada, área segura) | 📱 | Equipe/A5 | T6.5 |
+| P-43 | Ajustes Baixa de layout da Fase 6 (QA-20 a QA-25). A QA da Fase 8 (201 capturas em 360/390/430, fonte ×1,3) não achou corte real de texto; falta conferir de novo QA-21 (mais de 4 tamanhos de fonte por tela) e QA-25 (links de 20 pt no cadastro) | 💻 | E6/E4 | T6.5, F8-D |
+| P-45 | Checklist do aparelho (`QA.md` §14.7) **+ Fase 8:** fps da capa e da cerimônia num Android médio, vibração por time (o "1 longo" dos Owls), ícone da aba e splash no Android, TalkBack/VoiceOver, fonte grande ("32,4" e "Chefão da semana" com ×1,3) | 📱 | Equipe | T6.5, F8-C1, F8-D |
+| P-46 | Fazer push da branch `sdk-58-expo-go` (outro chat) e integrar; vira a D-100 | 🧑 | Autores | F8 |
+| P-47 | `eas init` logado na conta dos autores, colar o UUID em `app.json` (`extra.eas.projectId`), 1º `publicar` e abrir o link do Expo Go; gerar APK novo. A trava `scripts/check-publicacao.js` recusa enquanto houver marcador (`DEPLOY.md` §12) | 🔑 🧑 | Autores | F8-C3, D-99 |
+| P-48 | Confirmar o identificador `br.com.nomaderun.app` (Android e iOS) antes da 1ª loja | 🧑 | Autores | F8-C3 |
+| P-49 | Confirmar controladores, encarregado, e-mail e região da Política (`features/auth/legal-contacts.ts`, Supabase → Settings → General). Se mudar algo, subir `PRIVACY_VERSION` e `PRIVACY_UPDATED_AT` | 🧑 | Autores | F8-D (M3) |
+| P-50 | Deploy do servidor: `supabase db push` (30 migrations), `functions deploy` (9 functions), flags e Vercel (`DEPLOY.md` §10–§12) | ☁️ | Autores | F7, F8 |
+| P-51 | A-1: trocar as senhas públicas das contas demo no Cloud | ☁️ | Autores | F7 |
+| P-52 | SMTP próprio no Supabase Cloud (o padrão tem limite baixo de e-mails) | ☁️ 🔑 | Autores | F8-C3 |
+| P-53 | Nomes dos mascotes e líderes (D-70); Lume apresentada como onça; lema dos Owls com 4 palavras | 🧑 | Autores | D-70, F8-B1 |
+| P-54 | ECA Digital: idade mínima (16+ × 18+) e o baú do dia conferidos com o orientador (`MIN_AGE` não mudou) | 🧑 | Autores + orientador | F8-C3 (S6) |
+| P-55 | Build de desenvolvimento com push remoto (EAS) para os avisos com o app fechado (D-97) | 🔑 📱 | Autores | D-97 |
+| P-56 | Opcionais do servidor: `dailyChests.bonusStored` no `finish-activity`; mais marcos em `landmarks`; cache de `faction_activity` com sessão se virar alvo | 💻 | E9 | F8-C2, F8-D |
 
 ## Pendências fechadas
 
@@ -63,6 +74,7 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 | P-35 | QA-11: pgTAP independente do estado do banco | A2 |
 | P-36 | QA-12/13: "Reduzir movimento", 44 pt, faixa amarela, testIDs (D-52) | A3 |
 | P-39 | App acompanhou o contrato da D-50 (D-53) | A3 |
+| P-44 | QA-22: texto escuro sobre o laranja, 7,02:1 (D-75); na Fase 8 o botão desativado ganhou tokens próprios (7,07:1) | E6 (F7, F8-D) |
 | P-41 | Apresentação refeita para a v2 (12 slides, capturas reais no modo demonstração); entregas com os números reais (1.419 Jest, pgTAP 832 em 29 arquivos, Deno 87, fluxo demo 21/21, 87 decisões); PDF e página web regerados | Coordenação (F6) |
 
 ## Modelo de entrada
@@ -78,6 +90,26 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 ```
 
 ## Log
+
+### 2026-11-04 — Fase 8: fechamento (Coordenador)
+
+- **Feito (o que entrou, por onda):**
+  - **A1 (E4):** `TeamEmblem` com a cabeça do mascote substitui o selo geométrico em todo lugar (D-90); medalhas e ícone do Raid redesenhados.
+  - **A2 (E9 + E3):** uma curva de nível só, com paridade SQL (D-92); `faction_activity()` e selo "Precisa de reforço" (D-96); marcos "primeiro trecho" e "recorde"; `crew_echo()`.
+  - **A3 (E6):** 4 abas e CORRER só no Mapa (D-89); 404 e `+html` em português; estados honestos e `OfflineNotice` único (D-95); Resumo enxuto.
+  - **B1 (E6 + E4):** primeira abertura antes da conta, com capas dos times, cerimônia "Seu rastro" e cadastro depois (D-91); `team-bio.ts` como fonte única (D-93); 4 toques e zero digitação.
+  - **B2 (E7):** missão inicial ligada ao estado real, "Quando você corre de novo?" (D-94), missões com "Ir", "Como jogar" em 6 cartões, medalhas tocáveis, líder comentando o feito.
+  - **B3 (E6 + E8):** Arena com "Correr contra o Soneca" e folha da Liga; Ajustes em 4 telas; Clube com "Corridas · Ranking"; Atividades e Compartilhar revistos; zonas sem número.
+  - **C1 (E5):** animações da capa, da cerimônia, do "Primeiro trecho!", do bairro antes/depois e do golpe do chefão, todas com "Reduzir movimento" e ≥ 55 fps a 4× de CPU (D-98).
+  - **C2 (E9 + E8 + E7):** eco da crew no feed, lema e emblema no card do Stories, moldura Recruta no servidor, referência das zonas ("perto do Estádio") e texto único dos avisos de invasão.
+  - **C3 (E10 + E9):** OTA com `expo-updates`, `br.com.nomaderun.app`, limite de chamadas nas 9 Edge Functions, `/excluir-conta` e Política com controlador e encarregado (D-99).
+  - **D (E10 + revisor + correções E6, E7, E9, E10):** QA adversarial (201 capturas, 5 s, adversarial, 15 "nunca") e revisão de lógica e segurança até 0 Alto e 0 Médio aberto; os 10 critérios de "100%" verdes.
+  - **Fechamento:** `PROGRESSO.md`, `REQUISITOS.md` (contagem conferida linha a linha: 39/17/3/2, sem mudança de status), `DECISOES_TECNICAS.md` (D-90, D-92, D-96 e D-97 registradas; D-91 com a validade de 24 h do time pendente), `COMO_APRESENTAR.md`, `README.md`, `apps/mobile/README.md`, guia de teste (HTML + PDF), slides (PDF + web) com as capturas da Fase 8 (04 primeira abertura com boas-vindas, capa e cerimônia; 05 corrida e Resumo novos; 06 Mapa com CORRER e 4 abas; 07 Arena e folha da Liga com emblemas; 08 card, eco da crew e recap; 10 roteiro; 11 números finais; emblemas recortados de `F8-A1/depois-emblemas@3x.png`), `PLANO-MESTRE.md` e `PLANO_DESENVOLVIMENTO.md` (T8.x ✅). Removido `docs/apresentacao/web/teste-local.html` (prévia local com caminhos `file://` de uma máquina, sem uso).
+- **Arquivos:** `docs/PROGRESSO.md`, `docs/REQUISITOS.md`, `docs/DECISOES_TECNICAS.md`, `docs/COMO_APRESENTAR.md`, `README.md`, `apps/mobile/README.md`, `docs/guia-teste/*`, `docs/apresentacao/*`, `docs/melhoria/PLANO-MESTRE.md`, `docs/PLANO_DESENVOLVIMENTO.md`. Nenhum código do app.
+- **Conferido visualmente:** os 12 slides renderizados em PNG (sem texto cortado nem sobreposição; selo "Demonstração" em toda captura; sem "TCC", IA ou ferramentas nos slides) e as 4 páginas do guia de teste em PNG.
+- **Testes (números finais da fase, rodados pelas equipes na onda D):** Jest **1.672 ✅** (26 pulados) · pgTAP **964/964** (34 arquivos) · Deno **108 ok, 1 ignorado** · `demo-mode-flow` **62/62** · 5 s **96%** · régua 0 acima da meta (30 telas, média 30 palavras) · bundle **1.238.936 B gzip** · revisão 0 Alto · 10/10 critérios.
+- **Pendências do dono (P-45 a P-55):** push da branch `sdk-58-expo-go` (vira D-100); `eas init` + UUID no `app.json` + APK novo; confirmar `br.com.nomaderun.app`; confirmar controladores, encarregado e região na Política (`legal-contacts.ts`); deploy do servidor (`supabase/DEPLOY.md` §10–§12: 30 migrations, functions, flags); A-1 (senhas demo); SMTP; testar em aparelho (fps da capa e da cerimônia, vibração por time, ícone da aba e splash no Android, leitores de tela, fonte grande "32,4" e "Chefão da semana"); nomes dos mascotes (D-70) e Lume como onça; ECA Digital e idade mínima com o orientador; build com push (D-97).
+- **Para o próximo:** push e pull request para a `main` ficam com a coordenação/dono; a D-100 nasce com a branch do SDK 58.
 
 ### 2026-11-04 — Fase 8 · Onda D — correções de publicação (E10: M3, M4, B2, Baixos da QA)
 

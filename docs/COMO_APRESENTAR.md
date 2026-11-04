@@ -1,8 +1,8 @@
 # Como apresentar o NOMADE RUN
 
-Guia para a banca: o que preparar, o roteiro da demonstração da v2 em cerca de 10 minutos, o que dizer sobre arquitetura e segurança, as perguntas prováveis e o que fazer quando algo falhar.
+Guia para a banca: o que preparar, o roteiro da demonstração (v2 com a finalização da Fase 8) em cerca de 10 minutos, o que dizer sobre arquitetura e segurança, as perguntas prováveis e o que fazer quando algo falhar.
 
-Instalação e comandos: [`README.md`](../README.md). Publicação na nuvem: [`supabase/DEPLOY.md`](../supabase/DEPLOY.md) §10.
+Instalação e comandos: [`README.md`](../README.md). Publicação na nuvem: [`supabase/DEPLOY.md`](../supabase/DEPLOY.md) §10–§12. Para quem vai testar sem a equipe: [`guia-teste/`](guia-teste/) (HTML e PDF "NOMADE RUN - Como testar o app").
 
 ---
 
@@ -22,7 +22,7 @@ O `--clear` é obrigatório sempre que ligar ou desligar o `EXPO_PUBLIC_DEMO`: s
 
 | Cenário | O que abre |
 |---|---|
-| `primeira-abertura` | Sem conta: Boas-vindas → cadastro → escolha do time. **Use no roteiro** |
+| `primeira-abertura` | Sem conta: Boas-vindas → cidade dividida → capas dos times → cerimônia → cadastro → Mapa. **Use no roteiro** |
 | `sem-time` | Conta criada, sem time: começa na escolha do time |
 | `cheio` (padrão) | Corredor com histórico, crew, feed e notificações |
 | `vazio` | Conta nova com time: telas nos estados vazios ilustrados |
@@ -46,18 +46,18 @@ O cenário é lido quando a página carrega. Para trocar, mude a URL e recarregu
 - [ ] `EXPO_PUBLIC_DEMO=1 npx expo start --web --clear` abre a tela de Boas-vindas com o selo "Demonstração".
 - [ ] Ensaio completo do roteiro da seção 3, do cadastro ao Você, sem erro.
 - [ ] Uma segunda aba em `?cenario=cheio`, para mostrar telas com dados se o tempo apertar.
-- [ ] Teste automático do mesmo fluxo (opcional, confirma que o pacote está bom): `EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear --output-dir /tmp/nomade-demo` e `NODE_PATH="$(npm root -g)" node e2e-web/demo-mode-flow.cjs /tmp/nomade-demo` → 21/21.
+- [ ] Teste automático do mesmo fluxo (opcional, confirma que o pacote está bom): `EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear --output-dir /tmp/nomade-demo` e `NODE_PATH="$(npm root -g)" node e2e-web/demo-mode-flow.cjs /tmp/nomade-demo` → 62/62 (inclui a contagem de toques da primeira abertura e o "Entrar" sem onboarding).
 
 **Servidor (só se for usar a opção C)**
 - [ ] Local: `npm run db:start` e `npm run functions:serve` sem erro; `npx supabase db reset` com antecedência e ~15 s de espera antes de abrir o app (o tempo real demora a começar logo depois do reset).
-- [ ] Nuvem: deploy conferido (`DEPLOY.md` §10), limite de login em 30, senhas demo trocadas.
+- [ ] Nuvem: deploy conferido (`DEPLOY.md` §10–§12: 30 migrations, functions e flags), limite de login em 30, senhas demo trocadas.
 - [ ] Navegador com `moderador.demo@nomaderun.app` pronto para o painel de moderação.
 
 **Aparelhos e sala**
 - [ ] Espelhamento do celular no projetor testado (opção B).
 - [ ] Bateria acima de 80%, carregadores na mochila, brilho no máximo, "Não perturbe" ligado.
 - [ ] Vídeo de reserva (2 min) do roteiro gravado no notebook.
-- [ ] Capturas de reserva abertas numa pasta: `docs/melhoria/capturas/depois/` (165 telas em 3 larguras).
+- [ ] Capturas de reserva abertas numa pasta: `docs/melhoria/capturas/depois/` (201 capturas: 67 telas e estados em 3 larguras).
 - [ ] Slides com os números da seção 5.
 
 ---
@@ -70,10 +70,10 @@ Opção A, com `?cenario=primeira-abertura`. Entre parênteses, os requisitos do
 |---|---|---|---|---|
 | 1 | 1:30 | **Primeira abertura, antes da conta (D-91):** Boas-vindas (os 4 mascotes correndo) → **Começar** → "A cidade está dividida" (passa sozinha em até 6 s; **Escolher meu time** a partir de 2 s) → as 4 capas dos times; toque em **Não sei escolher** para mostrar o quiz (ele sugere, você decide) → toque num card → **Entrar para os …** → cerimônia "Seu rastro agora é desta cor" com a moldura **Recruta** → **Continuar**. São 4 toques e nenhuma digitação até a cerimônia | "A pessoa vê o jogo e escolhe o time antes de digitar qualquer coisa. Cada time tem mascote, líder e uma forma própria, para quem é daltônico. Dá para trocar 1 vez por temporada." | RF-003, RNF-013 |
 | 2 | 1:00 | **Cadastro:** "Garanta seu lugar nos …" com o emblema do time. Preencha e-mail, senha, usuário e nascimento; 1 aceite (termos e privacidade) → explicação da localização antes do pedido → Mapa. O time escolhido é gravado sozinho depois do cadastro | "O cadastro vem depois do valor, como no Duolingo. Menor de 16 anos é recusado no app e no banco. O app explica para que usa a localização antes de pedir. Quem já tem conta toca em **Já tenho conta** e vai direto ao Mapa, sem passar por nada disso." | RF-001, RNF-013 |
-| 3 | 1:00 | **Mapa:** zonas da cidade como regiões suavizadas, faixa de hoje (missão, baú, chefão) e a missão de boas-vindas | "A regra do território é uma frase: corra pelas ruas para pintá-las com a cor do seu time; a zona fica com o time que pintou mais ruas nela. O mapa nunca mostra a grade de hexágonos." | RF-007, RF-021 |
-| 4 | 1:30 | **Correr:** toque na missão de boas-vindas → **Simulação** → **Começar**. Mostre o tempo, a distância, o ritmo, a pintura prevista e o **SOS** sempre visível. Depois de ~20 s, segure **Segure para encerrar** | "Na conta real o padrão é o GPS; a simulação só existe na demonstração. Encerrar pede 600 ms pressionado, para não terminar com o celular no bolso." | RF-004, RF-024, RNF-010, RNF-015 |
-| 5 | 1:00 | **Resumo:** "Zona conquistada", métricas, bloco de recompensas (XP, missão, baú, sequência) | "Na conta real, esse resultado vem do servidor, que recalcula a corrida inteira. As recompensas são só XP e cosméticos: nada é vendido." | RF-006, RF-008, RF-016 |
-| 6 | 1:00 | **Compartilhar:** troque o modelo do card, mostre a versão sem rota e baixe a imagem | "O começo e o fim da rota são cortados e as zonas de privacidade somem, com uma folga sorteada. Assim, ninguém descobre onde você mora pelo card." | RF-017, RN-010 |
+| 3 | 1:00 | **Mapa:** zonas da cidade como regiões suavizadas, o botão **CORRER** (o único "começar corrida"), o chip **Missões 1/3** e a missão de boas-vindas. Mostre as 4 abas: Mapa · Arena · Clube · Você | "A regra do território é uma frase: corra pelas ruas para pintá-las com a cor do seu time; a zona fica com o time que pintou mais ruas nela. O mapa nunca mostra a grade de hexágonos. Correr fica num lugar só, aqui embaixo, na zona do polegar." | RF-007, RF-021 |
+| 4 | 1:30 | **Correr:** toque na missão de boas-vindas (ou no **CORRER**) → **Simulação** → **Começar**. Mostre o tempo, a distância, o ritmo, a pintura prevista e o **SOS** sempre visível. Depois de ~20 s, segure **Segure para encerrar** | "Na conta real o padrão é o GPS; a simulação só existe na demonstração. Encerrar pede 600 ms pressionado, para não terminar com o celular no bolso." | RF-004, RF-024, RNF-010, RNF-015 |
+| 5 | 1:00 | **Resumo:** um herói ("Primeiro trecho!" ou "Zona conquistada"), 4 números, um bloco de recompensas (XP, missão, baú, sequência) e "Quando você corre de novo?" com 3 horários | "Na conta real, esse resultado vem do servidor, que recalcula a corrida inteira. As recompensas são só XP e cosméticos: nada é vendido. A pergunta do fim vira um lembrete local no horário escolhido, dentro do limite de 1 por dia." | RF-006, RF-008, RF-016 |
+| 6 | 1:00 | **Compartilhar:** o card abre no momento mais forte da corrida, com o emblema e o lema do time; troque o modelo, mostre a versão sem rota e baixe a imagem | "O começo e o fim da rota são cortados e as zonas de privacidade somem, com uma folga sorteada. Assim, ninguém descobre onde você mora pelo card." | RF-017, RN-010 |
 | 7 | 1:00 | **Arena:** na 1ª visita, **Como jogar** abre sozinho (6 cartões); feche. Chefão da semana com a barra de vida, a "Sua parte" e **Correr contra**; toque na **Liga** para abrir a folha (grupo, quem sobe, prazo); missões de hoje e os modos (Fuga, Caça) | "Toda semana um chefão invade a cidade: cada quilômetro tira 10 de vida. A chance de crítico está à vista. Correr fica num lugar só: o CORRER do Mapa, mais os atalhos com contexto, como este." | RF-021, RF-026, RF-027 |
 | 8 | 0:40 | **Clube:** crew, km da semana, seletor **Corridas · Ranking**, eco da crew ("… reforçou 2 trechos que você pintou"), feed com **Bora!** e o pódio | "O feed é só da crew, com reações prontas e sem comentários, para não precisar de moderação de texto." | RF-011, RF-014, RF-015 |
 | 9 | 1:00 | **Você:** cartão do jogador com a moldura **Recruta**, medalhas (toque numa para ver o critério e o progresso), carimbos do Atlas, **Ajustes** em 4 telas (Conta · Segurança na corrida · Privacidade · Lembretes; "Sair" só em Conta, com confirmação) → **Missões** ("Ir" abre a corrida) → **Recompensas** (baú do dia com as chances) | "A sequência é semanal e tem pausa de saúde: descansar não é punido. Os lembretes têm limite de 1 por dia e nunca culpam. A telemetria vem desligada e só liga se a pessoa quiser." | RF-016, RF-019, RN-014, RNF-013 |
@@ -94,7 +94,7 @@ Frase de transição: "Vou abrir o app como alguém que nunca usou: escolher um 
 >
 > Toda tabela tem Row Level Security. As zonas de privacidade são escondidas por uma máscara deslocada e sorteada uma vez, para ninguém achar o centro tirando a média do buraco. O modo demonstração não faz nenhum pedido ao servidor, e um teste garante isso.
 >
-> Testamos em camadas: 1.423 testes no app, 846 no banco, 88 nas functions, o fluxo inteiro da demonstração no navegador e uma revisão adversarial da lógica, com todos os achados altos e médios corrigidos."
+> Testamos em camadas: 1.672 testes no app, 964 no banco, 108 nas functions, o fluxo inteiro da demonstração no navegador (62 verificações) e duas revisões adversariais da lógica e da segurança, com todos os achados altos e médios corrigidos."
 
 ---
 
@@ -103,15 +103,18 @@ Frase de transição: "Vou abrir o app como alguém que nunca usou: escolher um 
 | Item | Valor |
 |---|---|
 | Requisitos do ERS | 61: 39 ✅ · 17 🟡 · 3 ⬜ · 2 fora do MVP; nenhum P0 sem fazer (`docs/REQUISITOS.md`) |
-| Testes do app (Jest) | 1.423 passando (26 de integração rodam só com o backend); regras do jogo com cobertura mínima de 90% na CI |
-| Banco (pgTAP) | 846 testes em 30 arquivos |
-| Edge Functions (Deno) | 88 testes (1 ignorado) |
-| Fluxo completo da demonstração (Playwright) | 21/21 verificações, 0 pedidos ao servidor |
-| Capturas da v2 | 165 (55 telas e estados × 3 larguras), 0 texto com contraste abaixo de AA |
-| Texto por tela de jogo | média de 82 → 37 palavras |
-| Teste de 5 segundos | 4,3 de 5 (86%; meta 80%) |
+| Testes do app (Jest) | 1.672 passando (26 de integração rodam só com o backend); regras do jogo com cobertura mínima de 90% na CI |
+| Banco (pgTAP) | 964/964 em 34 arquivos |
+| Edge Functions (Deno) | 108 ok (1 ignorado) |
+| Fluxo completo da demonstração (Playwright) | 62/62 verificações, 0 pedidos ao servidor |
+| Primeira abertura | 4 toques e zero digitação até a cerimônia do time (meta ≤ 5) |
+| Texto por tela de jogo | 30 telas, média de 30 palavras (era 82 antes da v2); 0 acima da meta |
+| Teste de 5 segundos | 96% (meta 85%) |
+| Animações da capa e da cerimônia | ≥ 55 fps com a CPU 4× mais lenta |
 | Simulação do território v2 | novato que conquista na 1ª corrida: 13% → 62%; zonas "eternas": 38% → 11% |
-| Tamanho do app web | 1.186.919 B gzip (orçamento da CI: 1.250.000) |
+| Tamanho do app web | 1.238.936 B gzip (orçamento da CI: 1.250.000) |
+| Decisões técnicas registradas | 98, de D-01 a D-99 (a D-49 não foi usada) |
+| Revisão de segurança da Fase 8 | 0 Alto; os Médios corrigidos; 10/10 critérios de "100%" |
 | Troca de dono em tempo real | 0,2 a 0,7 s (local; o ERS pede ≤ 3 s) |
 
 ---
@@ -121,15 +124,18 @@ Frase de transição: "Vou abrir o app como alguém que nunca usou: escolher um 
 | Pergunta | Resposta curta |
 |---|---|
 | Por que mudaram a regra do território? | Na regra antiga, quem chegou primeiro ficava com a zona para sempre e o novato quase nunca conquistava. Com a pintura, o novato que conquista na 1ª corrida passa de 13% para 62% na simulação. A troca acontece na virada de temporada. |
-| Isso é caixa de recompensa (loot box)? | Não. O baú do dia é grátis, só dá XP e cosméticos, mostra as chances e garante um lendário se ele demorar a sair. Não existe loja nem nada pago. |
+| Por que o time vem antes da conta? | Porque a pessoa decide ficar quando vê valor. Antes, eram 9 ou 10 toques e 2 ou 3 campos até a cerimônia; agora são 4 toques e nenhum campo. O time fica guardado no aparelho e é gravado no servidor logo depois do cadastro. Ninguém entra no app sem conta: a guarda de rotas não mudou, e quem toca em "Entrar" não passa pelo onboarding. |
+| Por que 4 abas e não 5? | Correr estava em 3 lugares (aba, botão do Mapa e uma tela intermediária). Agora há um CORRER só, no Mapa, na zona do polegar, mais os atalhos com contexto (defender uma zona, chefão, missões). Menos abas, cada uma com um papel: Mapa, Arena, Clube e Você. |
+| Isso é caixa de recompensa (loot box)? E o ECA Digital? | Não. O baú do dia é grátis, só dá XP e cosméticos, mostra as chances e garante um lendário se ele demorar a sair. Não existe loja, moeda nem nada pago, que é o que a Lei 15.211/2025 (ECA Digital) proíbe para menores. O app exige 16 anos no cadastro; se a idade mínima sobe para 18 e se o baú precisa de mais algum cuidado, ficou para conferirmos com o orientador. |
 | A sequência não vicia ou pune quem descansa? | A sequência é semanal (2 atividades, caminhar vale), tem congelamento automático 1 vez por mês e pausa de saúde de até 4 semanas. Os lembretes têm limite de 1 por dia, nunca no dia em que a pessoa já correu, e nenhum texto de culpa (há teste que proíbe). |
 | Como evitam trapaça? | O servidor descarta trechos acima de 40 km/h, saltos e localização simulada, confere passos × velocidade, limita o dano do chefão a 30 km por dia e manda corridas suspeitas para a moderação. Tudo é recalculado no servidor. |
 | E a privacidade do card e do feed? | A rota perde o começo, o fim e as zonas de privacidade, com folga sorteada a cada geração. No servidor, as zonas são escondidas por uma máscara deslocada. Não há horário em lugar nenhum. |
-| E a telemetria? LGPD? | Opcional e desligada por padrão. Só 5 eventos com o dia, sem localização nem horário, apagados em 30 dias. Desligar apaga tudo na hora. Exportar e excluir a conta incluem tudo da v2. |
+| E a telemetria? LGPD? | Opt-in: vem desligada e só liga se a pessoa marcar. Lista fechada de eventos, só com o dia, sem localização nem horário, apagados em 30 dias. Desligar apaga tudo na hora. Exportar e excluir a conta incluem tudo; há uma página pública `/excluir-conta` e a política diz quem é o controlador e o encarregado. |
+| Como funciona a máscara das zonas de privacidade? | Para quem vê de fora, os pontos dentro da zona de privacidade somem. Mas um buraco redondo e centrado entrega o endereço pela média. Por isso o servidor usa uma máscara deslocada em relação à casa e sorteada uma única vez, sempre a mesma para aquela zona: repetir a consulta não revela o centro. O card ainda corta o começo e o fim da rota. |
 | Os dados da demonstração são reais? | Não. É um mundo de exemplo dentro do app, marcado com o selo "Demonstração" em toda tela e no card. Na conta real, Raid, Liga e encontros mostram dado real ou um estado vazio, nunca número inventado. |
 | A v2 está no ar? | O app e o servidor da v2 estão prontos e testados. No Supabase Cloud, as partes novas ligam por chave, uma por vez, na ordem do `DEPLOY.md`; o território novo liga na troca de temporada. |
 | Por que o Raid é semanal, se o ERS diz 48 h? | Uma semana dá tempo para a cidade inteira participar e cabe na rotina de quem corre 2 ou 3 vezes. A mudança está proposta na revisão do ERS (`ERS-ALTERACOES-PROPOSTAS.md`). |
-| Grava com a tela bloqueada? Tem push? | Só em *development build*. O Expo Go não permite GPS em segundo plano nem push remoto no Android; os avisos chegam pela central e como notificação local. |
+| Grava com a tela bloqueada? Tem push? | Só em *development build*. O Expo Go não permite GPS em segundo plano nem push remoto no Android; os avisos chegam pela central e como notificação local com o app aberto. É uma limitação declarada (D-97): com um build de desenvolvimento com push, o canal liga sem mudar o resto. |
 | Tem integração contínua? | Sim. A cada push, o GitHub roda tipos, lint, testes do app, cobertura das regras, contraste, tamanho do app web, testes das functions e do banco. |
 | Os testes rodam no celular? | Os fluxos Maestro estão escritos e os IDs conferidos automaticamente, mas não rodaram em aparelho. No navegador, o fluxo inteiro roda com Playwright. |
 | Aguenta 5.000 corredores? Quanto gasta de bateria? | Não medimos. A ingestão foi projetada para isso, mas o teste de carga e a medição de bateria em aparelho ficaram fora do MVP. |

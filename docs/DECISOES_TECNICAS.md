@@ -570,6 +570,12 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
   - `tabBarClearance` revisto: sem o círculo elevado da web, os 16 pt acima da barra (Android e web) e a barra flutuante do iOS continuam valendo.
 - **Consequências:** testes de abas (`tab-bar-clearance.test.ts`), `e2e-web/demo-mode-flow.cjs` (4 abas, `/correr`, 404) e o Maestro (`06-abas-mapa-voce.yaml`) atualizados.
 
+### D-90 — `TeamEmblem` substitui o selo geométrico em todo lugar
+2026-10-30 · Coordenador da Fase 8 (`docs/melhoria/01-PROMPT-FINALIZACAO-100.md` §2); implementação E4 (frente A1, `docs/melhoria/relatorios/F8-A1.md`)
+- **Contexto:** o selo antigo (forma geométrica com a cor sólida do time) não dizia qual era o time sem legenda e não conversava com os mascotes (`F8/02`).
+- **Decisão:** `TeamEmblem` (`components/art/team/emblem.tsx` + `emblem-art.ts`): cabeça do mascote dentro da forma do time, variantes `mini`/`medio`/`grande`/`auto`, `mono` e neutro, cor **neon** (`neonTeam`); a cor sólida dos tokens fica só para as regiões do mapa e texto em fundo claro. `TeamBadge` virou alias de `<TeamEmblem variant="auto" />` (os 27 usos de uma vez). Piso de 18 pt; cabeça line-art só ≥ 96 pt; busto só ≥ 120 pt. `TeamEmblemInSvg` leva o emblema ao card do Stories.
+- **Consequências:** critério 1 de "100%" (nenhum selo antigo fora do mapa) conferido na QA da onda D. `TeamShapeGlyph` continua só como legenda do gráfico da cidade dividida.
+
 ### D-91 — Valor antes da conta: a primeira abertura começa pela escolha do time
 2026-10-30 · Coordenador da Fase 8 (`docs/melhoria/01-PROMPT-FINALIZACAO-100.md` §2); implementação E6 + E4 (frente B1, `docs/melhoria/relatorios/F8-B1.md`)
 - **Contexto:** a pessoa digitava e-mail, senha, nome e nascimento antes de ver qualquer valor: 9–10 toques e 2–3 campos até a cerimônia do time (`F8/01` §1). O Duolingo e o Pokémon GO dão valor (e identidade) antes da conta. A D-72 pedia o cadastro primeiro.
@@ -579,7 +585,14 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
   - "Já tenho conta"/"Entrar" não passa por nada disso. A guarda de rotas (`route-guard.ts`) não mudou de regra: sem sessão só o grupo `auth`; com sessão e time, `app`; conta nova, `onboarding`.
   - A moldura "Recruta" (`moldura-recruta`, fonte `time`) é liberada na cerimônia e fica no aparelho (`cosmetics.ts`: `unlockLocalCosmetic`/`readLocalCosmetics`) até a E9 ter o par no servidor; Recompensas soma os locais aos do servidor.
   - Meta medida: **4 toques e zero digitação** até a cerimônia (Começar · Escolher meu time · card · Entrar para os …); `demo-mode-flow.cjs` falha acima de 5.
-- **Consequências:** `onboarding-steps.cjs` (`chooseTeamBeforeAccount`, `fillSignUp`, `finishOnboarding`), `demo-mode-flow`, `demo-flow`, `auth-flow`, `capturas.cjs` (rotas `cidade` e `times`) e o Maestro `01-cadastro-onboarding.yaml` seguem a ordem nova. Substitui a ordem da D-72 no que conflitar. `COMO_APRESENTAR.md` §3 precisa do roteiro novo (fechamento).
+- **Consequências:** `onboarding-steps.cjs` (`chooseTeamBeforeAccount`, `fillSignUp`, `finishOnboarding`), `demo-mode-flow`, `demo-flow`, `auth-flow`, `capturas.cjs` (rotas `cidade` e `times`) e o Maestro `01-cadastro-onboarding.yaml` seguem a ordem nova. Substitui a ordem da D-72 no que conflitar. `COMO_APRESENTAR.md` §3 com o roteiro novo (fechamento da Fase 8).
+- **Ajuste pós-revisão (F8-D, E6, M1/B3/B4):** o time pendente vira `{ team, at, origin }` e vale 24 h; é apagado ao abrir Entrar (menos com `origin = 'cadastro'`, a mesma pessoa voltando do e-mail de confirmação) e ao abrir o cadastro sem vir dos times. Se `choose_faction` responde ok e a releitura falha, o time é aplicado no perfil local (o SQL garante que é o gravado). A tela de times trava 2 toques rápidos. Risco aceito: outra pessoa que entre no mesmo aparelho nesse intervalo, numa conta sem time, herda a escolha (`docs/melhoria/relatorios/F8-D-fix-e6.md`).
+
+### D-92 — Uma curva de XP e nível só
+2026-10-30 · Coordenador da Fase 8 (§2); implementação E9 + E3 (frente A2, `docs/melhoria/relatorios/F8-A2.md`)
+- **Contexto:** o app tinha duas curvas (`levelFromXp` em `games.ts` e `levelProgress` em `progression.ts`) e o nível do Resumo podia não bater com o do Você e com o que o servidor credita no `xp_ledger`.
+- **Decisão:** `levelProgress` (`src/domain`) é a única curva, igual a `private.level_progress` no banco; `levelFromXp`/`xpForLevel` saíram. Resumo, Você, Recompensas e card usam ela.
+- **Consequências:** paridade com o SQL em 50 valores (pgTAP 31 e Deno lendo a mesma tabela). Código de outra worktree que importe `levelFromXp` troca por `levelProgress`.
 
 ### D-93 — Uma fonte de texto por time (`src/domain/team-bio.ts`)
 2026-10-30 · Coordenador da Fase 8 (§2); implementação E6 + E4 (frente B1)
@@ -607,6 +620,18 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
   - **"Sair" só em Ajustes → Conta e privacidade**, sempre com o diálogo "Sair da conta?" (`features/auth/sign-out-dialog.tsx`).
   - **Formatos únicos** (`features/format`): "+1.130 XP", "+81 pontos", "Nível 5", "Faltam 17 h 30 min" na tela e "até 02h30" só nos avisos, "há 2 h", "—".
 - **Consequências:** a cópia do perfil ganhou o campo `savedAt` (cópias antigas continuam sendo lidas, sem hora). Os textos de aviso do servidor ("Corra lá nas próximas 24h") ainda são da E9 (pendência no relatório F8-A3).
+
+### D-96 — Selo "Precisa de reforço" e `faction_activity()`
+2026-10-30 · Coordenador da Fase 8 (§2); implementação E9 + E3 (frente A2) e E7 (frente B2); leitura anônima na C2
+- **Contexto:** a escolha do time não dava motivo para equilibrar os times, e "A cidade está dividida" precisava de números antes da conta.
+- **Decisão:** RPC `faction_activity()` devolve só contagens (ativos por time nos últimos 7 dias: conta ativa, com time, ≥ 1 corrida aceita), os 4 times sempre presentes e `isDemo`; aceita `anon` (C2). A regra pura `factionNeedingBoost` marca o time com menos ativos; o `TeamBoostBadge` aparece na escolha do time e em "Meu time". Só cosmético. Conta real nunca vê número de demonstração (e vice-versa); na demo, com selo.
+- **Consequências:** sem dado pessoal na resposta (conferido na revisão de segurança da onda D). Se o volume crescer, cachear por 10 min (`F8-A2.md`).
+
+### D-97 — Push remoto fica como limitação declarada
+2026-10-30 · Coordenador da Fase 8 (§2)
+- **Contexto:** o app é distribuído pelo Expo Go, que não recebe push remoto do projeto. Os avisos de invasão e do chefão só chegam com o app aberto (D-69).
+- **Decisão:** manter os avisos locais e o Realtime com o app aberto, e declarar a limitação na apresentação. Se os autores gerarem um build de desenvolvimento com push (EAS) antes da banca, a E7 liga o canal sem mudar o resto.
+- **Consequências:** pendência do dono (build com push). O aviso "plano da próxima corrida" (D-94) é local e não depende disso.
 
 ### D-98 — Animações da Fase 8 (onda C, C1): onde cada uma mora e o que fica de fora
 2026-11-04 · E5 (frente C1, `docs/melhoria/relatorios/F8-C1.md`)

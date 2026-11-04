@@ -10,20 +10,20 @@ App de corrida de rua com GPS e disputa de território entre quatro times. A reg
 
 ## O que o app faz
 
-O app tem cinco abas: **Mapa · Arena · Correr · Clube · Você**.
+O app tem quatro abas: **Mapa · Arena · Clube · Você**. Correr fica num lugar só: o botão **CORRER** do Mapa (mais os atalhos com contexto, como defender uma zona ou o "Ir" das missões).
 
-- **Primeira abertura:** cadastro com e-mail e senha (16 anos ou mais, termos e privacidade aceitos em separado), "a cidade está dividida", escolha do time (com mascote, líder e um quiz para quem não sabe escolher) e a explicação da localização antes do pedido.
+- **Primeira abertura, antes da conta:** boas-vindas com os 4 mascotes, "a cidade está dividida", as capas dos times (mascote, lema, líder e um quiz que sugere) e a cerimônia "Seu rastro agora é desta cor", em 4 toques e sem digitar; depois o cadastro (16 anos ou mais) e a explicação da localização antes do pedido. Quem já tem conta entra direto.
 - **Corrida:** GPS a cada 1 s com pausa automática, pedômetro, guia por voz, SOS sempre visível e a pintura prevista ao vivo. Sem internet, a corrida fica no aparelho e é enviada quando a conexão volta.
 - **Servidor como juiz:** o servidor confere a assinatura de cada lote de pontos, roda o antifraude, recalcula a corrida e decide quem fica com cada zona. O app só mostra estimativas.
 - **Território:** zonas desenhadas como regiões suavizadas, troca de dono em tempo real, alerta de invasão e central de notificações.
 - **Arena:** Raid semanal (um chefão com barra de vida coletiva), Liga semanal em grupos de até 30, Fuga (fantasma) e Caça (baús no mapa).
-- **Progresso sem pressão:** níveis com títulos, missões diárias e semanais, primeira semana guiada, baú do dia com as chances à vista, medalhas e uma sequência semanal com congelamento e pausa de saúde. Nada é vendido.
-- **Social:** crews com convite por link, feed da crew com reações prontas (Bora!, fogo, raio) e cards da corrida e da semana para Stories, sem o começo e o fim da rota.
-- **Privacidade e LGPD:** até 3 zonas de privacidade, exportar os dados, excluir a conta e telemetria opcional, desligada por padrão.
+- **Progresso sem pressão:** níveis com títulos, missões diárias e semanais com o botão "Ir", "Como jogar" em 6 cartões, primeira semana guiada, baú do dia com as chances à vista, medalhas e uma sequência semanal com congelamento e pausa de saúde. Nada é vendido.
+- **Social:** crews com convite por link, feed da crew com reações prontas (Bora!, fogo, raio) e o eco da crew ("… reforçou 2 trechos que você pintou"), e cards da corrida e da semana para Stories, sem o começo e o fim da rota.
+- **Privacidade e LGPD:** até 3 zonas de privacidade, exportar os dados, excluir a conta (também explicado na página pública `/excluir-conta`), telemetria opcional, desligada por padrão, e Ajustes em 4 telas (Conta · Segurança na corrida · Privacidade · Lembretes).
 - **Moderação:** painel web dentro do próprio app, em que moderadores revisam corridas suspeitas; administradores inativam contas.
 - **Modo demonstração:** o app inteiro roda com dados de exemplo, sem servidor, marcado com o selo "Demonstração" em toda tela.
 
-As partes novas do servidor (pintura, Raid, Liga, missões, feed, telemetria) ligam por chaves que começam desligadas, uma por vez ([`supabase/DEPLOY.md`](supabase/DEPLOY.md) §10). O que não entrou e o motivo estão em [`docs/REQUISITOS.md`](docs/REQUISITOS.md).
+As partes novas do servidor (pintura, Raid, Liga, missões, feed, telemetria) ligam por chaves que começam desligadas, uma por vez ([`supabase/DEPLOY.md`](supabase/DEPLOY.md) §10–§12). O que não entrou e o motivo estão em [`docs/REQUISITOS.md`](docs/REQUISITOS.md).
 
 ## Tecnologias
 
@@ -69,7 +69,7 @@ npm install
 EXPO_PUBLIC_DEMO=1 npx expo start --web --clear
 ```
 
-Abra `http://localhost:8081/?cenario=primeira-abertura` para começar do cadastro, ou `?cenario=cheio` para um corredor com histórico. Os outros cenários (`vazio`, `sem-time`, `sob-ataque`, `moderador`, `lento`, `erro`, `offline`) estão em [`docs/COMO_APRESENTAR.md`](docs/COMO_APRESENTAR.md) §1. No celular, troque `--web` por nada e leia o QR com o Expo Go.
+Abra `http://localhost:8081/?cenario=primeira-abertura` para começar da primeira abertura (time, cerimônia e cadastro), ou `?cenario=cheio` para um corredor com histórico. Os outros cenários (`vazio`, `sem-time`, `sob-ataque`, `moderador`, `lento`, `erro`, `offline`) estão em [`docs/COMO_APRESENTAR.md`](docs/COMO_APRESENTAR.md) §1. No celular, troque `--web` por nada e leia o QR com o Expo Go.
 
 O `--clear` é obrigatório ao ligar ou desligar o `EXPO_PUBLIC_DEMO`. Num app ligado a um servidor, o botão **Ver demonstração** da tela Entrar abre o mesmo modo.
 
@@ -199,7 +199,15 @@ As telas da v2 que dependem do servidor (pintura, Raid, Liga, missões, feed) fi
 | Outros testes no navegador (Playwright) | `apps/mobile` | ver [`apps/mobile/e2e-web/README.md`](apps/mobile/e2e-web/README.md) | Depende do teste |
 | Celular (Maestro) | `apps/mobile` | ver [`apps/mobile/.maestro/README.md`](apps/mobile/.maestro/README.md) | Sim, e um aparelho |
 
+Números da última rodada (Fase 8): Jest 1.672 ✅ (26 de integração pulados), pgTAP 964/964 em 34 arquivos, Deno 108 ok (1 ignorado), `demo-mode-flow` 62/62, bundle web 1.238.936 B gzip (orçamento 1.250.000).
+
 A CI do GitHub (`.github/workflows/ci.yml`) roda tipos, lint, Jest, cobertura, contraste, o export web com o limite de tamanho, Deno e pgTAP a cada push. Os testes de banco e de ponta a ponta gravam dados: antes de uma apresentação, rode `npx supabase db reset`.
+
+---
+
+## Publicação
+
+O passo a passo está em [`supabase/DEPLOY.md`](supabase/DEPLOY.md): §10 (servidor da v2: migrations, functions e flags), §11 (versão web na Vercel) e **§12 (publicação: atualização pelo ar com `expo-updates`, Expo Go, identificador `br.com.nomaderun.app`, limite de chamadas e pacote legal)**. Antes do primeiro `publicar`, os autores rodam `eas init` e colam o UUID no `app.json`; a trava `scripts/check-publicacao.js` recusa enquanto houver marcador.
 
 ---
 
@@ -210,20 +218,21 @@ A CI do GitHub (`.github/workflows/ci.yml`) roda tipos, lint, Jest, cobertura, c
 | [`docs/COMO_APRESENTAR.md`](docs/COMO_APRESENTAR.md) | Checklist, roteiro da demo, perguntas da banca e plano B |
 | [`docs/REQUISITOS.md`](docs/REQUISITOS.md) | Status de cada requisito do ERS e onde foi testado |
 | [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) | Componentes, camadas, banco e fluxo de segurança |
-| [`docs/DECISOES_TECNICAS.md`](docs/DECISOES_TECNICAS.md) | Decisões D-01 a D-87 com justificativa |
+| [`docs/DECISOES_TECNICAS.md`](docs/DECISOES_TECNICAS.md) | Decisões D-01 a D-99 com justificativa |
 | [`docs/API_CONTRATO.md`](docs/API_CONTRATO.md) | Contrato das Edge Functions e erros |
 | [`docs/QA.md`](docs/QA.md) | Revisão de segurança, matriz de rastreabilidade e como rodar cada suíte |
 | [`docs/PROGRESSO.md`](docs/PROGRESSO.md) | Log do desenvolvimento e pendências |
 | [`docs/PLANO_DESENVOLVIMENTO.md`](docs/PLANO_DESENVOLVIMENTO.md) | Fases, tarefas e próximos passos |
 | [`docs/ERS-ALTERACOES-PROPOSTAS.md`](docs/ERS-ALTERACOES-PROPOSTAS.md) | O que mudar no ERS (v1.1 e v1.2) para ele bater com o que foi construído |
 | [`docs/melhoria/PLANO-MESTRE.md`](docs/melhoria/PLANO-MESTRE.md) | Reformulação v2: o que mudou, decisões e ondas; relatórios em `docs/melhoria/relatorios/` |
-| [`supabase/DEPLOY.md`](supabase/DEPLOY.md) | Publicar o backend no Supabase Cloud |
+| [`supabase/DEPLOY.md`](supabase/DEPLOY.md) | Publicar o backend no Supabase Cloud e o app (§10–§12) |
+| [`docs/guia-teste/`](docs/guia-teste/) | Guia de teste para colegas e professores (HTML e PDF) |
 | [`apps/mobile/README.md`](apps/mobile/README.md) | Detalhes do app: variáveis, GPS em segundo plano, testes |
 | [`docs/GUIA-DO-DESENVOLVEDOR.md`](docs/GUIA-DO-DESENVOLVEDOR.md) | Git, onde está cada coisa e como editar a apresentação |
 
 ---
 
-## Documentos do TCC
+## Documentos do projeto
 
 ### Para entregar
 
@@ -237,15 +246,15 @@ A CI do GitHub (`.github/workflows/ci.yml`) roda tipos, lint, Jest, cobertura, c
 
 | Caminho | O que é |
 |---|---|
-| `docs/apresentacao/web/NOMADE RUN Apresentação.html` | Apresentação completa numa página (10 slides + mockup interativo), abre no navegador |
-| `docs/apresentacao/NOMADE RUN - Apresentação.pdf` | Os 10 slides em PDF |
+| `docs/apresentacao/web/NOMADE RUN Apresentação.html` | Apresentação completa numa página (12 slides com as telas reais), abre no navegador |
+| `docs/apresentacao/NOMADE RUN - Apresentação.pdf` | Os 12 slides em PDF |
 | `docs/apresentacao/mockup/` | Mockup interativo e imagens dos celulares |
-| `docs/apresentacao/telas/` | Capturas usadas nos slides |
+| `docs/apresentacao/telas-v2/` | Capturas reais usadas nos slides (modo demonstração) |
 | `docs/apresentacao/slides/` | Fonte dos slides |
 | `docs/apresentacao/DESIGN-SYSTEM.md` | Cores, fontes e regras dos slides |
 | `docs/06-PROMPT-APRESENTACAO.md` e `docs/07-PROMPT-COPIA-E-COLA.md` | Prompts que geraram a apresentação (o roteiro atualizado da demo está em `docs/COMO_APRESENTAR.md`) |
 
-Os slides e o mockup foram feitos antes do backend: o slide de "o que falta" ainda diz "protótipo sem servidor" e "60 testes". Atualize esses números antes de apresentar (veja `docs/COMO_APRESENTAR.md`).
+Os slides têm as telas e os números da Fase 8 (como regerar: `docs/apresentacao/README.md`).
 
 ### Produto e pesquisa
 
