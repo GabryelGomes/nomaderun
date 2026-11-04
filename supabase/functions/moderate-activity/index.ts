@@ -3,9 +3,11 @@ import { loadActivity, scoreAndApply } from '../_shared/finish.ts';
 import { handler, HttpError, json, readJson } from '../_shared/http.ts';
 import { requireUser, rpc, select } from '../_shared/supabase.ts';
 import { parseModerate } from '../_shared/validate.ts';
+import { enforceRateLimit } from '../_shared/rate-limit.ts';
 
 Deno.serve(handler(['POST'], async (req) => {
   const user = await requireUser(req);
+  await enforceRateLimit(user.id, 'geral');
   const [me] = await select<{ role: string; status: string }>('profiles', `select=role,status&id=eq.${user.id}`);
   if (!me || !['moderator', 'admin'].includes(me.role) || me.status !== 'active') {
     throw new HttpError(403, 'FORBIDDEN', 'Apenas moderadores podem decidir sobre corridas.');

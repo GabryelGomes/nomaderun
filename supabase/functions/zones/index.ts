@@ -3,6 +3,7 @@ import { handler, json } from '../_shared/http.ts';
 import { zoneLabel } from '../_shared/scoring.ts';
 import { requireUser, rpc } from '../_shared/supabase.ts';
 import { parseBbox } from '../_shared/validate.ts';
+import { enforceRateLimit } from '../_shared/rate-limit.ts';
 
 type Row = {
   id: string;
@@ -17,7 +18,8 @@ type Row = {
 };
 
 Deno.serve(handler(['GET'], async (req) => {
-  await requireUser(req);
+  const user = await requireUser(req);
+  await enforceRateLimit(user.id, 'geral');
   const bbox = parseBbox(new URL(req.url).searchParams.get('bbox'));
   // QA-04: um único JSON com até 2.000 zonas (a RPC em linhas sofreria o max_rows do PostgREST)
   const rows = await rpc<Row[]>('zones_in_bbox_json', {

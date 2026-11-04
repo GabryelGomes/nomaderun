@@ -146,6 +146,8 @@ export default function RootLayout() {
           <Stack.Screen name="compartilhar/convite/[codigo]" options={{ presentation: 'modal', ...modal }} />
           <Stack.Screen name="termos" options={{ presentation: 'modal', ...modal }} />
           <Stack.Screen name="privacidade" options={{ presentation: 'modal', ...modal }} />
+          {/* D-99: página pública de exclusão de conta (Google Play), aberta com ou sem sessão. */}
+          <Stack.Screen name="excluir-conta" options={{ presentation: 'modal', ...modal }} />
         </Stack>
         <LinkConfirmDialog />
         {/* D-77: dado de demonstração sempre identificado; o selo fica fixo por cima de tudo. */}
