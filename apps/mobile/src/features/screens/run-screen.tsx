@@ -220,13 +220,14 @@ export function RunScreen() {
               {(
                 [
                   ['gps', 'GPS real', 'Use na rua'],
-                  ['simulacao', 'Simulação (demonstração)', 'Volta no parque em 10×'],
+                  // F8 onda D: a 360 px, "Simulação (demonstração)" quebrava com o ")" sozinho na 2ª linha.
+                  ['simulacao', 'Simulação', 'Demonstração: volta no parque em 10×'],
                 ] as const
               ).map(([key, title, body]) => (
                 <PressableScale
                   key={key}
                   testID={`corrida-sinal-${key}`}
-                  accessibilityLabel={title}
+                  accessibilityLabel={`${title}, ${body}`}
                   accessibilityRole="radio"
                   accessibilityState={{ checked: source === key }}
                   hitSlop={0}

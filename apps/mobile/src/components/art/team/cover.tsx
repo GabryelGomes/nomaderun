@@ -207,8 +207,9 @@ export function TeamCover({ team, width = 390, variant = 'card', animated = fals
         </View>
       ) : null}
       {!textless && variant === 'card' ? (
+        // F8 onda D: em 1 linha, a 1ª frase da bio saía cortada nas 3 larguras ("A onça que corre no comp…").
         <Text
-          numberOfLines={1}
+          numberOfLines={2}
           style={{ position: 'absolute', right: COVER_TEXT.inset.right * k, bottom: COVER_TEXT.inset.bottom * k, left: 120 * k, fontFamily: fonts.text, fontSize: COVER_TEXT.bioSize, lineHeight: COVER_TEXT.bioLineHeight, color: ART.ink, opacity: COVER_TEXT.bioOpacity, textAlign: 'right' }}>
           {bio.mascot} · {bio.bio[0]}
         </Text>

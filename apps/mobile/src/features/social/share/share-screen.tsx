@@ -50,10 +50,19 @@ function StickerBackdrop({ size, children }: { size: number; children: React.Rea
   );
 }
 
+/** F8 onda D: `/compartilhar/%25zz` chega como "%zz" e o `decodeURIComponent` lançava `URIError` (página em branco). */
+function safeDecode(v: string): string {
+  try {
+    return decodeURIComponent(v);
+  } catch {
+    return v;
+  }
+}
+
 export function ShareScreen() {
   const { colors } = useTheme();
   const { id: rawId, momentos } = useLocalSearchParams<{ id: string; momentos?: string }>();
-  const id = rawId ? decodeURIComponent(rawId) : undefined;
+  const id = rawId ? safeDecode(rawId) : undefined;
   const record = useRunRecord(id);
   const faction = useGame((s) => s.faction) ?? 'striders';
   const xp = useGame((s) => s.xp);

@@ -8,7 +8,13 @@ const TYPES = { '.html': 'text/html', '.js': 'application/javascript', '.mjs': '
 function serve(root, port) {
   const base = path.resolve(root);
   const server = http.createServer((req, res) => {
-    const p = decodeURIComponent(req.url.split('?')[0]);
+    // Endereço malformado (ex.: "%E0%A4%A", dos testes adversariais) não derruba o servidor: cai no index.html.
+    let p = '/';
+    try {
+      p = decodeURIComponent(req.url.split('?')[0]);
+    } catch {
+      p = '/index.html';
+    }
     for (const c of [p, `${p}.html`, path.join(p, 'index.html'), '/index.html']) {
       const f = path.join(base, c);
       if (f.startsWith(base) && fs.existsSync(f) && fs.statSync(f).isFile()) {

@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Share, View } from 'react-native';
+import { Share, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
@@ -56,20 +56,35 @@ const CHIP_ICON: Partial<Record<CelebrationEvent['kind'], IconName>> = { 'zone-c
  */
 function ConquestChips({ events, headline }: { events: readonly CelebrationEvent[]; headline?: string }) {
   const { colors } = useTheme();
-  const shown = events.filter((e) => e.kind !== 'xp' && !(e.kind === 'zone-captured' && headline !== undefined && e.payload.zone === headline));
+  // Chip nunca mais largo que a tela (com fonte grande, o nome da zona passava da borda): o Stagger embrulha cada
+  // chip, então o limite é em pontos, não em %.
+  const maxChip = useWindowDimensions().width - space[4] * 2;
+  const kept = events.filter((e) => e.kind !== 'xp' && !(e.kind === 'zone-captured' && headline !== undefined && e.payload.zone === headline));
+  // F8 onda D: zonas sem número (UX-29) podem ter o mesmo nome ("Jardim Goiás · perto do Shopping" 2×): 1 chip com a
+  // contagem, em vez de 2 chips iguais.
+  const text = (e: CelebrationEvent) => (e.kind === 'zone-captured' ? e.payload.zone : e.kind === 'zone-defended' ? `${e.payload.zone} defendida` : e.label);
+  const groups = new Map<string, { e: CelebrationEvent; n: number }>();
+  for (const e of kept) {
+    const k = `${e.kind}|${text(e)}`;
+    const g = groups.get(k);
+    if (g) g.n += 1;
+    else groups.set(k, { e, n: 1 });
+  }
+  const shown = [...groups.values()];
   if (shown.length === 0) return null;
   return (
     <Stagger testID="resumo-conquistas-lista" gap={space[2]} style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-      {shown.map((e) => (
+      {shown.map(({ e, n }) => (
         <View
           key={e.id}
           accessible
-          accessibilityLabel={e.label}
+          accessibilityLabel={n > 1 ? `${e.label} (${n} zonas)` : e.label}
           style={{
             flexDirection: 'row',
             alignItems: 'center',
             gap: space[1],
             minHeight: 36,
+            maxWidth: maxChip,
             paddingHorizontal: space[3],
             borderRadius: radius.pill,
             borderWidth: 1,
@@ -77,8 +92,8 @@ function ConquestChips({ events, headline }: { events: readonly CelebrationEvent
             backgroundColor: colors.surface,
           }}>
           <Icon name={CHIP_ICON[e.kind] ?? 'check'} size={14} color={colors.accentText} />
-          <Text variant="caption" numberOfLines={1}>
-            {e.kind === 'zone-captured' ? e.payload.zone : e.kind === 'zone-defended' ? `${e.payload.zone} defendida` : e.label}
+          <Text variant="caption" numberOfLines={1} style={{ flexShrink: 1 }}>
+            {n > 1 ? `${text(e)} · ${n} zonas` : text(e)}
           </Text>
         </View>
       ))}

@@ -101,7 +101,8 @@ export function NotificationsScreen() {
 
       {unread > 0 ? (
         <FadeUp style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3] }}>
-          <Text muted testID="notificacoes-nao-lidas">
+          {/* F8 onda D: a 360 px, "2 não lidas" quebrava em 2 linhas ao lado do botão. */}
+          <Text muted testID="notificacoes-nao-lidas" numberOfLines={1} style={{ flexShrink: 0 }}>
             {unread === 1 ? '1 não lida' : `${unread} não lidas`}
           </Text>
           <Button testID="notificacoes-marcar-todas" label="Marcar todas como lidas" kind="ghost" onPress={() => void markRead(null)} />

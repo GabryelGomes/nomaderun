@@ -73,7 +73,8 @@ function MissionRow({ m, rerollsLeft, onReroll, busy }: { m: EngagementMission; 
         )}
       </ProgressRing>
       <View style={{ flex: 1, gap: 2 }}>
-        <Text variant="bodyBold" numberOfLines={2}>
+        {/* F8 onda D: 3 linhas, para a meta ("1,5 km") não sumir com a fonte grande a 360 px. */}
+        <Text variant="bodyBold" numberOfLines={3}>
           {m.title}
         </Text>
         {m.tier === 'leve' ? (
