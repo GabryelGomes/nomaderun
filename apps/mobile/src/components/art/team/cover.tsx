@@ -1,8 +1,9 @@
 import { useEffect, useMemo } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, { cancelAnimation, Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
+import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, Defs, Line, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
 
+import { useReducedMotionSetting } from '@/components/motion/reduced-motion';
 import { usePausedWhenHidden } from '@/components/motion/use-paused-when-hidden';
 import { Text } from '@/components/text';
 import { TEAM_BIO } from '@/domain/team-bio';
@@ -10,7 +11,7 @@ import type { FactionId } from '@/domain/types';
 import { fonts } from '@/theme/tokens';
 
 import { ART } from '../neon/palette';
-import { COVER_BOX, COVER_GLOW, COVER_IDLE, COVER_TEXT, coverLabel, coverScene, runnerPlacement, STRIPE_STEP, type CoverVariant } from './cover-art';
+import { COVER_BOX, COVER_GLOW, COVER_IDLE, COVER_TAP, COVER_TEXT, coverLabel, coverScene, runnerPlacement, STRIPE_STEP, type CoverVariant } from './cover-art';
 import { MascotRunner } from './mascot-runner';
 
 export type TeamCoverProps = {
@@ -27,6 +28,11 @@ export type TeamCoverProps = {
   accessibilityLabel?: string;
   /** Esconde o texto (quando a tela escreve nome e lema por fora). */
   textless?: boolean;
+  /**
+   * Contador de toques (F8 · C1): a cada aumento, o lema pisca na cor do time (opacidade 0,6 → 1) e o corredor dá
+   * um pulo (−6 pt, 180 ms). Com "Reduzir movimento", só o lema, num fade de 150 ms. `0`/ausente: nada.
+   */
+  tap?: number;
   testID?: string;
   style?: StyleProp<ViewStyle>;
 };
@@ -39,8 +45,9 @@ const NO_TOUCH: ViewStyle = { pointerEvents: 'none' };
  * `MascotRunner` animado (2 `Svg`) + 3 valores compartilhados (faixas, janelas, brilho). Com "Reduzir movimento",
  * tudo parado e o brilho a 100 %.
  */
-export function TeamCover({ team, width = 390, variant = 'card', animated = false, focused = true, accessibilityLabel, textless, testID, style }: TeamCoverProps) {
-  const reduced = useReducedMotion();
+export function TeamCover({ team, width = 390, variant = 'card', animated = false, focused = true, accessibilityLabel, textless, tap = 0, testID, style }: TeamCoverProps) {
+  // "Reduzir movimento" do sistema, ou o forçado pela galeria `/dev/motion` (F8 · C1)
+  const reduced = useReducedMotionSetting();
   const paused = usePausedWhenHidden();
   const live = animated && focused && !reduced && !paused;
   const scene = useMemo(() => coverScene(team, variant), [team, variant]);
@@ -74,6 +81,10 @@ export function TeamCover({ team, width = 390, variant = 'card', animated = fals
   const breatheStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1 + (COVER_IDLE.breatheScale - 1) * breathe.get() }] }));
 
   const runner = runnerPlacement(scene);
+  // Toque (F8 · C1): flash do lema e pulo do corredor, remontando só os 2 invólucros (o idle continua).
+  const tapped = tap > 0;
+  const mottoFlash = useMemo(() => coverTapMotto(reduced), [reduced]);
+  const jump = useMemo(() => coverTapJump(k), [k]);
   const t = Math.min(1, Math.max(0.8, k));
   const nameSize = Math.round(COVER_TEXT.nameSize[variant] * t);
   const a11y = accessibilityLabel
@@ -150,9 +161,9 @@ export function TeamCover({ team, width = 390, variant = 'card', animated = fals
       </Animated.View>
 
       {/* o corredor (arte da E4; `leve` no card, `completo` na capa de "Meu time") */}
-      <View style={{ position: 'absolute', left: runner.left * k, top: runner.top * k }}>
+      <Animated.View key={`pulo-${tap}`} style={[{ position: 'absolute', left: runner.left * k, top: runner.top * k }, tapped && !reduced ? jump : null]}>
         <MascotRunner team={team} size={runner.width * k} quality={variant === 'hero' ? 'completo' : 'leve'} animated={live} />
-      </View>
+      </Animated.View>
 
       {!textless ? (
         <View style={{ position: 'absolute', right: COVER_TEXT.inset.right * k, top: COVER_TEXT.inset.top * k, maxWidth: variant === 'hero' ? COVER_TEXT.columnWidth * k : undefined, alignItems: 'flex-end' }}>
@@ -175,9 +186,11 @@ export function TeamCover({ team, width = 390, variant = 'card', animated = fals
             }}>
             {bio.name.toUpperCase()}
           </Text>
-          <Text style={{ fontFamily: fonts.textBold, fontSize: COVER_TEXT.mottoSize, lineHeight: 15, letterSpacing: COVER_TEXT.mottoTracking, color: c, textAlign: 'right', marginTop: 4 }}>
-            {bio.motto.toUpperCase()}
-          </Text>
+          <Animated.View key={`lema-${tap}`} testID={testID && tapped ? `${testID}-lema-flash` : undefined} style={tapped ? mottoFlash : null}>
+            <Text style={{ fontFamily: fonts.textBold, fontSize: COVER_TEXT.mottoSize, lineHeight: 15, letterSpacing: COVER_TEXT.mottoTracking, color: c, textAlign: 'right', marginTop: 4 }}>
+              {bio.motto.toUpperCase()}
+            </Text>
+          </Animated.View>
           {variant === 'hero' ? (
             <Text style={{ fontFamily: fonts.text, fontSize: COVER_TEXT.bioSize, lineHeight: COVER_TEXT.bioLineHeight, color: ART.ink, opacity: COVER_TEXT.bioOpacity, textAlign: 'right', marginTop: 12 }}>
               {bio.bio.join('\n')}
@@ -194,6 +207,26 @@ export function TeamCover({ team, width = 390, variant = 'card', animated = fals
       ) : null}
     </View>
   );
+}
+
+/** Flash do lema no toque: opacidade 0,6 → 1 (360 ms); reduzido, fade de 150 ms. Só opacidade. */
+export function coverTapMotto(reduced: boolean) {
+  return {
+    animationName: { from: { opacity: COVER_TAP.mottoFrom }, to: { opacity: 1 } },
+    animationDuration: reduced ? COVER_TAP.reducedMs : COVER_TAP.mottoMs,
+    animationTimingFunction: 'ease-out' as const,
+    animationFillMode: 'both' as const,
+  };
+}
+
+/** Pulo do corredor no toque: translateY 0 → −6 pt → 0 (180 ms). Só transform. */
+export function coverTapJump(k: number) {
+  return {
+    animationName: { '0%': { transform: [{ translateY: 0 }] }, '45%': { transform: [{ translateY: -COVER_TAP.jump * k }] }, '100%': { transform: [{ translateY: 0 }] } },
+    animationDuration: COVER_TAP.jumpMs,
+    animationTimingFunction: 'ease-out' as const,
+    animationFillMode: 'both' as const,
+  };
 }
 
 export { coverLabel };

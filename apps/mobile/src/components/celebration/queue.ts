@@ -11,6 +11,8 @@ import type { MedalKind, MedalTier } from '@/components/art/medal/medal-art';
 import type { FactionId } from '@/domain/types';
 import { celebration, celebrationLevels, durations, HAPTIC_MIN_GAP_MS, type CelebrationLevel, type HapticPattern } from '@/theme/motion';
 
+import { BOSS_PHASE, bossPhaseOpened } from './f8-choreography';
+
 export type { CelebrationLevel };
 
 export type ChestRarity = 'comum' | 'raro' | 'lendario';
@@ -200,7 +202,10 @@ function groupDraft(events: CelebrationEvent[], index: number): Draft {
 
 function duration(d: Draft): number {
   const spec = MOMENT_SPECS[d.kind];
-  const base = d.compact ? spec.compact : spec.full;
+  let base = d.compact ? spec.compact : spec.full;
+  // F8 · C1: o golpe que abre fase ganha tempo para a tarja e os pontos fracos (vale com nível médio)
+  const e = d.events[0];
+  if (d.events.length === 1 && e?.kind === 'boss-hit' && bossPhaseOpened(e.payload.hpBefore, e.payload.hpAfter, e.payload.hpMax) !== null) base = Math.max(base, BOSS_PHASE.totalMs);
   // nunca passa do teto do nível (ex.: baú comum = pequena → versão curta)
   return Math.min(base, celebrationLevels[d.level].maxMs);
 }

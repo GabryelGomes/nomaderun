@@ -4,6 +4,7 @@ import Animated, { useAnimatedProps, useReducedMotion, useSharedValue, withDelay
 import Svg, { Path } from 'react-native-svg';
 
 import { TeamEmblem } from '@/components/art/team/emblem';
+import { TRAIL_REVEAL } from '@/components/celebration/f8-choreography';
 import { rise, step } from '@/components/celebration/moment';
 import { Text } from '@/components/text';
 import { trailLine } from '@/domain/team-bio';
@@ -17,8 +18,8 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 /** Trecho de rota estilizado (viewBox 280 × 72): sobe e desce como um bairro, termina à direita. */
 const ROUTE = 'M 8 56 C 50 56, 60 18, 100 22 S 150 58, 190 44 S 240 12, 272 20';
 const ROUTE_LENGTH = 320;
-/** Quanto a rota demora para se desenhar (ms). */
-export const TRAIL_DRAW_MS = 700;
+/** Quanto a rota demora para se desenhar (ms): 600 (F8 · C1, E5). */
+export const TRAIL_DRAW_MS = TRAIL_REVEAL.drawMs;
 /** Nome do cosmético liberado na cerimônia (regra 9 de `F8/01` §1.3). */
 export const RECRUIT_FRAME = { id: 'moldura-recruta', name: 'Recruta' } as const;
 
@@ -79,7 +80,8 @@ export function TrailReveal({ team, still: stillProp, delay, testID = 'rastro' }
       <Animated.View
         style={[
           { flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[2], paddingHorizontal: space[4], borderRadius: radius.pill, borderWidth: 2, borderColor: f.onColor },
-          step(still, { from: { opacity: 0, transform: [{ scale: 0.6 }] }, to: { opacity: 1, transform: [{ scale: 1 }] } }, springs.bouncy.duration, delay + TRAIL_DRAW_MS, springCss('bouncy')),
+          // a moldura entra com mola de 0,9 → 1 quando o traço termina (F8 · C1)
+          step(still, { from: { opacity: 0, transform: [{ scale: TRAIL_REVEAL.frameFrom }] }, to: { opacity: 1, transform: [{ scale: 1 }] } }, springs.bouncy.duration, delay + TRAIL_DRAW_MS, springCss('bouncy')),
         ]}>
         <View aria-hidden importantForAccessibility="no-hide-descendants">
           <TeamEmblem team={team} size={40} variant="medio" color={f.onColor} on={f.color} />

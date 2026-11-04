@@ -15,8 +15,10 @@ import { useReducedMotionSetting } from '@/components/motion/reduced-motion';
 import { Text } from '@/components/text';
 import { cssEasings, springCss, springs } from '@/theme/motion';
 import { neon, neonTeam } from '@/theme/neon';
+import { radius, space } from '@/theme/tokens';
 
 import { BOSS_DEFEATED_TIMELINE as D, BOSS_HIT_TIMELINE as H, bossDamageFor, hpPercent, resolveBossId } from './choreography';
+import { BOSS_PHASE, bossPhaseOpened, WEAK_POINT_SPOTS } from './f8-choreography';
 import { type MomentBaseProps, kf, pop, rise, step, useMoment } from './moment';
 
 /** Violeta reservado aos vilões (D-67). */
@@ -58,6 +60,12 @@ export type BossHitProps = MomentBaseProps & {
   damageLabel: string;
   /** Selo "Sua parte: 8,4 km". */
   mineLabel?: string;
+  /**
+   * Fase que este golpe abriu (F8 · C1, "Golpe que abre fase"): tarja "Você abriu a fase N!" e os pontos fracos
+   * surgindo depois do cambaleio. Padrão: calculada pela vida (`bossPhaseOpened`, > 67% → ≤ 67% ou ≤ 33%); `null`
+   * desliga.
+   */
+  phaseOpened?: 2 | 3 | null;
 };
 
 /**
@@ -68,9 +76,25 @@ export type BossHitProps = MomentBaseProps & {
 export function BossHit(props: BossHitProps) {
   const { bossName, bossId, dano, boss, bossFlash, hpFrom, hpTo, hpMax, damageLabel, mineLabel, testID } = props;
   const pct = hpPercent(hpTo, hpMax);
-  const text = `Golpe no chefão ${bossName}: ${damageLabel}. Vida ${pct}%.`;
+  const phase = props.phaseOpened === undefined ? bossPhaseOpened(hpFrom, hpTo, hpMax) : props.phaseOpened;
+  const text = `Golpe no chefão ${bossName}: ${damageLabel}. Vida ${pct}%.${phase ? ` Você abriu a fase ${phase}! Pontos fracos no mapa.` : ''}`;
   const reduced = useReducedMotionSetting();
-  const { still, state } = useMoment('boss-hit', 'small', props, text, reduced);
+  const { still, state } = useMoment(
+    'boss-hit',
+    phase ? 'medium' : 'small',
+    props,
+    text,
+    reduced,
+    phase
+      ? {
+          durationMs: BOSS_PHASE.totalMs,
+          beats: [
+            { offsetMs: 0, pattern: 'impact' },
+            { offsetMs: BOSS_PHASE.bannerAt, pattern: 'success' },
+          ],
+        }
+      : undefined,
+  );
   const id = bossIdOf(bossId, bossName);
   const cracks = dano ?? bossDamageFor(hpTo, hpMax);
   return (
@@ -128,7 +152,21 @@ export function BossHit(props: BossHitProps) {
         </Shake>
         {!still ? <Burst color="#FFFFFF" count={8} distance={60} /> : null}
         {state !== 'done' ? <FloatingNumber text={damageLabel} color="#FFFFFF" size={40} rise={70} /> : null}
+        {phase ? WEAK_POINT_SPOTS.slice(0, BOSS_PHASE.weakCount).map((p, i) => <WeakPoint key={i} x={p.x * 200} y={p.y * 170} still={still} delay={BOSS_PHASE.weakAt + i * BOSS_PHASE.weakStep} testID={testID ? `${testID}-ponto-fraco-${i}` : undefined} />) : null}
       </View>
+      {phase ? (
+        <Animated.View
+          testID={testID ? `${testID}-fase` : undefined}
+          style={[
+            { paddingHorizontal: space[4], paddingVertical: space[2], borderRadius: radius.pill, backgroundColor: VILLAIN, boxShadow: `0 0 20px ${VILLAIN}88` },
+            step(still, { from: { opacity: 0, transform: [{ scale: 0.7 }, { translateY: 8 }] }, to: { opacity: 1, transform: [{ scale: 1 }, { translateY: 0 }] } }, BOSS_PHASE.bannerMs, BOSS_PHASE.bannerAt, springCss('bouncy')),
+          ]}>
+          {/* texto escuro sobre o violeta: 5,6:1 (o branco daria 3,6:1) */}
+          <Text variant="bodyBold" color={neon.bg}>
+            {`Você abriu a fase ${phase}!`}
+          </Text>
+        </Animated.View>
+      ) : null}
       <ProgressBar
         value={hpTo / (hpMax > 0 ? hpMax : 1)}
         from={hpFrom / (hpMax > 0 ? hpMax : 1)}
@@ -147,6 +185,22 @@ export function BossHit(props: BossHitProps) {
         </Animated.View>
       ) : null}
     </View>
+  );
+}
+
+/** Ponto fraco que surge em volta do chefão (alvo laranja que carimba com a mola `stamp`). Só transform e opacidade. */
+function WeakPoint({ x, y, still, delay, testID }: { x: number; y: number; still: boolean; delay: number; testID?: string }) {
+  const S = 22;
+  return (
+    <Animated.View
+      testID={testID}
+      pointerEvents="none"
+      style={[
+        { position: 'absolute', left: x - S / 2, top: y - S / 2, width: S, height: S, borderRadius: S / 2, borderWidth: 3, borderColor: neon.orange, alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 12px ${neon.orange}` },
+        step(still, pop(0.3), springs.stamp.duration, delay, springCss('stamp')),
+      ]}>
+      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: neon.orange }} />
+    </Animated.View>
   );
 }
 

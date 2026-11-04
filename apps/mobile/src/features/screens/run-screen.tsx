@@ -9,7 +9,7 @@ import { Button, IconButton } from '@/components/button';
 import { switchColors } from '@/components/switch-colors';
 import { ChipRow } from '@/components/chip-row';
 import { useDemoSealSpace } from '@/components/demo-badge';
-import { RewardToast } from '@/components/celebration';
+import { FirstPaintSeal, RewardToast } from '@/components/celebration';
 import { FadeUp, haptic, PressableScale, ProgressBar, ProgressRing, RevealText, ScreenEnter, ShimmerSkeleton, Stagger } from '@/components/motion';
 import { Screen, ScreenScroll } from '@/components/screen';
 import { TeamBadge } from '@/components/team-badge';
@@ -418,6 +418,10 @@ function ActiveRun({ mode }: { mode: RunMode }) {
         {toast ? (
           // Avisos de recompensa ao vivo (E5): pequeno ou médio, sem partículas (o GPS vem primeiro).
           <View pointerEvents="box-none" style={{ position: 'absolute', top: insets.top + (bannerOn ? 72 : 0), left: space[4], right: space[4] }}>
+            {toast.id === 'primeiro-trecho' ? (
+              // F8 · C1: selo do 1º trecho com o brilho correndo pela linha do rastro (1,5 s, vibração leve).
+              <FirstPaintSeal key={toast.id} testID="corrida-aviso" color={neonTeam[toast.faction]} title={toast.title} subtitle={toast.subtitle} haptics={toast.haptics} onDone={() => s.dismissToast(toast.id)} />
+            ) : (
             <RewardToast
               key={toast.id}
               testID="corrida-aviso"
@@ -431,6 +435,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
               subtitle={toast.subtitle}
               onDone={() => s.dismissToast(toast.id)}
             />
+            )}
           </View>
         ) : null}
         <View

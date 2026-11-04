@@ -1,10 +1,11 @@
 import { Children, isValidElement, type ReactNode } from 'react';
 import { type StyleProp, View, type ViewStyle } from 'react-native';
-import Animated, { useReducedMotion } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { distances, durations, STAGGER_LIMIT, staggerDelay, staggers, type CurveName } from '@/theme/motion';
 
 import { enterAnimation } from './motion-styles';
+import { useReducedMotionSetting } from './reduced-motion';
 
 export type FadeUpProps = {
   children: ReactNode;
@@ -23,7 +24,8 @@ export type FadeUpProps = {
  * está montado e tocável durante a animação. "Reduzir movimento": só opacidade.
  */
 export function FadeUp({ children, delay = 0, distance = distances.enter, duration = durations.enter, curve = 'enter', style, testID }: FadeUpProps) {
-  const reduced = useReducedMotion();
+  // o ajuste do sistema, ou o forçado pela galeria/teste (`ReducedMotionOverride`, F8 · C1)
+  const reduced = useReducedMotionSetting();
   return (
     <Animated.View testID={testID} style={[enterAnimation({ reduced, distance, duration, delay, curve }), style]}>
       {children}

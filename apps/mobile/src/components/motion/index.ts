@@ -11,7 +11,7 @@ export { ScreenEnter, screenTransition, useScreenTransition, type ScreenEnterPro
 export { staggerDelay } from '@/theme/motion';
 
 // v2 (T7.1.13)
-export { haptic, HapticGate, resetHaptics, useHaptics, type HapticOptions, type HapticPattern } from './haptics';
+export { haptic, HapticGate, resetHaptics, TEAM_HAPTICS, teamHaptic, useHaptics, type HapticOptions, type HapticPattern } from './haptics';
 export { ReducedMotionOverride, useReducedMotionSetting } from './reduced-motion';
 export { ProgressBar, type ProgressBarProps } from './progress-bar';
 export { ProgressRing, type ProgressRingProps } from './progress-ring';
@@ -26,6 +26,10 @@ export { clampParticles, confettiParticles, crossedMilestones, floatingStack, se
 
 // onda 2 (T7.2.9)
 export { isHidden, usePausedWhenHidden } from './use-paused-when-hidden';
+
+// Fase 8 · onda C (C1)
+export { pulseKeyframes, StampIn, type StampInProps } from './stamp-in';
+export { glowDashOffset, TrailGlow, type TrailGlowProps } from './trail-glow';
 
 // onda 3 (T7.3.5)
 export { canDetectScreenReader, useScreenReaderEnabled } from './screen-reader';

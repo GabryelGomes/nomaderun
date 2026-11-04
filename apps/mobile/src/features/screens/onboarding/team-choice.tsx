@@ -5,7 +5,6 @@ import { LeaderBust, Mascot } from '@/components/art';
 import { Button } from '@/components/button';
 import { TeamConfirm } from '@/components/celebration';
 import { LeaderSheet } from '@/components/leader-sheet';
-import { haptic } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
 import { TeamCoverCarousel } from '@/components/team-cover-carousel';
 import { TEAM_STORY } from '@/components/team-identity';
@@ -61,14 +60,18 @@ export function TeamChoiceScreen({ initial = null, initialError = null, onJoin, 
   const [error, setError] = useState<string | null>(initialError);
   const [busy, setBusy] = useState(false);
   const cta = useRef<View>(null);
+  const covers = useRef<View>(null);
   // D-96: selo "Precisa de reforço" (só cosmético) no card do time com menos ativos; 1 leitura para os 4 cards.
   const boost = useFactionBoost();
 
-  /** Centro do botão que confirmou (a cor do time nasce dali). Sem medida (ou sem resposta em 250 ms), o pé da tela. */
+  /**
+   * Centro da capa em foco (F8 · C1: a capa cresce e a cor do time nasce dela); sem o carrossel, o botão que confirmou.
+   * Sem medida (ou sem resposta em 250 ms), o pé da tela.
+   */
   const measureOrigin = () =>
     new Promise<{ x: number; y: number }>((resolve) => {
       const fallback = { x: 0, y: height };
-      const node = cta.current;
+      const node = covers.current ?? cta.current;
       if (!node?.measureInWindow) return resolve(fallback);
       const timer = setTimeout(() => resolve(fallback), MEASURE_TIMEOUT_MS);
       node.measureInWindow((x, y, w, h) => {
@@ -128,18 +131,19 @@ export function TeamChoiceScreen({ initial = null, initialError = null, onJoin, 
         <ErrorNotice message={error} testID={`${testID}-erro`} />
         {/* o carrossel fica no meio do espaço que sobra (em telas altas, não gruda no título) */}
         <View style={{ flex: 1, justifyContent: 'center', gap: space[6] }}>
+          <View ref={covers} collapsable={false}>
           <TeamCoverCarousel
             testID={`${testID}-times`}
             value={choice}
             suggested={suggested}
-            onChange={(f) => {
-              setChoice(f);
-              haptic('selection');
-            }}
+            // F8 · C1: o card vibra no padrão do time (`teamHaptic`), com a mola e o flash do lema.
+            onChange={setChoice}
+            confirming={confirming?.faction ?? null}
             onLeader={setLeader}
             renderBadge={(f) => <TeamBoostBadge team={f} boost={boost} />}
             badgeLabel={(f) => (boost?.needsBoost === f ? boostLabel(boost.isDemo).a11y : null)}
           />
+          </View>
           <View style={{ alignItems: 'center' }}>
             <Button testID={`${testID}-nao-sei`} label="Não sei escolher" kind="ghost" onPress={() => setQuiz(true)} />
           </View>
