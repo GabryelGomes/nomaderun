@@ -25,7 +25,8 @@ import { neonTeam } from '@/theme/neon';
 import { factions, fonts, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-import { useEngagementData, useRecruitFrame } from '@/features/engagement';
+import { useEngagementData } from '@/features/engagement';
+import { useRecruitFrame } from '@/features/engagement/recruit-frame';
 import { AtlasStamps } from '@/features/engagement/atlas-stamps';
 import { MedalSheet, medalInfo, type MedalInfo } from '@/features/engagement/medal-sheet';
 import { districtStamps } from '@/features/engagement/moments';

@@ -158,7 +158,7 @@ describe('feed da crew de demonstração', () => {
 
   it('record_share só para a própria corrida', async () => {
     const mine = client.db.tables.activities.find((a) => a.user_id === DEMO_USER_ID)!;
-    expect(expectOk(await recordShare(String(mine.id)))).toEqual({ recorded: true, completedMissions: 0 });
+    expect(expectOk(await recordShare(String(mine.id)))).toEqual({ recorded: true, completedMissions: 0, completed: [] });
     const other = await recordShare('demo-revisao-1');
     expect(!other.ok && other.error.code).toBe('NOT_FOUND');
   });

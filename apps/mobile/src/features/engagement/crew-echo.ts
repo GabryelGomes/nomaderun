@@ -42,7 +42,9 @@ export function loadCrewEcho(now: number): Promise<CrewEcho | null> {
   if (hit) return Promise.resolve(hit.echo);
   const user = currentUser();
   if (inflight) return inflight;
-  inflight = getCrewEcho()
+  // Um erro síncrono (cliente sem configuração) também vira "sem eco", nunca derruba a tela que mostra o card.
+  inflight = Promise.resolve()
+    .then(() => getCrewEcho())
     .then((res) => {
       const echo = res.ok && res.data && res.data.available ? res.data : null;
       cache = { at: now, user, echo };
