@@ -5,6 +5,7 @@ import { ScrollView, View } from 'react-native';
 import { EmptyArt, TeamEmblem } from '@/components/art';
 import { Button } from '@/components/button';
 import { Icon } from '@/components/icon';
+import { OfflineNotice } from '@/components/offline-notice';
 import { TeamBadge } from '@/components/team-badge';
 import { EmptyState } from '@/components/surface';
 import { Text } from '@/components/text';
@@ -125,6 +126,23 @@ export function ZoneSheet() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const cached = useZones((s) => (id ? s.zones[id] : undefined));
   const cachedName = useZones((s) => (id ? s.meta[id]?.name : null));
+  // F8-D (QA, Baixo): aberta por link, o mapa não montou e o store está vazio. Lê a última cópia do mapa (D-95)
+  // antes de decidir entre "sem dado" e a zona salva; `lastLoadedAt` é a hora dessa cópia.
+  const savedAt = useZones((s) => s.lastLoadedAt);
+  const [hydrated, setHydrated] = useState(cached !== undefined);
+  useEffect(() => {
+    let live = true;
+    void useZones
+      .getState()
+      .hydrate()
+      .catch(() => undefined)
+      .finally(() => {
+        if (live) setHydrated(true);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
   const faction = useGame((s) => s.faction) ?? 'striders';
   const basePace = useGame(selectBasePace);
   const now = useNow(30_000);
@@ -151,7 +169,7 @@ export function ZoneSheet() {
   };
 
   if (!zone) {
-    if (loading) {
+    if (loading || !hydrated) {
       return (
         <View testID="zona-carregando" style={{ flex: 1, padding: space[6], gap: space[4], backgroundColor: sheetBg }}>
           <ShimmerSkeleton shape="card" height={72} accessibilityLabel="Carregando a zona" />
@@ -173,13 +191,15 @@ export function ZoneSheet() {
         </View>
       );
     }
+    // Sem rede ou servidor fora do ar e nenhuma cópia salva: o aviso único (D-95) com "Tentar de novo".
     if (error && error.code !== 'NOT_FOUND') {
       return (
-        <EmptyState
-          title={error.code === 'NETWORK' ? 'Sem internet' : 'Zona indisponível'}
-          body={error.code === 'NETWORK' ? 'Confira a conexão.' : error.message}
-          action={<Button testID="zona-tentar" label="Tentar de novo" kind="secondary" onPress={load} />}
-        />
+        <View testID="zona-sem-dado" style={{ flex: 1, padding: space[6], gap: space[4], backgroundColor: sheetBg }}>
+          <Text variant="title" accessibilityRole="header">
+            {name}
+          </Text>
+          <OfflineNotice testID="zona-offline" code={error.code} hasData={false} onRetry={load} busy={loading} />
+        </View>
       );
     }
     return (
@@ -198,6 +218,10 @@ export function ZoneSheet() {
 
   return (
     <ScrollView testID="tela-zona" style={{ flex: 1, backgroundColor: sheetBg }} contentContainerStyle={{ padding: space[6], paddingBottom: space[12], gap: space[4] }}>
+      {/* Mostrando a cópia salva (o mapa ou o link sem rede): a hora dela e "Tentar de novo" (D-95). */}
+      {error && error.code !== 'VALIDATION' && error.code !== 'NOT_FOUND' ? (
+        <OfflineNotice testID="zona-offline" code={error.code} hasData savedAt={savedAt} onRetry={load} busy={loading} />
+      ) : null}
       {/* 1. Herói: o dono ilustrado (mascote do time) ou a zona vazia. */}
       <View style={{ flexDirection: 'row', gap: space[4], alignItems: 'center' }}>
         <View style={{ width: 64, height: 70, alignItems: 'center', justifyContent: 'center' }}>
@@ -254,14 +278,6 @@ export function ZoneSheet() {
       {/* 5. A ação: sempre visível no detent 0,55. */}
       <Button testID="zona-correr" label={view.cta} icon={view.attackEndsAt !== null && zone.owner === faction ? 'shield' : 'play'} size="lg" wide onPress={goRun} />
 
-      {error && error.code === 'NETWORK' ? (
-        <View testID="zona-offline" accessible accessibilityLabel="Sem internet: últimos dados salvos" style={{ flexDirection: 'row', alignItems: 'center', gap: space[1] }}>
-          <Icon name="warning" size={14} color={colors.textSecondary} />
-          <Text variant="small" muted>
-            Offline · dados salvos
-          </Text>
-        </View>
-      ) : null}
 
       {/* 6. Detalhes sob demanda: maiores corredores e acontecimentos. */}
       {ranked.length > 0 || events.length > 0 ? (
