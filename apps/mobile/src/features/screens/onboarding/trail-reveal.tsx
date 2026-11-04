@@ -55,7 +55,8 @@ export function TrailReveal({ team, still: stillProp, delay, testID = 'rastro' }
       return;
     }
     drawn.set(0);
-    drawn.set(withDelay(delay, withTiming(1, { duration: TRAIL_DRAW_MS, easing: easings.reveal })));
+    // power2.out (F8 · C1): com expo.out, 80% do traço aparecia nos primeiros 130 ms e o desenho não se via
+    drawn.set(withDelay(delay, withTiming(1, { duration: TRAIL_DRAW_MS, easing: easings.standard })));
   }, [still, delay, drawn]);
   const lineProps = useAnimatedProps(() => ({ strokeDashoffset: ROUTE_LENGTH * (1 - drawn.get()) }));
 

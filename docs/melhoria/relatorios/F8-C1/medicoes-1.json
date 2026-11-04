@@ -1,0 +1,347 @@
+{
+  "rates": [
+    1,
+    4,
+    6
+  ],
+  "reps": 3,
+  "rows": [
+    {
+      "cena": "galeria parada (referência)",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "galeria parada (referência)",
+      "cpu": "4×",
+      "fps": 60,
+      "p95": 16.8,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "galeria parada (referência)",
+      "cpu": "6×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "capa: carrossel com a capa em foco (idle 1,6 s)",
+      "cpu": "1×",
+      "fps": 59.6,
+      "p95": 16.8,
+      "max": 33.4,
+      "jank": 0.7
+    },
+    {
+      "cena": "capa: carrossel com a capa em foco (idle 1,6 s)",
+      "cpu": "4×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "capa: carrossel com a capa em foco (idle 1,6 s)",
+      "cpu": "6×",
+      "fps": 58.8,
+      "p95": 16.7,
+      "max": 33.3,
+      "jank": 2.1
+    },
+    {
+      "cena": "capa: toque (mola + lema + pulo)",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "capa: toque (mola + lema + pulo)",
+      "cpu": "4×",
+      "fps": 55,
+      "p95": 16.8,
+      "max": 83.3,
+      "jank": 4.5
+    },
+    {
+      "cena": "capa: toque (mola + lema + pulo)",
+      "cpu": "6×",
+      "fps": 51,
+      "p95": 33.3,
+      "max": 133.3,
+      "jank": 8.1
+    },
+    {
+      "cena": "capa: confirmar (cresce e some)",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "capa: confirmar (cresce e some)",
+      "cpu": "4×",
+      "fps": 56.7,
+      "p95": 16.8,
+      "max": 49.9,
+      "jank": 3.8
+    },
+    {
+      "cena": "capa: confirmar (cresce e some)",
+      "cpu": "6×",
+      "fps": 52.2,
+      "p95": 33.3,
+      "max": 83.4,
+      "jank": 6.4
+    },
+    {
+      "cena": "cerimônia \"Seu rastro\" (cor + mascote + rota + moldura + 24 confetes)",
+      "cpu": "1×",
+      "fps": 59.3,
+      "p95": 16.8,
+      "max": 33.4,
+      "jank": 0.6
+    },
+    {
+      "cena": "cerimônia \"Seu rastro\" (cor + mascote + rota + moldura + 24 confetes)",
+      "cpu": "4×",
+      "fps": 56.4,
+      "p95": 16.8,
+      "max": 200,
+      "jank": 1.2
+    },
+    {
+      "cena": "cerimônia \"Seu rastro\" (cor + mascote + rota + moldura + 24 confetes)",
+      "cpu": "6×",
+      "fps": 52.7,
+      "p95": 16.8,
+      "max": 316.6,
+      "jank": 3.2
+    },
+    {
+      "cena": "cerimônia, movimento reduzido",
+      "cpu": "1×",
+      "fps": 59.3,
+      "p95": 16.7,
+      "max": 33.4,
+      "jank": 1.1
+    },
+    {
+      "cena": "cerimônia, movimento reduzido",
+      "cpu": "4×",
+      "fps": 55.3,
+      "p95": 16.8,
+      "max": 116.6,
+      "jank": 1.2
+    },
+    {
+      "cena": "cerimônia, movimento reduzido",
+      "cpu": "6×",
+      "fps": 51.3,
+      "p95": 16.8,
+      "max": 233.3,
+      "jank": 1.3
+    },
+    {
+      "cena": "primeiro trecho (selo + brilho na linha)",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "primeiro trecho (selo + brilho na linha)",
+      "cpu": "4×",
+      "fps": 57.5,
+      "p95": 16.8,
+      "max": 66.7,
+      "jank": 1.1
+    },
+    {
+      "cena": "primeiro trecho (selo + brilho na linha)",
+      "cpu": "6×",
+      "fps": 54.4,
+      "p95": 16.8,
+      "max": 149.9,
+      "jank": 3.4
+    },
+    {
+      "cena": "antes e depois do bairro (3 Svg + 5 anéis)",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.8,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "antes e depois do bairro (3 Svg + 5 anéis)",
+      "cpu": "4×",
+      "fps": 53.8,
+      "p95": 16.8,
+      "max": 116.7,
+      "jank": 3.4
+    },
+    {
+      "cena": "antes e depois do bairro (3 Svg + 5 anéis)",
+      "cpu": "6×",
+      "fps": 51.3,
+      "p95": 16.8,
+      "max": 116.8,
+      "jank": 4.9
+    },
+    {
+      "cena": "golpe que abre fase (chefão + tarja + 3 pontos)",
+      "cpu": "1×",
+      "fps": 58.7,
+      "p95": 16.7,
+      "max": 33.4,
+      "jank": 2.3
+    },
+    {
+      "cena": "golpe que abre fase (chefão + tarja + 3 pontos)",
+      "cpu": "4×",
+      "fps": 54,
+      "p95": 16.7,
+      "max": 150,
+      "jank": 2.5
+    },
+    {
+      "cena": "golpe que abre fase (chefão + tarja + 3 pontos)",
+      "cpu": "6×",
+      "fps": 48,
+      "p95": 16.8,
+      "max": 266.6,
+      "jank": 4.2
+    },
+    {
+      "cena": "a semana do time (faixa + mascote vivo)",
+      "cpu": "1×",
+      "fps": 59.3,
+      "p95": 16.7,
+      "max": 33.3,
+      "jank": 1.1
+    },
+    {
+      "cena": "a semana do time (faixa + mascote vivo)",
+      "cpu": "4×",
+      "fps": 56,
+      "p95": 16.8,
+      "max": 100,
+      "jank": 2.3
+    },
+    {
+      "cena": "a semana do time (faixa + mascote vivo)",
+      "cpu": "6×",
+      "fps": 51.3,
+      "p95": 16.8,
+      "max": 233.3,
+      "jank": 1.3
+    },
+    {
+      "cena": "carimbo de bairro novo",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.8,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "carimbo de bairro novo",
+      "cpu": "4×",
+      "fps": 57,
+      "p95": 16.7,
+      "max": 66.7,
+      "jank": 1.8
+    },
+    {
+      "cena": "carimbo de bairro novo",
+      "cpu": "6×",
+      "fps": 54,
+      "p95": 16.8,
+      "max": 116.7,
+      "jank": 1.9
+    },
+    {
+      "cena": "recorde de trechos (contagem + 2 pulsos)",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.8,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "recorde de trechos (contagem + 2 pulsos)",
+      "cpu": "4×",
+      "fps": 57.5,
+      "p95": 16.8,
+      "max": 83.3,
+      "jank": 1.1
+    },
+    {
+      "cena": "recorde de trechos (contagem + 2 pulsos)",
+      "cpu": "6×",
+      "fps": 56.3,
+      "p95": 16.8,
+      "max": 116.6,
+      "jank": 1.1
+    },
+    {
+      "cena": "líder comenta (contagem + balão + busto vivo)",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "líder comenta (contagem + balão + busto vivo)",
+      "cpu": "4×",
+      "fps": 55.6,
+      "p95": 16.8,
+      "max": 133.3,
+      "jank": 1
+    },
+    {
+      "cena": "líder comenta (contagem + balão + busto vivo)",
+      "cpu": "6×",
+      "fps": 53.3,
+      "p95": 16.8,
+      "max": 200.1,
+      "jank": 2.1
+    },
+    {
+      "cena": "confete 60 (teto, referência)",
+      "cpu": "1×",
+      "fps": 59.1,
+      "p95": 16.8,
+      "max": 33.3,
+      "jank": 1.5
+    },
+    {
+      "cena": "confete 60 (teto, referência)",
+      "cpu": "4×",
+      "fps": 55.5,
+      "p95": 16.8,
+      "max": 183.4,
+      "jank": 1.6
+    },
+    {
+      "cena": "confete 60 (teto, referência)",
+      "cpu": "6×",
+      "fps": 50.5,
+      "p95": 16.8,
+      "max": 333.3,
+      "jank": 3.3
+    }
+  ],
+  "errors": []
+}

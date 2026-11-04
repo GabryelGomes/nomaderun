@@ -607,3 +607,15 @@ Nunca apague uma decisão: se mudar, crie outra que a substitua ("Substitui D-xx
   - **"Sair" só em Ajustes → Conta e privacidade**, sempre com o diálogo "Sair da conta?" (`features/auth/sign-out-dialog.tsx`).
   - **Formatos únicos** (`features/format`): "+1.130 XP", "+81 pontos", "Nível 5", "Faltam 17 h 30 min" na tela e "até 02h30" só nos avisos, "há 2 h", "—".
 - **Consequências:** a cópia do perfil ganhou o campo `savedAt` (cópias antigas continuam sendo lidas, sem hora). Os textos de aviso do servidor ("Corra lá nas próximas 24h") ainda são da E9 (pendência no relatório F8-A3).
+
+### D-98 — Animações da Fase 8 (onda C, C1): onde cada uma mora e o que fica de fora
+2026-11-04 · E5 (frente C1, `docs/melhoria/relatorios/F8-C1.md`)
+- **Contexto:** a onda C pedia 9 animações novas (capa, cerimônia, 1º trecho, bairro, chefão, semana do time, carimbo, recorde, líder) sem biblioteca nova (D-71), com "Reduzir movimento" = fade de 150 ms e 55 fps a 4× de CPU na capa e na cerimônia.
+- **Decisão:**
+  - Os tempos ficam em 1 arquivo puro (`components/celebration/f8-choreography.ts`); o toque da capa (`COVER_TAP`) mora junto da arte (`components/art/team/cover-art.ts`) para a capa não puxar o tema de motion.
+  - **Vibração por time** (`teamHaptic`, `components/motion/haptics.ts`): Striders 1 toque, Volt 2 curtos, Owls 1 longo (`heavy`), Coyotes 3 curtos, a 160 ms um do outro (acima do portão de 150 ms). Substitui o `selection` da escolha.
+  - **"Primeiro trecho!" na corrida:** o brilho corre pela linha do rastro **desenhada no selo** (`TrailGlow`), não pela polilinha do mapa nativo (o mapa não expõe a linha para animar e o GPS vem primeiro). O aviso passou a vibrar 1× leve (é 1 vez na vida).
+  - **"Antes e depois do bairro"** é um mapa simplificado em SVG (rota + manchas redondas e suaves nas zonas, cor sólida do time): nunca hexágono, nunca o mapa nativo. Só aparece com resultado oficial e alguma zona que mudou de dono.
+  - **"Golpe que abre fase"** só com `extras.raid.phaseChanged` do servidor (sem derrota); o `BossHit` também calcula a fase pela vida (`raidPhase`) e, na fila do resumo, ganha 1,4 s quando abre fase.
+  - `FadeUp` e a capa passaram a ler `useReducedMotionSetting` (o ajuste do sistema ou o forçado pela galeria), como as primitivas v2.
+- **Consequências:** nenhuma dependência nova; tudo só em transform e opacidade (o traço da rota e o brilho usam `strokeDashoffset` por `useAnimatedProps`, na thread de UI). Medições em `docs/melhoria/relatorios/F8-C1/medicoes.json`.

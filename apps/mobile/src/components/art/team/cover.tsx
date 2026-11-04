@@ -81,10 +81,18 @@ export function TeamCover({ team, width = 390, variant = 'card', animated = fals
   const breatheStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1 + (COVER_IDLE.breatheScale - 1) * breathe.get() }] }));
 
   const runner = runnerPlacement(scene);
-  // Toque (F8 · C1): flash do lema e pulo do corredor, remontando só os 2 invólucros (o idle continua).
+  // Toque (F8 · C1): flash do lema (só o texto remonta) e pulo do corredor por valor compartilhado, sem remontar o
+  // `MascotRunner` (remontar os 2 `Svg` custava um quadro longo a 4× de CPU).
   const tapped = tap > 0;
   const mottoFlash = useMemo(() => coverTapMotto(reduced), [reduced]);
-  const jump = useMemo(() => coverTapJump(k), [k]);
+  const hop = useSharedValue(0);
+  useEffect(() => {
+    if (tap <= 0 || reduced) return;
+    const half = COVER_TAP.jumpMs / 2;
+    const ease = Easing.inOut(Easing.sin);
+    hop.set(withSequence(withTiming(1, { duration: half, easing: ease }), withTiming(0, { duration: half, easing: ease })));
+  }, [tap, reduced, hop]);
+  const hopStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -COVER_TAP.jump * k * hop.get() }] }));
   const t = Math.min(1, Math.max(0.8, k));
   const nameSize = Math.round(COVER_TEXT.nameSize[variant] * t);
   const a11y = accessibilityLabel
@@ -161,7 +169,7 @@ export function TeamCover({ team, width = 390, variant = 'card', animated = fals
       </Animated.View>
 
       {/* o corredor (arte da E4; `leve` no card, `completo` na capa de "Meu time") */}
-      <Animated.View key={`pulo-${tap}`} style={[{ position: 'absolute', left: runner.left * k, top: runner.top * k }, tapped && !reduced ? jump : null]}>
+      <Animated.View testID={testID ? `${testID}-corredor` : undefined} style={[{ position: 'absolute', left: runner.left * k, top: runner.top * k }, hopStyle]}>
         <MascotRunner team={team} size={runner.width * k} quality={variant === 'hero' ? 'completo' : 'leve'} animated={live} />
       </Animated.View>
 
@@ -214,16 +222,6 @@ export function coverTapMotto(reduced: boolean) {
   return {
     animationName: { from: { opacity: COVER_TAP.mottoFrom }, to: { opacity: 1 } },
     animationDuration: reduced ? COVER_TAP.reducedMs : COVER_TAP.mottoMs,
-    animationTimingFunction: 'ease-out' as const,
-    animationFillMode: 'both' as const,
-  };
-}
-
-/** Pulo do corredor no toque: translateY 0 → −6 pt → 0 (180 ms). Só transform. */
-export function coverTapJump(k: number) {
-  return {
-    animationName: { '0%': { transform: [{ translateY: 0 }] }, '45%': { transform: [{ translateY: -COVER_TAP.jump * k }] }, '100%': { transform: [{ translateY: 0 }] } },
-    animationDuration: COVER_TAP.jumpMs,
     animationTimingFunction: 'ease-out' as const,
     animationFillMode: 'both' as const,
   };

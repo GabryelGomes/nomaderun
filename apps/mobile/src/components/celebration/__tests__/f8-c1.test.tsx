@@ -337,7 +337,13 @@ describe('componentes novos (renderizam, reduzido = só opacidade, não animam f
     const r = render(<TeamCover team="volt" animated tap={2} testID="capa" />);
     const flash = r.root.findAll((n: ReactTestInstance) => n.props.testID === 'capa-lema-flash' && typeof n.type === 'string')[0];
     expect(JSON.stringify(flash.props.style)).toContain('"opacity":0.6');
-    expect(JSON.stringify(r.toJSON())).toContain('"translateY":-');
+    // o pulo é por valor compartilhado: o corredor (2 Svg) não remonta a cada toque
+    const runnerOf = (x: ReactTestRenderer) => x.root.findAll((n: ReactTestInstance) => n.props.testID === 'capa-corredor' && typeof n.type === 'string')[0].children[0];
+    const before = runnerOf(r);
+    act(() => {
+      r.update(<TeamCover team="volt" animated tap={3} testID="capa" />);
+    });
+    expect(runnerOf(r)).toBe(before);
     mockState.reduced = true;
     const red = render(<TeamCover team="volt" animated tap={2} testID="capa" />);
     const f2 = red.root.findAll((n: ReactTestInstance) => n.props.testID === 'capa-lema-flash' && typeof n.type === 'string')[0];

@@ -66,10 +66,12 @@ export function NeighborhoodFlip({ path, zones, team, routeColor, height = 180, 
   }, [haptics, flipped.length, reduced, delay, firstLight]);
 
   const fill = (owner: FactionId | null) => `url(#nb-${owner ?? NEUTRAL})`;
+  // só os degradês dos donos que aparecem na camada (menos nós no SVG: o mapa monta mais rápido a 4× de CPU)
+  const ownersOf = (which: 'before' | 'after') => [...FACTION_IDS, null].filter((f) => scene?.zones.some((z) => (which === 'before' ? z.before : z.after) === f));
   const layer = (which: 'before' | 'after') => (
     <Svg width={width} height={height}>
       <Defs>
-        {[...FACTION_IDS, null].map((f) => (
+        {ownersOf(which).map((f) => (
           <RadialGradient key={f ?? NEUTRAL} id={`nb-${f ?? NEUTRAL}`} cx="50%" cy="50%" r="50%">
             <Stop offset="0" stopColor={f ? factions[f].color : colors.textSecondary} stopOpacity={f ? 0.7 : 0.28} />
             <Stop offset="0.7" stopColor={f ? factions[f].color : colors.textSecondary} stopOpacity={f ? 0.35 : 0.12} />
