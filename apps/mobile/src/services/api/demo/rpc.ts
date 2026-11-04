@@ -17,7 +17,7 @@ import { DEMO_TELEMETRY_RPC_HANDLERS } from './telemetry';
 
 type RpcHandler = (db: DemoDb, userId: string | null, args: Row) => unknown;
 
-/** Moldura de quem entra num time (`cosmetic_defs.id`, migration 20261104120000). */
+/** Moldura de quem entra num time (`cosmetic_defs.id`, migration 20261104120200). */
 const RECRUIT_FRAME = 'moldura-recruta';
 
 function requireUser(db: DemoDb, userId: string | null): Row {
@@ -56,7 +56,7 @@ export const DEMO_RPC_HANDLERS: Record<string, RpcHandler> = {
       me.faction_changed_season = season;
       db.tables.crew_members = db.tables.crew_members.filter((m) => m.user_id !== userId); // RN-011
     }
-    // C2 (20261104120000): a moldura "Recruta" vem do servidor, idempotente (a mesma linha de user_cosmetics).
+    // C2 (20261104120200): a moldura "Recruta" vem do servidor, idempotente (a mesma linha de user_cosmetics).
     const had = db.tables.user_cosmetics.some((c) => c.user_id === userId && c.cosmetic_id === RECRUIT_FRAME && c.variant === '');
     if (!had) db.tables.user_cosmetics.push({ user_id: userId, cosmetic_id: RECRUIT_FRAME, variant: '', source: 'time:entrada', unlocked_at: iso(db.now()) });
     return {

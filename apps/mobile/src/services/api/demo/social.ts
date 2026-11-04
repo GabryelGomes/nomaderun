@@ -237,7 +237,7 @@ function itemRow(db: DemoDb, item: StoredItem, userId: string): Row {
     kudos: countsOf(kudos),
     myReaction: kudos?.get(userId) ?? null,
     isDemo: true,
-    // C2 (20261104120000): o id da corrida só vai para o autor ("Compartilhar" do próprio item)
+    // C2 (20261104120200): o id da corrida só vai para o autor ("Compartilhar" do próprio item)
     ...(item.actorId === userId && item.activityId ? { activityId: item.activityId } : {}),
   };
 }

@@ -1,7 +1,7 @@
 /**
  * Pares de demonstração da F8 · A2 (migration 20261031120000_f8_fundacao), com as regras puras do domain:
  * - `faction_activity()` (D-96): corredores com corrida na semana de demonstração, por time; `isDemo = true`; sem
- *   sessão (C2, D-91) só as 4 contagens, como o servidor (migration 20261104120000);
+ *   sessão (C2, D-91) só as 4 contagens, como o servidor (migration 20261104120200);
  * - `crew_echo()`: o colega da crew que correu nesta semana "reforçou" alguns dos seus trechos; `isDemo = true`;
  * - `extras.milestones` no `finish-activity`: "primeiro trecho pintado" e "recorde de trechos" (`paintMilestones`),
  *   com os trechos de cada corrida calculados pelo domain (`paintCellsOfRun`), guardados em `activities.v2_extras`.

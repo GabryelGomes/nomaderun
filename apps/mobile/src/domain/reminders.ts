@@ -510,7 +510,7 @@ export function shouldAskPlan(memory: NextRunPlanMemory | null, now: number): bo
   return memory.askedWeek !== brtCalendar.clock(now).weekId;
 }
 
-/* ---------- Avisos de zona do servidor (C2, migration 20261104120000) ---------- */
+/* ---------- Avisos de zona do servidor (C2, migration 20261104120200) ---------- */
 
 /**
  * Nome da zona nos avisos e telas: sem o número ("Jardim Goiás 59" → "Jardim Goiás") e com a referência, se houver

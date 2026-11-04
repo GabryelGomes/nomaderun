@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  *
- * F8 · C2: pares de demonstração da migration 20261104120000 — `faction_activity()` sem sessão (D-91), a moldura
+ * F8 · C2: pares de demonstração da migration 20261104120200 — `faction_activity()` sem sessão (D-91), a moldura
  * "Recruta" concedida em `choose_faction`, o `activityId` só no item do próprio feed, o nome da zona com a
  * referência (`withNearRef`) e o texto único dos avisos de zona (`zoneNoticeText`).
  */

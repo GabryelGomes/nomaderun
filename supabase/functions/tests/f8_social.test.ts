@@ -1,10 +1,10 @@
-// F8 · C2 (E9 + E8): os avisos de zona do servidor (trigger `notifications_zone_text`, migration 20261104120000) e
+// F8 · C2 (E9 + E8): os avisos de zona do servidor (trigger `notifications_zone_text`, migration 20261104120200) e
 // o texto do domain (`zoneNoticeText`, usado pela demonstração) são o MESMO formato. Lê os `format(...)` do SQL e
 // compara com o domain para os 3 tipos; e o nome da zona (`zone_display` × `zonePlaceName`).
 import assert from 'node:assert/strict';
 import { zoneNoticeText, zonePlaceName } from '../_shared/domain.ts';
 
-const MIGRATION = new URL('../../migrations/20261104120000_f8_social.sql', import.meta.url);
+const MIGRATION = new URL('../../migrations/20261104120200_f8_social.sql', import.meta.url);
 
 /** `format('…%s…', …)` do SQL com os %s trocados, na ordem, pelos valores. */
 function fill(template: string, values: string[]): string {

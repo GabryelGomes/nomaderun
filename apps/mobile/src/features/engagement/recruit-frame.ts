@@ -1,7 +1,7 @@
 /**
  * Moldura "Recruta" (D-91, regra 9 de F8/01) no cartão de jogador do Você: a mesma soma de Recompensas — o que o
  * servidor diz que a pessoa tem (`user_cosmetics`; o servidor novo concede em `choose_faction`, migration
- * 20261104120000) mais o que a cerimônia guardou no aparelho (servidor antigo). Sem nenhum dos dois: sem moldura.
+ * 20261104120200) mais o que a cerimônia guardou no aparelho (servidor antigo). Sem nenhum dos dois: sem moldura.
  */
 import { useEffect, useState } from 'react';
 

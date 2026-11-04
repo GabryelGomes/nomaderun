@@ -202,7 +202,7 @@ export class DemoDb {
     const w = this.world;
     for (const r of w.runners) this.runners.set(r.id, r);
     this.tables.profiles.push(this.profileRow(w.me), ...w.runners.map((r) => this.profileRow(r)));
-    // C2 (20261104120000): quem já está num time tem a moldura "Recruta" (backfill + trigger do servidor).
+    // C2 (20261104120200): quem já está num time tem a moldura "Recruta" (backfill + trigger do servidor).
     for (const p of this.tables.profiles) {
       if (p.faction) this.tables.user_cosmetics.push({ user_id: p.id, cosmetic_id: 'moldura-recruta', variant: '', source: 'time:entrada', unlocked_at: p.created_at });
     }

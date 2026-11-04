@@ -15,7 +15,7 @@ type Row = {
   attacker: string | null;
   attack_started_at: string | null;
   blocked: boolean;
-  /** C2 (20261104120000): "perto do Estádio"; ausente no banco antigo. */
+  /** C2 (20261104120200): "perto do Estádio"; ausente no banco antigo. */
   near_ref?: string | null;
 };
 

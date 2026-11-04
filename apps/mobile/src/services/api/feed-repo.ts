@@ -155,7 +155,7 @@ export type FeedItem = {
   /** O item é da própria pessoa (não dá para reagir a si mesmo: `KUDOS_SELF`; pode tirar do feed). */
   you: boolean;
   /**
-   * Id da corrida, só no item da própria pessoa (servidor C2, migration 20261104120000) para o "Compartilhar".
+   * Id da corrida, só no item da própria pessoa (servidor C2, migration 20261104120200) para o "Compartilhar".
    * `null` nos itens dos colegas e no servidor antigo (aí a tela acha a corrida pelo dia e pela distância).
    */
   activityId?: string | null;

@@ -29,7 +29,7 @@ select is(
 select is(
   (select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname in ('public', 'private') and p.prosecdef and has_function_privilege('anon', p.oid, 'execute')),
-  -- C2 (D-91/D-96): faction_activity entra (só as 4 contagens de contas reais; conferido no 32)
+  -- C2 (D-91/D-96): faction_activity entra (só as 4 contagens de contas reais; conferido no 33)
   array['faction_activity', 'username_available'], 'anon só executa username_available e faction_activity entre as funções security definer');
 
 select is(
@@ -109,9 +109,10 @@ select is(
 
 select is(
   (select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-    where n.nspname = 'public' and p.proname in ('faction_activity', 'crew_echo', 'svc_paint_milestones', 'svc_rate_limit_hit')
+    -- C2 (20261104120200, D-91): faction_activity passou a aceitar anon de propósito (só as 4 contagens; pgTAP 33)
+    where n.nspname = 'public' and p.proname in ('crew_echo', 'svc_paint_milestones', 'svc_rate_limit_hit')
       and has_function_privilege('anon', p.oid, 'execute')),
-  null, 'RPCs da F8 (faction_activity, crew_echo, svc_paint_milestones, svc_rate_limit_hit) fora do anon');
+  null, 'RPCs da F8 (crew_echo, svc_paint_milestones, svc_rate_limit_hit) fora do anon; faction_activity só contagens (33)');
 
 select is(
   (select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace

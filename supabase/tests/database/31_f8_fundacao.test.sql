@@ -68,7 +68,7 @@ select pg_temp.mkuser('a4', 'coyotes');
 select pg_temp.mkuser('d1', 'volt');
 update public.profiles set is_demo = true where id = 'e9e9e9e9-0031-4000-8000-0000000000d1';
 
--- C2 (20261104120000): anon passou a chamar (escolha do time antes da conta, D-91); o formato sem sessão está no 32
+-- C2 (20261104120200): anon passou a chamar (escolha do time antes da conta, D-91); o formato sem sessão está no 33
 select is(has_function_privilege('anon', 'public.faction_activity()', 'execute'), true, 'D-96/C2: anon chama faction_activity (só contagens)');
 select is(has_function_privilege('authenticated', 'public.faction_activity()', 'execute'), true, 'D-96: authenticated chama');
 
