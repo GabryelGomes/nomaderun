@@ -2,9 +2,11 @@
 import { handler, HttpError, json, readJson } from '../_shared/http.ts';
 import { requireUser, rpc } from '../_shared/supabase.ts';
 import { parseRegisterDevice } from '../_shared/validate.ts';
+import { enforceRateLimit } from '../_shared/rate-limit.ts';
 
 Deno.serve(handler(['POST'], async (req) => {
   const user = await requireUser(req);
+  await enforceRateLimit(user.id, 'geral');
   const body = parseRegisterDevice(await readJson(req));
   const res = await rpc<{ deviceId?: string; error?: string }>('svc_register_device', {
     p_user: user.id,

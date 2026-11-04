@@ -9,12 +9,16 @@ import { FACTION_IDS } from '@/domain/types';
 import { seedChests } from '@/demo/demo-data';
 
 import { DemoPgError, iso, msOf, raise, type ChestRow, type DemoDb, type Row } from './db';
+import { DEMO_F8_RPC_HANDLERS } from './f8';
 import { DEMO_GAME_V2_RPC_HANDLERS } from './game-v2';
 import { DEMO_SOCIAL_RPC_HANDLERS } from './social';
 import { ENGAGEMENT_RPC_HANDLERS } from './engagement';
 import { DEMO_TELEMETRY_RPC_HANDLERS } from './telemetry';
 
 type RpcHandler = (db: DemoDb, userId: string | null, args: Row) => unknown;
+
+/** Moldura de quem entra num time (`cosmetic_defs.id`, migration 20261104120200). */
+const RECRUIT_FRAME = 'moldura-recruta';
 
 function requireUser(db: DemoDb, userId: string | null): Row {
   const p = db.profile(userId);
@@ -52,7 +56,15 @@ export const DEMO_RPC_HANDLERS: Record<string, RpcHandler> = {
       me.faction_changed_season = season;
       db.tables.crew_members = db.tables.crew_members.filter((m) => m.user_id !== userId); // RN-011
     }
-    return { faction: me.faction, factionChangedSeason: me.faction_changed_season, canChangeThisSeason: me.faction_changed_season !== season };
+    // C2 (20261104120200): a moldura "Recruta" vem do servidor, idempotente (a mesma linha de user_cosmetics).
+    const had = db.tables.user_cosmetics.some((c) => c.user_id === userId && c.cosmetic_id === RECRUIT_FRAME && c.variant === '');
+    if (!had) db.tables.user_cosmetics.push({ user_id: userId, cosmetic_id: RECRUIT_FRAME, variant: '', source: 'time:entrada', unlocked_at: iso(db.now()) });
+    return {
+      faction: me.faction,
+      factionChangedSeason: me.faction_changed_season,
+      canChangeThisSeason: me.faction_changed_season !== season,
+      recruitFrame: { id: RECRUIT_FRAME, unlockedNow: !had },
+    };
   },
 
   join_crew: (db, userId, args) => {
@@ -182,6 +194,8 @@ export const DEMO_RPC_HANDLERS: Record<string, RpcHandler> = {
   ...ENGAGEMENT_RPC_HANDLERS,
   // Telemetria opt-in (E7, T7.3.6): consentimento e eventos em lote.
   ...DEMO_TELEMETRY_RPC_HANDLERS,
+  // F8 A2: faction_activity (D-96) e crew_echo.
+  ...DEMO_F8_RPC_HANDLERS,
 };
 
 /** Nomes das RPCs que o servidor de demonstração atende (o teste de contrato confere contra os repositórios). */

@@ -7,7 +7,15 @@
     "icon": "./assets/art/icone-1024.png",
     "scheme": "nomaderun",
     "userInterfaceStyle": "dark",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
     "ios": {
+      "bundleIdentifier": "br.com.nomaderun.app",
       "icon": "./assets/art/icone-1024.png",
       "infoPlist": {
         "CADisableMinimumFrameDurationOnPhone": true,
@@ -15,6 +23,7 @@
       }
     },
     "android": {
+      "package": "br.com.nomaderun.app",
       "adaptiveIcon": {
         "backgroundColor": "#070708",
         "foregroundImage": "./assets/art/android-icone-frente.png",
@@ -94,7 +103,10 @@
       "reactCompiler": true
     },
     "extra": {
-      "backgroundLocation": false
+      "backgroundLocation": false,
+      "eas": {
+        "projectId": "COLE-AQUI-O-PROJECT-ID-DO-EAS-INIT"
+      }
     }
   }
 }

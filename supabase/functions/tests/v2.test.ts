@@ -266,6 +266,7 @@ Deno.test('runV2: repetição devolve o que já foi gravado; conflito de zona te
           assert.ok(Array.isArray(args.p_zone_ids) && (args.p_zone_ids as string[]).length > 0, 'manda as zonas da pintura');
           return Promise.resolve(ctx({ flags: flags({ league: true }, 'v2'), paint: { zones: [], cells: [], paintedToday: [] } }) as never);
         }
+        if (name === 'svc_paint_milestones') return Promise.resolve({ firstPaint: true, cells: 3, cellsRecord: null } as never);
         applies++;
         if (applies === 1) return Promise.reject(new DbError('P0001', 'ZONE_CONFLICT: zona mudou durante o cálculo', 400));
         const p = (args.p as { paint: { summary: unknown }; points: unknown });
@@ -275,8 +276,10 @@ Deno.test('runV2: repetição devolve o que já foi gravado; conflito de zona te
       seed: () => 1,
     },
   );
-  assert.deepEqual(seen, ['svc_v2_context', 'svc_apply_v2', 'svc_v2_context', 'svc_apply_v2']);
+  // F8 A2: com a pintura gravada, os marcos (1ª pintura / recorde) vêm do banco logo depois
+  assert.deepEqual(seen, ['svc_v2_context', 'svc_apply_v2', 'svc_v2_context', 'svc_apply_v2', 'svc_paint_milestones']);
   assert.equal((retry?.paint as { rule: string }).rule, 'v2');
+  assert.deepEqual(retry?.milestones, { firstPaint: true, cells: 3, cellsRecord: null });
 
   const failed = await safeRunV2(
     { activityId: ACT, userId: USER, points: stored(geo), response: response(), flags: flags({ league: true }) },

@@ -139,7 +139,7 @@ export function ModerationDetailScreen() {
         <LineChart testID="moderacao-grafico-passos" data={series.cadence} label="Passos por minuto" unit="ppm" color={colors.text} />
       ) : (
         <Text variant="small" muted testID="moderacao-sem-passos">
-          O aparelho não informou passos nesta corrida.
+          Sem dados de passos.
         </Text>
       )}
     </Surface>
@@ -154,8 +154,8 @@ export function ModerationDetailScreen() {
           title={done.decision === 'approve' ? 'Corrida aprovada' : 'Corrida rejeitada'}
           body={
             done.decision === 'approve'
-              ? `Status ${done.status === 'partial' ? 'parcial' : 'válida'}${typeof done.rp === 'number' ? `, ${done.rp} RP aplicados` : ''}. O corredor foi avisado.`
-              : 'A corrida não pontua. O corredor foi avisado.'
+              ? `Status ${done.status === 'partial' ? 'parcial' : 'válida'}${typeof done.rp === 'number' ? `, ${done.rp} RP aplicados` : ''}. Corredor avisado.`
+              : 'Não pontua. Corredor avisado.'
           }
         />
       ) : null}
@@ -172,7 +172,7 @@ export function ModerationDetailScreen() {
             multiline
             maxLength={JUSTIFICATION_MAX}
             error={justError}
-            help="De 10 a 1000 caracteres. O corredor recebe a decisão; a justificativa fica no histórico da moderação."
+            help="De 10 a 1000 caracteres. Fica no histórico."
           />
           <ErrorNotice message={submitError} testID="moderacao-erro" />
           <View style={{ flexDirection: wide ? 'row' : 'column', gap: space[3] }}>

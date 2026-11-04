@@ -14,7 +14,7 @@ import { useEngagement } from '@/store/engagement-store';
 
 import { COSMETICS, howToEarn } from '../cosmetics';
 import { BLOCK_MAX, chestRefusal, fmtInt, ftueDoneCount, ftueRows, missionProgressLabel, missionRatio, oddsRows, pct, pityLabel, storedLabel, TITLE_MAX, trackItemLabel, unlockLabel } from '../model';
-import { levelLine, rewardPeak, rewardsA11y, rewardSections, streakLine } from '../run-rewards-model';
+import { levelLine, rewardPeak, rewardsA11y, rewardSections, runChestsStored, streakLine } from '../run-rewards-model';
 import { featuredMission, todayData } from '../today';
 import { daysAway, shouldWelcomeBack, welcomeBackCards } from '../welcome-back';
 
@@ -97,7 +97,7 @@ function block(p: Partial<RunEngagement> = {}): RunEngagement {
     xp: { total: 110, lines: [{ source: 'run_distance', amount: 50, label: 'Distância' }, { source: 'run_complete', amount: 30, label: 'Atividade concluída' }, { source: 'mission', amount: 30, label: 'Missão' }] },
     level: { before: 5, after: 5, titleAfter: null },
     band: null,
-    dailyChests: { opened: [], pityLeft: null, reason: 'already', stored: 0 },
+    dailyChests: { opened: [], pityLeft: null, reason: 'already', stored: 0, bonusStored: 0 },
     missions: [],
     streak: { activitiesThisWeek: 2, weekKept: true, weeks: 2, best: 3, freezesLeft: 1, paused: false },
     season: null,
@@ -186,13 +186,13 @@ describe('resumo: ordem pico-fim', () => {
   });
 
   it('baú lendário é o pico (fica logo antes do fim); missão vem antes', () => {
-    const b = block({ dailyChests: { opened: [prize('comum', 1), prize('lendario', 2)], pityLeft: 20, reason: null, stored: 0 }, missions: [{ id: 'd-km', userMissionId: 'u', cadence: 'diaria', text: 'Corra 3 km hoje', xp: 30 }] });
+    const b = block({ dailyChests: { opened: [prize('comum', 1), prize('lendario', 2)], pityLeft: 20, reason: null, stored: 0, bonusStored: 0 }, missions: [{ id: 'd-km', userMissionId: 'u', cadence: 'diaria', text: 'Corra 3 km hoje', xp: 30 }] });
     expect(rewardSections(b)).toEqual(['xp', 'level', 'missions', 'chests', 'streak']);
     expect(rewardPeak(b)).toBe('chests');
   });
 
   it('nível novo com título novo vence o baú lendário', () => {
-    const b = block({ level: { before: 4, after: 5, titleAfter: { id: 'pe-na-rua', name: 'Pé na Rua' } }, dailyChests: { opened: [prize('lendario')], pityLeft: 20, reason: null, stored: 0 } });
+    const b = block({ level: { before: 4, after: 5, titleAfter: { id: 'pe-na-rua', name: 'Pé na Rua' } }, dailyChests: { opened: [prize('lendario')], pityLeft: 20, reason: null, stored: 0, bonusStored: 0 } });
     expect(rewardSections(b)).toEqual(['xp', 'chests', 'level', 'streak']);
     expect(levelLine(b)).toEqual({ title: 'Nível 5!', body: 'Título novo: Pé na Rua.' });
     expect(rewardsA11y(b)).toBe('Você ganhou 110 XP, subiu para o nível 5, abriu 1 baú.');
@@ -206,7 +206,7 @@ describe('resumo: ordem pico-fim', () => {
           for (const withStreak of [true, false]) {
             const b = block({
               level: { before: 5, after: 5 + (levelUp ? 1 : 0), titleAfter: levelUp === 2 ? { id: 't', name: 'T' } : null },
-              dailyChests: chests.length ? { opened: chests.map((r) => prize(r)), pityLeft: 20, reason: null, stored: 0 } : { opened: [], pityLeft: null, reason: 'already', stored: 0 },
+              dailyChests: chests.length ? { opened: chests.map((r) => prize(r)), pityLeft: 20, reason: null, stored: 0, bonusStored: 0 } : { opened: [], pityLeft: null, reason: 'already', stored: 0, bonusStored: 0 },
               missions: Array.from({ length: nMissions }, (_, i) => ({ id: `m${i}`, userMissionId: `u${i}`, cadence: 'diaria' as const, text: 'x', xp: 20 })),
               streak: withStreak ? block().streak : null,
             });
@@ -238,18 +238,18 @@ describe('resumo: ordem pico-fim', () => {
 });
 
 describe('faixa de hoje do Mapa', () => {
-  it('só verdades: sequência, baús (com o bônus) e a missão mais adiantada; no máximo 3', () => {
+  it('só verdades: sequência, baús (com o bônus) e o chip fixo "Missões 0/3" (UX-17); no máximo 3', () => {
     const d = todayData({ status: status(), missions: missions(), chest: chest(), now: NOW });
-    expect(d.chips.map((c) => `${c.key}:${c.value}:${c.label}`)).toEqual(['sequencia:1/2:Semana', 'bau:3:Baús', 'missao:40%:Missão']);
+    expect(d.chips.map((c) => `${c.key}:${c.value}:${c.label}`)).toEqual(['sequencia:1/2:Semana', 'bau:3:Baús', 'missao:0/3:Missões']);
     expect(d.featured?.id).toBe('b');
     expect(d.coach).toBeNull();
   });
 
-  it('sem dado do servidor, o chip não existe; baú zerado some; tudo feito vira "Feitas"', () => {
+  it('sem dado do servidor, o chip não existe; baú zerado some; tudo feito vira "3/3"', () => {
     expect(todayData({ status: null, missions: null, chest: null, now: NOW }).chips).toEqual([]);
     const done = missions({ daily: missions().daily.map((m) => ({ ...m, completedAt: NOW })), weekly: [] });
     const d = todayData({ status: null, missions: done, chest: chest({ stored: 0, bonus: [], openedToday: true }), now: NOW });
-    expect(d.chips.map((c) => `${c.key}:${c.value}`)).toEqual(['missao:Feitas']);
+    expect(d.chips.map((c) => `${c.key}:${c.value}`)).toEqual(['missao:3/3']);
     expect(featuredMission(done)).toBeNull();
   });
 
@@ -314,5 +314,27 @@ describe('store', () => {
     expect(useEngagement.getState().missions.status).toBe('ready');
     s.setUser('u2');
     expect(useEngagement.getState().missions.data).toBeNull();
+  });
+});
+
+describe('F8-D · M-2: runChestsStored (resumo) = storedLabel (Recompensas)', () => {
+  it('para todo estado de 0 a 3 do dia e 0 a 3 bônus, o resumo usa o mesmo total e a mesma frase', () => {
+    for (let stored = 0; stored <= 3; stored++) {
+      for (let bonus = 0; bonus <= 3; bonus++) {
+        const state = { stored, bonus: Array.from({ length: bonus }, () => 'raro' as const), openedToday: false };
+        const b = block({ dailyChests: { opened: [], pityLeft: null, reason: 'distance', stored, bonusStored: bonus } });
+        // Só o bloco (baú do store ainda de antes) e com o baú do store: a mesma frase de Recompensas.
+        expect(runChestsStored(b, null).text.startsWith(storedLabel(state))).toBe(true);
+        expect(runChestsStored(b, state).total).toBe(stored + bonus);
+        expect(runChestsStored(block(), state).text.startsWith(storedLabel(state))).toBe(true);
+      }
+    }
+  });
+
+  it('caso da QA: 1 do dia + 1 bônus = "2 baús guardados" (não "1"); sem baú, sem "abre com 1 km"', () => {
+    const b = block({ dailyChests: { opened: [], pityLeft: null, reason: 'distance', stored: 1, bonusStored: 1 } });
+    expect(runChestsStored(b, null).text).toBe('2 baús guardados. Abrem com 1 km.');
+    expect(runChestsStored(b, { stored: 1, bonus: [], openedToday: false }).text).toBe('1 baú guardado. Abre com 1 km.');
+    expect(runChestsStored(b, { stored: 0, bonus: [], openedToday: true }).text).toBe('Baús de hoje já abertos.');
   });
 });

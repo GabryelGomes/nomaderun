@@ -7,7 +7,7 @@
 | `03-uc03-mapa-camadas-zona.yaml` | UC-03 | zonas do servidor, filtros de camada, folha da zona (dono, corredores, eventos) |
 | `04-uc02-alerta-invasao.yaml` | UC-02 | alerta no mapa e na central de notificações abre a zona atacada |
 | `05-uc01-corrida-simulada.yaml` | UC-01 | conta nova → Correr → Simulação → conquista provável → segurar 600 ms → resumo oficial com "Zona conquistada" |
-| `06-abas-correr-voce.yaml` | D-73 | aba Correr abre a Nova corrida; aba Você → Atividades |
+| `06-abas-mapa-voce.yaml` | D-89 | 4 abas, sem aba Correr: o CORRER do Mapa abre a Nova corrida; aba Você → Atividades |
 
 ## Como rodar
 

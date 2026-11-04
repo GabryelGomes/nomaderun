@@ -1,10 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Share, View } from 'react-native';
+import { Share, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
-import { CelebrationSequence, renderCelebrationMoment, type CelebrationEvent } from '@/components/celebration';
+import { NeighborhoodFlip } from '@/components/celebration/neighborhood-flip';
+import { neighborhoodZonesFrom } from '@/components/celebration/neighborhood-math';
+import { CelebrationSequence, renderCelebrationMoment, type CelebrationEvent} from '@/components/celebration';
 import { Icon, type IconName } from '@/components/icon';
 import { CountUp, FadeUp, ProgressBar, RevealText, ShimmerSkeleton, Stagger, useReducedMotionSetting } from '@/components/motion';
 import { PermissionPrimer } from '@/components/permission-primer';
@@ -14,9 +16,11 @@ import { TeamBadge } from '@/components/team-badge';
 import { EmptyState, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import TerritoryMap from '@/components/territory-map';
-import { levelFromXp } from '@/domain/games';
+import { cellCenter } from '@/domain/grid';
+import { levelProgress } from '@/domain/progression';
 import { formatDuration, formatKm, formatPace } from '@/domain/geo';
 import { DEMO_CENTER } from '@/demo/demo-data';
+import { formatInt, formatXp, signedInt, zoneDisplayName } from '@/features/format';
 import { mapZonesNear } from '@/features/map-data';
 import { NeonBackdrop } from '@/features/auth/neon-backdrop';
 import { notificationPermissionStatus, requestNotificationPermission, shouldAskNotifications } from '@/features/run/notification-permission';
@@ -30,7 +34,7 @@ import { getInvalidStretches } from '@/services/api/track-repo';
 import { useGame } from '@/store/game-store';
 import { useZones } from '@/store/zones-store';
 import { neon, neonTeam } from '@/theme/neon';
-import { factions, radius, space } from '@/theme/tokens';
+import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 const OUTCOME_LABEL = { conquered: 'Conquistada', defended: 'Defendida', influence: 'Mais domínio', none: 'Sem pontos' } as const;
@@ -46,21 +50,41 @@ const renderMoment = renderCelebrationMoment();
 
 const CHIP_ICON: Partial<Record<CelebrationEvent['kind'], IconName>> = { 'zone-captured': 'flag', 'zone-defended': 'shield', xp: 'trophy' };
 
-/** Depois do roteiro: as conquistas viram chips (wireframe 10), uma linha que quebra. */
-function ConquestChips({ events }: { events: readonly CelebrationEvent[] }) {
+/**
+ * Depois do roteiro: as conquistas viram chips (wireframe 10), uma linha que quebra. UX-10: sem o XP (ele mora no
+ * bloco de recompensas) e sem a zona que já é o título da tela.
+ */
+function ConquestChips({ events, headline }: { events: readonly CelebrationEvent[]; headline?: string }) {
   const { colors } = useTheme();
+  // Chip nunca mais largo que a tela (com fonte grande, o nome da zona passava da borda): o Stagger embrulha cada
+  // chip, então o limite é em pontos, não em %.
+  const maxChip = useWindowDimensions().width - space[4] * 2;
+  const kept = events.filter((e) => e.kind !== 'xp' && !(e.kind === 'zone-captured' && headline !== undefined && e.payload.zone === headline));
+  // F8 onda D: zonas sem número (UX-29) podem ter o mesmo nome ("Jardim Goiás · perto do Shopping" 2×): 1 chip com a
+  // contagem, em vez de 2 chips iguais.
+  const text = (e: CelebrationEvent) => (e.kind === 'zone-captured' ? e.payload.zone : e.kind === 'zone-defended' ? `${e.payload.zone} defendida` : e.label);
+  const groups = new Map<string, { e: CelebrationEvent; n: number }>();
+  for (const e of kept) {
+    const k = `${e.kind}|${text(e)}`;
+    const g = groups.get(k);
+    if (g) g.n += 1;
+    else groups.set(k, { e, n: 1 });
+  }
+  const shown = [...groups.values()];
+  if (shown.length === 0) return null;
   return (
     <Stagger testID="resumo-conquistas-lista" gap={space[2]} style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-      {events.map((e) => (
+      {shown.map(({ e, n }) => (
         <View
           key={e.id}
           accessible
-          accessibilityLabel={e.label}
+          accessibilityLabel={n > 1 ? `${e.label} (${n} zonas)` : e.label}
           style={{
             flexDirection: 'row',
             alignItems: 'center',
             gap: space[1],
             minHeight: 36,
+            maxWidth: maxChip,
             paddingHorizontal: space[3],
             borderRadius: radius.pill,
             borderWidth: 1,
@@ -68,8 +92,9 @@ function ConquestChips({ events }: { events: readonly CelebrationEvent[] }) {
             backgroundColor: colors.surface,
           }}>
           <Icon name={CHIP_ICON[e.kind] ?? 'check'} size={14} color={colors.accentText} />
-          <Text variant="caption" numberOfLines={1}>
-            {e.kind === 'zone-captured' ? e.payload.zone : e.kind === 'zone-defended' ? `${e.payload.zone} defendida` : e.kind === 'xp' ? `+${e.payload.gained} XP` : e.label}
+          {/* F8-D (fonte ×1,3): o chip cresce para 2 linhas e a contagem "· 2 zonas" não some. */}
+          <Text variant="caption" numberOfLines={2} style={{ flexShrink: 1 }}>
+            {n > 1 ? `${text(e)} · ${n} zonas` : text(e)}
           </Text>
         </View>
       ))}
@@ -80,6 +105,10 @@ function ConquestChips({ events }: { events: readonly CelebrationEvent[] }) {
 export type SummaryScreenProps = {
   /** Encaixe do bloco "Recompensas" da E7 (missões, baú, XP da semana). */
   rewards?: ReactNode;
+  /** Encaixe dos momentos da E7 (F8 · B2): 1º trecho, recorde, bairro novo e a fala do líder. */
+  moments?: ReactNode;
+  /** Encaixe do "Quando você corre de novo?" da E7 (D-94), depois das recompensas. */
+  plan?: ReactNode;
   /** Encaixe do `<ShareButton>` da E8 (card com imagem). Sem ele, compartilha o texto. */
   /**
    * XP e nível que o servidor creditou de fato (bloco "Recompensas" da E7: corrida + baús + missões). Com ele, o
@@ -94,7 +123,7 @@ export type SummaryScreenProps = {
  * v2 (T7.2.7): sequência cinematográfica — a rota se desenha, os números contam, as conquistas aparecem uma
  * a uma (com "Pular"), o nível enche e o Compartilhar é a ação primária ("Concluir" vira link).
  */
-export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps = {}) {
+export function SummaryScreen({ rewards, moments, plan, renderShare, xp }: SummaryScreenProps = {}) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotionSetting();
@@ -111,6 +140,8 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
   const official = record.state === 'official';
   const conquered = official && r ? r.zones.filter((z) => z.outcome === 'conquered') : [];
   const highlight = conquered[0];
+  // F8 · C1 (E5): "Antes e depois do bairro", só com o resultado oficial e alguma zona que mudou de dono.
+  const flipZones = useMemo(() => (official && r && r.status !== 'review' && r.status !== 'rejected' ? neighborhoodZonesFrom(r.zones, cellCenter) : null), [official, r]);
   const events = useMemo(() => (r ? summaryCelebrations(r, official, faction, xp?.gained) : []), [r, official, faction, xp?.gained]);
   const [sequenceDone, setSequenceDone] = useState(false);
   /** Sem conquista confirmada, o roteiro vai direto ao nível (depois dos números). */
@@ -191,7 +222,7 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
             : null;
 
   const at = (ms: number) => (reduced ? 0 : ms);
-  const lvl = xp ?? levelFromXp(xpTotal);
+  const lvl = xp ?? levelProgress(xpTotal); // D-92: uma curva só
   const gained = xp?.gained ?? r.xp;
   const teamColor = neonTeam[faction];
   const time = formatDuration(r.movingSeconds);
@@ -209,12 +240,12 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
           </View>
         }>
         {highlight ? (
-          <View testID="resumo-zona-conquistada" accessible accessibilityRole="header" accessibilityLabel={`Zona conquistada: ${highlight.name}`} style={{ alignItems: 'center', gap: space[1] }}>
+          <View testID="resumo-zona-conquistada" accessible accessibilityRole="header" accessibilityLabel={`Zona conquistada: ${zoneDisplayName(highlight.name)}`} style={{ alignItems: 'center', gap: space[1] }}>
             <Text variant="label" color={neon.orangeText} style={{ textTransform: 'uppercase' }}>
               Zona conquistada
             </Text>
             <RevealText variant="headline" align="center" header={false}>
-              {highlight.name}
+              {zoneDisplayName(highlight.name)}
             </RevealText>
           </View>
         ) : (
@@ -295,13 +326,13 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
             />
             <StatTile
               label="Território"
-              value={`+${r.rpTotal}`}
-              unit="pts"
+              value={signedInt(r.rpTotal)}
+              unit={Math.round(r.rpTotal) === 1 ? 'ponto' : 'pontos'}
               accent={neon.orangeText}
               valueSlot={
                 <CountUp
                   value={r.rpTotal}
-                  format={(n) => `+${Math.round(n)}`}
+                  format={(n) => signedInt(n)}
                   variant="headline"
                   color={neon.orangeText}
                   delay={at(NUMBERS_AT + 3 * NUMBER_STEP)}
@@ -326,10 +357,11 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
 
         {/* 3. As conquistas, uma a uma (E5): só o que o servidor confirmou. "Pular" leva tudo ao fim. */}
         {/* 3. As conquistas tocam no palco por cima da tela (abaixo); no fim, ficam aqui como chips. */}
-        {events.length > 0 && sequenceDone ? <ConquestChips events={events} /> : null}
+        {events.length > 0 && sequenceDone ? <ConquestChips events={events} headline={highlight?.name} /> : null}
 
-        {/* 4. O nível (XP do servidor) enche depois das conquistas. */}
-        {done ? (
+        {/* 4. O nível (XP do servidor) enche depois das conquistas. UX-10: com o bloco de recompensas da E7, o nível e o
+            XP moram só nele (1 vez cada); este cartão fica para o servidor v1, que não manda o bloco. */}
+        {done && !rewards ? (
           <FadeUp delay={at(events.length ? 0 : CONQUESTS_AT)}>
             <Surface style={{ gap: space[2] }}>
               <View testID="resumo-nivel" style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
@@ -339,13 +371,13 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
                 </Text>
                 {gained > 0 ? (
                   <Text variant="bodyBold" tabular color={neon.orangeText} testID="resumo-xp">
-                    +{gained} XP
+                    {formatXp(gained)}
                   </Text>
                 ) : null}
               </View>
               <ProgressBar
                 value={lvl.needed > 0 ? lvl.intoLevel / lvl.needed : 0}
-                color={factions[faction].color}
+                color={neonTeam[faction]}
                 ghost={false}
                 height={10}
                 delay={at(150)}
@@ -355,8 +387,17 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
           </FadeUp>
         ) : null}
 
+        {/* F8 · C1 (E5): o bairro antes → depois (800 ms), as zonas viradas acendendo uma a uma (máx. 5). */}
+        {done && flipZones ? <NeighborhoodFlip testID="resumo-bairro-antes-depois" path={record.path} zones={flipZones} team={faction} routeColor={teamColor} delay={at(200)} /> : null}
+
+        {/* Momentos da E7 (só com dado real): 1º trecho ou recorde, bairro novo e o líder comentando o feito. */}
+        {done && moments ? moments : null}
+
         {/* Encaixe do bloco "Recompensas" da E7 (missões, baú, semana). */}
         {done && rewards ? <FadeUp delay={at(200)}>{rewards}</FadeUp> : null}
+
+        {/* D-94: "Quando você corre de novo?" (E7). */}
+        {done && plan ? plan : null}
 
         <Button testID="resumo-detalhes" label={details ? 'Esconder detalhes' : 'Ver detalhes'} kind="ghost" icon="route" onPress={() => setDetails((d) => !d)} />
 
@@ -386,14 +427,14 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
                     <TeamBadge faction={z.ownerAfter} size={30} />
                     <View style={{ flex: 1 }}>
                       <Text variant="bodyBold" numberOfLines={2}>
-                        {z.name}
+                        {zoneDisplayName(z.name)}
                       </Text>
                       <Text variant="small" muted>
                         {OUTCOME_LABEL[z.outcome]}, {Math.round(z.meters)} m
                       </Text>
                     </View>
                     <Text variant="bodyBold" tabular color={z.rp > 0 ? colors.accentText : undefined}>
-                      +{z.rp}
+                      {signedInt(z.rp)}
                     </Text>
                   </View>
                 ))
@@ -403,9 +444,11 @@ export function SummaryScreen({ rewards, renderShare, xp }: SummaryScreenProps =
                   Estimativa do aparelho.
                 </Text>
               ) : null}
-              <Text variant="small" muted accessibilityLabel={`Mais ${gained} XP e ${r.newFogCells} ruas novas no Atlas`}>
-                +{gained} XP · +{r.newFogCells} ruas
-              </Text>
+              {r.newFogCells > 0 ? (
+                <Text variant="small" muted accessibilityLabel={`Mais ${r.newFogCells} ruas novas no Atlas`}>
+                  {`+${formatInt(r.newFogCells)} ${r.newFogCells === 1 ? 'rua nova' : 'ruas novas'} no Atlas`}
+                </Text>
+              ) : null}
             </Surface>
             {reasons.length > 0 || r.review ? (
               <Surface style={{ borderWidth: 1, borderColor: colors.line }}>

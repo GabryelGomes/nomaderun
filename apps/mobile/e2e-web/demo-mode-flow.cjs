@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 /**
- * E10 (onda 4, F5) — fluxo completo no MODO DEMONSTRAÇÃO (D-77), sem servidor e sem rede:
- * primeira abertura → cadastro → cidade dividida → escolher time → confirmação → localização → Mapa (missão de
- * boas-vindas) → Nova corrida → simulação → segurar para encerrar → Resumo (recompensas) → Compartilhar (card) →
- * Arena → Clube → Você → Ajustes → Missões → Recompensas.
+ * E10 (onda 4, F5) / F8 B1 — fluxo completo no MODO DEMONSTRAÇÃO (D-77), sem servidor e sem rede:
+ * primeira abertura → cidade dividida → escolher time (capas) → cerimônia (≤ 5 toques, zero digitação) → cadastro
+ * ("Garanta seu lugar nos …") → localização → Mapa (missão de boas-vindas) → Nova corrida → simulação → segurar
+ * para encerrar → Resumo (recompensas) → Compartilhar (card) → Arena → Clube → Você → Ajustes → Missões →
+ * Recompensas → `/correr` (link antigo) → rota inexistente (404). F8 onda D: Arena ("Correr contra" o chefão, folha da
+ * Liga, "Como jogar"), Missões ("Ir"), e numa conta com histórico: moldura Recruta, medalha tocável, carimbos, Clube
+ * (seletor e feed), Ajustes em 4 telas, Sair com confirmação e "Entrar" sem onboarding.
  *
  * Em cada tela confere: o selo "Demonstração" na tela e sem texto por baixo dele, nenhum erro de página e nenhum
  * pedido ao Supabase (o modo demonstração não usa rede).
@@ -17,7 +20,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const { chooseTeam, signUp } = require('./onboarding-steps.cjs');
+const { chooseTeamBeforeAccount, fillSignUp, finishOnboarding, MAX_TAPS_TO_CEREMONY } = require('./onboarding-steps.cjs');
 const { serve } = require('./serve.cjs');
 
 const DIST = path.resolve(process.argv[2] || path.join(os.tmpdir(), 'nomade-demo'));
@@ -100,15 +103,23 @@ function sealOverlap() {
       ok(under !== null && under.length === 0, `${label}: selo "Demonstração" na tela e sem texto por baixo`, under);
     };
 
-    // 1. Primeira abertura e cadastro
+    // 1. Primeira abertura (D-91): valor antes da conta — cidade → times (capas) → cerimônia, em ≤ 5 toques e sem digitar
     await page.goto(`${BASE}/?cenario=primeira-abertura`);
     await screen('tela-boas-vindas', 'primeira abertura (boas-vindas)');
+    ok((await page.locator('[data-testid="boas-vindas-titulo"]').getAttribute('aria-label')) === 'NOMADE RUN', 'boas-vindas com o logo oficial como herói (UX-20)');
     await shot('01-boas-vindas');
-    await signUp(page, { email: 'ana@exemplo.com', password: 'Corre@2026x', username: 'ana_corre' });
+    const taps = await chooseTeamBeforeAccount(page, 'volt');
+    ok(taps <= MAX_TAPS_TO_CEREMONY, `${taps} toques até a cerimônia, sem digitar (meta ≤ ${MAX_TAPS_TO_CEREMONY})`, taps);
+    await screen('tela-cadastro', 'cadastro depois da cerimônia');
+    // o título é revelado palavra a palavra (RevealText): o innerText vem com quebras entre as palavras
+    ok(/Garanta\s+seu\s+lugar\s+nos\s+Volt\s+Runners/.test(await id('tela-cadastro').innerText()), 'cadastro diz "Garanta seu lugar nos Volt Runners"');
+    await shot('02-cadastro');
+    await fillSignUp(page, { email: 'ana@exemplo.com', password: 'Corre@2026x', username: 'ana_corre' });
 
-    // 2. Onboarding: cidade dividida → time (Volt Runners) → confirmação → localização → Mapa
-    await screen('onboarding-cidade', 'onboarding: a cidade dividida');
-    await chooseTeam(page, 'volt');
+    // 2. Depois do cadastro: o time pendente é gravado e o app vai direto ao GPS → Mapa (sem escolher de novo)
+    await id('onboarding-localizacao-permitir').waitFor({ timeout: 30_000 });
+    ok((await page.locator('[data-testid="tela-onboarding-times"]').count()) === 0, 'sem escolher o time de novo depois do cadastro (choose_faction rodou sozinho)');
+    await finishOnboarding(page);
 
     // 3. Mapa com a missão de boas-vindas (sem o card de missão do Mapa por baixo)
     await screen('tela-mapa', 'Mapa');
@@ -138,7 +149,16 @@ function sealOverlap() {
     await screen('tela-resumo', 'Resumo');
     await id('resumo-recompensas').waitFor({ timeout: 15_000 });
     ok(await id('resumo-recompensas-demonstracao').isVisible(), 'Resumo: bloco de recompensas identificado como demonstração');
+    // F8-D · M-2: o total de baús guardados do Resumo é o mesmo de Recompensas (conferido no passo 8).
+    const chestsOf = (t) => (t.replace(/\s+/g, ' ').match(/(\d+ baús? guardados?|Nenhum baú guardado|Baús de hoje já abertos)/) || [null, null])[1];
+    const resumoBaus = chestsOf(await id('resumo-recompensas').innerText());
     await shot('05-resumo');
+    // F8 B2 (D-94): no 1º resumo, "Quando você corre de novo?" com 3 horários e "Agora não".
+    await id('plano-proxima').waitFor({ state: 'attached', timeout: 15_000 });
+    ok((await page.locator('[data-testid^="plano-proxima-opcao-"]').count()) === 3, 'Resumo: plano da próxima corrida com 3 horários (D-94)');
+    await id('plano-proxima').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+    await shot('05-resumo-plano');
 
     // 6. Compartilhar
     await id('resumo-compartilhar').click();
@@ -150,11 +170,39 @@ function sealOverlap() {
     await id('resumo-concluir').waitFor({ timeout: 15_000 });
     await id('resumo-concluir').click();
 
-    // 7. Abas: Arena → Clube → Você → Ajustes
+    // 7. Abas (D-89): Mapa · Arena · Clube · Você, sem aba Correr; o CORRER do Mapa é o único genérico
     await screen('tela-mapa', 'Mapa depois da corrida');
+    // F8 B2 (UX-02): com a 1ª corrida feita, a missão de boas-vindas sai sozinha.
+    ok((await page.locator('[data-testid="mapa-missao-boas-vindas"]').count()) === 0, 'Mapa depois da 1ª corrida: missão de boas-vindas saiu sozinha (UX-02)');
+    await shot('07-mapa-depois');
+    const tabs = await page.locator('[role="tab"]').evaluateAll((els) => els.map((e) => e.getAttribute('aria-label') || e.innerText));
+    ok(JSON.stringify(tabs) === JSON.stringify(['Mapa', 'Arena', 'Clube', 'Você']), '4 abas: Mapa · Arena · Clube · Você (sem aba Correr)', tabs);
+    ok((await page.locator('[data-testid="aba-correr"]').count()) === 0 && (await id('mapa-correr').isVisible()), 'Correr em um lugar só: o CORRER do Mapa');
     await id('aba-arena').click();
     await screen('tela-arena', 'Arena');
+    // F8 B2 (UX-19): na 1ª visita, "Como jogar" (6 cartões) abre sozinho; fecha e a Arena fica livre.
+    await id('arena-ajuda').waitFor({ timeout: 10_000 });
+    ok((await page.locator('[data-testid="arena-ajuda"]').innerText()).includes('Missões e baú'), 'Arena, 1ª visita: "Como jogar" abre sozinho com os 6 cartões');
+    await shot('07-arena-como-jogar');
+    await id('arena-ajuda-fechar').click();
+    await page.waitForTimeout(600);
     await shot('07-arena');
+    // F8 B3 (UX-11): a Arena tem ação — "Correr contra" o chefão abre a Nova corrida; a Liga abre a folha.
+    await id('arena-raid-correr').click();
+    await screen('tela-nova-corrida', 'Arena → "Correr contra" o chefão');
+    await id('corrida-fechar').click();
+    await screen('tela-arena', 'fechar a Nova corrida volta à Arena');
+    await id('arena-liga').click();
+    await id('arena-liga-folha').waitFor({ timeout: 10_000 });
+    ok(/sobe|Sobe/.test(await id('arena-liga-folha').innerText()), 'Arena → folha da Liga (grupo, quem sobe, prazo)');
+    await shot('07-arena-liga');
+    await id('arena-liga-folha-fechar').click();
+    await page.waitForTimeout(400);
+    await id('arena-ajuda-abrir').click();
+    await id('arena-ajuda').waitFor({ timeout: 10_000 });
+    ok(true, 'Arena → "Como jogar" abre de novo pelo botão');
+    await id('arena-ajuda-fechar').click();
+    await page.waitForTimeout(400);
     await id('aba-clube').click();
     await screen('tela-clube', 'Clube');
     await shot('08-clube');
@@ -169,10 +217,78 @@ function sealOverlap() {
     await page.goBack();
     await id('perfil-missoes').click();
     await screen('tela-missoes', 'Missões');
+    // F8 B2 (UX-27): cada missão tem "Ir", que abre a Nova corrida.
+    await page.locator('[data-testid^="missao-ir-"]').first().click();
+    await screen('tela-nova-corrida', 'Missões → "Ir" abre a Nova corrida');
+    await id('corrida-fechar').click();
+    await screen('tela-missoes', 'fechar a Nova corrida volta às Missões');
     await page.goBack();
     await id('perfil-recompensas').click();
     await screen('tela-recompensas', 'Recompensas');
+    {
+      const recompensasBaus = chestsOf(await page.locator('[data-testid="tela-recompensas"]').innerText());
+      ok(resumoBaus === null || resumoBaus === recompensasBaus, `M-2: baús guardados iguais no Resumo e em Recompensas (${resumoBaus ?? 'Resumo abriu os baús'} × ${recompensasBaus})`);
+    }
     await shot('11-recompensas');
+
+    // 9. Links antigos e rota inexistente (D-89, UX-06): /correr abre a Nova corrida; 404 em português
+    await page.goto(`${BASE}/correr`);
+    await screen('tela-nova-corrida', '/correr → Nova corrida');
+    await id('corrida-fechar').click();
+    await screen('tela-mapa', 'fechar a Nova corrida aberta por link volta ao Mapa');
+    await page.goto(`${BASE}/rota-que-nao-existe`);
+    await screen('tela-nao-encontrada', 'rota inexistente');
+    ok(/Essa página não existe/.test(await id('tela-nao-encontrada').innerText()) && !/Unmatched/i.test(await page.locator('body').innerText()), '404 em português ("Essa página não existe")');
+    await shot('12-nao-encontrada');
+    await id('nao-encontrada-voltar').click();
+    await screen('tela-mapa', '"Voltar ao mapa" abre o Mapa');
+
+    // 10. Conta existente (cenário "cheio"): Sair com confirmação (Ajustes → Conta) e "Entrar" sem onboarding (D-91)
+    await page.goto(`${BASE}/perfil?cenario=cheio`);
+    await screen('tela-perfil', 'Você (conta com histórico)');
+    ok(/Moldura Recruta/.test(await id('perfil-cartao').innerText()), 'Você: cartão com a moldura "Recruta"');
+    await page.locator('[data-testid^="perfil-medalha-"]').first().click();
+    await page.waitForTimeout(600);
+    ok((await page.locator('[role="dialog"], [data-testid*="medalha-folha"], [data-testid*="medalha-detalhe"]').count()) > 0 || /Critério|critério|Faltam|faltam|Conquistada|conquistada/.test(await page.locator('body').innerText()), 'Você: medalha tocável mostra nome, critério e progresso');
+    await shot('13-voce-medalha');
+    await page.goto(`${BASE}/perfil?cenario=cheio`);
+    await screen('tela-perfil', 'Você de novo');
+    ok((await page.locator('[data-testid="carimbo"], [data-testid^="carimbo-"]').count()) > 0 || /Carimbos do Atlas/.test(await id('tela-perfil').innerText()), 'Você: carimbos do Atlas');
+    await id('aba-clube').click();
+    await screen('tela-clube', 'Clube (conta com crew)');
+    ok((await page.locator('[data-testid="clube-secao"]').count()) > 0, 'Clube: seletor "Corridas · Ranking" no topo');
+    ok((await page.locator('[data-testid="clube-feed"]').count()) > 0, 'Clube: feed da crew');
+    await shot('14-clube-cheio');
+    await id('aba-voce').click();
+    await id('voce-ajustes').click();
+    await screen('tela-ajustes', 'Ajustes');
+    for (const [row, tela] of [['ajustes-conta', 'Conta'], ['ajustes-seguranca', 'Segurança na corrida'], ['ajustes-privacidade', 'Privacidade'], ['ajustes-lembretes', 'Lembretes']]) {
+      await id(row).click();
+      await page.waitForTimeout(900);
+      const t = await page.locator('[data-testid^="tela-"]').evaluateAll((els) => els.map((e) => e.getAttribute('data-testid')));
+      ok(t.some((x) => x !== 'tela-ajustes' && x !== 'tela-perfil'), `Ajustes → ${tela} abre a sua tela (${t.join(',')})`);
+      await page.goBack();
+      await screen('tela-ajustes', `volta de ${tela} para Ajustes`);
+    }
+    await id('ajustes-conta').click();
+    await id('conta-sair').click();
+    await id('conta-sair-dialogo').waitFor({ timeout: 10_000 });
+    ok(true, 'Sair pede confirmação (UX-36)');
+    await id('conta-sair-dialogo-confirmar').click();
+    await page.locator('[data-testid="tela-entrar"], [data-testid="tela-boas-vindas"]').first().waitFor({ timeout: 20_000 });
+    let entrarTaps = 0;
+    if (await page.locator('[data-testid="tela-boas-vindas"]').count()) {
+      await id('boas-vindas-entrar').click();
+      entrarTaps++;
+    }
+    await screen('tela-entrar', 'Entrar');
+    await id('entrar-email').fill('demonstracao@nomaderun.invalid');
+    await id('entrar-senha').fill('Corre@2026x');
+    await id('entrar-botao').click();
+    entrarTaps++;
+    await page.locator('[data-testid="tela-mapa"], [data-testid="tela-onboarding"], [data-testid="tela-onboarding-times"], [data-testid="tela-cidade"], [data-testid="onboarding-cidade"]').first().waitFor({ timeout: 30_000 });
+    ok((await page.locator('[data-testid="tela-mapa"]').count()) === 1, `"Entrar" com conta existente vai direto ao Mapa, sem onboarding (${entrarTaps} toques e 2 campos)`);
+    await shot('15-entrar-mapa');
 
     ok(server_.length === 0, 'nenhum pedido ao Supabase (modo demonstração sem rede)', server_);
     ok(errors.length === 0, 'sem erros de página', errors);

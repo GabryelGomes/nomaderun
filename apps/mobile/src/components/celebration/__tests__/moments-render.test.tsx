@@ -232,7 +232,7 @@ describe('CelebrationSequence', () => {
 
   it('galeria /dev/motion: cada momento e cada ajuste tocam sem erro', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const Gallery = require('@/app/dev/motion').default as () => ReactElement;
+    const Gallery = require('@/features/dev/motion-gallery').default as () => ReactElement;
     const r = render(<Gallery />);
     const chips = r.root.findAll((n: ReactTestInstance) => typeof n.props.testID === 'string' && n.props.testID.startsWith('galeria-motion-') && typeof n.props.onPress === 'function' && !n.props.testID.startsWith('galeria-motion-vibrar'));
     const ids = [...new Set(chips.map((c: ReactTestInstance) => c.props.testID as string))];

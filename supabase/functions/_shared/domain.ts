@@ -30,3 +30,5 @@ export * from '../../../apps/mobile/src/domain/league.ts';
 export * from '../../../apps/mobile/src/domain/share-privacy.ts';
 export * from '../../../apps/mobile/src/domain/gpx.ts';
 export * from '../../../apps/mobile/src/domain/crew-goal.ts';
+export * from '../../../apps/mobile/src/domain/faction-activity.ts';
+export * from '../../../apps/mobile/src/domain/team-bio.ts';

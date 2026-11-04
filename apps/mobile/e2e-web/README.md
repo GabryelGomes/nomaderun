@@ -58,6 +58,14 @@ Rota × estado (`?cenario=` do servidor de demonstração: cheio, vazio, carrega
 NODE_PATH="$(npm root -g)" node e2e-web/demo-mode-flow.cjs /tmp/nomade-demo
 ```
 
-Primeira abertura → cadastro → cidade dividida → Volt Runners → confirmação → localização → Mapa (missão de boas-vindas sozinha) → Nova corrida → simulação (~20 s, `SIM_MS`) → segurar para encerrar → Resumo (recompensas marcadas como demonstração) → Compartilhar (card marcado) → Arena → Clube → Você → Ajustes → Missões → Recompensas. Em cada tela: selo "Demonstração" presente e nenhum texto por baixo dele; no fim, zero pedidos ao Supabase e zero erros de página (21 verificações).
+Primeira abertura → cidade dividida → Volt Runners (capas) → cerimônia (≤ 5 toques, sem digitar) → cadastro → localização → Mapa (missão de boas-vindas sozinha) → Nova corrida → simulação (~20 s, `SIM_MS`) → segurar para encerrar → Resumo (recompensas marcadas como demonstração) → Compartilhar (card marcado) → Arena → Clube → Você → Ajustes → Missões → Recompensas. F8 onda D: Arena ("Correr contra" o chefão, folha da Liga, "Como jogar"), Missões ("Ir"), e numa conta com histórico: moldura Recruta, medalha tocável, carimbos, Clube (seletor e feed), Ajustes em 4 telas, Sair com confirmação e "Entrar" sem onboarding. Em cada tela: selo "Demonstração" presente e nenhum texto por baixo dele; no fim, zero pedidos ao Supabase e zero erros de página (61 verificações).
 
-Os passos de cadastro e onboarding da v2 ficam em `onboarding-steps.cjs`, usados também pelo `demo-flow.cjs` e pelo `auth-flow.cjs`. O cadastro não pede mais a cidade: o `auth-flow` confere a cidade em Você → Editar perfil.
+### Testes adversariais (F8 onda D)
+
+```bash
+NODE_PATH="$(npm root -g)" OUT_DIR=/tmp/adv node e2e-web/adversarial.cjs /tmp/nomade-demo
+```
+
+Rotas com parâmetro malformado (`/zona/xyz`, `%25zz`, `<script>`…), guarda de rotas sem conta (12 rotas do app e voltar/avançar no meio da primeira abertura), girar a tela (360 → 430 → 360), fonte ×1,3 em 14 telas (texto cortado ou fora da tela; com capturas), chips do Resumo sem repetição e duas abas abertas. Saída: `adversarial.json` e as capturas `fonte-130__*.png` em `OUT_DIR`. A fonte ×1,3 é simulada (CSS) e ignora o `maxFontSizeMultiplier` e o `adjustsFontSizeToFit` do aparelho: é pessimista; confira o resto no aparelho.
+
+Os passos da primeira abertura (D-91: cidade → times → cerimônia → cadastro → GPS) ficam em `onboarding-steps.cjs`, usados também pelo `demo-flow.cjs` e pelo `auth-flow.cjs`; `chooseTeamBeforeAccount` conta os toques até a cerimônia (meta ≤ 5). O cadastro não pede mais a cidade: o `auth-flow` confere a cidade em Você → Editar perfil.

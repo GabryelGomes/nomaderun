@@ -47,6 +47,16 @@ describe('Button (acessibilidade e contraste, D-75)', () => {
     const danger = render(<Button testID="d" label="Excluir" kind="danger" onPress={noop} />);
     expect(JSON.stringify(danger.renderer.root.findByType(RNText).props.style)).toContain(dark.onDanger);
   });
+
+  it('desativado: tokens próprios (texto 7,07:1, borda de controle) e sem opacidade apagando o rótulo (F8-D)', () => {
+    for (const kind of ['primary', 'secondary', 'danger'] as const) {
+      const r = render(<Button testID="x" label="Toque no seu time" kind={kind} disabled onPress={noop} />);
+      expect(JSON.stringify(r.renderer.root.findByType(RNText).props.style)).toContain(dark.onDisabled);
+      const pill = JSON.stringify(r.renderer.root.findAll((n) => typeof n.type !== 'string' && JSON.stringify(n.props.style ?? '').includes(dark.disabledSurface)).map((n) => n.props.style));
+      expect(pill).toContain(dark.lineControl);
+      expect(pill).not.toContain('"opacity":0.45');
+    }
+  });
 });
 
 describe('EmptyState', () => {

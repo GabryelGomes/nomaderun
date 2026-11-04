@@ -58,10 +58,13 @@ describe('alerta único com prioridade', () => {
     };
     const attacked = zonesUnderAttack(zones, 'striders', NOW);
     expect(attacked.map((x) => x.id)).toEqual(['b', 'a']);
-    const alerts = mapAlerts({ attacked, ...names, timeZone: 'America/Sao_Paulo' });
+    const alerts = mapAlerts({ attacked, ...names, now: NOW });
     expect(alerts[0]).toMatchObject({ kind: 'attack', zoneId: 'b', title: 'Zona b sob ataque' });
-    expect(alerts[0].body).toBe(`Night Owls · dobro até ${defenseEndsAt(zones.b, 'America/Sao_Paulo')}`);
-    expect(defenseEndsAt(zones.b, 'America/Sao_Paulo')).toBe('08:00');
+    // UX-09: na tela, o prazo é contagem por extenso ("dobro até 08:00" saiu: jargão e formato de horário).
+    expect(alerts[0].body).toBe('Night Owls · Faltam 23 h');
+    expect(defenseEndsAt(zones.b)).toBe(NOW - HOUR + DEFENSE_WINDOW_MS);
+    // Sem o relógio da tela, o horário no formato dos avisos.
+    expect(mapAlerts({ attacked, ...names })[0].body).toMatch(/^Night Owls · até \d{2}h\d{2}$/);
   });
 
   it('ordem: ataque > missão > baú > chefão > sequência; o AlertSlot mostra 1', () => {

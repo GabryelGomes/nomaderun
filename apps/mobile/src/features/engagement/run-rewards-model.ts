@@ -5,7 +5,9 @@
  * fica perto do fim, e o **fim** é sempre uma frase boa e verdadeira sobre a semana (nunca uma perda).
  */
 import { titleForLevel } from '@/domain/progression';
-import type { RunEngagement } from '@/services/api/engagement-repo';
+import type { DailyChestState, RunEngagement } from '@/services/api/engagement-repo';
+
+import { storedLabel } from './model';
 
 export type RewardSection = 'xp' | 'level' | 'chests' | 'missions' | 'streak';
 
@@ -70,4 +72,16 @@ export function rewardsA11y(b: RunEngagement): string {
   if (b.dailyChests.opened.length) parts.push(`${b.dailyChests.opened.length === 1 ? 'abriu 1 baú' : `abriu ${b.dailyChests.opened.length} baús`}`);
   if (b.missions.length) parts.push(b.missions.length === 1 ? 'concluiu 1 missão' : `concluiu ${b.missions.length} missões`);
   return `${parts.join(', ')}.`;
+}
+
+/**
+ * Baús guardados no resumo (F8-D · M-2, regra 2 "um dado, uma forma"): o mesmo total e a mesma frase de
+ * "Recompensas" (`storedLabel`, baús do dia + bônus fechados). `fresh` = o baú do store lido **depois** desta
+ * corrida (é o mesmo dado da tela Recompensas); sem ele, a soma vem do próprio bloco (`stored + bonusStored`).
+ */
+export function runChestsStored(b: RunEngagement, fresh: Pick<DailyChestState, 'stored' | 'bonus' | 'openedToday'> | null): { total: number; text: string } {
+  const c = fresh ?? { stored: b.dailyChests.stored, bonus: Array.from({ length: b.dailyChests.bonusStored }, () => 'comum' as const), openedToday: false };
+  const total = c.stored + c.bonus.length;
+  const label = storedLabel(c);
+  return { total, text: total === 0 ? `${label}.` : `${label}. ${total === 1 ? 'Abre' : 'Abrem'} com 1 km.` };
 }

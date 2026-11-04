@@ -22,6 +22,7 @@ import {
   type GeoPoint,
   type LatLng,
   levelProgress,
+  type PaintMilestones,
   type MissionActivity,
   type MissionAssignment,
   type MissionCadence,
@@ -524,6 +525,8 @@ export type V2Raw = {
   };
   records?: { new: { kind: string; value: number; previous: number | null }[] };
   feed?: { itemId: string | null };
+  /** F8 A2: marcos da pintura (svc_paint_milestones), gravados depois do svc_apply_v2. */
+  milestones?: PaintMilestones | null;
 };
 
 export type EngagementBlock = {
@@ -550,6 +553,8 @@ export type V2Extras = {
   engagement?: EngagementBlock;
   records?: { new: { kind: string; value: number; previous: number | null }[] } | null;
   feed?: { itemId: string | null } | null;
+  /** F8 A2: "primeiro trecho pintado" e "recorde de trechos numa corrida". Só com a pintura v2. */
+  milestones?: PaintMilestones | null;
 };
 
 const XP_EXTRA_LABELS: Record<string, string> = { raid: 'Chefão', league: 'Liga', medal: 'Medalha', track: 'Trilha da temporada' };
@@ -606,6 +611,7 @@ export function buildExtras(raw: V2Raw, now: number): V2Extras {
   if (raw.engagement) out.engagement = engagementBlock(raw.engagement, now);
   if (raw.records !== undefined) out.records = raw.records;
   if (raw.feed !== undefined) out.feed = raw.feed;
+  if (raw.milestones) out.milestones = raw.milestones;
   return out;
 }
 

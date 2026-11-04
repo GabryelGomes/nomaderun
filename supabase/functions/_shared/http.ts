@@ -5,6 +5,8 @@ export const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Max-Age': '86400',
+  // Sem isto, o navegador esconde o `Retry-After` do 429 (F8-D, B2); o app lê `details.retryAfter` ou este cabeçalho.
+  'Access-Control-Expose-Headers': 'Retry-After',
 };
 
 export class HttpError extends Error {
@@ -39,7 +41,13 @@ export function handler(methods: string[], fn: (req: Request) => Promise<Respons
     try {
       return await fn(req);
     } catch (e) {
-      if (e instanceof HttpError) return errorResponse(e.status, e.code, e.message, e.details);
+      if (e instanceof HttpError) {
+        const res = errorResponse(e.status, e.code, e.message, e.details);
+        // 429 RATE_LIMITED (D-99): o cabeçalho padrão diz em quantos segundos tentar de novo
+        const retryAfter = e.details?.retryAfter;
+        if (e.status === 429 && typeof retryAfter === 'number') res.headers.set('Retry-After', String(retryAfter));
+        return res;
+      }
       console.error(e);
       return errorResponse(500, 'INTERNAL', 'Erro interno no servidor. Tente de novo em instantes.');
     }

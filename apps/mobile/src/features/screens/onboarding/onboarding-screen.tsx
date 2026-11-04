@@ -1,42 +1,42 @@
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { ScrollView, useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { LeaderBust, Mascot, MascotRunner, TutorialArt } from '@/components/art';
+import { TeamEmblem, TutorialArt } from '@/components/art';
 import { Button } from '@/components/button';
-import { TeamConfirm } from '@/components/celebration';
-import { LeaderSheet } from '@/components/leader-sheet';
-import { enterAnimation, haptic } from '@/components/motion';
+import { enterAnimation, ShimmerSkeleton } from '@/components/motion';
 import { PermissionPrimer } from '@/components/permission-primer';
 import { ScreenScroll } from '@/components/screen';
-import { TeamCarousel } from '@/components/team-picker';
-import { TEAM_STORY } from '@/components/team-identity';
 import { Text } from '@/components/text';
+import { TEAM_BIO } from '@/domain/team-bio';
 import type { FactionId } from '@/domain/types';
-import { ErrorNotice, TextField } from '@/features/auth/form-ui';
+import { TextField } from '@/features/auth/form-ui';
 import { useOnboardingFlow } from '@/features/auth/onboarding-flow';
-import { chooseFaction, saveProfile } from '@/features/auth/session-controller';
+import { clearPendingTeam, getPendingTeam } from '@/features/auth/pending-team';
+import { chooseFaction, chooseFactionOnce, saveProfile } from '@/features/auth/session-controller';
 import { validateUsername } from '@/features/auth/validation';
 import type { Result } from '@/services/api/errors';
 import type { Profile } from '@/services/api/types';
 import { useSession } from '@/store/session-store';
 import { cssEasings, distances, durations } from '@/theme/motion';
-import { factions, radius, space } from '@/theme/tokens';
+import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { CityDividedStep } from './city-divided-step';
-import { OnboardingSheet } from './onboarding-sheet';
-import { TeamQuiz } from './team-quiz';
+import { TeamChoiceScreen } from './team-choice';
 
 /**
- * Passos da primeira abertura depois do cadastro (D-72). "nome" só existe para quem entrou sem nome de usuário
- * (login social sem nome); a permissão de notificação **não** é pedida aqui (vem depois da 1ª conquista, E7).
+ * Passos depois do cadastro (D-72, D-91). O caminho normal é `pendente` → `localizacao`: o time já foi escolhido
+ * antes da conta e fica guardado no aparelho; aqui ele é gravado no servidor (`choose_faction`). `cidade` e `times`
+ * são a reserva para quem entrou sem time pendente (login social, conta antiga sem time, ou se gravar falhou).
+ * "nome" só existe para quem entrou sem nome de usuário (login social sem nome); a permissão de notificação **não** é
+ * pedida aqui (vem depois da 1ª conquista, E7).
  */
-export type OnboardingStep = 'nome' | 'cidade' | 'times' | 'localizacao';
+export type OnboardingStep = 'nome' | 'pendente' | 'cidade' | 'times' | 'localizacao';
 
-/** Passos com barra de progresso (o "nome", quando existe, fica fora: é exceção). */
+/** Passos com barra de progresso (o caminho de reserva; "nome" e "pendente" ficam fora). */
 export const PROGRESS_STEPS: readonly OnboardingStep[] = ['cidade', 'times', 'localizacao'];
 
 /** O pedido de GPS nunca prende o onboarding: depois de 10 s sem resposta, segue (a Nova corrida pede de novo). */
@@ -51,6 +51,11 @@ async function askLocation(): Promise<void> {
   } finally {
     if (timer) clearTimeout(timer);
   }
+}
+
+/** Mensagem quando gravar o time falhou (a pessoa escolhe de novo ali mesmo). */
+export function saveTeamError(message?: string): string {
+  return message ? `Não deu para salvar seu time. ${message}` : 'Não deu para salvar seu time.';
 }
 
 /** Barra de progresso dos 3 passos; a cor do segmento muda com transição de cor (sem movimento). */
@@ -107,41 +112,82 @@ function LocationStep({ team, busy, onAllow }: { team: FactionId; busy: boolean;
   );
 }
 
-type Confirming = { faction: FactionId; origin: { x: number; y: number } };
+/** Enquanto o time escolhido antes da conta é gravado (menos de 1 s, em geral): emblema + 1 linha + esqueleto. */
+function SavingStep({ team }: { team: FactionId | null }) {
+  return (
+    <View testID="onboarding-salvando" style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[4], paddingHorizontal: space[6] }}>
+      {team ? <TeamEmblem team={team} size={96} variant="grande" accessibilityLabel={`Emblema dos ${TEAM_BIO[team].name}`} /> : null}
+      <Text variant="title" style={{ textAlign: 'center' }} accessibilityLiveRegion="polite">
+        {team ? `Guardando seu lugar nos ${TEAM_BIO[team].name}…` : 'Preparando seu mapa…'}
+      </Text>
+      <ShimmerSkeleton shape="line" lines={2} accessibilityLabel="Carregando" />
+    </View>
+  );
+}
 
 /**
- * Primeira abertura (D-72, wireframes `02`–`05`): "A cidade está dividida" (≤ 6 s) → escolha do time (carrossel com
- * mascote, líder e quiz) → confirmação épica (`TeamConfirm` da E5: a cor inunda a tela, vibração e frase do líder)
- * → explicação do GPS → Mapa com a missão de boas-vindas.
- *
- * O time é gravado no servidor (`choose_faction`) no toque de "Entrar para os …"; a confirmação toca enquanto isso.
- * Como o onboarding fica aberto (`onboarding-flow`), o guarda de rotas só leva às abas no último passo.
+ * Primeira abertura, parte com conta (D-91): `pendente` (grava o time escolhido antes da conta) → explicação do GPS →
+ * Mapa com a missão de boas-vindas. Reserva (sem time pendente ou gravação falhou): "A cidade está dividida" →
+ * escolha com as capas + cerimônia (`TeamChoiceScreen`) → GPS. Como o onboarding fica aberto (`onboarding-flow`), o
+ * guarda de rotas só leva às abas no último passo.
  */
 export function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const userId = useSession((s) => s.session?.userId ?? null);
   const username = useSession((s) => s.profile?.username ?? '');
+  const hasFaction = useSession((s) => Boolean(s.profile?.faction));
   const begin = useOnboardingFlow((s) => s.begin);
   const finish = useOnboardingFlow((s) => s.finish);
 
-  const [step, setStep] = useState<OnboardingStep>(() => (username.trim() ? 'cidade' : 'nome'));
+  const [step, setStep] = useState<OnboardingStep>(() => (username.trim() ? 'pendente' : 'nome'));
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState<string | null>(null);
-  const [choice, setChoice] = useState<FactionId | null>(null);
-  const [leader, setLeader] = useState<FactionId | null>(null);
-  const [quiz, setQuiz] = useState(false);
-  const [confirming, setConfirming] = useState<Confirming | null>(null);
+  const [pending, setPending] = useState<FactionId | null>(null);
+  const [fallbackError, setFallbackError] = useState<string | null>(null);
   const [joinedTeam, setJoinedTeam] = useState<FactionId | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const save = useRef<Promise<Result<Profile>> | null>(null);
-  const cta = useRef<View>(null);
 
   // O onboarding fica "aberto" para esta pessoa até o último passo (o guarda de rotas não troca de grupo no meio).
   useEffect(() => {
     if (userId) begin(userId);
   }, [userId, begin]);
+
+  // D-91: time escolhido antes da conta → grava agora. Falhou → escolha de novo, ali mesmo, com o erro.
+  useEffect(() => {
+    if (step !== 'pendente' || !userId) return;
+    let alive = true;
+    void (async () => {
+      const team = await getPendingTeam();
+      if (!alive) return;
+      if (!team) {
+        setStep(hasFaction ? 'localizacao' : 'cidade');
+        return;
+      }
+      setPending(team);
+      // F8-D · M1: o perfil já tem time (ex.: gravou numa tentativa anterior) → não pede de novo, segue.
+      if (useSession.getState().profile?.faction) {
+        await clearPendingTeam();
+        if (alive) setStep('localizacao');
+        return;
+      }
+      const res = await chooseFaction(team);
+      if (!alive) return;
+      if (res.ok) {
+        await clearPendingTeam();
+        if (!alive) return;
+        setJoinedTeam(team);
+        setStep('localizacao');
+      } else {
+        setFallbackError(saveTeamError(res.error.message));
+        setStep('times');
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [step, userId, hasFaction]);
 
   const toTeams = useCallback(() => setStep((s) => (s === 'cidade' ? 'times' : s)), []);
 
@@ -153,42 +199,7 @@ export function OnboardingScreen() {
     const saved = await saveProfile({ username: name.trim() });
     setBusy(false);
     if (!saved.ok) setNameError(saved.error.message);
-    else setStep('cidade');
-  };
-
-  /** Centro do botão que confirmou (a cor do time nasce dali). Sem medida, o pé da tela. */
-  const measureOrigin = () =>
-    new Promise<{ x: number; y: number }>((resolve) => {
-      const fallback = { x: 0, y: height };
-      const node = cta.current;
-      if (!node?.measureInWindow) return resolve(fallback);
-      node.measureInWindow((x, y, w, h) => resolve(Number.isFinite(x + y + w + h) && w > 0 ? { x: x + w / 2, y: y + h / 2 } : fallback));
-    });
-
-  const join = async (f: FactionId) => {
-    if (confirming || busy) return;
-    setError(null);
-    setLeader(null);
-    save.current = chooseFaction(f);
-    const origin = await measureOrigin();
-    setConfirming({ faction: f, origin });
-  };
-
-  /** "Bora correr": espera o time ficar salvo. Falhou → volta para a escolha, com o erro ali mesmo. */
-  const afterConfirm = async () => {
-    if (!confirming || busy) return;
-    setBusy(true);
-    const res = (await save.current) ?? null;
-    setBusy(false);
-    if (!res || !res.ok) {
-      setConfirming(null);
-      setError(res ? `Não deu para salvar seu time. ${res.error.message}` : 'Não deu para salvar seu time.');
-      setStep('times');
-      return;
-    }
-    setJoinedTeam(confirming.faction);
-    setConfirming(null);
-    setStep('localizacao');
+    else setStep('pendente');
   };
 
   const allowLocation = async () => {
@@ -199,31 +210,34 @@ export function OnboardingScreen() {
     if (userId) finish(userId);
   };
 
-  const team = choice ? factions[choice] : null;
-  const footer =
-    step === 'nome' ? (
-      <Button testID="onboarding-nome-continuar" label={busy ? 'Salvando…' : 'Continuar'} size="lg" wide disabled={busy} busy={busy} onPress={saveName} />
-    ) : step === 'cidade' ? (
-      <Button testID="onboarding-cidade-continuar" label="Escolher meu time" size="lg" wide onPress={toTeams} />
-    ) : step === 'times' ? (
-      <View style={{ gap: space[2] }}>
-        <View ref={cta} collapsable={false}>
-          <Button
-            testID="onboarding-entrar-time"
-            label={team ? `Entrar para os ${team.name}` : 'Toque no seu time'}
-            size="lg"
-            wide
-            disabled={!choice || !!confirming}
-            onPress={() => choice && void join(choice)}
-          />
-        </View>
-        <Text variant="caption" muted style={{ textAlign: 'center' }}>
-          Dá para trocar 1 vez por temporada.
-        </Text>
-      </View>
-    ) : undefined;
+  if (step === 'times') {
+    return (
+      <TeamChoiceScreen
+        header={<StepProgress step={step} />}
+        initial={pending}
+        initialError={fallbackError}
+        onJoin={(f) => {
+          // F8-D · B4: uma gravação por vez (a tela de times já trava os toques; aqui é a 2ª barreira).
+          if (save.current) return;
+          // F8-D · M1b: relê o perfil antes; se o servidor já tem time, segue com ele (outra escolha viraria troca).
+          save.current = chooseFactionOnce(f);
+        }}
+        onContinue={async (f) => {
+          const res = (await save.current) ?? null;
+          if (!res || !res.ok) {
+            save.current = null;
+            return saveTeamError(res ? res.error.message : undefined);
+          }
+          await clearPendingTeam();
+          setJoinedTeam(res.data.faction ?? f);
+          setStep('localizacao');
+          return null;
+        }}
+      />
+    );
+  }
 
-  if (step === 'localizacao') {
+  if (step === 'localizacao' || step === 'pendente') {
     return (
       <View testID="tela-onboarding" style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom }}>
         <View style={{ paddingHorizontal: space[6], paddingTop: space[6] }}>
@@ -231,126 +245,58 @@ export function OnboardingScreen() {
         </View>
         <StepPanel step={step}>
           <View style={{ minHeight: height - insets.top - insets.bottom - space[12] }}>
-            <LocationStep team={joinedTeam ?? choice ?? 'striders'} busy={busy} onAllow={allowLocation} />
+            {step === 'pendente' ? <SavingStep team={pending} /> : <LocationStep team={joinedTeam ?? pending ?? 'striders'} busy={busy} onAllow={allowLocation} />}
           </View>
         </StepPanel>
       </View>
     );
   }
 
+  const footer =
+    step === 'nome' ? (
+      <Button testID="onboarding-nome-continuar" label={busy ? 'Salvando…' : 'Continuar'} size="lg" wide disabled={busy} busy={busy} onPress={saveName} />
+    ) : (
+      <Button testID="onboarding-cidade-continuar" label="Escolher meu time" size="lg" wide onPress={toTeams} />
+    );
+
   return (
-    <View style={{ flex: 1 }}>
-      <ScreenScroll
-        testID="tela-onboarding"
-        padded={false}
-        footer={footer}
-        gap={space[6]}
-        contentContainerStyle={{ flexGrow: 1, paddingTop: insets.top + space[6] }}>
-        <View style={{ paddingHorizontal: space[6] }}>
-          <StepProgress step={step} />
-        </View>
+    <ScreenScroll testID="tela-onboarding" padded={false} footer={footer} gap={space[6]} contentContainerStyle={{ flexGrow: 1, paddingTop: insets.top + space[6] }}>
+      <View style={{ paddingHorizontal: space[6] }}>
+        <StepProgress step={step} />
+      </View>
 
-        {step === 'nome' && (
-          <StepPanel step={step}>
-            <View style={{ paddingHorizontal: space[6], gap: space[4] }}>
-              <Text variant="headline" accessibilityRole="header" testID="onboarding-nome-titulo">
-                Como chamamos você?
-              </Text>
-              <TextField
-                testID="onboarding-nome"
-                label="Nome de usuário"
-                value={name}
-                onChangeText={setName}
-                placeholder="ex.: maria_corre"
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="username"
-                maxLength={20}
-                returnKeyType="done"
-                onSubmitEditing={saveName}
-                error={nameError}
-                help="Aparece nos rankings."
-              />
-            </View>
-          </StepPanel>
-        )}
-
-        {step === 'cidade' && (
-          <StepPanel step={step}>
-            <View style={{ paddingHorizontal: space[6] }}>
-              <CityDividedStep onNext={toTeams} />
-            </View>
-          </StepPanel>
-        )}
-
-        {step === 'times' && (
-          <StepPanel step={step}>
-            <View style={{ paddingHorizontal: space[6], gap: space[2] }}>
-              <Text variant="headline" accessibilityRole="header" testID="onboarding-times-titulo">
-                Escolha seu time
-              </Text>
-              <Text muted>Seu time pinta a cidade com a cor dele.</Text>
-            </View>
-            <ErrorNotice message={error} testID="onboarding-erro" />
-            <TeamCarousel
-              testID="onboarding-times"
-              value={choice}
-              onChange={(f) => {
-                setChoice(f);
-                haptic('selection');
-              }}
-              onLeader={setLeader}
-              // E4: o corredor de cada time; `leve` porque os 4 ficam montados juntos no carrossel.
-              renderArt={(f) => <MascotRunner team={f} size={170} quality="leve" animated />}
+      {step === 'nome' && (
+        <StepPanel step={step}>
+          <View style={{ paddingHorizontal: space[6], gap: space[4] }}>
+            <Text variant="headline" accessibilityRole="header" testID="onboarding-nome-titulo">
+              Como chamamos você?
+            </Text>
+            <TextField
+              testID="onboarding-nome"
+              label="Nome de usuário"
+              value={name}
+              onChangeText={setName}
+              placeholder="ex.: maria_corre"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="username"
+              maxLength={20}
+              returnKeyType="done"
+              onSubmitEditing={saveName}
+              error={nameError}
+              help="Aparece nos rankings."
             />
-            <View style={{ alignItems: 'center' }}>
-              <Button testID="onboarding-nao-sei" label="Não sei escolher" kind="ghost" onPress={() => setQuiz(true)} />
-            </View>
-          </StepPanel>
-        )}
-      </ScreenScroll>
+          </View>
+        </StepPanel>
+      )}
 
-      <OnboardingSheet visible={leader !== null} onClose={() => setLeader(null)} testID="onboarding-folha-lider" label="a fala do líder">
-        {leader ? (
-          <ScrollView>
-            <LeaderSheet
-              testID="onboarding-lider"
-              faction={leader}
-              // E4: o busto do líder fala e acena (1 por tela); o nome e a fala ficam em texto.
-              art={<LeaderBust team={leader} pose="falando" size={112} animated />}
-              onJoin={() => {
-                setChoice(leader);
-                void join(leader);
-              }}
-              onBack={() => setLeader(null)}
-            />
-          </ScrollView>
-        ) : null}
-      </OnboardingSheet>
-
-      <OnboardingSheet visible={quiz} onClose={() => setQuiz(false)} testID="onboarding-folha-quiz" label="o quiz">
-        <ScrollView contentContainerStyle={{ padding: space[6] }}>
-          <TeamQuiz
-            onClose={() => setQuiz(false)}
-            onPick={(f) => {
-              setQuiz(false);
-              setChoice(f);
-            }}
-          />
-        </ScrollView>
-      </OnboardingSheet>
-
-      {confirming ? (
-        <TeamConfirm
-          testID="onboarding-confirmacao"
-          faction={confirming.faction}
-          origin={confirming.origin}
-          mascot={<Mascot team={confirming.faction} pose="vitoria" size={150} />}
-          leader={{ name: TEAM_STORY[confirming.faction].leader, quote: TEAM_STORY[confirming.faction].cheer }}
-          ctaLabel={busy ? 'Salvando seu time…' : 'Bora correr'}
-          onContinue={afterConfirm}
-        />
-      ) : null}
-    </View>
+      {step === 'cidade' && (
+        <StepPanel step={step}>
+          <View style={{ paddingHorizontal: space[6] }}>
+            <CityDividedStep onNext={toTeams} />
+          </View>
+        </StepPanel>
+      )}
+    </ScreenScroll>
   );
 }

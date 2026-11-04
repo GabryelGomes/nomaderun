@@ -3,6 +3,7 @@ import { handler, HttpError, json } from '../_shared/http.ts';
 import { zoneLabel } from '../_shared/scoring.ts';
 import { requireUser, rpc } from '../_shared/supabase.ts';
 import { isH3 } from '../_shared/validate.ts';
+import { enforceRateLimit } from '../_shared/rate-limit.ts';
 
 type Detail = {
   zone: { id: string; name: string | null } & Record<string, unknown>;
@@ -11,7 +12,8 @@ type Detail = {
 };
 
 Deno.serve(handler(['GET'], async (req) => {
-  await requireUser(req);
+  const user = await requireUser(req);
+  await enforceRateLimit(user.id, 'mapa');
   const id = new URL(req.url).searchParams.get('id');
   if (!isH3(id)) throw new HttpError(400, 'VALIDATION', 'Parâmetro id deve ser o índice H3 da zona (15 caracteres hexadecimais).');
   const detail = await rpc<Detail | null>('svc_zone_detail', { p_zone: id });

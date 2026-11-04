@@ -6,6 +6,7 @@
 import { useId, type ReactNode } from 'react';
 import { Circle, ClipPath, Defs, Ellipse, G, Line, LinearGradient, Mask, Path, Polygon, RadialGradient, Rect, Stop, Text as SvgText } from 'react-native-svg';
 
+import { mix, TeamEmblemInSvg } from '@/components/art';
 import type { FactionId } from '@/domain/types';
 import { neon, neonTeam } from '@/theme/neon';
 import { dark, factions, type TeamShape } from '@/theme/tokens';
@@ -89,33 +90,37 @@ export function TeamGlyph({ shape, cx, cy, r, fill }: { shape: TeamShape; cx: nu
   }
 }
 
-/** Selo do time: anel com a forma no meio. Também é o marcador provisório do mascote (a arte da E4 entra por props). */
+/**
+ * Selo do time (D-90): o emblema **médio** (cabeça do mascote na forma do time) com poça de luz atrás, na caixa
+ * de "raio" `r` (lado = 2,4 r; com r = 60 fica 144 unidades ≈ 48 pt no Stories). Substitui o anel com a forma.
+ */
 export function TeamBadge({ faction, cx, cy, r }: { faction: FactionId; cx: number; cy: number; r: number }) {
   const color = teamColor(faction);
   return (
     <G>
       <Circle cx={cx} cy={cy} r={r + 10} fill={color} opacity={0.12} />
-      <Circle cx={cx} cy={cy} r={r} fill={cardColors.bg} stroke={color} strokeWidth={Math.max(3, r * 0.12)} />
-      <TeamGlyph shape={factions[faction].shape} cx={cx} cy={cy} r={r * 0.46} fill={color} />
+      <TeamEmblemInSvg team={faction} box={{ cx, cy, size: r * 2.4 }} variant="medio" on={cardColors.bg} />
     </G>
   );
 }
 
-/** Pílula do time (forma + nome), alinhada à direita em `right`. */
+/** Pílula do time (cabeça mini do mascote na forma + nome), alinhada à direita em `right`. */
 export function TeamPill({ faction, right, cy, scale = 1 }: { faction: FactionId; right: number; cy: number; scale?: number }) {
   const color = teamColor(faction);
   const size = 28 * scale;
   const ls = 3 * scale;
   const label = factions[faction].name.toUpperCase();
   const h = 64 * scale;
-  const w = measureText(label, cardFonts.bold, size, ls) + 96 * scale;
+  const w = measureText(label, cardFonts.bold, size, ls) + 108 * scale;
   const x = right - w;
+  // 54 unidades no Stories (1080 de largura) = 18 pt, o piso do emblema (D-90); a pílula tem 64.
+  const emblem = 54 * scale;
   return (
     <G>
       <Rect x={x} y={cy - h / 2} width={w} height={h} rx={h / 2} fill={cardColors.bg} />
       <Rect x={x} y={cy - h / 2} width={w} height={h} rx={h / 2} fill={color} fillOpacity={0.1} stroke={color} strokeOpacity={0.7} strokeWidth={2} />
-      <TeamGlyph shape={factions[faction].shape} cx={x + 34 * scale} cy={cy} r={11 * scale} fill={color} />
-      <CardText x={x + 60 * scale} y={cy + size * 0.36} size={size} ls={ls}>
+      <TeamEmblemInSvg team={faction} box={{ cx: x + 38 * scale, cy, size: emblem }} variant="mini" on={mix(cardColors.bg, color, 0.1)} />
+      <CardText x={x + 72 * scale} y={cy + size * 0.36} size={size} ls={ls}>
         {label}
       </CardText>
     </G>

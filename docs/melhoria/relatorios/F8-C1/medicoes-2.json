@@ -1,0 +1,156 @@
+{
+  "nota": "2ª medição, depois das simplificações (pulo da capa sem remontar o corredor; bairro com menos degradês). Mesmas janelas, 3 repetições, mediana.",
+  "rates": [
+    1,
+    4,
+    6
+  ],
+  "reps": 3,
+  "rows": [
+    {
+      "cena": "capa: carrossel com a capa em foco (idle 1,6 s)",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "capa: carrossel com a capa em foco (idle 1,6 s)",
+      "cpu": "4×",
+      "fps": 60,
+      "p95": 16.8,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "capa: carrossel com a capa em foco (idle 1,6 s)",
+      "cpu": "6×",
+      "fps": 58.8,
+      "p95": 16.7,
+      "max": 33.4,
+      "jank": 2.1
+    },
+    {
+      "cena": "capa: toque (mola + lema + pulo)",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "capa: toque (mola + lema + pulo)",
+      "cpu": "4×",
+      "fps": 55.8,
+      "p95": 16.8,
+      "max": 66.7,
+      "jank": 3
+    },
+    {
+      "cena": "capa: toque (mola + lema + pulo)",
+      "cpu": "6×",
+      "fps": 54.2,
+      "p95": 33.3,
+      "max": 83.4,
+      "jank": 7.7
+    },
+    {
+      "cena": "capa: confirmar (cresce e some)",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "capa: confirmar (cresce e some)",
+      "cpu": "4×",
+      "fps": 58.9,
+      "p95": 16.8,
+      "max": 33.3,
+      "jank": 1.9
+    },
+    {
+      "cena": "capa: confirmar (cresce e some)",
+      "cpu": "6×",
+      "fps": 53.5,
+      "p95": 33.3,
+      "max": 33.3,
+      "jank": 8.7
+    },
+    {
+      "cena": "cerimônia \"Seu rastro\" (cor + mascote + rota + moldura + 24 confetes)",
+      "cpu": "1×",
+      "fps": 59.3,
+      "p95": 16.8,
+      "max": 33.4,
+      "jank": 1.1
+    },
+    {
+      "cena": "cerimônia \"Seu rastro\" (cor + mascote + rota + moldura + 24 confetes)",
+      "cpu": "4×",
+      "fps": 56.7,
+      "p95": 16.7,
+      "max": 166.7,
+      "jank": 1.2
+    },
+    {
+      "cena": "cerimônia \"Seu rastro\" (cor + mascote + rota + moldura + 24 confetes)",
+      "cpu": "6×",
+      "fps": 54.4,
+      "p95": 16.8,
+      "max": 233.3,
+      "jank": 3
+    },
+    {
+      "cena": "antes e depois do bairro (3 Svg + 5 anéis)",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.8,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "antes e depois do bairro (3 Svg + 5 anéis)",
+      "cpu": "4×",
+      "fps": 56.3,
+      "p95": 16.8,
+      "max": 83.4,
+      "jank": 2.2
+    },
+    {
+      "cena": "antes e depois do bairro (3 Svg + 5 anéis)",
+      "cpu": "6×",
+      "fps": 51.9,
+      "p95": 16.8,
+      "max": 166.8,
+      "jank": 2.4
+    },
+    {
+      "cena": "carimbo de bairro novo",
+      "cpu": "1×",
+      "fps": 60,
+      "p95": 16.7,
+      "max": 16.8,
+      "jank": 0
+    },
+    {
+      "cena": "carimbo de bairro novo",
+      "cpu": "4×",
+      "fps": 56,
+      "p95": 16.8,
+      "max": 66.7,
+      "jank": 3.6
+    },
+    {
+      "cena": "carimbo de bairro novo",
+      "cpu": "6×",
+      "fps": 55,
+      "p95": 16.8,
+      "max": 83.3,
+      "jank": 1.8
+    }
+  ],
+  "errors": []
+}

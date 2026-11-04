@@ -77,6 +77,24 @@ export function raidExtraOf(official: unknown): RaidExtra | null {
   return { raidId: r.raidId, defeated: r.defeated === true, countedKm: Math.max(0, num(r.countedKm)), hpMax: Math.max(0, num(r.hpMax)) };
 }
 
+/** Golpe desta corrida que abriu uma fase do chefão (F8 · C1). */
+export type RaidPhaseHit = { bossId: string | null; damage: number; countedKm: number; hpBefore: number; hpAfter: number; hpMax: number; phaseAfter: 2 | 3 };
+
+/**
+ * `extras.raid` quando o servidor diz que esta corrida mudou a fase (`phaseChanged`, `phaseAfter` 2 ou 3) e o chefão
+ * não caiu (a derrota tem o momento próprio). Qualquer campo faltando ou incoerente → `null` (nada inventado).
+ */
+export function raidPhaseHitOf(official: unknown): RaidPhaseHit | null {
+  const r = obj(obj(obj(official).extras).raid);
+  if (typeof r.raidId !== 'string' || r.phaseChanged !== true || r.defeated === true || r.repeated === true) return null;
+  const phaseAfter = num(r.phaseAfter);
+  const hpMax = num(r.hpMax);
+  const hpAfter = num(r.hpAfter);
+  const damage = Math.max(0, num(r.damage));
+  if ((phaseAfter !== 2 && phaseAfter !== 3) || !(hpMax > 0) || hpAfter < 0 || hpAfter > hpMax || damage <= 0) return null;
+  return { bossId: typeof r.bossId === 'string' ? r.bossId : null, damage, countedKm: Math.max(0, num(r.countedKm)), hpBefore: Math.min(hpMax, hpAfter + damage), hpAfter, hpMax, phaseAfter };
+}
+
 /**
  * Chefão derrotado com a ajuda desta corrida: precisa do `extras.raid` (derrotado) e do Raid atual (nome,
  * cidade e dias). Qualquer peça faltando → `null`.

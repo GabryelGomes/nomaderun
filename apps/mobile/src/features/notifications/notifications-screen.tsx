@@ -10,6 +10,7 @@ import { ScreenScroll } from '@/components/screen';
 import { EmptyState, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { brtCalendar } from '@/domain/progression';
+import { CrewEchoCard } from '@/features/engagement/crew-echo-card';
 import { useNow } from '@/features/use-now';
 import { zoneTarget, type AppNotification, type NotificationType } from '@/services/api/notifications-repo';
 import { selectUnreadCount, useNotifications } from '@/store/notifications-store';
@@ -100,12 +101,16 @@ export function NotificationsScreen() {
 
       {unread > 0 ? (
         <FadeUp style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3] }}>
-          <Text muted testID="notificacoes-nao-lidas">
+          {/* F8 onda D: a 360 px, "2 não lidas" quebrava em 2 linhas ao lado do botão. */}
+          <Text muted testID="notificacoes-nao-lidas" numberOfLines={1} style={{ flexShrink: 0 }}>
             {unread === 1 ? '1 não lida' : `${unread} não lidas`}
           </Text>
           <Button testID="notificacoes-marcar-todas" label="Marcar todas como lidas" kind="ghost" onPress={() => void markRead(null)} />
         </FadeUp>
       ) : null}
+
+      {/* Eco da crew (F8 · 5.7): 1 por dia, só entre 07h e 22h; sem eco, nada. */}
+      <CrewEchoCard now={now} />
 
       {error && items.length === 0 ? (
         <EmptyState

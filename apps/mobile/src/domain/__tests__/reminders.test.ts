@@ -45,10 +45,10 @@ function state(over: Partial<ReminderState> = {}): ReminderState {
 const ids = (plan: PlannedReminder[]) => plan.map((p) => `${p.id}@${brtCalendar.clock(p.at).dayId} ${brtCalendar.clock(p.at).hour}:${String(brtCalendar.clock(p.at).minute).padStart(2, '0')}`);
 
 describe('D-69 — catálogo de notificações', () => {
-  it('tem os 15 ids da F1 e uma preferência por tipo', () => {
+  it('tem os 15 ids da F1 (mais o plano D-94 e o eco da crew, F8) e uma preferência por tipo', () => {
     expect(REMINDER_CATALOG.map((r) => r.id)).toEqual([
       'n-chefao', 'n-liga', 'n-sequencia', 'n-missao', 'n-bau', 'n-ftue', 'n-recap', 'n-temporada',
-      'n-volta-7', 'n-volta-14', 'n-volta-14-zona', 'n-volta-21', 'n-volta-30', 'n-invasao', 'n-conquista',
+      'n-volta-7', 'n-volta-14', 'n-volta-14-zona', 'n-volta-21', 'n-volta-30', 'n-plano', 'n-eco', 'n-invasao', 'n-conquista',
     ]);
     const prefByKind = new Map<string, Set<ReminderPrefKey>>();
     for (const r of REMINDER_CATALOG) prefByKind.set(r.kind, (prefByKind.get(r.kind) ?? new Set()).add(r.pref));

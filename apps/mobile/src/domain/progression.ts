@@ -4,8 +4,10 @@
  * temporada. Regras puras: sem relógio escondido (todo instante entra como parâmetro) e sem sorteio sem
  * semente (o servidor sorteia com HMAC; o app e os testes usam `engagementRng`).
  *
- * Não altera nada da v1: `xpForLevel`, `levelFromXp` e `closeWeek` de `games.ts` continuam valendo para o
- * servidor atual. Os nomes daqui são diferentes de propósito, porque a ponte das functions faz `export *`.
+ * D-92: `levelProgress` é a ÚNICA curva de nível do app (Resumo, Você, Recompensas e card) e é a do servidor
+ * (`private.level_progress`, com as constantes de `private.domain_constants()`); o teste de paridade compara 50
+ * valores com o SQL (pgTAP 31 + Deno `level_parity.test.ts`). A curva v1 de `games.ts` foi removida.
+ * Os nomes daqui são diferentes dos de `games.ts` de propósito, porque a ponte das functions faz `export *`.
  */
 import type { ActivityValidation } from './anti-cheat';
 import { CHEST_XP, MAX_LEVEL, STREAK_RUNS_PER_WEEK, type ChestRarity } from './games';

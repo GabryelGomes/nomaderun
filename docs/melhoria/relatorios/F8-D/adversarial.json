@@ -1,0 +1,381 @@
+{
+  "geradoEm": "2026-11-04T12:31:31.399Z",
+  "ok": 48,
+  "total": 56,
+  "falhas": [
+    {
+      "ok": false,
+      "label": "fonte ×1,3 em cidade: sem texto cortado (3) nem rolagem horizontal (0)",
+      "extra": [
+        {
+          "id": "onboarding-cidade-striders",
+          "text": "Neon Striders",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-cidade-volt",
+          "text": "Volt Runners",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-cidade-coyotes",
+          "text": "Urban Coyotes",
+          "why": "cortado"
+        }
+      ]
+    },
+    {
+      "ok": false,
+      "label": "fonte ×1,3 em times: sem texto cortado (10) nem rolagem horizontal (0)",
+      "extra": [
+        {
+          "id": "onboarding-times-striders",
+          "text": "Precisão · líder Íris Valente",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-times-coyotes",
+          "text": "Corrida em grupo",
+          "why": "fora da tela"
+        },
+        {
+          "id": "onboarding-times-coyotes",
+          "text": "União · líder Bento Rocha",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-times-coyotes-lider",
+          "text": "Conhecer",
+          "why": "fora da tela"
+        },
+        {
+          "id": "onboarding-times-owls",
+          "text": "Fim do dia, rua iluminada",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-times-owls",
+          "text": "Visão · líder Nara Lis",
+          "why": "fora da tela"
+        },
+        {
+          "id": "onboarding-times-owls-lider",
+          "text": "Conhecer",
+          "why": "fora da tela"
+        },
+        {
+          "id": "onboarding-times-volt",
+          "text": "Resistência e distância",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-times-volt",
+          "text": "Energia · líder Téo Faria",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-times-volt-lider",
+          "text": "Conhecer",
+          "why": "fora da tela"
+        }
+      ]
+    },
+    {
+      "ok": false,
+      "label": "fonte ×1,3 em mapa: sem texto cortado (4) nem rolagem horizontal (0)",
+      "extra": [
+        {
+          "id": "mapa-hoje-bau",
+          "text": "2",
+          "why": "fora da tela"
+        },
+        {
+          "id": "mapa-hoje-bau",
+          "text": "Baús",
+          "why": "fora da tela"
+        },
+        {
+          "id": "mapa-alerta-attack",
+          "text": "Parque Flamboyant sob ataque",
+          "why": "cortado"
+        },
+        {
+          "id": "mapa-alerta-attack",
+          "text": "Urban Coyotes · Faltam 17 h 30 min",
+          "why": "cortado"
+        }
+      ]
+    },
+    {
+      "ok": false,
+      "label": "fonte ×1,3 em arena: sem texto cortado (1) nem rolagem horizontal (0)",
+      "extra": [
+        {
+          "id": "arena-raid",
+          "text": "CHEFÃO DA SEMANA",
+          "why": "cortado"
+        }
+      ]
+    },
+    {
+      "ok": false,
+      "label": "fonte ×1,3 em clube: sem texto cortado (1) nem rolagem horizontal (0)",
+      "extra": [
+        {
+          "id": "feed-item-feed-demo-colega-1",
+          "text": "ana.demo",
+          "why": "cortado"
+        }
+      ]
+    },
+    {
+      "ok": false,
+      "label": "fonte ×1,3 em voce: sem texto cortado (3) nem rolagem horizontal (0)",
+      "extra": [
+        {
+          "id": "perfil-cartao",
+          "text": "voce.demo",
+          "why": "cortado"
+        },
+        {
+          "id": "perfil-cartao",
+          "text": "Neon Striders · nível 6",
+          "why": "cortado"
+        },
+        {
+          "id": "perfil-km",
+          "text": "32,4",
+          "why": "cortado"
+        }
+      ]
+    },
+    {
+      "ok": false,
+      "label": "fonte ×1,3 em resumo: sem texto cortado (2) nem rolagem horizontal (0)",
+      "extra": [
+        {
+          "id": "resumo-conquistas-lista",
+          "text": "Jardim Goiás · perto do Shopping · 2 zon",
+          "why": "cortado"
+        },
+        {
+          "id": "resumo-conquistas-lista",
+          "text": "Setor Pedro Ludovico · perto do Lago · 2",
+          "why": "cortado"
+        }
+      ]
+    },
+    {
+      "ok": false,
+      "label": "fonte ×1,3 em missoes: sem texto cortado (2) nem rolagem horizontal (0)",
+      "extra": [
+        {
+          "id": "primeira-semana-passo-2",
+          "text": "Abra seu primeiro baú na Caça",
+          "why": "cortado"
+        },
+        {
+          "id": "tela-missoes",
+          "text": "Defenda uma zona sob ataque",
+          "why": "cortado"
+        }
+      ]
+    }
+  ],
+  "fonteGrande": {
+    "boas-vindas": {
+      "overflowX": 0,
+      "clipped": []
+    },
+    "cidade": {
+      "overflowX": 0,
+      "clipped": [
+        {
+          "id": "onboarding-cidade-striders",
+          "text": "Neon Striders",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-cidade-volt",
+          "text": "Volt Runners",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-cidade-coyotes",
+          "text": "Urban Coyotes",
+          "why": "cortado"
+        }
+      ]
+    },
+    "times": {
+      "overflowX": 0,
+      "clipped": [
+        {
+          "id": "onboarding-times-striders",
+          "text": "Precisão · líder Íris Valente",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-times-coyotes",
+          "text": "Corrida em grupo",
+          "why": "fora da tela"
+        },
+        {
+          "id": "onboarding-times-coyotes",
+          "text": "União · líder Bento Rocha",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-times-coyotes-lider",
+          "text": "Conhecer",
+          "why": "fora da tela"
+        },
+        {
+          "id": "onboarding-times-owls",
+          "text": "Fim do dia, rua iluminada",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-times-owls",
+          "text": "Visão · líder Nara Lis",
+          "why": "fora da tela"
+        },
+        {
+          "id": "onboarding-times-owls-lider",
+          "text": "Conhecer",
+          "why": "fora da tela"
+        },
+        {
+          "id": "onboarding-times-volt",
+          "text": "Resistência e distância",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-times-volt",
+          "text": "Energia · líder Téo Faria",
+          "why": "cortado"
+        },
+        {
+          "id": "onboarding-times-volt-lider",
+          "text": "Conhecer",
+          "why": "fora da tela"
+        }
+      ]
+    },
+    "cadastro": {
+      "overflowX": 0,
+      "clipped": []
+    },
+    "entrar": {
+      "overflowX": 0,
+      "clipped": []
+    },
+    "mapa": {
+      "overflowX": 0,
+      "clipped": [
+        {
+          "id": "mapa-hoje-bau",
+          "text": "2",
+          "why": "fora da tela"
+        },
+        {
+          "id": "mapa-hoje-bau",
+          "text": "Baús",
+          "why": "fora da tela"
+        },
+        {
+          "id": "mapa-alerta-attack",
+          "text": "Parque Flamboyant sob ataque",
+          "why": "cortado"
+        },
+        {
+          "id": "mapa-alerta-attack",
+          "text": "Urban Coyotes · Faltam 17 h 30 min",
+          "why": "cortado"
+        }
+      ]
+    },
+    "arena": {
+      "overflowX": 0,
+      "clipped": [
+        {
+          "id": "arena-raid",
+          "text": "CHEFÃO DA SEMANA",
+          "why": "cortado"
+        }
+      ]
+    },
+    "clube": {
+      "overflowX": 0,
+      "clipped": [
+        {
+          "id": "feed-item-feed-demo-colega-1",
+          "text": "ana.demo",
+          "why": "cortado"
+        }
+      ]
+    },
+    "voce": {
+      "overflowX": 0,
+      "clipped": [
+        {
+          "id": "perfil-cartao",
+          "text": "voce.demo",
+          "why": "cortado"
+        },
+        {
+          "id": "perfil-cartao",
+          "text": "Neon Striders · nível 6",
+          "why": "cortado"
+        },
+        {
+          "id": "perfil-km",
+          "text": "32,4",
+          "why": "cortado"
+        }
+      ]
+    },
+    "resumo": {
+      "overflowX": 0,
+      "clipped": [
+        {
+          "id": "resumo-conquistas-lista",
+          "text": "Jardim Goiás · perto do Shopping · 2 zon",
+          "why": "cortado"
+        },
+        {
+          "id": "resumo-conquistas-lista",
+          "text": "Setor Pedro Ludovico · perto do Lago · 2",
+          "why": "cortado"
+        }
+      ]
+    },
+    "missoes": {
+      "overflowX": 0,
+      "clipped": [
+        {
+          "id": "primeira-semana-passo-2",
+          "text": "Abra seu primeiro baú na Caça",
+          "why": "cortado"
+        },
+        {
+          "id": "tela-missoes",
+          "text": "Defenda uma zona sob ataque",
+          "why": "cortado"
+        }
+      ]
+    },
+    "recompensas": {
+      "overflowX": 0,
+      "clipped": []
+    },
+    "nova-corrida": {
+      "overflowX": 0,
+      "clipped": []
+    },
+    "ajustes": {
+      "overflowX": 0,
+      "clipped": []
+    }
+  }
+}

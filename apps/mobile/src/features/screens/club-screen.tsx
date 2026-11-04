@@ -8,6 +8,7 @@ import { Button } from '@/components/button';
 import { Chip, ChipRow } from '@/components/chip-row';
 import { DemoBadge } from '@/components/demo-badge';
 import { EmptyState } from '@/components/empty-state';
+import { OfflineNotice } from '@/components/offline-notice';
 import { Icon } from '@/components/icon';
 import { CountUp, PressableScale, ProgressBar, ShimmerSkeleton, Stagger, useParallax } from '@/components/motion';
 import { SectionHeader } from '@/components/section-header';
@@ -16,13 +17,17 @@ import { Text } from '@/components/text';
 import { districtOf } from '@/domain/grid';
 import type { FactionId } from '@/domain/types';
 import { markRankingOpened } from '@/features/engagement';
+import { CrewEchoCard } from '@/features/engagement/crew-echo-card';
+import { NO_DATA } from '@/features/format';
 import { CrewFeed } from '@/features/social/feed';
 import { InviteCard } from '@/features/social/invite/invite-card';
+import { useNow } from '@/features/use-now';
 import { getCrewWeekGoal, getMyCrew, type MyCrew } from '@/services/api/crews-repo';
 import { isDemoMode } from '@/services/api/env';
 import type { Result } from '@/services/api/errors';
 import { getCityRanking, getDistrictLabel, getMyRecentZoneId, rankCrews, rankFactions, rankRunners } from '@/services/api/leaderboard-repo';
 import { useSession } from '@/store/session-store';
+import { neonTeam } from '@/theme/neon';
 import { factions, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
@@ -135,6 +140,10 @@ async function loadCrewWeek(crew: MyCrew | null): Promise<Result<CrewWeekView | 
   return res.ok ? { ok: true, data: crewWeek(res.data, crew.crew.tag, crew.members.length) } : res;
 }
 
+/** Quantas corridas da crew aparecem no Clube; o resto em "Ver tudo" (`/compartilhar/feed`). */
+export const FEED_PREVIEW = 3;
+export type ClubSection = 'corridas' | 'ranking';
+
 const BOARDS: readonly (readonly [Board, string])[] = [
   ['individual', 'Corredores'],
   ['crews', 'Crews'],
@@ -162,6 +171,8 @@ export function ClubScreen() {
   const myCrew = crew.data;
   const week = useResource(() => loadCrewWeek(myCrew), [myCrew?.crew.id ?? null, myCrew?.members.length ?? 0]);
   const reloadCrew = crew.reload;
+  const [section, setSection] = useState<ClubSection>('corridas');
+  const now = useNow(60_000);
   useFocusEffect(
     useCallback(() => {
       void reloadCrew();
@@ -175,6 +186,8 @@ export function ClubScreen() {
       onScroll={parallax.onScroll}
       scrollEventThrottle={16}
       contentContainerStyle={{ padding: space[4], gap: space[6], paddingBottom: space[12] }}>
+      {/* D-95: o aviso único de "sem conexão" (o do ranking só aparece quando a crew carregou). */}
+      {crew.error ? <OfflineNotice testID="clube-sem-conexao" code={crew.error.code} hasData={myCrew !== null} savedAt={crew.savedAt} onRetry={() => void crew.reload()} busy={crew.loading} /> : null}
       <Animated.View style={parallax.headerStyle} onLayout={(e) => setHeaderH(Math.round(e.nativeEvent.layout.height))}>
         {myCrew ? (
           <CrewHero crew={myCrew} week={week.data} />
@@ -182,26 +195,54 @@ export function ClubScreen() {
           <ShimmerSkeleton shape="card" height={200} accessibilityLabel="Carregando a sua crew" testID="clube-crew-carregando" />
         ) : (
           <View testID="clube-crew" style={{ borderRadius: radius.lg, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.line }}>
-            <EmptyState
-              testID="clube-sem-crew"
-              art={<EmptyArt kind={crew.error ? 'sem-conexao' : 'sem-crew'} team={faction ?? undefined} size={160} />}
-              title={crew.error ? 'Crew indisponível' : 'Corra junto, conquiste mais'}
-              action={<Button testID="clube-crew-abrir" label={crew.error ? 'Tentar de novo' : 'Entrar ou criar crew'} onPress={() => (crew.error ? void crew.reload() : router.push('/clube/crew'))} />}
-            />
+            {crew.error ? (
+              // Sem a resposta do servidor, não dá para dizer se a pessoa tem crew: arte e "—", sem convite falso.
+              <EmptyState testID="clube-crew-sem-dado" art={<EmptyArt kind="sem-crew" team={faction ?? undefined} size={120} />} title="Sua crew" body={`Membros: ${NO_DATA} · Semana: ${NO_DATA}`} compact />
+            ) : (
+              <EmptyState
+                testID="clube-sem-crew"
+                art={<EmptyArt kind="sem-crew" team={faction ?? undefined} size={160} />}
+                title="Corra junto, conquiste mais"
+                action={<Button testID="clube-crew-abrir" label="Entrar ou criar crew" onPress={() => router.push('/clube/crew')} />}
+              />
+            )}
           </View>
         )}
       </Animated.View>
 
+      {/* UX-16: "Convidar" mora só no Clube. Crew com 1 pessoa: convite da crew; sem crew: convite do app. */}
       {myCrew && myCrew.members.length === 1 ? <InviteCard kind="crew" crewName={myCrew.crew.name} code={myCrew.crew.inviteCode} faction={myCrew.crew.faction} city={city} testID="clube-convite" /> : null}
+      {!myCrew && !crew.loading && !crew.error ? <InviteCard kind="app" place={city} faction={faction} testID="convite-app" /> : null}
 
+      {/* UX-21: seletor no topo (antes, o ranking ficava na 6ª rolagem, embaixo do feed sem fim). Sem crew, só o ranking. */}
       {myCrew ? (
-        <View style={{ gap: space[2] }}>
-          <SectionHeader title="Corridas da crew" testID="clube-feed" />
-          <CrewFeed faction={faction} onJoinCrew={() => router.push('/clube/crew')} onCreateCrew={() => router.push('/clube/crew')} />
+        <View style={{ gap: space[4] }}>
+          <ChipRow
+            testID="clube-secao"
+            accessibilityLabel="Ver no Clube"
+            size="md"
+            value={section}
+            onChange={setSection}
+            chipLabel={(l) => `Ver ${l.toLowerCase()}`}
+            options={[
+              ['corridas', 'Corridas'],
+              ['ranking', 'Ranking'],
+            ] as const}
+          />
+          {section === 'corridas' ? (
+            <View testID="clube-feed" style={{ gap: space[2] }}>
+              {/* C2 (E8): o eco da crew também no topo do feed do Clube; fechar esconde o eco do dia (1×/dia). */}
+              <CrewEchoCard now={now} testID="clube-eco-da-crew" dismissible />
+              <CrewFeed faction={faction} limit={FEED_PREVIEW} onSeeAll={() => router.push('/compartilhar/feed')} onJoinCrew={() => router.push('/clube/crew')} onCreateCrew={() => router.push('/clube/crew')} />
+            </View>
+          ) : (
+            <Rankings userId={userId} city={city} faction={faction} offlineShown={crew.error !== null} titled={false} />
+          )}
         </View>
-      ) : null}
-
-      <Rankings userId={userId} city={city} faction={faction} />
+      ) : crew.loading && !crew.error ? null : (
+        // Só depois de saber se há crew: antes, o ranking piscava (e contava como visto) enquanto a crew carregava.
+        <Rankings userId={userId} city={city} faction={faction} offlineShown={crew.error !== null} />
+      )}
     </Animated.ScrollView>
   );
 }
@@ -220,7 +261,7 @@ function CrewHero({ crew, week }: { crew: MyCrew; week: CrewWeekView | null }) {
       accessibilityLabel={`Sua crew: ${crew.crew.name}, ${n} corredores.${week ? ` ${km} km nesta semana${goalKm ? ` de ${goalKm} km da meta` : ''}, ${week.ran} de ${n} já correram.` : ''} Abrir.`}
       onPress={() => router.push('/clube/crew')}
       style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.line, overflow: 'hidden' }}>
-      <View aria-hidden style={{ height: 3, backgroundColor: crew.crew.faction ? factions[crew.crew.faction].color : colors.action }} />
+      <View aria-hidden style={{ height: 3, backgroundColor: crew.crew.faction ? neonTeam[crew.crew.faction] : colors.action }} />
       <View style={{ padding: space[4], gap: space[3] }}>
         {/* Selo numa linha própria: ao lado do nome, ele espremia o nome da crew em 360–390 pt. */}
         {isDemoMode() ? <DemoBadge testID="clube-crew-demonstracao" /> : null}
@@ -251,7 +292,7 @@ function CrewHero({ crew, week }: { crew: MyCrew; week: CrewWeekView | null }) {
 
 /* ------------------------------------------------------------------ ranking: pódio + 1 linha de filtro */
 
-function Rankings({ userId, city, faction }: { userId: string | null; city: string | null; faction: FactionId | null }) {
+function Rankings({ userId, city, faction, offlineShown, titled = true }: { userId: string | null; city: string | null; faction: FactionId | null; offlineShown: boolean; titled?: boolean }) {
   const { colors } = useTheme();
   const [board, setBoard] = useState<Board>('individual');
   const [scope, setScope] = useState<Scope>('geral');
@@ -275,15 +316,18 @@ function Rankings({ userId, city, faction }: { userId: string | null; city: stri
 
   return (
     <View style={{ gap: space[3] }}>
-      <SectionHeader title="Ranking" testID="ranking" />
-      <ChipRow testID="ranking-quadro" accessibilityLabel="Ranking" role="button">
+      {titled ? <SectionHeader title="Ranking" testID="ranking" /> : <View testID="ranking" />}
+      {/* UX-21: os 4 quadros quebram linha em vez de sumir na borda; o filtro vai numa linha própria, inteiro. */}
+      <View accessibilityRole="radiogroup" accessibilityLabel="Ranking" testID="ranking-quadro" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
         {BOARDS.map(([key, label]) => (
-          <Chip key={key} testID={`ranking-quadro-${key}`} accessibilityLabel={`Ranking: ${label}`} label={label} selected={board === key} role="button" onPress={() => setBoard(key)} />
+          <Chip key={key} testID={`ranking-quadro-${key}`} accessibilityLabel={`Ranking: ${label}`} label={label} selected={board === key} onPress={() => setBoard(key)} />
         ))}
-        {hasPeriod(board) ? (
+      </View>
+      {hasPeriod(board) ? (
+        <View style={{ flexDirection: 'row' }}>
           <Chip testID="ranking-filtros" accessibilityLabel={`Filtros: ${filterLabel}. ${filtersOpen ? 'Fechar' : 'Abrir'}`} label={`${filterLabel} ${filtersOpen ? '▴' : '▾'}`} selected={filtersOpen} role="button" onPress={() => setFiltersOpen((o) => !o)} />
-        ) : null}
-      </ChipRow>
+        </View>
+      ) : null}
       {filtersOpen && hasPeriod(board) ? (
         <View style={{ gap: space[1] }}>
           <ChipRow testID="ranking-periodo" accessibilityLabel="Período" role="button" size="sm" value={period} onChange={setPeriod} options={[['week', periodLabels.week], ['season', periodLabels.season]] as const} />
@@ -292,13 +336,14 @@ function Rankings({ userId, city, faction }: { userId: string | null; city: stri
       ) : null}
       <SwapFade swapKey={`${board}-${boardScope}-${period}`}>
         {ranking.error && !ranking.data ? (
-          <EmptyState
-            testID="ranking-erro"
-            art={<EmptyArt kind="sem-conexao" size={120} />}
-            title={ranking.error.message}
-            action={<Button testID="ranking-tentar" label="Tentar de novo" kind="secondary" onPress={() => void ranking.reload()} />}
-            compact
-          />
+          // D-95: o mesmo aviso do resto do app (antes, o erro virava um título grande); 1 aviso por tela.
+          offlineShown ? (
+            <Text testID="ranking-sem-dado" muted style={{ textAlign: 'center', paddingVertical: space[4] }}>
+              {`Posições: ${NO_DATA}`}
+            </Text>
+          ) : (
+            <OfflineNotice testID="ranking-sem-conexao" code={ranking.error.code} hasData={false} onRetry={() => void ranking.reload()} busy={ranking.loading} />
+          )
         ) : !ranking.data ? (
           <ShimmerSkeleton shape="card" height={220} accessibilityLabel="Carregando o ranking" testID="ranking-carregando" />
         ) : lines.length === 0 ? (

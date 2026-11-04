@@ -2,9 +2,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
-import { EmptyArt, Mascot } from '@/components/art';
+import { EmptyArt, TeamEmblem } from '@/components/art';
 import { Button } from '@/components/button';
 import { Icon } from '@/components/icon';
+import { OfflineNotice } from '@/components/offline-notice';
 import { TeamBadge } from '@/components/team-badge';
 import { EmptyState } from '@/components/surface';
 import { Text } from '@/components/text';
@@ -12,6 +13,7 @@ import { CountUp, FadeUp, ProgressBar, RevealText, ShimmerSkeleton, Stagger } fr
 import { cellCenter } from '@/domain/grid';
 import type { LiveSnapshot } from '@/domain/live-events';
 import type { Zone } from '@/domain/territory';
+import { neonTeam } from '@/theme/neon';
 import type { FactionId } from '@/domain/types';
 import { zoneName } from '@/demo/demo-data';
 import { useNow } from '@/features/use-now';
@@ -21,6 +23,7 @@ import { selectBasePace, useGame } from '@/store/game-store';
 import { useZones } from '@/store/zones-store';
 import { factions, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
+import { zoneDisplayName } from '@/features/format';
 
 import { useResource } from './use-resource';
 import { countdownText, shortTeam, zoneView, type ZoneView } from './zone-sheet.model';
@@ -103,8 +106,8 @@ function ZoneScore({ view }: { view: ZoneView }) {
       </View>
       <ProgressBar
         value={bar.share}
-        color={factions[bar.left].color}
-        trackColor={bar.right ? factions[bar.right].color : colors.surfaceSunken}
+        color={neonTeam[bar.left]}
+        trackColor={bar.right ? neonTeam[bar.right] : colors.surfaceSunken}
         ghost={false}
         height={12}
         delay={200}
@@ -123,6 +126,23 @@ export function ZoneSheet() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const cached = useZones((s) => (id ? s.zones[id] : undefined));
   const cachedName = useZones((s) => (id ? s.meta[id]?.name : null));
+  // F8-D (QA, Baixo): aberta por link, o mapa não montou e o store está vazio. Lê a última cópia do mapa (D-95)
+  // antes de decidir entre "sem dado" e a zona salva; `lastLoadedAt` é a hora dessa cópia.
+  const savedAt = useZones((s) => s.lastLoadedAt);
+  const [hydrated, setHydrated] = useState(cached !== undefined);
+  useEffect(() => {
+    let live = true;
+    void useZones
+      .getState()
+      .hydrate()
+      .catch(() => undefined)
+      .finally(() => {
+        if (live) setHydrated(true);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
   const faction = useGame((s) => s.faction) ?? 'striders';
   const basePace = useGame(selectBasePace);
   const now = useNow(30_000);
@@ -141,7 +161,7 @@ export function ZoneSheet() {
 
   // Realtime: a troca de dono que chega no store aparece aqui sem recarregar a folha.
   const zone: Zone | undefined = cached ?? detail?.zone;
-  const name = detail?.meta.name ?? cachedName ?? (id ? zoneName(id) : '');
+  const name = zoneDisplayName(detail?.meta.name ?? cachedName ?? (id ? zoneName(id) : ''));
   const sheetBg = process.env.EXPO_OS === 'ios' ? 'transparent' : colors.surface;
   const goRun = () => {
     router.back();
@@ -149,7 +169,7 @@ export function ZoneSheet() {
   };
 
   if (!zone) {
-    if (loading) {
+    if (loading || !hydrated) {
       return (
         <View testID="zona-carregando" style={{ flex: 1, padding: space[6], gap: space[4], backgroundColor: sheetBg }}>
           <ShimmerSkeleton shape="card" height={72} accessibilityLabel="Carregando a zona" />
@@ -157,13 +177,29 @@ export function ZoneSheet() {
         </View>
       );
     }
+    // F8 onda D: link com id malformado (ex.: /zona/xyz) não mostra a mensagem técnica do servidor nem um
+    // "Tentar de novo" que nunca funciona.
+    if (error && error.code === 'VALIDATION') {
+      return (
+        <View testID="zona-invalida" style={{ flex: 1, justifyContent: 'center', backgroundColor: sheetBg }}>
+          <EmptyState
+            art={<EmptyArt kind="sem-localizacao" team={faction} size={160} />}
+            title="Essa zona não existe"
+            body="O link pode estar errado."
+            action={<Button testID="zona-invalida-voltar" label="Voltar ao mapa" icon="map" onPress={() => router.replace('/')} />}
+          />
+        </View>
+      );
+    }
+    // Sem rede ou servidor fora do ar e nenhuma cópia salva: o aviso único (D-95) com "Tentar de novo".
     if (error && error.code !== 'NOT_FOUND') {
       return (
-        <EmptyState
-          title={error.code === 'NETWORK' ? 'Sem internet' : 'Zona indisponível'}
-          body={error.code === 'NETWORK' ? 'Confira a conexão.' : error.message}
-          action={<Button testID="zona-tentar" label="Tentar de novo" kind="secondary" onPress={load} />}
-        />
+        <View testID="zona-sem-dado" style={{ flex: 1, padding: space[6], gap: space[4], backgroundColor: sheetBg }}>
+          <Text variant="title" accessibilityRole="header">
+            {name}
+          </Text>
+          <OfflineNotice testID="zona-offline" code={error.code} hasData={false} onRetry={load} busy={loading} />
+        </View>
       );
     }
     return (
@@ -182,10 +218,14 @@ export function ZoneSheet() {
 
   return (
     <ScrollView testID="tela-zona" style={{ flex: 1, backgroundColor: sheetBg }} contentContainerStyle={{ padding: space[6], paddingBottom: space[12], gap: space[4] }}>
+      {/* Mostrando a cópia salva (o mapa ou o link sem rede): a hora dela e "Tentar de novo" (D-95). */}
+      {error && error.code !== 'VALIDATION' && error.code !== 'NOT_FOUND' ? (
+        <OfflineNotice testID="zona-offline" code={error.code} hasData savedAt={savedAt} onRetry={load} busy={loading} />
+      ) : null}
       {/* 1. Herói: o dono ilustrado (mascote do time) ou a zona vazia. */}
       <View style={{ flexDirection: 'row', gap: space[4], alignItems: 'center' }}>
         <View style={{ width: 64, height: 70, alignItems: 'center', justifyContent: 'center' }}>
-          {zone.owner ? <Mascot team={zone.owner} size={64} quality="leve" /> : <EmptyArt kind="sem-zonas" size={64} quality="plano" />}
+          {zone.owner ? <TeamEmblem team={zone.owner} size={64} variant="medio" /> : <EmptyArt kind="sem-zonas" size={64} quality="plano" />}
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <RevealText variant="title" header testID="zona-nome">
@@ -208,15 +248,18 @@ export function ZoneSheet() {
         <View
           testID="zona-ataque"
           accessible
-          accessibilityLabel={`Sob ataque dos ${teamName(zone.attacker)}. ${countdownText(view.attackEndsAt, now)} para o fim da defesa`}
+          accessibilityLabel={`Sob ataque dos ${teamName(zone.attacker)}. ${countdownText(view.attackEndsAt, now)} para defender`}
           style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[4], borderRadius: radius.md, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.lineControl }}>
           <Icon name="shield" size={24} color={colors.text} />
-          <Text variant="headline" tabular>
-            {countdownText(view.attackEndsAt, now)}
-          </Text>
-          <Text variant="small" muted style={{ flex: 1 }}>
-            para defender
-          </Text>
+          {/* UX-09: contagem por extenso ("Faltam 17 h 30 min"); "17:30" parecia horário. */}
+          <View style={{ flex: 1 }}>
+            <Text variant="title" tabular>
+              {countdownText(view.attackEndsAt, now)}
+            </Text>
+            <Text variant="small" muted>
+              para defender
+            </Text>
+          </View>
         </View>
       ) : null}
 
@@ -235,14 +278,6 @@ export function ZoneSheet() {
       {/* 5. A ação: sempre visível no detent 0,55. */}
       <Button testID="zona-correr" label={view.cta} icon={view.attackEndsAt !== null && zone.owner === faction ? 'shield' : 'play'} size="lg" wide onPress={goRun} />
 
-      {error && error.code === 'NETWORK' ? (
-        <View testID="zona-offline" accessible accessibilityLabel="Sem internet: últimos dados salvos" style={{ flexDirection: 'row', alignItems: 'center', gap: space[1] }}>
-          <Icon name="warning" size={14} color={colors.textSecondary} />
-          <Text variant="small" muted>
-            Offline · dados salvos
-          </Text>
-        </View>
-      ) : null}
 
       {/* 6. Detalhes sob demanda: maiores corredores e acontecimentos. */}
       {ranked.length > 0 || events.length > 0 ? (

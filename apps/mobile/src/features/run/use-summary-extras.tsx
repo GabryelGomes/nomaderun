@@ -7,7 +7,7 @@
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
-import { RunRewardsBlock, useRunRewards } from '@/features/engagement';
+import { NextRunPlanCard, RunRewardsBlock, SummaryMoments, useRunRewards } from '@/features/engagement';
 import { getActivity } from '@/services/api/activities-repo';
 import { ShareButton } from '@/features/social/share';
 import { isDemoMode } from '@/services/api/env';
@@ -25,6 +25,10 @@ const asked = new Set<string>();
 
 export type SummaryExtras = {
   rewards: ReactNode;
+  /** E7 (F8 · B2): 1º trecho, recorde, carimbo de bairro novo e a fala do líder (só com dado real). */
+  moments: ReactNode;
+  /** E7 (D-94): "Quando você corre de novo?" (1º resumo e depois 1 vez por semana, sem plano marcado). */
+  plan: ReactNode;
   /** O XP creditado de verdade (o mesmo número do bloco "Recompensas"). */
   xp: SummaryXp | null;
   renderShare: (ctx: { runId: string; status?: 'valid' | 'partial' | 'review' | 'rejected' | null }) => ReactNode;
@@ -84,5 +88,9 @@ export function useSummaryExtras(id: string | undefined): SummaryExtras {
   const rewards = block ? <RunRewardsBlock block={block} demo={demo} testID="resumo-recompensas" /> : null;
   const renderShare: SummaryExtras['renderShare'] = ({ runId, status }) => <ShareButton activityId={runId} status={status} level={level} boss={boss} size="lg" wide />;
   const xpView = useMemo(() => summaryXpFrom(block, xp), [block, xp]);
-  return { rewards, renderShare, xp: xpView };
+  const team = useGame((s) => s.faction) ?? 'striders';
+  const [openedAt] = useState(() => Date.now());
+  const moments = id ? <SummaryMoments runId={id} team={team} official={official} summary={summary} confirmed={confirmed} /> : null;
+  const plan = summary ? <NextRunPlanCard now={openedAt} /> : null;
+  return { rewards, moments, plan, renderShare, xp: xpView };
 }

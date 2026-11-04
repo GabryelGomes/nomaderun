@@ -4,7 +4,7 @@
 -- Achados que ainda não estão corrigidos ficam no teste adversarial (supabase/tests/security) e em docs/QA.md.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(44);
+select plan(47);
 
 -- ---------------------------------------------------------------------------
 -- 1. Garantias estruturais (catálogo)
@@ -29,7 +29,8 @@ select is(
 select is(
   (select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname in ('public', 'private') and p.prosecdef and has_function_privilege('anon', p.oid, 'execute')),
-  array['username_available'], 'anon só executa username_available entre as funções security definer');
+  -- C2 (D-91/D-96): faction_activity entra (só as 4 contagens de contas reais; conferido no 33)
+  array['faction_activity', 'username_available'], 'anon só executa username_available e faction_activity entre as funções security definer');
 
 select is(
   (select array_agg(c.relname::text order by c.relname) from pg_class c join pg_namespace n on n.oid = c.relnamespace
@@ -94,6 +95,30 @@ select ok(
      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.proname in ('ranking_runners', 'ranking_crews', 'ranking_factions', 'district_label', 'daily_chests', 'zones_in_bbox')),
   'RPCs de ranking/baús/zonas não devolvem colunas sensíveis');
+
+-- F8 (C3, D-99): tabelas internas (private.*, incluindo private.rate_limits) fora do alcance do cliente; RPCs novas
+-- da F8 só para quem tem conta; o contador de chamadas só pelo service role.
+select is(
+  (select array_agg(c.relname::text order by c.relname) from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'private' and c.relkind in ('r', 'v', 'm', 'p')
+      and (has_any_column_privilege('anon', c.oid, 'select') or has_any_column_privilege('authenticated', c.oid, 'select')
+           or has_any_column_privilege('anon', c.oid, 'insert') or has_any_column_privilege('authenticated', c.oid, 'insert')
+           or has_any_column_privilege('anon', c.oid, 'update') or has_any_column_privilege('authenticated', c.oid, 'update')
+           or has_table_privilege('anon', c.oid, 'delete') or has_table_privilege('authenticated', c.oid, 'delete'))),
+  null, 'nenhuma tabela do schema private dá privilégio a anon ou authenticated (inclui private.rate_limits)');
+
+select is(
+  (select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    -- C2 (20261104120200, D-91): faction_activity passou a aceitar anon de propósito (só as 4 contagens; pgTAP 33)
+    where n.nspname = 'public' and p.proname in ('crew_echo', 'svc_paint_milestones', 'svc_rate_limit_hit')
+      and has_function_privilege('anon', p.oid, 'execute')),
+  null, 'RPCs da F8 (crew_echo, svc_paint_milestones, svc_rate_limit_hit) fora do anon; faction_activity só contagens (33)');
+
+select is(
+  (select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname in ('svc_paint_milestones', 'svc_rate_limit_hit')
+      and has_function_privilege('authenticated', p.oid, 'execute')),
+  null, 'svc_paint_milestones e svc_rate_limit_hit só pelo service role (a pessoa não zera o próprio limite)');
 
 select ok(
   not has_column_privilege('authenticated', 'public.devices', 'secret', 'select'),

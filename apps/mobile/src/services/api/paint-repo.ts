@@ -17,6 +17,7 @@ import type { LatLng } from '@/domain/types';
 import { AppError, fail, MESSAGES, type Result } from './errors';
 import { callFeatureRpc, factionOrNull, type Unavailable } from './raid-repo';
 import { requireSupabase } from './supabase';
+import { withNearRef } from './zone-name';
 
 /** Raio padrão do retrato (m): cobre a corrida de quem está parado no início; o app pede de novo ao se afastar. */
 export const PAINT_NEAR_RADIUS_M = 1500;
@@ -64,7 +65,7 @@ export function parsePaintNear(data: unknown, center: LatLng, radiusM: number): 
     const name = z.name;
     (zones as Record<string, LiveSnapshot['zones'][string]>)[id] = {
       owner: factionOrNull(z.owner),
-      name: typeof name === 'string' && name ? name : null,
+      name: typeof name === 'string' && name ? withNearRef(name, z.nearRef) : null,
       ...(inherited ? { inherited } : {}),
       ...(z.blocked === true ? { blocked: true } : {}),
       ...(pick(z, 'underAttack', 'under_attack') === true ? { underAttack: true } : {}),

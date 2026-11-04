@@ -26,9 +26,11 @@ export type CrewFeedState = {
   loadingMore: boolean;
   /** Mensagem do último erro (rede, limite de reações). */
   error: string | null;
+  /** D-95: código do erro da CARGA (rede/servidor) para o `OfflineNotice`; erro de uma ação (reagir, tirar) fica só na mensagem. */
+  errorCode: string | null;
 };
 
-const INITIAL: CrewFeedState = { status: 'loading', crew: null, items: [], hasMore: false, loadingMore: false, error: null };
+const INITIAL: CrewFeedState = { status: 'loading', crew: null, items: [], hasMore: false, loadingMore: false, error: null, errorCode: null };
 
 export function useCrewFeed(opts: { pageSize?: number } = {}) {
   const [state, setState] = useState<CrewFeedState>(INITIAL);
@@ -48,6 +50,7 @@ export function useCrewFeed(opts: { pageSize?: number } = {}) {
         status: isFeedUnavailable(res.error) ? 'unavailable' : s.items.length ? 'ready' : 'error',
         loadingMore: false,
         error: res.error.message,
+        errorCode: res.error.code,
       }));
       return;
     }
@@ -59,6 +62,7 @@ export function useCrewFeed(opts: { pageSize?: number } = {}) {
       hasMore: res.data.next !== null,
       loadingMore: false,
       error: null,
+      errorCode: null,
     });
   }, []);
 
@@ -78,7 +82,7 @@ export function useCrewFeed(opts: { pageSize?: number } = {}) {
     const res = await listCrewFeed({ before: cursor.current, limit: pageSize });
     if (!alive.current) return;
     if (!res.ok) {
-      setState((s) => ({ ...s, loadingMore: false, error: res.error.message }));
+      setState((s) => ({ ...s, loadingMore: false, error: res.error.message, errorCode: res.error.code }));
       return;
     }
     cursor.current = res.data.next;

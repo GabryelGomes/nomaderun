@@ -24,8 +24,10 @@ export const LEVEL_TIMELINE = { dim: 0, rays: 100, number: 300, title: 700, rewa
 
 /** Escolha de time (§7): versão da primeira abertura e versão curta da troca de time. */
 export const TEAM_TIMELINE = {
-  ftue: { flood: 150, floodMs: 560, content: 450, vignette: 600, waves: 710, name: 750, quote: 1150, cta: 1600 },
-  switch: { flood: 100, floodMs: 400, content: 300, vignette: 400, waves: -1, name: 450, quote: 700, cta: 950 },
+  // `finale`/`ctaFinale` (D-91): o quadro "Seu rastro agora é…" entra depois da frase; a rota termina de se desenhar
+  // aos ~2,3 s e o botão "Continuar" aparece junto (teto da cerimônia: 3 s; tocável desde o início).
+  ftue: { flood: 150, floodMs: 560, content: 450, vignette: 600, waves: 710, name: 750, quote: 1150, cta: 1600, finale: 1500, ctaFinale: 2300 },
+  switch: { flood: 100, floodMs: 400, content: 300, vignette: 400, waves: -1, name: 450, quote: 700, cta: 950, finale: 900, ctaFinale: 1100 },
 } as const;
 
 /** Aceno de cabeça do mascote na confirmação do time (pivô `MASCOT_PIVOTS.cabeca`, no pescoço). */

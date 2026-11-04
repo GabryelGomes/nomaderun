@@ -34,7 +34,7 @@ export function ModerationListScreen() {
         title="Corridas em revisão"
         action={data && data.length > 0 ? <CountUp value={data.length} variant="title" accessibilityLabel={`${data.length} na fila`} testID="moderacao-total" /> : undefined}
       />
-      <Text muted>Corridas que não pontuaram por suspeita de fraude ou índice de confiança baixo. Toda decisão exige justificativa e avisa o corredor.</Text>
+      <Text muted>Corridas suspeitas, ainda sem pontos. Toda decisão pede motivo.</Text>
       {error && !data ? (
         <EmptyState
           title={error.code === 'NETWORK' ? 'Sem internet' : 'Não foi possível carregar'}
@@ -44,7 +44,7 @@ export function ModerationListScreen() {
       ) : !data ? (
         <ActivityIndicator color={colors.action} />
       ) : data.length === 0 ? (
-        <EmptyState title="Fila vazia" body="Nenhuma corrida aguardando revisão agora. Puxe a lista para baixo para atualizar." />
+        <EmptyState title="Fila vazia" body="Puxe a lista para atualizar." />
       ) : (
         <Surface>
           <Stagger delay={120} gap={space[3]}>
@@ -87,8 +87,7 @@ export function ModerationListScreen() {
         <SectionTitle title="Como revisar" />
         <Surface>
           <Text variant="small" muted>
-            Abra a corrida, confira o percurso no mapa e os gráficos de velocidade e passos. Aprovar aplica os pontos; rejeitar mantém a corrida sem pontuar. Nos dois casos o corredor recebe uma
-            notificação.
+            Confira mapa, velocidade e passos. Aprovar dá os pontos; rejeitar, não. O corredor é avisado.
           </Text>
         </Surface>
       </View>

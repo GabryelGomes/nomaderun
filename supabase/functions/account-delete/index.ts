@@ -8,9 +8,11 @@
 import { parseAccountDelete, verifyPassword } from '../_shared/account.ts';
 import { handler, json, readJson } from '../_shared/http.ts';
 import { anonKey, baseUrl, deleteAuthUser, deleteUserAvatars, requireUser } from '../_shared/supabase.ts';
+import { enforceRateLimit } from '../_shared/rate-limit.ts';
 
 Deno.serve(handler(['POST'], async (req) => {
   const user = await requireUser(req);
+  await enforceRateLimit(user.id, 'conta');
   const { password } = parseAccountDelete(await readJson(req, 16 * 1024));
   await verifyPassword(user.email, password, { baseUrl: baseUrl(), apikey: anonKey() });
   await deleteUserAvatars(user.id);

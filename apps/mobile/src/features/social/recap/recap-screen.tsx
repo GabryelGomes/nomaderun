@@ -11,6 +11,7 @@ import { useMemo, useRef, useState } from 'react';
 import { PixelRatio, Switch, useWindowDimensions, View } from 'react-native';
 import type Svg from 'react-native-svg';
 
+import { EmptyArt, TeamEmblem } from '@/components/art';
 import { Button } from '@/components/button';
 import { ChipRow } from '@/components/chip-row';
 import { EmptyState } from '@/components/empty-state';
@@ -19,14 +20,18 @@ import { haptic, PressableScale, ShimmerSkeleton } from '@/components/motion';
 import { layout, ScreenScroll } from '@/components/screen';
 import { Surface } from '@/components/surface';
 import { Text } from '@/components/text';
-import { trackTelemetry } from '@/features/engagement';
+import { recordShareDone } from '@/features/engagement';
+import { leaderLine } from '@/features/engagement/leader-lines';
+import { recapLeaderFeat } from '@/features/engagement/moments';
+import { LeaderComment } from '@/features/engagement/summary-moments';
+import { TEAM_BIO } from '@/domain/team-bio';
 import { isDemoMode } from '@/services/api/env';
 import { useGame } from '@/store/game-store';
 import { useSession } from '@/store/session-store';
 import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-import { buildWeekCard, CARD_FORMATS, DEFAULT_CARD_CHOICES, ShareCard, type CardChoices, type ShareCardFormat } from '../card';
+import { buildWeekCard, CARD_FORMATS, DEFAULT_CARD_CHOICES, ShareCard, storiesA11yLabel, type CardChoices, type ShareCardFormat } from '../card';
 import { copyText } from '../clipboard';
 import { doneMessage, primaryLabel, SHARE_FAILURE_TEXT, SHARE_FORMAT_LABEL, SHARE_TEXT, shareSize } from '../share/share-flow';
 import { randomSeed } from '../share/share-input';
@@ -55,7 +60,7 @@ export function RecapScreen() {
   const share = useShareCard({
     onShared: () => {
       haptic('success');
-      trackTelemetry('share');
+      void recordShareDone(null);
     },
   });
 
@@ -79,9 +84,18 @@ export function RecapScreen() {
   // Sem selo próprio: o selo global de demonstração (`DemoSeal`, raiz) já fica no topo; o card leva o dele.
   const header = (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
-      <Text variant="headline" style={{ flex: 1 }} numberOfLines={1} accessibilityRole="header">
-        Minha semana
-      </Text>
+      {/* C2 (E8, D-90/D-93): o emblema novo e o lema do time (fonte única team-bio) no topo do recap. */}
+      <View aria-hidden importantForAccessibility="no-hide-descendants">
+        <TeamEmblem team={faction} size={40} variant="medio" />
+      </View>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text variant="headline" numberOfLines={1} accessibilityRole="header">
+          Minha semana
+        </Text>
+        <Text testID="semana-lema" variant="caption" muted numberOfLines={1} accessibilityLabel={`Lema dos ${TEAM_BIO[faction].name}: ${TEAM_BIO[faction].motto}`}>
+          {`${TEAM_BIO[faction].name} · ${TEAM_BIO[faction].motto}`}
+        </Text>
+      </View>
       <PressableScale testID="semana-fechar" accessibilityLabel="Fechar" onPress={close} hitSlop={8} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
         <Icon name="close" color={colors.text} />
       </PressableScale>
@@ -105,15 +119,17 @@ export function RecapScreen() {
     return (
       <ScreenScroll testID="tela-semana">
         {header}
+        {/* UX-28: o vazio ganha arte e a ação que resolve (Correr); a saída é só o X do topo (antes, "Voltar" e X juntos). */}
         <EmptyState
           testID={failed ? 'semana-erro' : 'semana-vazia'}
+          art={failed ? <EmptyArt kind="sem-conexao" size={160} /> : <EmptyArt kind="sem-corridas" team={faction} size={180} />}
           title={failed ? 'Não deu para montar a semana' : 'Nenhuma corrida nesta semana'}
-          body={failed ? 'Confira a conexão e tente de novo.' : 'Quando você correr, a semana vira um card para compartilhar.'}
+          body={failed ? 'Confira a conexão e tente de novo.' : 'Corra e a semana vira um card.'}
           action={
             failed ? (
               <Button testID="semana-tentar" label="Tentar de novo" kind="secondary" onPress={retry} />
             ) : (
-              <Button testID="semana-voltar" label="Voltar" kind="secondary" onPress={close} />
+              <Button testID="semana-correr" label="Correr" icon="play" onPress={() => router.replace('/corrida')} />
             )
           }
         />
@@ -143,7 +159,7 @@ export function RecapScreen() {
   return (
     <ScreenScroll testID="tela-semana" footer={footer}>
       {header}
-      <View style={{ alignItems: 'center' }} accessible accessibilityRole="image" accessibilityLabel={model.a11yLabel}>
+      <View style={{ alignItems: 'center' }} accessible accessibilityRole="image" accessibilityLabel={format === 'stories' ? storiesA11yLabel(model.a11yLabel, model.faction) : model.a11yLabel}>
         <View style={{ borderRadius: radius.lg, overflow: 'hidden', borderWidth: 1, borderColor: colors.line }}>
           <ShareCard model={model} format={format} width={previewW} testID="semana-previa" />
         </View>
@@ -153,6 +169,12 @@ export function RecapScreen() {
           A semana ainda não acabou: o card mostra até hoje.
         </Text>
       ) : null}
+
+      {/* E7 (F8 · 5.3): o líder comenta a semana real (zonas, senão corridas), 1 fala por tela. */}
+      {(() => {
+        const line = state.status === 'ready' ? leaderLine(faction, recapLeaderFeat(state.recap), `semana-${state.recap.weekStart}`) : null;
+        return line ? <LeaderComment team={faction} text={line} testID="semana-lider" /> : null;
+      })()}
 
       <ChipRow
         testID="semana-formato"

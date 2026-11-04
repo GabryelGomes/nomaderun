@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { levelFromXp, MAX_LEVEL, xpForLevel } from '../games';
+import { MAX_LEVEL } from '../games';
 import {
   brtCalendar,
   canOpenDailyChests,
@@ -91,7 +91,8 @@ describe('D-64 — curva de XP v2', () => {
     expect(totalXpForLevel(60)).toBe(174160);
   });
 
-  it('a curva nova pede ≤ XP que a atual em todo nível (por nível e acumulado)', () => {
+  it('a curva nova pede ≤ XP que a antiga (v1, 100·n^1,5, removida na D-92) em todo nível (por nível e acumulado)', () => {
+    const xpForLevel = (n: number) => Math.round(100 * n ** 1.5);
     let v1 = 0;
     for (let n = 1; n <= MAX_LEVEL; n++) {
       expect(xpToNextLevel(n)).toBeLessThanOrEqual(xpForLevel(n));
@@ -113,6 +114,16 @@ describe('D-64 — curva de XP v2', () => {
   });
 
   it('propriedade: nível só sobe com mais XP e ninguém perde nível na troca de curva', () => {
+    // a curva v1 (removida na D-92), só para provar que a troca nunca baixou o nível de ninguém
+    const levelV1 = (xp: number) => {
+      let level = 1;
+      let left = Math.max(0, xp);
+      while (level < MAX_LEVEL && left >= Math.round(100 * level ** 1.5)) {
+        left -= Math.round(100 * level ** 1.5);
+        level++;
+      }
+      return level;
+    };
     forAll(
       (r) => {
         const a = r.int(0, 250_000);
@@ -122,7 +133,7 @@ describe('D-64 — curva de XP v2', () => {
         const pa = levelProgress(a);
         const pb = levelProgress(b);
         expect(pb.level).toBeGreaterThanOrEqual(pa.level);
-        expect(pa.level).toBeGreaterThanOrEqual(levelFromXp(a).level);
+        expect(pa.level).toBeGreaterThanOrEqual(levelV1(a));
         expect(pa.intoLevel).toBeGreaterThanOrEqual(0);
         if (!pa.isMax) expect(pa.intoLevel).toBeLessThan(pa.needed);
       },

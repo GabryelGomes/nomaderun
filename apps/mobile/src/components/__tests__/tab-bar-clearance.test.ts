@@ -7,7 +7,7 @@ jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({
 import { space } from '@/theme/tokens';
 import { MAP_ALERT_SLOT, MAP_RUN_BUTTON_SLOT, tabBarBelowContent, welcomeMissionBottom } from '@/features/screens/onboarding/welcome-mission';
 
-import { ACTIVITIES_ROUTE, ANDROID_TAB_BAR_HEIGHT, APP_TABS, RUN_ROUTE, WEB_RUN_TAB_SIZE, WEB_TAB_BAR_HEIGHT } from '../app-tabs-config';
+import { ACTIVITIES_ROUTE, ANDROID_TAB_BAR_HEIGHT, APP_TABS, RUN_ROUTE, WEB_TAB_BAR_HEIGHT } from '../app-tabs-config';
 import { IOS_TAB_BAR_HEIGHT, tabBarClearance } from '../screen';
 /* eslint-enable import/first */
 
@@ -23,17 +23,15 @@ describe('tabBarClearance — elementos flutuantes acima da barra de abas', () =
   });
 });
 
-describe('abas novas (D-73): Mapa · Arena · Correr · Clube · Você', () => {
-  it('5 abas nessa ordem, com testID próprio', () => {
-    expect(APP_TABS.map((t) => t.label)).toEqual(['Mapa', 'Arena', 'Correr', 'Clube', 'Você']);
-    expect(new Set(APP_TABS.map((t) => t.testID)).size).toBe(5);
+describe('abas (D-89): Mapa · Arena · Clube · Você', () => {
+  it('4 abas nessa ordem, com testID próprio', () => {
+    expect(APP_TABS.map((t) => t.label)).toEqual(['Mapa', 'Arena', 'Clube', 'Você']);
+    expect(new Set(APP_TABS.map((t) => t.testID)).size).toBe(4);
   });
 
-  it('Correr fica no centro e é a única que abre a Nova corrida em vez de trocar de aba', () => {
-    const run = APP_TABS.filter((t) => t.opens);
-    expect(run).toHaveLength(1);
-    expect(APP_TABS.indexOf(run[0])).toBe(2);
-    expect(run[0].opens).toBe(RUN_ROUTE);
+  it('não há aba Correr: nenhuma aba abre a Nova corrida (o CORRER do Mapa é o único genérico)', () => {
+    expect(APP_TABS.some((t) => t.label === 'Correr' || t.testID === 'aba-correr' || t.href === '/correr')).toBe(false);
+    expect(APP_TABS.some((t) => 'opens' in t)).toBe(false);
     expect(RUN_ROUTE).toBe('/corrida');
   });
 
@@ -45,10 +43,9 @@ describe('abas novas (D-73): Mapa · Arena · Correr · Clube · Você', () => {
     expect(APP_TABS.some((t) => t.href === '/atividades')).toBe(false);
   });
 
-  it('na web o Correr elevado não invade o espaço do "Correr" do Mapa (16 pt acima da barra)', () => {
-    // o rótulo (~16 pt) + o círculo + respiros cabem na barra com no máximo 16 pt para fora
-    const overflow = WEB_RUN_TAB_SIZE + 2 + 16 + space[1] - WEB_TAB_BAR_HEIGHT;
-    expect(overflow).toBeLessThan(tabBarClearance(0, 'web'));
+  it('cada aba tem alvo de toque ≥ 44 pt na web (barra de 64 pt, 4 colunas em 360 pt)', () => {
+    expect(WEB_TAB_BAR_HEIGHT - space[2]).toBeGreaterThanOrEqual(44);
+    expect(360 / APP_TABS.length).toBeGreaterThanOrEqual(44);
   });
 });
 

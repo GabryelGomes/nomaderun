@@ -25,24 +25,31 @@ export type PlayerCardProps = {
   mascot?: ReactNode;
   /** Anel de nível da E5 (`ProgressRing`). Sem anel, mostra a barra de XP. */
   ring?: ReactNode;
+  /**
+   * Moldura que a pessoa tem (C2: "Recruta", liberada ao entrar num time). Contorno na cor neon do time e o selo
+   * "Moldura <nome>" embaixo do time. Sem moldura, o cartão fica como antes.
+   */
+  frameName?: string | null;
   onPress?: () => void;
   testID: string;
 };
 
 /** Leitura do cartão numa frase (nome, time, nível, XP). */
-export function playerCardLabel(p: Pick<PlayerCardProps, 'name' | 'faction' | 'level' | 'xp' | 'title'>): string {
+export function playerCardLabel(p: Pick<PlayerCardProps, 'name' | 'faction' | 'level' | 'xp' | 'title' | 'frameName'>): string {
   const team = factions[p.faction].name;
-  return [p.name, p.title, `${team}, nível ${p.level}`, `${p.xp.into} de ${p.xp.needed} XP para o nível ${p.level + 1}`].filter(Boolean).join('. ');
+  return [p.name, p.title, `${team}, nível ${p.level}`, `${p.xp.into} de ${p.xp.needed} XP para o nível ${p.level + 1}`, p.frameName ? `Moldura ${p.frameName}` : null]
+    .filter(Boolean)
+    .join('. ');
 }
 
 /** Até 7 caracteres o nome cabe no tamanho `headline`; acima disso usa `title` (24 pt). */
 const NAME_FITS_HEADLINE = 7;
 
 /** Cartão de jogador (herói do "Você" e base do card de compartilhar da E8). */
-export function PlayerCard({ name, faction, level, xp, title, avatar, mascot, ring, onPress, testID }: PlayerCardProps) {
+export function PlayerCard({ name, faction, level, xp, title, avatar, mascot, ring, frameName, onPress, testID }: PlayerCardProps) {
   const { colors } = useTheme();
   const team = neonTeam[faction];
-  const label = playerCardLabel({ name, faction, level, xp, title });
+  const label = playerCardLabel({ name, faction, level, xp, title, frameName });
   const body = (
     <View style={{ gap: space[3] }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[4] }}>
@@ -52,7 +59,8 @@ export function PlayerCard({ name, faction, level, xp, title, avatar, mascot, ri
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           {/* E10 (onda 4): com anel e mascote, sobram ~140 pt a 390 de largura e "voce.demo" já era cortado em 32 pt. */}
-          <Text variant={name.length > NAME_FITS_HEADLINE ? 'title' : 'headline'} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+          {/* F8-D (fonte ×1,3): no aparelho encolhe (0,75); se ainda não couber, quebra em 2 linhas. */}
+          <Text variant={name.length > NAME_FITS_HEADLINE ? 'title' : 'headline'} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
             {name}
           </Text>
           {title ? (
@@ -60,9 +68,19 @@ export function PlayerCard({ name, faction, level, xp, title, avatar, mascot, ri
               {title}
             </Text>
           ) : null}
-          <Text variant="small" muted numberOfLines={1}>
+          {/* F8 onda D: a 360 px, em 1 linha, o nível sumia ("Neon Striders · …"). */}
+          <Text variant="small" muted numberOfLines={3}>
             {factions[faction].name} · nível {level}
           </Text>
+          {frameName ? (
+            <View
+              testID={`${testID}-moldura`}
+              style={{ alignSelf: 'flex-start', paddingVertical: 2, paddingHorizontal: space[2], borderRadius: radius.pill, borderWidth: 1.5, borderColor: team }}>
+              <Text variant="caption" color={team} numberOfLines={1}>
+                Moldura {frameName}
+              </Text>
+            </View>
+          ) : null}
           {/* Com o anel, o XP vira uma linha curta aqui (sem anel, a barra embaixo mostra o mesmo). */}
           {ring ? (
             <Text variant="caption" muted tabular numberOfLines={1}>
@@ -78,7 +96,7 @@ export function PlayerCard({ name, faction, level, xp, title, avatar, mascot, ri
       </View>
       {ring ? null : (
         <View style={{ gap: space[1] }}>
-          <ProgressBar value={xp.needed > 0 ? xp.into / xp.needed : 0} color={factions[faction].color} />
+          <ProgressBar value={xp.needed > 0 ? xp.into / xp.needed : 0} color={neonTeam[faction]} />
           <Text variant="caption" muted tabular>
             {xp.into.toLocaleString('pt-BR')} / {xp.needed.toLocaleString('pt-BR')} XP
           </Text>
@@ -91,8 +109,8 @@ export function PlayerCard({ name, faction, level, xp, title, avatar, mascot, ri
     borderRadius: radius.lg,
     borderCurve: 'continuous' as const,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
+    borderWidth: frameName ? 2 : 1,
+    borderColor: frameName ? team : colors.line,
   };
   return onPress ? (
     <PressableScale testID={testID} accessibilityLabel={label} onPress={onPress} hitSlop={0} style={frame}>

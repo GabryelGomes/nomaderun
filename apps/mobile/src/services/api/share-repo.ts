@@ -3,6 +3,7 @@
  * missão "compartilhar" (1 por dia, XP baixo e cosmético). Não bloqueia nada: se o servidor for o antigo
  * (`PGRST202`) ou a flag estiver desligada (`FEATURE_DISABLED`), devolve `{ recorded: false }` sem erro.
  */
+import { parseCompleted, type StateMissionsCompleted } from './engagement-repo';
 import { attempt, type Result } from './errors';
 import { isFeedUnavailable } from './feed-repo';
 import { requireSupabase } from './supabase';
@@ -12,6 +13,8 @@ export type ShareRecord = {
   recorded: boolean;
   /** Missões concluídas agora por este compartilhamento. */
   completedMissions: number;
+  /** C2: quais (para a telemetria `mission_complete`, como o ranking já fazia). Vazio no servidor antigo. */
+  completed: StateMissionsCompleted['completed'];
 };
 
 export async function recordShare(activityId: string): Promise<Result<ShareRecord>> {
@@ -19,8 +22,8 @@ export async function recordShare(activityId: string): Promise<Result<ShareRecor
     const { data, error } = await requireSupabase().rpc('record_share', { p_activity: activityId });
     if (error) throw error;
     const completed = (data as { completed?: unknown } | null)?.completed;
-    return { recorded: true, completedMissions: Array.isArray(completed) ? completed.length : 0 };
+    return { recorded: true, completedMissions: Array.isArray(completed) ? completed.length : 0, completed: parseCompleted(data).completed };
   });
-  if (!res.ok && isFeedUnavailable(res.error)) return { ok: true, data: { recorded: false, completedMissions: 0 } };
+  if (!res.ok && isFeedUnavailable(res.error)) return { ok: true, data: { recorded: false, completedMissions: 0, completed: [] } };
   return res;
 }

@@ -72,6 +72,20 @@ const CACHE_MAX = 2500;
 let refCount = 0;
 let sub: zonesRepo.ZonesSubscription | null = null;
 let loadSeq = 0;
+/** 429 no `/zones` (F8-D, B2): até quando o mapa espera, e a única nova tentativa marcada (com a última caixa). */
+let pausedUntil = 0;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+/** Espera quando o 429 não diz quanto (o balde do mapa é por minuto). */
+const RATE_LIMIT_FALLBACK_S = 10;
+
+function scheduleRetry(load: (bbox: Bbox) => Promise<void>, getBbox: () => Bbox | null) {
+  if (retryTimer) return;
+  retryTimer = setTimeout(() => {
+    retryTimer = null;
+    const bbox = getBbox();
+    if (bbox) void load(bbox);
+  }, Math.max(0, pausedUntil - Date.now()));
+}
 
 function persist(zones: Record<string, Zone>, meta: Record<string, ZoneMeta>) {
   const ids = Object.keys(zones).slice(-CACHE_MAX);
@@ -108,6 +122,12 @@ export const useZones = create<ZonesState>((set, get) => ({
       return next;
     }),
   loadBbox: async (bbox) => {
+    // Depois de um 429, arrastar o mapa não gera mais chamadas: guarda a caixa e tenta uma vez no fim da espera.
+    if (Date.now() < pausedUntil) {
+      set({ lastBbox: bbox });
+      scheduleRetry(get().loadBbox, () => get().lastBbox);
+      return;
+    }
     const seq = ++loadSeq;
     set({ loading: true, lastBbox: bbox });
     const res = await api.fetchZonesInBbox(bbox);
@@ -117,6 +137,10 @@ export const useZones = create<ZonesState>((set, get) => ({
       set({ ...merged, loading: false, error: null, offline: false, lastLoadedAt: Date.now() });
       persist(merged.zones, merged.meta);
       return;
+    }
+    if (res.error.code === 'RATE_LIMITED') {
+      pausedUntil = Date.now() + (res.error.retryAfter ?? RATE_LIMIT_FALLBACK_S) * 1000;
+      scheduleRetry(get().loadBbox, () => get().lastBbox);
     }
     set({ loading: false, error: res.error, offline: res.error.code === 'NETWORK' });
   },
@@ -151,6 +175,9 @@ export const useZones = create<ZonesState>((set, get) => ({
     sub = null;
     refCount = 0;
     loadSeq += 1;
+    pausedUntil = 0;
+    if (retryTimer) clearTimeout(retryTimer);
+    retryTimer = null;
     set({ ...initial });
   },
 }));

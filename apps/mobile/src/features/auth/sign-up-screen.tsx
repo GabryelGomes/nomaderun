@@ -1,11 +1,13 @@
 import * as Linking from 'expo-linking';
-import { router } from 'expo-router';
-import { useRef, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import { type TextInput, View } from 'react-native';
 
+import { TeamEmblem } from '@/components/art';
 import { Button } from '@/components/button';
 import { FadeUp, RevealText } from '@/components/motion';
 import { Text } from '@/components/text';
+import { signUpTitle, TEAM_BIO } from '@/domain/team-bio';
 import * as authRepo from '@/services/api/auth-repo';
 import { MESSAGES } from '@/services/api/errors';
 import { isUsernameAvailable } from '@/services/api/profile-repo';
@@ -13,6 +15,7 @@ import { space } from '@/theme/tokens';
 
 import { CheckRow, ErrorNotice, FormScaffold, InfoNotice, InlineLink, StrengthMeter, TextField, TextLink } from './form-ui';
 import { NeonBackdrop } from './neon-backdrop';
+import { clearPendingTeamOutsideChoice, hydratePendingTeam, markPendingTeamSignedUp, PENDING_TEAM_FROM_CHOICE, usePendingTeam } from './pending-team';
 import { hasErrors, maskBirthdate, MIN_AGE, parseBirthdate, passwordStrength, validateSignUp, type SignUpErrors } from './validation';
 
 /** Mensagem única do aceite (uma caixa grava os dois aceites; D-72). */
@@ -22,8 +25,19 @@ export const LEGAL_ERROR = 'Aceite os Termos e a Privacidade para continuar.';
  * Cadastro enxuto (RF-001, D-72, wireframe `01`): 4 campos (e-mail, senha ≥ 8 com retorno, nome de usuário único,
  * nascimento 16+) e **uma** caixa "Aceito os Termos e a Privacidade", que grava os dois aceites (o trigger do
  * servidor continua recebendo `accepted_terms` e `accepted_privacy`). A cidade saiu: fica em "Editar perfil".
+ * D-91: depois da cerimônia, o título é "Garanta seu lugar nos <time>" com o emblema médio (o time está guardado no
+ * aparelho e é gravado logo após o cadastro).
  */
 export function SignUpScreen() {
+  const team = usePendingTeam((s) => s.team);
+  // F8-D · B3: o time pendente só vale quando o cadastro veio da escolha de times (`?origem=times`). Vindo de outro
+  // lugar (ex.: Entrar → "Criar conta"), a escolha guardada é de outra pessoa ou de outra hora e é apagada.
+  const { origem } = useLocalSearchParams<{ origem?: string }>();
+  const fromChoice = origem === PENDING_TEAM_FROM_CHOICE;
+  useEffect(() => {
+    if (fromChoice) hydratePendingTeam();
+    else void clearPendingTeamOutsideChoice();
+  }, [fromChoice]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -71,6 +85,8 @@ export function SignUpScreen() {
       setServerError(res.error.message);
       return;
     }
+    // A escolha passa a ser desta pessoa: continua valendo quando ela voltar do e-mail e entrar (até 24 h).
+    if (fromChoice) await markPendingTeamSignedUp();
     if (res.data.needsConfirmation) setConfirmSent(true);
     // Com sessão, o guarda de rotas leva direto à escolha do time.
   };
@@ -93,9 +109,17 @@ export function SignUpScreen() {
       background={<NeonBackdrop />}
       footer={<Button testID="cadastro-botao" label={busy ? 'Criando conta…' : 'Criar conta'} size="lg" wide disabled={busy} busy={busy} onPress={submit} />}>
       <View style={{ gap: space[2] }}>
-        <RevealText testID="cadastro-titulo">Criar conta</RevealText>
+        {team ? (
+          <FadeUp testID="cadastro-time" style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
+            <TeamEmblem team={team} size={56} variant="medio" accessibilityLabel={`Emblema dos ${TEAM_BIO[team].name}`} />
+            <Text variant="label" muted style={{ textTransform: 'uppercase' }}>
+              {TEAM_BIO[team].motto}
+            </Text>
+          </FadeUp>
+        ) : null}
+        <RevealText testID="cadastro-titulo">{team ? signUpTitle(team) : 'Criar conta'}</RevealText>
         <FadeUp delay={150}>
-          <Text muted>1 minuto e você escolhe seu time.</Text>
+          <Text muted>{team ? 'Seu time está guardado: falta só a conta.' : '1 minuto e você escolhe seu time.'}</Text>
         </FadeUp>
       </View>
 

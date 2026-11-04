@@ -6,9 +6,11 @@ import { handler, HttpError, json, readJson } from '../_shared/http.ts';
 import { requireUser } from '../_shared/supabase.ts';
 import { checkEndedAt, parseFinish } from '../_shared/validate.ts';
 import { loadFlags, safeRunV2, withExtras } from '../_shared/v2-run.ts';
+import { enforceRateLimit } from '../_shared/rate-limit.ts';
 
 Deno.serve(handler(['POST'], async (req) => {
   const user = await requireUser(req);
+  await enforceRateLimit(user.id, 'finish');
   const body = parseFinish(await readJson(req));
   const { activity, points, result } = await loadActivity(body.activityId);
   if (!activity) {

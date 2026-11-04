@@ -121,7 +121,8 @@ export function SafetyContactsScreen() {
             testID="contatos-adicionar"
             label={full ? 'Limite de 5 contatos atingido' : 'Adicionar contato'}
             icon="shield"
-            kind="secondary"
+            // UX-26: a ação da tela é a primária (laranja); cheio, volta a ser secundária e desativada.
+            kind={full ? 'secondary' : 'primary'}
             size="lg"
             wide
             disabled={full}
@@ -129,7 +130,7 @@ export function SafetyContactsScreen() {
           />
         )
       }>
-      <Text muted>Eles recebem sua localização no SOS, na Escolta e se você parar por 10 min.</Text>
+      <Text muted>Eles recebem sua localização no SOS, ao vivo e se você parar por 10 min.</Text>
 
       {/* O formulário fica logo abaixo da explicação: com o teclado aberto, ele continua à vista. */}
       {editor}

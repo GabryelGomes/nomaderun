@@ -191,11 +191,11 @@ describe('RPCs do feed e do compartilhamento', () => {
 
   it('record_share: conta as missões; servidor antigo não é erro', async () => {
     mockRpc.mockResolvedValueOnce({ data: { completed: [{ id: 'm1' }] }, error: null });
-    expect(await recordShare('a1')).toEqual({ ok: true, data: { recorded: true, completedMissions: 1 } });
+    expect(await recordShare('a1')).toEqual({ ok: true, data: { recorded: true, completedMissions: 1, completed: [{ id: 'm1', cadence: null, xp: 0 }] } });
     expect(mockRpc).toHaveBeenCalledWith('record_share', { p_activity: 'a1' });
 
     mockRpc.mockResolvedValueOnce({ data: null, error: { code: 'PGRST202', message: 'Could not find the function' } });
-    expect(await recordShare('a1')).toEqual({ ok: true, data: { recorded: false, completedMissions: 0 } });
+    expect(await recordShare('a1')).toEqual({ ok: true, data: { recorded: false, completedMissions: 0, completed: [] } });
 
     mockRpc.mockResolvedValueOnce({ data: null, error: { code: 'P0001', message: 'NOT_FOUND: corrida não encontrada' } });
     const nf = await recordShare('x');

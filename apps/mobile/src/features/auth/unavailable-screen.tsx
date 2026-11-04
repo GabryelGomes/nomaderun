@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { EmptyArt } from '@/components/art';
 import { EmptyState } from '@/components/empty-state';
 import { Text } from '@/components/text';
 import { useSession } from '@/store/session-store';
@@ -10,7 +11,8 @@ import { space } from '@/theme/tokens';
 
 import { startDemo } from './demo-entry';
 import { ErrorNotice, FormScaffold } from './form-ui';
-import { loadProfile, signOut } from './session-controller';
+import { loadProfile } from './session-controller';
+import { SignOutDialog } from './sign-out-dialog';
 
 /**
  * "Ver demonstração" (D-77): sem servidor, a pessoa ainda pode conhecer o app com dados de exemplo (o interruptor
@@ -49,6 +51,7 @@ export function UnavailableScreen() {
   const profileError = useSession((s) => s.profileError);
   const [busy, setBusy] = useState(false);
   const [demoError, setDemoError] = useState<string | null>(null);
+  const [signOutOpen, setSignOutOpen] = useState(false);
 
   if (status === 'unconfigured') {
     return (
@@ -91,17 +94,27 @@ export function UnavailableScreen() {
     setBusy(false);
   };
 
+  // D-95/UX-05: sem rede ou com o servidor fora do ar, só "Tentar de novo" (sair sem rede pode perder corrida não
+  // enviada; com cópia salva, o app nem chega aqui). "Sair" só quando tentar de novo não resolve (sessão ou conta
+  // recusada), e com confirmação.
+  const stuck = profileError?.code === 'UNAUTHORIZED' || profileError?.code === 'NOT_FOUND';
   return (
     <FormScaffold
       testID="tela-perfil-indisponivel"
       footer={
         <View style={{ gap: space[2] }}>
           <Button testID="indisponivel-tentar" label={busy ? 'Tentando…' : 'Tentar de novo'} size="lg" wide disabled={busy} busy={busy} onPress={retry} />
-          <Button testID="indisponivel-sair" label="Sair da conta" kind="ghost" wide onPress={() => signOut()} />
+          {stuck ? <Button testID="indisponivel-sair" label="Sair da conta" kind="ghost" wide onPress={() => setSignOutOpen(true)} /> : null}
+          <SignOutDialog visible={signOutOpen} onClose={() => setSignOutOpen(false)} testID="indisponivel-sair-dialogo" />
         </View>
       }>
       <View style={{ flex: 1, justifyContent: 'center' }}>
-        <EmptyState testID="indisponivel-titulo" icon="warning" title="Não deu para abrir seu perfil" body={profileError?.message ?? 'Confira a internet e tente de novo.'} />
+        <EmptyState
+          testID="indisponivel-titulo"
+          art={<EmptyArt kind="sem-conexao" size={180} />}
+          title="Não deu para abrir seu perfil"
+          body={profileError?.code === 'NETWORK' ? 'Sem internet. Confira a conexão e tente de novo.' : (profileError?.message ?? 'Confira a internet e tente de novo.')}
+        />
       </View>
     </FormScaffold>
   );

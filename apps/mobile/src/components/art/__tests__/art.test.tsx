@@ -112,13 +112,15 @@ describe('team — mascotes e emblemas', () => {
     expect(strokes(r, ART.team.owls)).toBeGreaterThan(0);
   });
 
-  it('emblema completo escreve o nome com Text (fora do SVG); compacto não', () => {
+  it('emblema v2 (D-90): nunca escreve o nome dentro do SVG; aplica cor e tamanho no grande e no mini', () => {
     const full = render(<TeamEmblem team="coyotes" size={160} />);
     expect(svgOf(full).props.width).toBe(160);
-    expect(full.root.findAll((n: ReactTestInstance) => n.props?.children === 'URBAN COYOTES').length).toBeGreaterThan(0);
+    expect(full.root.findAll((n: ReactTestInstance) => n.props?.children === 'URBAN COYOTES').length).toBe(0);
+    expect(strokes(full, ART.team.coyotes)).toBeGreaterThan(0); // o grande tem o rosto line-art
     const small = render(<TeamEmblem team="coyotes" size={32} color="#00FF00" />);
     expect(small.root.findAll((n: ReactTestInstance) => n.props?.children === 'URBAN COYOTES').length).toBe(0);
-    expect(strokes(small, '#00FF00')).toBeGreaterThan(0);
+    expect(small.root.findAll((n: ReactTestInstance) => n.props?.fill === '#00FF00').length).toBeGreaterThan(0); // o mini é cheio, sem linha
+    expect(strokes(small, '#00FF00')).toBe(0);
   });
 });
 

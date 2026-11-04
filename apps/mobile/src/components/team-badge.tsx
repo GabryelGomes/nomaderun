@@ -1,8 +1,8 @@
-import { View } from 'react-native';
-import Svg, { Circle, Polygon, Rect } from 'react-native-svg';
+import { Circle, Polygon, Rect } from 'react-native-svg';
 
+import { TeamEmblem } from '@/components/art/team/emblem';
 import type { FactionId } from '@/domain/types';
-import { factions, palette, type TeamShape } from '@/theme/tokens';
+import type { TeamShape } from '@/theme/tokens';
 
 /** The team's shape, centered in a `size` box: the color-blind safe cue that goes with the color. */
 export function TeamShapeGlyph({ shape, size, color }: { shape: TeamShape; size: number; color: string }) {
@@ -21,23 +21,10 @@ export function TeamShapeGlyph({ shape, size, color }: { shape: TeamShape; size:
 }
 
 /**
- * A team's badge: solid team color with its shape in white. `null` is a neutral zone.
- * `attack` adds a dashed ring, the same cue the map uses for a contested zone.
+ * Selo do time (D-90): alias fino de `<TeamEmblem variant="auto" />` com a assinatura antiga (`faction`,
+ * `size`, `attack`), para trocar o disco sólido de antes em todos os usos de uma vez. `null` é a zona neutra;
+ * `attack` adiciona o anel tracejado do mapa. Telas novas usam `TeamEmblem` direto (com `variant`, `on`, `mono`).
  */
 export function TeamBadge({ faction, size = 28, attack }: { faction: FactionId | null; size?: number; attack?: boolean }) {
-  const f = faction ? factions[faction] : null;
-  const c = size / 2;
-  const ring = attack ? Math.max(2, size * 0.06) : 0;
-  const r = c - ring * 1.6;
-  return (
-    // Decorativo: escondido do leitor de tela pelo View (aria-hidden vale no celular e na web; as props
-    // accessibility* no próprio Svg vazam para o DOM na web e geram erro no console).
-    <View aria-hidden style={{ width: size, height: size }}>
-      <Svg width={size} height={size}>
-        {attack ? <Circle cx={c} cy={c} r={c - ring / 2} fill="none" stroke={palette.danger} strokeWidth={ring} strokeDasharray={`${ring * 2} ${ring * 1.5}`} /> : null}
-        <Circle cx={c} cy={c} r={r} fill={f ? f.color : palette.surface2} stroke={f ? palette.white : palette.ink3} strokeWidth={f ? 1.5 : 1.2} strokeDasharray={f ? undefined : '3 3'} />
-        {f ? <TeamShapeGlyph shape={f.shape} size={size} color={palette.white} /> : null}
-      </Svg>
-    </View>
-  );
+  return <TeamEmblem team={faction} size={size} variant="auto" attack={attack} />;
 }

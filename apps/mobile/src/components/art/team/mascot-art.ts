@@ -377,10 +377,13 @@ export function mascotNodes(team: FactionId, pose: MascotPose, color: string): A
   return [pivot([...p.back, pivot([...p.head.base, ...p.head.eyes, ...p.head.top], p.tilt)], { opacity: p.dim })];
 }
 
-/** Faixa do emblema completo (o nome entra por `Text` por cima, fora do SVG). */
+/**
+ * @deprecated Emblema v1 (moldura dupla + faixa do nome). O app usa `emblem-art.ts` (D-90); isto fica só para
+ * as folhas "antes × depois" de `docs/melhoria/F8/arte/fonte/emblema.cjs`. Sai na limpeza da Fase 8.
+ */
 export const EMBLEM_BAND = { x: 34, y: 168, width: 132, height: 26 } as const;
 
-/** Emblema: moldura com a forma do time + cabeça do mascote + (no completo) a faixa do nome. */
+/** @deprecated Emblema v1; ver `EMBLEM_BAND`. */
 export function emblemNodes(team: FactionId, color: string, compact: boolean): ArtNode[] {
   const shape = teamShape(team);
   const frames = {

@@ -60,6 +60,29 @@ describe('zones-store', () => {
     expect(s.lastLoadedAt).not.toBeNull();
   });
 
+  it('429 no /zones (B2): espera o retryAfter, junta os gestos e tenta 1 vez com a última caixa', async () => {
+    jest.useFakeTimers();
+    try {
+      const other = { ...bbox, minLng: -49.3 };
+      fetchZonesInBbox.mockResolvedValueOnce(fail(new AppError('RATE_LIMITED', 'Muitas tentativas', { status: 429, retryAfter: 7 })));
+      await useZones.getState().loadBbox(bbox);
+      expect(useZones.getState().error?.code).toBe('RATE_LIMITED');
+      // arrastar o mapa durante a espera não chama o servidor
+      await useZones.getState().loadBbox(other);
+      await useZones.getState().loadBbox(other);
+      expect(fetchZonesInBbox).toHaveBeenCalledTimes(1);
+      fetchZonesInBbox.mockResolvedValueOnce(ok([server(A, 'volt')]));
+      jest.advanceTimersByTime(6999);
+      expect(fetchZonesInBbox).toHaveBeenCalledTimes(1);
+      jest.advanceTimersByTime(1);
+      expect(fetchZonesInBbox).toHaveBeenCalledTimes(2);
+      expect(fetchZonesInBbox).toHaveBeenLastCalledWith(other);
+    } finally {
+      useZones.getState().reset();
+      jest.useRealTimers();
+    }
+  });
+
   it('sem internet mantém o último mapa e marca offline', async () => {
     fetchZonesInBbox.mockResolvedValueOnce(ok([server(A, 'striders')]));
     await useZones.getState().loadBbox(bbox);

@@ -20,6 +20,11 @@ type SessionState = {
   profile: Profile | null;
   profileStatus: ProfileStatus;
   profileError: AppError | null;
+  /**
+   * D-95/UX-05: o perfil na tela é a cópia salva no aparelho (sem internet ou servidor fora do ar) e esta é a hora
+   * em que ela foi salva (`null` = cópia antiga, sem hora). `undefined` = perfil fresco do servidor.
+   */
+  profileSavedAt?: number | null;
   /** Usuário entrou por um link de recuperação e precisa definir a nova senha. */
   recovering: boolean;
   /** Falha ao abrir um link de autenticação (ex.: link de recuperação expirado). */
@@ -34,7 +39,7 @@ type SessionState = {
   setUnconfigured: () => void;
   setSession: (session: SessionInfo | null) => void;
   setProfileLoading: () => void;
-  setProfile: (profile: Profile) => void;
+  setProfile: (profile: Profile, savedAt?: number | null) => void;
   setProfileError: (error: AppError) => void;
   setRecovering: (on: boolean) => void;
   setLinkError: (e: AppError | null) => void;
@@ -61,7 +66,7 @@ export const useSession = create<SessionState>((set, get) => ({
   setSession: (session) => {
     const prev = get().session;
     if (!session) {
-      set({ status: 'signedOut', session: null, profile: null, profileStatus: 'idle', profileError: null, recovering: false });
+      set({ status: 'signedOut', session: null, profile: null, profileStatus: 'idle', profileError: null, profileSavedAt: undefined, recovering: false });
       return;
     }
     // Troca de usuário: descarta o perfil antigo.
@@ -73,7 +78,7 @@ export const useSession = create<SessionState>((set, get) => ({
     });
   },
   setProfileLoading: () => set((s) => ({ profileStatus: s.profile ? s.profileStatus : 'loading', profileError: null })),
-  setProfile: (profile) => set({ profile, profileStatus: 'ready', profileError: null }),
+  setProfile: (profile, savedAt) => set({ profile, profileStatus: 'ready', profileError: null, profileSavedAt: savedAt }),
   setProfileError: (profileError) => set((s) => (s.profile ? { profileError } : { profileStatus: 'error', profileError })),
   setRecovering: (recovering) => set({ recovering }),
   setLinkError: (linkError) => set({ linkError }),

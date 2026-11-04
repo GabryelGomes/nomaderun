@@ -35,14 +35,20 @@ export function buildFunctionPath(name: FunctionName, query?: CallOptions['query
 export async function errorFromFunctions(error: unknown): Promise<AppError> {
   const ctx = (error as { name?: string; context?: unknown })?.context;
   if ((error as { name?: string })?.name === 'FunctionsHttpError' && ctx && typeof ctx === 'object' && 'status' in ctx) {
-    const res = ctx as { status: number; clone?: () => { json: () => Promise<unknown> }; json?: () => Promise<unknown> };
+    const res = ctx as {
+      status: number;
+      headers?: { get?: (name: string) => string | null };
+      clone?: () => { json: () => Promise<unknown> };
+      json?: () => Promise<unknown>;
+    };
     let body: unknown;
     try {
       body = await (res.clone ? res.clone().json() : res.json?.());
     } catch {
       body = undefined;
     }
-    return fromHttp(res.status, body);
+    // Na web o `Retry-After` só é legível com `Access-Control-Expose-Headers` (supabase/functions/_shared/http.ts).
+    return fromHttp(res.status, body, res.headers?.get?.('Retry-After'));
   }
   return toAppError(error);
 }

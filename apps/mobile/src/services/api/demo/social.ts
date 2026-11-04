@@ -93,6 +93,9 @@ function requireUser(db: DemoDb, userId: string | null): Row {
 
 const settingsOf = (db: DemoDb, userId: string) => stateOf(db).settings.get(userId) ?? { shareRunsToFeed: true, feedShowMap: true };
 
+/** `user_settings` de demonstração de uma pessoa (o eco da crew, em `f8.ts`, usa o mesmo filtro do servidor). */
+export const demoFeedSettings = settingsOf;
+
 /** Semente estável por item (no servidor real ela é sorteada a cada geração do item). */
 function seedOf(text: string): number {
   let h = 2166136261;
@@ -218,7 +221,7 @@ function countsOf(kudos: Map<string, FeedReaction> | undefined): Record<FeedReac
 /** Data local (Brasília, UTC−3) sem hora. */
 const localDate = (ms: number) => new Date(ms - 3 * 3600_000).toISOString().slice(0, 10);
 
-/** Item `F` do contrato: sem hora, sem id de corrida, rota só se o autor deixa mostrar o mapa. */
+/** Item `F` do contrato: sem hora, sem id de corrida (só para o autor), rota só se o autor deixa mostrar o mapa. */
 function itemRow(db: DemoDb, item: StoredItem, userId: string): Row {
   const author = db.profile(item.actorId);
   const kudos = stateOf(db).kudos.get(item.id);
@@ -237,6 +240,8 @@ function itemRow(db: DemoDb, item: StoredItem, userId: string): Row {
     kudos: countsOf(kudos),
     myReaction: kudos?.get(userId) ?? null,
     isDemo: true,
+    // C2 (20261104120200): o id da corrida só vai para o autor ("Compartilhar" do próprio item)
+    ...(item.actorId === userId && item.activityId ? { activityId: item.activityId } : {}),
   };
 }
 

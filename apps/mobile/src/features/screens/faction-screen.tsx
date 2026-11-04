@@ -1,21 +1,21 @@
 import { Stack } from 'expo-router';
 import { useState } from 'react';
-import { View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
 
-import { EmptyArt, Mascot } from '@/components/art';
+import { EmptyArt, TeamCover, TeamEmblem, coverLabel } from '@/components/art';
 import { Button } from '@/components/button';
 import { EmptyState } from '@/components/empty-state';
 import { Icon, type IconName } from '@/components/icon';
 import { FadeUp, haptic, Pressable, Stagger } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader, Surface } from '@/components/surface';
-import { TeamBadge } from '@/components/team-badge';
-import { TEAM_STORY } from '@/components/team-identity';
 import { Text } from '@/components/text';
 import { factionChange } from '@/domain/season';
+import { TEAM_BIO } from '@/domain/team-bio';
 import { FACTION_IDS, type FactionId } from '@/domain/types';
 import { ErrorNotice, InfoNotice } from '@/features/auth/form-ui';
 import { chooseFaction } from '@/features/auth/session-controller';
+import { boostLabel, TeamBoostBadge, useFactionBoost } from '@/features/engagement/team-boost';
 import { useNow } from '@/features/use-now';
 import { useSession } from '@/store/session-store';
 import { neon, neonTeam } from '@/theme/neon';
@@ -25,9 +25,12 @@ import { useTheme } from '@/theme/use-theme';
 /**
  * RF-003: trocar de facção depois do onboarding. O servidor (`choose_faction`) permite uma troca por
  * temporada, zera a contribuição da temporada e tira o corredor da crew; a tela avisa tudo isso antes.
+ * D-93/UX-30: a capa do time no topo (a única animada da tela) e os outros 3 com emblema médio, lema e bio da
+ * fonte única (`domain/team-bio`); o nome do mascote e do líder vêm de lá também.
  */
 export function FactionScreen() {
   const { colors } = useTheme();
+  const { width } = useWindowDimensions();
   const profile = useSession((s) => s.profile);
   const now = useNow(60_000);
   const [choice, setChoice] = useState<FactionId | null>(null);
@@ -35,6 +38,8 @@ export function FactionScreen() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<FactionId | null>(null);
 
+  // D-96: selo "Precisa de reforço" (só cosmético), 1 leitura para o time atual e os outros 3.
+  const boost = useFactionBoost();
   const current = profile?.faction ?? null;
   const rule = factionChange({ faction: current, factionChangedSeason: profile?.factionChangedSeason ?? null }, new Date(now));
   const others = FACTION_IDS.filter((f) => f !== current);
@@ -59,28 +64,26 @@ export function FactionScreen() {
       <Stack.Screen options={{ title: 'Meu time', headerLargeTitleEnabled: false }} />
       <Stagger gap={space[6]}>
         {current ? (
-          <Surface>
-            {/* Herói: o mascote do time (E4) no lugar do selo; o líder e o lema em 2 linhas curtas. */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[4] }}>
+          <View style={{ gap: space[3] }}>
+            {/* Herói: a capa do time (D-93), com nome, lema e a bio de 3 linhas; lida como 1 imagem. */}
+            <View style={{ borderRadius: radius.lg, borderCurve: 'continuous', overflow: 'hidden', borderWidth: 1, borderColor: `${neonTeam[current]}55`, alignSelf: 'center' }}>
+              <TeamCover team={current} variant="hero" width={Math.min(width - space[4] * 2, 420) - 2} animated accessibilityLabel={`Seu time: ${coverLabel(current)}`} testID="faccao-capa" />
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], paddingHorizontal: space[1] }}>
               <View aria-hidden importantForAccessibility="no-hide-descendants">
-                <Mascot team={current} pose="parado" size={104} animated />
+                <TeamEmblem team={current} size={40} variant="medio" />
               </View>
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text variant="caption" muted>
-                  Seu time
-                </Text>
-                <Text variant="title" testID="faccao-atual">
+              <View style={{ flex: 1 }}>
+                <Text variant="bodyBold" testID="faccao-atual">
                   {factions[current].name}
                 </Text>
                 <Text variant="small" muted>
-                  {TEAM_STORY[current].mascot} · líder {TEAM_STORY[current].leader}
+                  {TEAM_BIO[current].mascot}, {TEAM_BIO[current].mascotKind} · líder {TEAM_BIO[current].leader}
                 </Text>
-                <Text variant="small" color={neonTeam[current]}>
-                  {factions[current].motto}
-                </Text>
+                <TeamBoostBadge team={current} boost={boost} />
               </View>
             </View>
-          </Surface>
+          </View>
         ) : (
           <EmptyState testID="faccao-sem-time" art={<EmptyArt kind="sem-crew" size={200} />} title="Sem time ainda" body="Escolha um abaixo." />
         )}
@@ -117,7 +120,7 @@ export function FactionScreen() {
                   testID={`faccao-opcao-${f}`}
                   accessibilityRole="radio"
                   accessibilityState={{ checked: on }}
-                  accessibilityLabel={`${factions[f].name}, ${factions[f].motto}`}
+                  accessibilityLabel={`${factions[f].name}. ${TEAM_BIO[f].motto}. ${TEAM_BIO[f].bio[0]}${boost?.needsBoost === f ? ` ${boostLabel(boost.isDemo).a11y}` : ''}`}
                   hitSlop={0}
                   onPress={() => {
                     setChoice(on ? null : f);
@@ -137,12 +140,20 @@ export function FactionScreen() {
                     borderColor: on ? neonTeam[f] : colors.line,
                     boxShadow: on ? `0 0 22px ${neonTeam[f]}55` : undefined,
                   }}>
-                  <TeamBadge faction={f} size={44} />
+                  <View aria-hidden importantForAccessibility="no-hide-descendants">
+                    <TeamEmblem team={f} size={48} variant="medio" />
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text variant="bodyBold">{factions[f].name}</Text>
-                    <Text variant="small" muted>
-                      {factions[f].motto}
+                    <Text variant="label" color={neonTeam[f]} style={{ textTransform: 'uppercase' }}>
+                      {TEAM_BIO[f].motto}
                     </Text>
+                    <Text variant="small" muted numberOfLines={1}>
+                      {TEAM_BIO[f].bio[0]}
+                    </Text>
+                    <View aria-hidden importantForAccessibility="no-hide-descendants">
+                      <TeamBoostBadge team={f} boost={boost} />
+                    </View>
                   </View>
                   {on ? <Icon name="check" size={22} color={neonTeam[f]} /> : null}
                 </Pressable>

@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 
 import { Chest, EmptyArt, Medal } from '@/components/art';
@@ -7,6 +7,7 @@ import { Button } from '@/components/button';
 import { ChestOpening, RARITY_COLORS } from '@/components/celebration';
 import { DemoBadge } from '@/components/demo-badge';
 import { EmptyState } from '@/components/empty-state';
+import { OfflineNotice } from '@/components/offline-notice';
 import { Icon } from '@/components/icon';
 import { PressableScale, ProgressBar, ShimmerSkeleton } from '@/components/motion';
 import { ScreenScroll } from '@/components/screen';
@@ -22,10 +23,11 @@ import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { claimSeasonStep, openStoredChests } from './controller';
-import { COSMETICS, howToEarn, SHOWN_SLOTS, SLOT_LABELS } from './cosmetics';
+import { CosmeticThumb } from './cosmetic-thumb';
+import { COSMETICS, howToEarn, readLocalCosmetics, SHOWN_SLOTS, SLOT_LABELS } from './cosmetics';
 import { HealthPauseSheet } from './health-pause-sheet';
 import { useEngagementData } from './hooks';
-import { chestRefusal, fmtInt, oddsRows, pauseActive, pityLabel, RARITY_LABEL, shortDate, storedLabel, trackItemLabel, trackWindow } from './model';
+import { chestRefusal, fmtInt, oddsRows, pauseActive, pityLabel, RARITY_LABEL, shortDate, storedLabel, streakLine, trackItemLabel, trackWindow } from './model';
 
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const monthOf = (seasonId: string) => MONTHS[Number(seasonId.slice(5, 7)) - 1] ?? 'mês';
@@ -37,6 +39,7 @@ const RANK: Record<ChestRarity, number> = { comum: 0, raro: 1, lendario: 2 };
 function LevelCard({ s, now, onPause }: { s: EngagementStatus; now: number; onPause: () => void }) {
   const { colors } = useTheme();
   const paused = pauseActive(s.streak.pause, now);
+  const streak = streakLine(s.streak);
   return (
     <Surface>
       <View testID="recompensas-nivel" accessible accessibilityLabel={`Nível ${s.level}, ${s.title.name}. ${s.isMax ? 'Nível máximo' : `${s.intoLevel} de ${s.needed} XP para o próximo`}`} style={{ gap: space[2] }}>
@@ -66,14 +69,20 @@ function LevelCard({ s, now, onPause }: { s: EngagementStatus; now: number; onPa
           </Text>
         </View>
       ) : null}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+      {/* F8 onda D: a 360 px o botão espremia a sequência em 5 linhas; agora ele desce para a linha de baixo. */}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space[2] }}>
         <Icon name="fire" size={18} color={colors.accentText} />
-        <Text testID="recompensas-sequencia" variant="small" style={{ flex: 1 }}>
-          {paused
-            ? `Pausa de saúde até ${shortDate(s.streak.pause!.until)}`
-            : `${s.streak.weeks} ${s.streak.weeks === 1 ? 'semana' : 'semanas'} seguidas · ${s.streak.activitiesThisWeek >= 2 ? 'semana garantida' : `${s.streak.activitiesThisWeek} de 2 nesta`}`}
-        </Text>
-        <Button testID="recompensas-pausa" label={paused ? 'Ver pausa' : 'Pausar'} kind="ghost" icon="heart" onPress={onPause} />
+        <View style={{ flex: 1, minWidth: 180 }}>
+          <Text testID="recompensas-sequencia" variant="small">
+            {paused ? `Pausa de saúde até ${shortDate(s.streak.pause!.until)}` : streak.main}
+          </Text>
+          {streak.best ? (
+            <Text testID="recompensas-sequencia-recorde" variant="caption" muted>
+              {streak.best}
+            </Text>
+          ) : null}
+        </View>
+        <Button testID="recompensas-pausa" label={paused ? 'Ver pausa' : 'Pausa de saúde'} kind="ghost" icon="heart" onPress={onPause} />
       </View>
     </Surface>
   );
@@ -86,9 +95,10 @@ function ChestSection({ slot, ranToday, onOpened }: { slot: Slot<DailyChestState
   const [opening, setOpening] = useState<DailyChestOpening | null>(null);
   const c = slot.data;
   if (slot.status === 'unavailable') {
-    return <EmptyState compact testID="recompensas-bau-indisponivel" tag="Em breve" title="Baú do dia em breve" art={<Chest rarity="comum" size={72} />} />;
+    return <EmptyState compact testID="recompensas-bau-indisponivel" title="Baú do dia desligado no servidor" art={<Chest rarity="comum" size={72} />} />;
   }
-  if (!c) return <ShimmerSkeleton shape="card" height={160} accessibilityLabel="Carregando o baú do dia" />;
+  // D-95: o esqueleto só enquanto carrega; com erro e sem dado, nada (o aviso do topo explica e tenta de novo).
+  if (!c) return slot.status === 'error' ? null : <ShimmerSkeleton shape="card" height={160} accessibilityLabel="Carregando o baú do dia" />;
   const total = c.stored + c.bonus.length;
   const art: ChestRarity[] = [...c.bonus, ...Array.from({ length: c.stored }, () => 'comum' as const)].slice(0, 4);
   const best = opening?.prizes.reduce<ChestRarity>((r, p) => (RANK[p.rarity] > RANK[r] ? p.rarity : r), 'comum');
@@ -238,8 +248,8 @@ function TrackSection({ slot }: { slot: Slot<SeasonTrack> }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const t = slot.data;
-  if (slot.status === 'unavailable') return <EmptyState compact testID="recompensas-trilha-indisponivel" tag="Em breve" title="Trilha da temporada em breve" art={<Medal kind="temporada" size={72} />} />;
-  if (!t) return <ShimmerSkeleton shape="card" height={200} accessibilityLabel="Carregando a trilha" />;
+  if (slot.status === 'unavailable') return <EmptyState compact testID="recompensas-trilha-indisponivel" title="Trilha da temporada desligada no servidor" art={<Medal kind="temporada" size={72} />} />;
+  if (!t) return slot.status === 'error' ? null : <ShimmerSkeleton shape="card" height={200} accessibilityLabel="Carregando a trilha" />;
   const claim = async (n: number) => {
     setBusy(true);
     setMessage(null);
@@ -335,9 +345,13 @@ function CosmeticsCatalog({ owned }: { owned: Set<string> | null }) {
                       borderColor: has ? RARITY_COLORS[c.rarity] : colors.line,
                       backgroundColor: has ? colors.surface : 'transparent',
                     }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[1] }}>
+                    {/* UX-39: a miniatura mostra o que se ganha (o traço do rastro, o anel da moldura). */}
+                    <View style={{ height: 30, justifyContent: 'center' }}>
+                      <CosmeticThumb def={c} owned={has} />
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: space[1] }}>
                       <Icon name={has ? 'check' : 'lock'} size={14} color={has ? RARITY_COLORS[c.rarity] : colors.textSecondary} />
-                      <Text variant="small" numberOfLines={1} style={{ flex: 1 }} color={has ? colors.text : colors.textSecondary}>
+                      <Text variant="small" numberOfLines={2} style={{ flex: 1 }} color={has ? colors.text : colors.textSecondary}>
                         {c.name}
                       </Text>
                     </View>
@@ -365,8 +379,20 @@ export function RewardsScreen() {
     await refresh();
     setRefreshing(false);
   };
-  const owned = status.data?.cosmetics ? new Set(status.data.cosmetics.map((c) => c.id)) : null;
+  // D-91: a moldura "Recruta" da cerimônia fica no aparelho e soma aos do servidor (o servidor novo também concede, C2).
+  const [local, setLocal] = useState<string[]>([]);
+  useEffect(() => {
+    let alive = true;
+    void readLocalCosmetics().then((ids) => {
+      if (alive && ids.length) setLocal(ids);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const owned = status.data?.cosmetics ? new Set([...status.data.cosmetics.map((c) => c.id), ...local]) : null;
   const allUnavailable = chest.status === 'unavailable' && track.status === 'unavailable' && !status.data;
+  const failed = [status, chest, track].find((sl) => sl.status === 'error' && sl.error)?.error ?? null;
 
   return (
     <ScreenScroll testID="tela-recompensas" edges={['bottom']} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={pull} />}>
@@ -374,16 +400,17 @@ export function RewardsScreen() {
       {demo ? <DemoBadge testID="recompensas-demonstracao" /> : null}
 
       {allUnavailable ? (
-        <EmptyState testID="recompensas-indisponivel" tag="Em breve" title="Recompensas em breve" body="O servidor ainda não liberou baús e trilha." art={<EmptyArt kind="sem-medalhas" size={160} />} />
+        <EmptyState testID="recompensas-indisponivel" title="Recompensas desligadas" body="O servidor ainda não liberou baús e trilha." art={<EmptyArt kind="sem-medalhas" size={160} />} />
       ) : null}
 
-      {status.status === 'error' && !status.data ? (
-        <EmptyState testID="recompensas-erro" compact title="Não deu para carregar" body={status.error?.message} action={<Button testID="recompensas-tentar" label="Tentar de novo" onPress={() => void refresh()} />} />
+      {/* D-95: um aviso só (o mesmo das outras telas); as seções sem dado somem em vez de girar para sempre. */}
+      {failed ? (
+        <OfflineNotice testID="recompensas-sem-conexao" code={failed.code} hasData={status.data !== null || chest.data !== null || track.data !== null} onRetry={() => void pull()} busy={refreshing} />
       ) : null}
 
       {status.data ? <LevelCard s={status.data} now={now} onPause={() => setPauseOpen(true)} /> : status.status === 'loading' || status.status === 'idle' ? <ShimmerSkeleton shape="card" height={150} accessibilityLabel="Carregando o nível" /> : null}
 
-      <SectionHeader title="Baú do dia" testID="recompensas-bau-titulo" />
+      {chest.status === 'error' && !chest.data ? null : <SectionHeader title="Baú do dia" testID="recompensas-bau-titulo" />}
       <ChestSection slot={chest} ranToday={status.data?.lastActivityAt != null && brtCalendar.clock(status.data.lastActivityAt).dayId === brtCalendar.clock(now).dayId} onOpened={() => undefined} />
 
       <TrackSection slot={track} />
