@@ -29,7 +29,8 @@ select is(
 select is(
   (select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname in ('public', 'private') and p.prosecdef and has_function_privilege('anon', p.oid, 'execute')),
-  array['username_available'], 'anon só executa username_available entre as funções security definer');
+  -- C2 (D-91/D-96): faction_activity entra (só as 4 contagens de contas reais; conferido no 32)
+  array['faction_activity', 'username_available'], 'anon só executa username_available e faction_activity entre as funções security definer');
 
 select is(
   (select array_agg(c.relname::text order by c.relname) from pg_class c join pg_namespace n on n.oid = c.relnamespace

@@ -95,8 +95,13 @@ export function CrewFeedCard({ item, today, onReact, onRemove }: CrewFeedCardPro
   );
 }
 
-/** Abre o card da própria corrida; sem achar a corrida (ou fora do ar), abre as Atividades, onde cada uma tem "Compartilhar". */
+/** Abre o card da própria corrida (pelo `activityId` do item, se veio); sem achar a corrida (ou fora do ar), abre as Atividades, onde cada uma tem "Compartilhar". */
 async function shareOwn(item: FeedItem) {
+  // C2: o servidor novo manda o id da corrida no item da própria pessoa; o antigo não (acha pelo dia e pela distância).
+  if (item.activityId) {
+    router.push(`/compartilhar/${encodeURIComponent(item.activityId)}` as Href);
+    return;
+  }
   const runs = await listMyActivities({ limit: 30 });
   const id = runs.ok ? ownActivityFor(item, runs.data) : null;
   router.push((id ? `/compartilhar/${encodeURIComponent(id)}` : '/perfil/atividades') as Href);

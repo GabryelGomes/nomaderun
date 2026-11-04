@@ -218,7 +218,7 @@ function countsOf(kudos: Map<string, FeedReaction> | undefined): Record<FeedReac
 /** Data local (Brasília, UTC−3) sem hora. */
 const localDate = (ms: number) => new Date(ms - 3 * 3600_000).toISOString().slice(0, 10);
 
-/** Item `F` do contrato: sem hora, sem id de corrida, rota só se o autor deixa mostrar o mapa. */
+/** Item `F` do contrato: sem hora, sem id de corrida (só para o autor), rota só se o autor deixa mostrar o mapa. */
 function itemRow(db: DemoDb, item: StoredItem, userId: string): Row {
   const author = db.profile(item.actorId);
   const kudos = stateOf(db).kudos.get(item.id);
@@ -237,6 +237,8 @@ function itemRow(db: DemoDb, item: StoredItem, userId: string): Row {
     kudos: countsOf(kudos),
     myReaction: kudos?.get(userId) ?? null,
     isDemo: true,
+    // C2 (20261104120000): o id da corrida só vai para o autor ("Compartilhar" do próprio item)
+    ...(item.actorId === userId && item.activityId ? { activityId: item.activityId } : {}),
   };
 }
 

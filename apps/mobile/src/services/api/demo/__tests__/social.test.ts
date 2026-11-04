@@ -86,8 +86,12 @@ describe('feed da crew de demonstração', () => {
     expect(page.items.some((i) => i.route)).toBe(true);
   });
 
-  it('o payload não traz id de corrida, horário nem coordenada fora da rota', () => {
-    for (const i of page.items) expect(Object.keys(i).sort()).toEqual(['author', 'avgPace', 'day', 'highlights', 'id', 'isDemo', 'kudos', 'meters', 'movingSeconds', 'myReaction', 'route', 'routeHidden', 'you']);
+  it('o payload não traz id de corrida (só no item da própria pessoa, C2), horário nem coordenada fora da rota', () => {
+    for (const i of page.items) expect(Object.keys(i).sort()).toEqual(['activityId', 'author', 'avgPace', 'day', 'highlights', 'id', 'isDemo', 'kudos', 'meters', 'movingSeconds', 'myReaction', 'route', 'routeHidden', 'you']);
+    for (const i of page.items) {
+      if (i.you) expect(i.activityId).toBe(i.id.replace(/^feed-/, ''));
+      else expect(i.activityId).toBeNull();
+    }
   });
 
   it('quem reagiu: só nomes da crew', async () => {

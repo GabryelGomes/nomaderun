@@ -202,6 +202,10 @@ export class DemoDb {
     const w = this.world;
     for (const r of w.runners) this.runners.set(r.id, r);
     this.tables.profiles.push(this.profileRow(w.me), ...w.runners.map((r) => this.profileRow(r)));
+    // C2 (20261104120000): quem já está num time tem a moldura "Recruta" (backfill + trigger do servidor).
+    for (const p of this.tables.profiles) {
+      if (p.faction) this.tables.user_cosmetics.push({ user_id: p.id, cosmetic_id: 'moldura-recruta', variant: '', source: 'time:entrada', unlocked_at: p.created_at });
+    }
     for (const c of w.crews) this.tables.crews.push({ id: c.id, name: c.name, tag: c.tag, faction: c.faction, invite_code: c.inviteCode, leader_id: c.leaderId, created_at: iso(c.createdAt) });
     for (const m of w.memberships) this.tables.crew_members.push({ crew_id: m.crewId, user_id: m.userId, role: m.role, joined_at: iso(m.joinedAt) });
     const updated = iso(w.now - 3600_000)!;

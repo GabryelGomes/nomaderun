@@ -154,6 +154,11 @@ export type FeedItem = {
   author: { username: string; faction: FactionId | null; avatarUrl: string | null };
   /** O item é da própria pessoa (não dá para reagir a si mesmo: `KUDOS_SELF`; pode tirar do feed). */
   you: boolean;
+  /**
+   * Id da corrida, só no item da própria pessoa (servidor C2, migration 20261104120000) para o "Compartilhar".
+   * `null` nos itens dos colegas e no servidor antigo (aí a tela acha a corrida pelo dia e pela distância).
+   */
+  activityId?: string | null;
   /** Data local da corrida, `AAAA-MM-DD`. O feed nunca traz a hora. */
   day: string;
   meters: number;
@@ -211,6 +216,7 @@ export function toFeedItem(row: Row): FeedItem {
     id: str(row.id),
     author: { username: str(author.username) || 'corredor', faction: faction(author.faction), avatarUrl: str(author.avatarUrl) || null },
     you: row.you === true,
+    activityId: row.you === true && /^[A-Za-z0-9_-]{1,64}$/.test(str(row.activityId)) ? str(row.activityId) : null,
     day: /^\d{4}-\d{2}-\d{2}$/.test(str(row.day)) ? str(row.day) : '',
     meters: num(row.meters),
     movingSeconds: num(row.movingSeconds),
