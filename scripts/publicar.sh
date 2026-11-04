@@ -29,7 +29,7 @@ case "$KEY" in
   sb_secret_*|*service_role*) fail "Essa é uma chave secreta: use a anon/publishable. A secreta nunca vai no app." ;;
 esac
 
-node "$APP/scripts/check-publicacao.js" "$APP/app.json" || fail "Publicação recusada: falta o projectId do EAS (supabase/DEPLOY.md §12)."
+node "$APP/scripts/check-publicacao.js" "$APP/app.json" || fail "Publicação recusada: falta o projectId do EAS ou a Política tem marcador (supabase/DEPLOY.md §12)."
 
 cd "$APP"
 printf '\n\033[1;33m▶ Gravando o backend %s no ambiente "%s" do EAS\033[0m\n' "$URL" "$EAS_ENV"

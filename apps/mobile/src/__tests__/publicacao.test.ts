@@ -2,14 +2,14 @@
  * @jest-environment node
  *
  * F8 C3 (D-99) — pronto para publicar:
- *  - OTA de verdade: expo-updates instalado, runtimeVersion "appVersion", updates.url = https://u.expo.dev/<projectId>
+ *  - OTA de verdade: expo-updates instalado, runtimeVersion "sdkVersion" (Expo Go, F8-D M4), updates.url = https://u.expo.dev/<projectId>
  *    derivada de extra.eas.projectId; com o marcador, OTA desligado e projectId fora da configuração resolvida;
  *  - identificadores das lojas (br.com.nomaderun.app);
  *  - a trava `scripts/check-publicacao.js` recusa publicar/gerar APK com o marcador (o "teste que falha se o
  *    marcador for publicado" roda de verdade no `npm run publicar` e no `npm run apk`);
  *  - publicar.sh com --environment;
- *  - Política de Privacidade com Controlador e Encarregado (DPO): lembrete enquanto houver marcador; com
- *    NOMADE_RELEASE=1 este teste falha até os autores preencherem e subirem a PRIVACY_VERSION.
+ *  - Política de Privacidade com Controladores e Encarregado (DPO) preenchidos (F8-D, M3): marcador entre colchetes
+ *    faz este teste falhar e a trava recusar por padrão (só passa com NOMADE_DEMO_OK=1).
  */
 import { describe, expect, it } from '@jest/globals';
 import { spawnSync } from 'node:child_process';
@@ -43,8 +43,8 @@ describe('OTA (EAS Update)', () => {
     expect(pkg.dependencies['expo-updates']).toMatch(/^~57\./);
   });
 
-  it('runtimeVersion pela versão do app e o campo do projectId presente', () => {
-    expect(appJson.expo.runtimeVersion).toEqual({ policy: 'appVersion' });
+  it('runtimeVersion pela versão do SDK (o Expo Go só abre updates presos ao SDK) e o campo do projectId presente', () => {
+    expect(appJson.expo.runtimeVersion).toEqual({ policy: 'sdkVersion' });
     expect(appJson.expo.extra.eas).toHaveProperty('projectId');
   });
 
@@ -54,7 +54,7 @@ describe('OTA (EAS Update)', () => {
     expect(resolved.updates.enabled).toBe(false);
     expect(resolved.updates.url).toBeUndefined();
     expect(resolved.extra.eas.projectId).toBeUndefined();
-    expect(resolved.runtimeVersion).toEqual({ policy: 'appVersion' });
+    expect(resolved.runtimeVersion).toEqual({ policy: 'sdkVersion' });
   });
 
   it('com o projectId do eas init: updates.url = https://u.expo.dev/<projectId> e OTA ligado', () => {
@@ -71,14 +71,29 @@ describe('OTA (EAS Update)', () => {
     expect(runCheck(undefined).status).toBe(1);
   });
 
-  it('a trava libera com o projectId real (e só avisa da política enquanto não for NOMADE_RELEASE=1)', () => {
-    const ok = runCheck(UUID, { NOMADE_RELEASE: '' });
+  it('a trava libera com o projectId real e a Política preenchida', () => {
+    const ok = runCheck(UUID, { NOMADE_DEMO_OK: '' });
     expect(ok.status).toBe(0);
     expect(ok.stdout).toContain(`https://u.expo.dev/${UUID}`);
-    if (pendingLegalFields().length) {
-      expect(ok.stderr).toMatch(/Política de Privacidade sem preencher/);
-      expect(runCheck(UUID, { NOMADE_RELEASE: '1' }).status).toBe(1);
-    }
+    expect(ok.stderr).not.toMatch(/Política de Privacidade sem preencher/);
+  });
+
+  it('com marcador na Política a trava recusa por padrão e só aceita com NOMADE_DEMO_OK=1 (M3)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'nomade-legal-'));
+    const legal = join(dir, 'legal-contacts.ts');
+    writeFileSync(legal, "export const LEGAL_CONTACTS = {\n  controllerName: 'Fulana',\n  dpoEmail: '[E-MAIL DO ENCARREGADO]',\n} as const;\n");
+    const run = (env: Record<string, string>) => {
+      const dirApp = mkdtempSync(join(tmpdir(), 'nomade-publicacao-'));
+      const file = join(dirApp, 'app.json');
+      writeFileSync(file, JSON.stringify({ expo: { ...appJson.expo, extra: { ...appJson.expo.extra, eas: { projectId: UUID } } } }));
+      return spawnSync(process.execPath, [CHECK, file], { encoding: 'utf8', env: { ...process.env, NOMADE_LEGAL_FILE: legal, NOMADE_DEMO_OK: '', ...env } });
+    };
+    const refused = run({});
+    expect(refused.status).toBe(1);
+    expect(refused.stderr).toMatch(/dpoEmail/);
+    const demo = run({ NOMADE_DEMO_OK: '1' });
+    expect(demo.status).toBe(0);
+    expect(demo.stderr).toMatch(/NOMADE_DEMO_OK=1/);
   });
 
   it('publicar.sh e apk.sh passam pela trava antes do EAS; publicar.sh usa --environment', () => {
@@ -109,14 +124,10 @@ describe('Política de Privacidade: controlador e encarregado', () => {
     }
   });
 
-  it('lembra de preencher (e falha com NOMADE_RELEASE=1); ao preencher, a PRIVACY_VERSION sobe', () => {
-    const pending = pendingLegalFields();
-    if (process.env.NOMADE_RELEASE === '1') {
-      expect(pending).toEqual([]);
-    } else if (pending.length) {
-      console.warn(`LEMBRETE (D-99): preencha ${pending.join(', ')} em src/features/auth/legal-contacts.ts antes de abrir para pessoas reais.`);
-    }
-    if (pending.length === 0) expect(PRIVACY_VERSION).not.toBe('2026-10');
+  it('nenhum marcador sobra na tela (M3) e a PRIVACY_VERSION subiu depois de preencher', () => {
+    expect(pendingLegalFields()).toEqual([]);
+    expect(PRIVACY_VERSION).not.toBe('2026-10');
+    expect(LEGAL_CONTACTS.serverRegion).not.toMatch(/\[/);
   });
 
   it('pendingLegalFields reconhece marcador, vazio e valor preenchido', () => {
