@@ -182,6 +182,16 @@ describe('/missoes', () => {
     expect(r.text()).not.toMatch(/em breve/i);
   });
 
+  it('F8-D · fonte ×1,3: título da missão em até 4 linhas e o do passo da primeira semana em até 3 (sem reticências)', () => {
+    const r = render(<MissionsScreen />);
+    const lines = (n: { props: { numberOfLines?: number } } | undefined) => n?.props.numberOfLines;
+    const textNode = (s: string) => r.renderer.root.findAll((n) => typeof n.type === 'string' && [n.props.children].flat().join('') === s)[0];
+    expect(lines(textNode('Missão a'))).toBe(4);
+    const step = r.renderer.root.findAll((n) => typeof n.type === 'string' && n.props.testID === 'primeira-semana-passo-2')[0];
+    expect(step.findAll((n) => typeof n.type === 'string' && n.props.numberOfLines !== undefined)[0].props.numberOfLines).toBe(3);
+    expect(String(step.props.accessibilityLabel)).toMatch(/^Passo 2: .+\./);
+  });
+
   it('carregando: esqueleto', () => {
     act(() => useEngagement.getState().reset());
     const r = render(<MissionsScreen />);

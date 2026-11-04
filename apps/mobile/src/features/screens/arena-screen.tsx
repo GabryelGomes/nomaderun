@@ -154,7 +154,8 @@ function RaidHero({ data, failed }: { data: RaidCurrent | Unavailable | null; fa
   return (
     <HeroFrame testID="arena-raid">
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[2] }}>
-        <Text variant="label" color={neon.villain} style={{ textTransform: 'uppercase' }} numberOfLines={1}>
+        {/* F8-D (fonte ×1,3): encolhe até 0,85 no aparelho e, se ainda não couber, quebra (nunca "CHEFÃO DA SEM…"). */}
+        <Text variant="label" color={neon.villain} style={{ textTransform: 'uppercase', flexShrink: 1 }} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.85}>
           Chefão da semana
         </Text>
         {boss.isDemo || isDemoMode() ? <DemoBadge testID="arena-raid-demonstracao" /> : null}

@@ -40,7 +40,8 @@ export function CrewFeedCard({ item, today, onReact, onRemove }: CrewFeedCardPro
       testID={`feed-item-${item.id}`}
       style={{ gap: space[3], padding: space[3], borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line }}>
       <View accessible accessibilityLabel={feedItemLabel(item, today)} style={{ gap: space[3] }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+        {/* F8-D (fonte ×1,3): a linha quebra (o selo desce) em vez de cortar o nome em "ana.de…" (nome não tem espaço). */}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: space[2], rowGap: space[1] }}>
           <TeamBadge faction={item.author.faction} size={24} />
           <Text variant="bodyBold" numberOfLines={1} style={{ flexShrink: 1 }}>
             {item.you ? 'Você' : item.author.username}

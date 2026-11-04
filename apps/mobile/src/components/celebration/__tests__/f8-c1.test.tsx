@@ -391,6 +391,13 @@ describe('componentes novos (renderizam, reduzido = só opacidade, não animam f
     ).toEqual([false]);
   });
 
+  it('F8-D · fonte ×1,3: no card do time, estilo e "valor · líder" vão até 3 linhas (sem reticências)', () => {
+    const r = render(<TeamCoverCard faction="owls" selected={false} focused={false} onSelect={() => {}} width={300} testID="card" />);
+    const capped = r.root.findAll((n: ReactTestInstance) => typeof n.type === 'string' && typeof n.props.numberOfLines === 'number' && /líder|rua iluminada/.test([n.props.children].flat().join('')));
+    expect(capped.length).toBeGreaterThanOrEqual(2);
+    for (const n of capped) expect(n.props.numberOfLines).toBe(3);
+  });
+
   it('F8-D · D-90: a semana do time usa o neon do time (nunca o sólido do mapa) e a tinta passa 4,5:1 nos 4 times', () => {
     for (const team of ['striders', 'volt', 'owls', 'coyotes'] as const) {
       const r = render(<TeamWeekCard testID="s" team={team} body="2º na temporada" first={false} onPress={() => {}} accessibilityLabel="x" />);
