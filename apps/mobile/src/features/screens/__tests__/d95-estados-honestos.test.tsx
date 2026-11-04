@@ -31,6 +31,8 @@ import { AppError } from '@/services/api/errors';
 import type { Profile } from '@/services/api/types';
 import { useGame } from '@/store/game-store';
 import { useSession } from '@/store/session-store';
+import { neon, neonTeam } from '@/theme/neon';
+import { factions } from '@/theme/tokens';
 
 import { ProfileScreen } from '../profile-screen';
 /* eslint-enable import/first */
@@ -153,6 +155,17 @@ describe('Você sem conexão e carregando: nunca zero falso (UX-38)', () => {
     expect(text(r)).not.toMatch(/\b0 de \d/);
     expect(label(r, 'perfil-km')).not.toMatch(/0,0/);
     expect(has(r, 'perfil-medalhas')).toBe(false);
+  });
+
+  it('F8-D · D-90: avatar sem foto ao lado do emblema usa o neon do time (nunca o sólido do mapa) com tinta escura', async () => {
+    mockList.mockReturnValue(new Promise(() => undefined));
+    const r = await mount();
+    const node = r.root.findAll((n) => n.props.testID === 'perfil-avatar-iniciais' && typeof n.type === 'string')[0];
+    const bg = (node.props.style as { backgroundColor: string }).backgroundColor;
+    expect(Object.values(neonTeam)).toContain(bg);
+    expect(Object.values(factions).map((f) => f.color)).not.toContain(bg);
+    const ink = node.findAll((n) => typeof n.type === 'string' && typeof n.props.children === 'string')[0];
+    expect(JSON.stringify(ink.props.style)).toContain(neon.bg);
   });
 
   it('carregando: esqueleto no lugar dos números (nunca "0,0 km")', async () => {

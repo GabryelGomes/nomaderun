@@ -17,8 +17,8 @@ import { useSession } from '@/store/session-store';
 
 import { pickAndUploadAvatar } from './avatar-picker';
 import { initialsOf } from './profile-screen.model';
-import { neonTeam } from '@/theme/neon';
-import { fonts, palette, space } from '@/theme/tokens';
+import { neon, neonTeam } from '@/theme/neon';
+import { fonts, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 const UNITS: { id: DistanceUnit; label: string }[] = [
@@ -101,7 +101,7 @@ export function EditProfileScreen() {
               {profile?.avatarUrl ? (
                 <Image testID="perfil-foto-imagem" source={{ uri: profile.avatarUrl }} style={{ width: 64, height: 64 }} contentFit="cover" />
               ) : (
-                <Text style={{ fontFamily: fonts.display, fontSize: 24, lineHeight: 28 }} color={palette.ink}>
+                <Text style={{ fontFamily: fonts.display, fontSize: 24, lineHeight: 28 }} color={neon.bg}>
                   {initialsOf(username)}
                 </Text>
               )}
