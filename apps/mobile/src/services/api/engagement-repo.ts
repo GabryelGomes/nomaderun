@@ -628,9 +628,13 @@ export type RunEngagement = {
   xp: { total: number; lines: RunXpLine[] };
   level: { before: number; after: number; titleAfter: { id: string; name: string } | null };
   band: { before: string; after: string } | null;
+  /**
+   * `stored` = baús do dia guardados; `bonusStored` = baús bônus ainda fechados (F8-D · M-2). A soma é o mesmo
+   * total de "Recompensas" (`storedLabel`): servidor sem o campo manda 0 e o resumo lê o baú do store.
+   */
   dailyChests:
-    | { opened: (ChestPrize & { n: number })[]; pityLeft: number; reason: null; stored: number }
-    | { opened: []; pityLeft: null; reason: 'status' | 'distance' | 'review' | 'already'; stored: number };
+    | { opened: (ChestPrize & { n: number })[]; pityLeft: number; reason: null; stored: number; bonusStored: number }
+    | { opened: []; pityLeft: null; reason: 'status' | 'distance' | 'review' | 'already'; stored: number; bonusStored: number };
   missions: { id: string; userMissionId: string; cadence: MissionCadence; text: string; xp: number }[];
   streak: { activitiesThisWeek: number; weekKept: boolean; weeks: number; best: number; freezesLeft: number; paused: boolean } | null;
   season: { stepBefore: number; stepAfter: number; medal: SeasonMedal | null } | null;
@@ -671,8 +675,8 @@ export function parseRunEngagement(official: unknown): RunEngagement | null {
     band: bd && typeof bd.before === 'string' && typeof bd.after === 'string' ? { before: bd.before, after: bd.after } : null,
     dailyChests:
       opened.length > 0 || !reason
-        ? { opened, pityLeft: Math.max(1, num(dc.pityLeft, DAILY_CHEST.pity)), reason: null, stored: Math.max(0, num(dc.stored)) }
-        : { opened: [], pityLeft: null, reason, stored: Math.max(0, num(dc.stored)) },
+        ? { opened, pityLeft: Math.max(1, num(dc.pityLeft, DAILY_CHEST.pity)), reason: null, stored: Math.max(0, num(dc.stored)), bonusStored: Math.max(0, num(dc.bonusStored)) }
+        : { opened: [], pityLeft: null, reason, stored: Math.max(0, num(dc.stored)), bonusStored: Math.max(0, num(dc.bonusStored)) },
     missions: arr(e.missions)
       .map((m) => ({
         id: str(m.id),

@@ -129,7 +129,7 @@ async function refreshAfterReward(now: number) {
 export function recordRunResult(official: unknown, now: number = Date.now()): repo.RunEngagement | null {
   const block = repo.parseRunEngagement(official);
   const id = (official as { activityId?: unknown } | null)?.activityId;
-  if (block && typeof id === 'string') useEngagement.getState().setLastRun(id, block);
+  if (block && typeof id === 'string') useEngagement.getState().setLastRun(id, block, now);
   const conquered = conqueredZones(official);
   if (conquered > 0) useEngagement.getState().setEverConquered(true);
   if (typeof id === 'string') {

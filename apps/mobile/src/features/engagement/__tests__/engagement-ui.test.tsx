@@ -258,7 +258,7 @@ describe('bloco Recompensas do resumo', () => {
     xp: { total: 150, lines: [{ source: 'run_distance', amount: 50, label: 'Distância' }, { source: 'run_complete', amount: 30, label: 'Atividade concluída' }, { source: 'daily_chest', amount: 40, label: 'Baú do dia' }, { source: 'mission', amount: 30, label: 'Missão' }] },
     level: { before: 6, after: 6, titleAfter: null },
     band: null,
-    dailyChests: { opened: [{ n: 1, rarity: 'raro', xp: 40, cosmeticId: 'rastro-gelo', duplicate: false, guaranteed: false, bonus: false }], pityLeft: 13, reason: null, stored: 0 },
+    dailyChests: { opened: [{ n: 1, rarity: 'raro', xp: 40, cosmeticId: 'rastro-gelo', duplicate: false, guaranteed: false, bonus: false }], pityLeft: 13, reason: null, stored: 0, bonusStored: 0 },
     missions: [{ id: 'd-km', userMissionId: 'u1', cadence: 'diaria', text: 'Corra 3 km hoje', xp: 30 }],
     streak: { activitiesThisWeek: 2, weekKept: true, weeks: 2, best: 3, freezesLeft: 1, paused: false },
     season: null,
@@ -281,6 +281,43 @@ describe('bloco Recompensas do resumo', () => {
   it('servidor v1 (sem bloco): não desenha nada', () => {
     const r = render(<RunRewardsBlock block={null} />);
     expect(r.renderer.toJSON()).toBeNull();
+  });
+});
+
+describe('F8-D · M-2: baús guardados iguais no Resumo e em Recompensas', () => {
+  // 1ª corrida curta (< 1 km): o servidor guarda 1 baú do dia; o bônus da 1ª corrida fica fechado à parte.
+  const short = (bonusStored: number): RunEngagement => ({
+    xp: { total: 30, lines: [{ source: 'run_complete', amount: 30, label: 'Atividade concluída' }] },
+    level: { before: 1, after: 1, titleAfter: null },
+    band: null,
+    dailyChests: { opened: [], pityLeft: null, reason: 'distance', stored: 1, bonusStored },
+    missions: [],
+    streak: null,
+    season: null,
+    ftue: null,
+    comeback: null,
+  });
+  const chestLine = (r: Rendered) => r.text().match(/(\d+ baús? guardados?|Nenhum baú guardado)/)?.[1] ?? null;
+
+  it('baú do store lido depois da corrida: a mesma frase das 2 telas (store tem 1 + 1 bônus)', () => {
+    act(() => {
+      useEngagement.getState().setLastRun('run-1', short(0), NOW - 1000);
+      useEngagement.getState().setLoadedAt(NOW);
+    });
+    const summary = render(<RunRewardsBlock block={short(0)} />);
+    const rewards = render(<RewardsScreen />);
+    expect(chestLine(rewards)).toBe('2 baús guardados');
+    expect(chestLine(summary)).toBe(chestLine(rewards));
+    expect(summary.text()).toContain('2 baús guardados. Abrem com 1 km.');
+  });
+
+  it('baú do store ainda é de antes da corrida: soma do próprio bloco (do dia + bônus), sem o "1" antigo', () => {
+    act(() => {
+      useEngagement.getState().setLoadedAt(NOW - 5000);
+      useEngagement.getState().setLastRun('run-1', short(1), NOW);
+    });
+    const summary = render(<RunRewardsBlock block={short(1)} />);
+    expect(chestLine(summary)).toBe('2 baús guardados');
   });
 });
 
