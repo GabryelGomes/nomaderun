@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Share, View } from 'react-native';
+import { Share, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
@@ -56,6 +56,9 @@ const CHIP_ICON: Partial<Record<CelebrationEvent['kind'], IconName>> = { 'zone-c
  */
 function ConquestChips({ events, headline }: { events: readonly CelebrationEvent[]; headline?: string }) {
   const { colors } = useTheme();
+  // Chip nunca mais largo que a tela (com fonte grande, o nome da zona passava da borda): o Stagger embrulha cada
+  // chip, então o limite é em pontos, não em %.
+  const maxChip = useWindowDimensions().width - space[4] * 2;
   const kept = events.filter((e) => e.kind !== 'xp' && !(e.kind === 'zone-captured' && headline !== undefined && e.payload.zone === headline));
   // F8 onda D: zonas sem número (UX-29) podem ter o mesmo nome ("Jardim Goiás · perto do Shopping" 2×): 1 chip com a
   // contagem, em vez de 2 chips iguais.
@@ -81,7 +84,7 @@ function ConquestChips({ events, headline }: { events: readonly CelebrationEvent
             alignItems: 'center',
             gap: space[1],
             minHeight: 36,
-            maxWidth: '100%',
+            maxWidth: maxChip,
             paddingHorizontal: space[3],
             borderRadius: radius.pill,
             borderWidth: 1,

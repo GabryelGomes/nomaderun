@@ -94,7 +94,7 @@ const growText = (page, k = 1.3) =>
   try {
     // 1. Parâmetros malformados
     console.log('1. rotas com parâmetro malformado');
-    const bad = ['/zona/xyz', '/zona/%E0%A4%A', '/zona/89a8c0dab3bffff%27%3B--', '/resumo', '/resumo?id=nao-existe', '/resumo?id=%3Cscript%3E', '/compartilhar/nao-existe', '/compartilhar/convite/%3Cimg%20src%3Dx%3E', '/compartilhar/convite/', '/moderacao/qualquer', '/moderacao', '/perfil/nao-existe', '/clube/crew?codigo=AAAA', '/excluir-conta?x=1', '/dev/nao-existe'];
+    const bad = ['/zona/xyz', '/zona/%E0%A4%A', '/zona/89a8c0dab3bffff%27%3B--', '/resumo', '/resumo?id=nao-existe', '/resumo?id=%3Cscript%3E', '/compartilhar/nao-existe', '/compartilhar/convite/%3Cimg%20src%3Dx%3E', '/compartilhar/convite/', '/compartilhar/convite/%25zz', '/zona/%25zz', '/compartilhar/%25zz', '/moderacao/qualquer', '/moderacao', '/perfil/nao-existe', '/clube/crew?codigo=AAAA', '/excluir-conta?x=1', '/dev/nao-existe'];
     for (const rota of bad) {
       const { ctx, page } = await newPage(browser);
       await go(page, rota);
