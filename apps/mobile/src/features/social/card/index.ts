@@ -4,7 +4,7 @@ export * from './pick-models';
 export { cardFonts, fitFontSize, measureText, truncateToWidth, type CardFont } from './font-metrics';
 export { frameRoutes, visibleRoutes, type Box, type CardRegion, type RouteFrame } from './route-geometry';
 export { bossIdOf, cardArtFor, defaultBoss, defaultMascot, type ArtBox, type CardArtSlot, type ShareCardArt } from './card-art';
-export { CARD_FORMATS, type CardSurfaceProps } from './card-frame';
+export { CARD_FORMATS, cardMotto, storiesA11yLabel, type CardSurfaceProps } from './card-frame';
 export { DEMO_STAMP } from './card-parts';
 export { ShareCard, type ShareCardProps } from './share-card';
 export { ShareSticker, STICKER_SIZE } from './sticker-card';

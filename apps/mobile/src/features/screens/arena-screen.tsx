@@ -16,7 +16,7 @@ import { Text } from '@/components/text';
 import { formatPace } from '@/domain/geo';
 import { useEngagementData } from '@/features/engagement';
 import { NO_DATA } from '@/features/format';
-import { missionA11y, missionRatio, pct } from '@/features/engagement/model';
+import { missionA11y, missionRatio, pctInt } from '@/features/engagement/model';
 import { useNow } from '@/features/use-now';
 import { isDemoMode } from '@/services/api/env';
 import { fetchLeagueCurrent, type LeagueCurrent } from '@/services/api/league-repo';
@@ -236,7 +236,7 @@ function TodayMissions() {
                       <Icon name="check" size={20} color={colors.accentText} />
                     ) : (
                       <Text variant="caption" tabular maxFontSizeMultiplier={1.2}>
-                        {pct(ratio)}
+                        {pctInt(ratio)}
                       </Text>
                     )}
                   </ProgressRing>

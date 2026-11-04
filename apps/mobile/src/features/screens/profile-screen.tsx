@@ -26,6 +26,7 @@ import { factions, fonts, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { useEngagementData } from '@/features/engagement';
+import { useRecruitFrame } from '@/features/engagement/recruit-frame';
 import { AtlasStamps } from '@/features/engagement/atlas-stamps';
 import { MedalSheet, medalInfo, type MedalInfo } from '@/features/engagement/medal-sheet';
 import { districtStamps } from '@/features/engagement/moments';
@@ -65,6 +66,8 @@ export function ProfileScreen() {
   const all = useResource(() => listMyActivities({ limit: 200 }), [userId]);
 
   const faction = gameFaction ?? profile?.faction ?? 'striders';
+  // C2 (E7): a moldura "Recruta" do servidor (ou da cerimônia, no aparelho) aparece no cartão
+  const frameName = useRecruitFrame(userId);
   const team = factions[faction];
   const display = name || profile?.username || 'Corredor';
   const lvl = levelProgress(xp); // D-92: a mesma curva do servidor e das Recompensas
@@ -141,6 +144,7 @@ export function ProfileScreen() {
             />
           }
           mascot={<TeamEmblem team={faction} size={72} variant="medio" />}
+          frameName={frameName}
           onPress={() => router.push('/recompensas' as Href)}
         />
       </FadeUp>

@@ -5,6 +5,7 @@ import { AppError, fail, MESSAGES, ok, toAppError, type Result } from './errors'
 import { callFunction } from './functions';
 import { requireSupabase } from './supabase';
 import { isFaction } from './types';
+import { withNearRef } from './zone-name';
 
 /**
  * Zonas do servidor (RF-007): `GET /zones?bbox=`, `GET /zone?id=` e Realtime na tabela `zones`.
@@ -89,7 +90,7 @@ export function toServerZone(row: Row): ServerZone {
       attacker: attackStartedAt !== null && isFaction(row.attacker) ? row.attacker : null,
       blocked: row.blocked === true,
     },
-    meta: { name: str(row.name), city: str(row.city) },
+    meta: { name: withNearRef(str(row.name) ?? '', row.nearRef ?? row.near_ref) || str(row.name), city: str(row.city) },
   };
 }
 

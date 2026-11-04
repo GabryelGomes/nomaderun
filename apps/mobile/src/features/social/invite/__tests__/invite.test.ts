@@ -1,12 +1,22 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { appInviteText, crewInviteLink, crewInvitePath, crewInviteText, inviteBaseUrl, normalizeInviteCode } from '../invite';
+import { appInviteText, crewInviteLink, crewInvitePath, crewInviteText, INVITE_CODE_RE, inviteBaseUrl, inviteCodeFromParam, normalizeInviteCode } from '../invite';
 
 const BASE = 'https://nomade-run.vercel.app';
 
 describe('convites: código e link', () => {
   it('código normalizado (maiúsculas, sem espaço ou símbolo)', () => {
     expect(normalizeInviteCode(' demo-flr1 ')).toBe('DEMOFLR1');
+  });
+
+  it('C2: escape quebrado na rota não lança (vira código vazio → "Convite inválido")', () => {
+    for (const raw of ['%zz', '%', '%E0%A4%A', 'abc%2']) {
+      expect(() => inviteCodeFromParam(raw)).not.toThrow();
+      expect(INVITE_CODE_RE.test(inviteCodeFromParam(raw))).toBe(false);
+    }
+    expect(inviteCodeFromParam('demo%2Dflr1')).toBe('DEMOFLR1');
+    expect(inviteCodeFromParam(['DEMOFLR1', 'x'])).toBe('DEMOFLR1');
+    expect(inviteCodeFromParam(undefined)).toBe('');
   });
 
   it('domínio configurável; sem domínio no aparelho, não há link', () => {

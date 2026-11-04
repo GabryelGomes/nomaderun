@@ -16,12 +16,13 @@ import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { copyText } from '../clipboard';
-import { INVITE_CODE_RE, normalizeInviteCode } from './invite';
+import { INVITE_CODE_RE, inviteCodeFromParam } from './invite';
 
 export function InviteLanding() {
   const { colors } = useTheme();
   const { codigo } = useLocalSearchParams<{ codigo: string }>();
-  const code = normalizeInviteCode(decodeURIComponent(codigo ?? ''));
+  // C2: escape quebrado no link (`%zz`) vira "Convite inválido", nunca página em branco (URIError)
+  const code = inviteCodeFromParam(codigo);
   const valid = INVITE_CODE_RE.test(code);
   const [copied, setCopied] = useState(false);
   return (

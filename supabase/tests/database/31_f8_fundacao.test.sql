@@ -68,7 +68,8 @@ select pg_temp.mkuser('a4', 'coyotes');
 select pg_temp.mkuser('d1', 'volt');
 update public.profiles set is_demo = true where id = 'e9e9e9e9-0031-4000-8000-0000000000d1';
 
-select is(has_function_privilege('anon', 'public.faction_activity()', 'execute'), false, 'D-96: anon não chama faction_activity');
+-- C2 (20261104120200): anon passou a chamar (escolha do time antes da conta, D-91); o formato sem sessão está no 33
+select is(has_function_privilege('anon', 'public.faction_activity()', 'execute'), true, 'D-96/C2: anon chama faction_activity (só contagens)');
 select is(has_function_privilege('authenticated', 'public.faction_activity()', 'execute'), true, 'D-96: authenticated chama');
 
 select pg_temp.login('e9e9e9e9-0031-4000-8000-0000000000a1');
@@ -110,8 +111,8 @@ select is((select array_agg(k order by k) from fa1, jsonb_object_keys(r -> 'coun
 select is((select (r ->> 'total')::int = (select sum(v::int) from jsonb_each_text(r -> 'counts') e(k, v)) from fa1), true,
   'D-96: total = soma dos times');
 select pg_temp.logout();
-select throws_ok($$ select public.faction_activity() $$, 'P0001', 'UNAUTHORIZED: faça login novamente',
-  'D-96: sem login não há contagem');
+select is((select array_agg(k order by k) from jsonb_object_keys(public.faction_activity()) k),
+  array['counts', 'isDemo', 'total', 'windowDays'], 'D-96/C2: sem login, só as contagens (sem a janela em ms)');
 
 -- ===========================================================================
 -- Marcos da pintura: primeiro trecho (1 vez na vida) e recorde de trechos numa corrida

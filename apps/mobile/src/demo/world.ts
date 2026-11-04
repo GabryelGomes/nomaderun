@@ -11,6 +11,7 @@
  */
 import { cellCenter, cellsAround, districtOf, zoneOf } from '@/domain/grid';
 import { distanceMeters, offset } from '@/domain/geo';
+import { zoneNoticeText, zonePlaceName } from '@/domain/reminders';
 import type { Zone } from '@/domain/territory';
 import type { FactionId, LatLng } from '@/domain/types';
 
@@ -282,17 +283,16 @@ export function createWorld(opts: WorldOptions): DemoWorld {
         {
           id: `${DEMO_ID_PREFIX}notificacao-1`,
           type: 'invasion',
-          title: 'Alerta de Invasão!',
-          body: `Seu território em ${zoneNames[centerZone]} está sendo conquistado pelos Urban Coyotes. Corra lá nas próximas 24h para defender.`,
-          data: { zoneId: centerZone, lat: parkCenter.lat, lng: parkCenter.lng, demonstracao: true },
+          // C2: o mesmo formato do servidor (zoneNoticeText): "até 02h30", zona sem número
+          ...zoneNoticeText('invasion', { place: zonePlaceName(zoneNames[centerZone]), team: 'Urban Coyotes', until: now - 2 * 3600_000 + 24 * 3600_000 }),
+          data: { zoneId: centerZone, lat: parkCenter.lat, lng: parkCenter.lng, defendUntil: now - 2 * 3600_000 + 24 * 3600_000, demonstracao: true },
           createdAt: now - 2 * 3600_000,
           readAt: null,
         },
         {
           id: `${DEMO_ID_PREFIX}notificacao-2`,
           type: 'territory_lost',
-          title: 'Território perdido',
-          body: `${zoneNames[lostZone]} agora pertence aos Urban Coyotes. Corra lá para reconquistar.`,
+          ...zoneNoticeText('territory_lost', { place: zonePlaceName(zoneNames[lostZone]), team: 'Urban Coyotes' }),
           data: { zoneId: lostZone, demonstracao: true },
           createdAt: now - 26 * 3600_000,
           readAt: null,

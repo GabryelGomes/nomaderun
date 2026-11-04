@@ -15,6 +15,8 @@ type Row = {
   attacker: string | null;
   attack_started_at: string | null;
   blocked: boolean;
+  /** C2 (20261104120200): "perto do Estádio"; ausente no banco antigo. */
+  near_ref?: string | null;
 };
 
 Deno.serve(handler(['GET'], async (req) => {
@@ -39,6 +41,8 @@ Deno.serve(handler(['GET'], async (req) => {
       attacker: z.attacker,
       attackStartedAt: z.attack_started_at ? Date.parse(z.attack_started_at) : null,
       blocked: z.blocked,
+      // C2: campo novo e opcional (o app antigo ignora); só sai quando há referência
+      ...(typeof z.near_ref === 'string' && z.near_ref ? { nearRef: z.near_ref } : {}),
     })),
   });
 }));

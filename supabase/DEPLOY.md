@@ -232,6 +232,22 @@ Mesma ordem da §10: **migration → functions → EAS Update**. Nada liga sozin
 
 Na máquina com Docker: `npm run db:reset`, `npm run db:test:psql`, `npm run e2e` e `npm run functions:bundle-check`.
 
+## 10.2 Fase 8 · C2 (`20261104120200_f8_social`)
+
+Depois da C3 (`20261104120100_rate_limit`). Mesma ordem: **migration → functions → EAS Update**.
+
+| Passo | O quê | Observação |
+|---|---|---|
+| 1 | Testes locais | `NR_PORT=54347 npm run db:test:local` (**941** pgTAP em 33 arquivos; com o seed v2, 951 em 34), Deno em `supabase/functions` (`deno test -A`: 106 ok, 1 ignorado) e `deno check` das 9 functions |
+| 2 | Migration | `npx supabase db push`: `faction_activity()` para `anon`, moldura `moldura-recruta` (catálogo + `choose_faction` + trigger + backfill), `activityId` no item do próprio feed, `landmarks` + `zones.near_ref` (trigger + backfill), `nearRef` em `/zones`, `/zone/:id` e `zone_paint_near`, trigger `notifications_zone_text`. Sem job, flag ou Realtime novos |
+| 3 | Functions | `npx supabase functions deploy zones` (passa `nearRef`). `zone` não muda (o detalhe já vem com `nearRef`). Function antiga com banco novo: só não manda `nearRef` |
+| 4 | App | EAS Update. Compatível nos dois sentidos (`docs/API_CONTRATO.md`, seção "Fase 8 · C2") |
+| 5 | Marcos | Novos marcos da cidade: `insert into public.landmarks (name, near_phrase, lat, lng) values (...)` e `update public.zones set name = name` nas zonas da região (o trigger recalcula `near_ref`) |
+
+**Volta atrás:** `drop trigger notifications_zone_text on public.notifications; drop trigger zones_near_ref on public.zones; drop trigger profiles_recruit_frame on public.profiles; revoke execute on function public.faction_activity() from anon;` (as colunas e a tabela nova ficam: o app antigo não lê). Para voltar `choose_faction`, `feed_item_json`, `zones_in_bbox_json`, `svc_zone_detail` e `zone_paint_near` ao texto anterior, reaplicar a definição das migrations `20261022120000`, `20261023120800`, `20261020120200` e `20261029120000`.
+
+Na máquina com Docker: `npm run db:reset`, `npm run db:test:psql`, `npm run e2e` e `npm run functions:bundle-check`.
+
 ## 11. Versão web na Vercel
 
 A Vercel hospeda só as telas (o export web do Expo). O servidor continua no Supabase Cloud (§10). A configuração está em `apps/mobile/vercel.json`.

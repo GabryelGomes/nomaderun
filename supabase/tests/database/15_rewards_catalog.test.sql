@@ -13,7 +13,7 @@ select is((select array_agg(t order by t) from unnest(array['cosmetic_defs', 'us
                or has_table_privilege('authenticated', ('public.' || t)::regclass, 'delete')
                or has_table_privilege('anon', ('public.' || t)::regclass, 'select')), null,
   'cliente não escreve em cosméticos e medalhas; anon não lê');
-select is((select count(*)::int from public.cosmetic_defs), 34, 'catálogo: 34 cosméticos (10 rastros, 16 molduras, 6 efeitos, título, emblema)');
+select is((select count(*)::int from public.cosmetic_defs), 35, 'catálogo: 35 cosméticos (10 rastros, 17 molduras com a Recruta da F8-C2, 6 efeitos, título, emblema)');
 select is((select count(*)::int from public.cosmetic_defs where in_chest_pool), 7, 'catálogo: 7 cosméticos podem sair no baú do dia');
 select is((select count(*)::int from public.medal_defs), 12, 'catálogo: 12 medalhas (E4 §6)');
 select ok(not has_function_privilege('authenticated', 'private.award_medal(uuid, text, text, text, uuid)', 'execute')

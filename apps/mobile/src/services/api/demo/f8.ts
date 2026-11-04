@@ -1,6 +1,7 @@
 /**
  * Pares de demonstração da F8 · A2 (migration 20261031120000_f8_fundacao), com as regras puras do domain:
- * - `faction_activity()` (D-96): corredores com corrida na semana de demonstração, por time; `isDemo = true`;
+ * - `faction_activity()` (D-96): corredores com corrida na semana de demonstração, por time; `isDemo = true`; sem
+ *   sessão (C2, D-91) só as 4 contagens, como o servidor (migration 20261104120200);
  * - `crew_echo()`: o colega da crew que correu nesta semana "reforçou" alguns dos seus trechos; `isDemo = true`;
  * - `extras.milestones` no `finish-activity`: "primeiro trecho pintado" e "recorde de trechos" (`paintMilestones`),
  *   com os trechos de cada corrida calculados pelo domain (`paintCellsOfRun`), guardados em `activities.v2_extras`.
@@ -67,8 +68,9 @@ function demoEchoCells(seed: string): number {
 }
 
 export const DEMO_F8_RPC_HANDLERS: Record<string, RpcHandler> = {
+  // C2 (D-91): sem sessão também responde (a escolha do time vem antes da conta), só com as 4 contagens.
   faction_activity: (db, userId) => {
-    requireUser(db, userId);
+    if (userId) requireUser(db, userId);
     const counts = Object.fromEntries(FACTION_IDS.map((f) => [f, 0])) as Record<string, number>;
     for (const p of db.tables.profiles) {
       if (p.status !== 'active' || typeof p.faction !== 'string' || !(p.faction in counts)) continue;
@@ -76,11 +78,13 @@ export const DEMO_F8_RPC_HANDLERS: Record<string, RpcHandler> = {
       if (s.runs > 0) counts[p.faction] += 1;
     }
     const now = db.now();
+    const total = Object.values(counts).reduce((a, b) => a + b, 0);
+    if (!userId) return { windowDays: 7, counts, total, isDemo: true };
     return {
       windowDays: 7,
       since: now - 7 * 86_400_000,
       counts,
-      total: Object.values(counts).reduce((a, b) => a + b, 0),
+      total,
       isDemo: true,
     };
   },

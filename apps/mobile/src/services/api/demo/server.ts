@@ -4,6 +4,7 @@
  * Erros no formato do contrato (`docs/API_CONTRATO.md`): `DemoHttpError(status, code, message, details)`.
  */
 import { cellCenter } from '@/domain/grid';
+import { zoneNoticeText, zonePlaceName } from '@/domain/reminders';
 import type { FactionId } from '@/domain/types';
 import { zoneName } from '@/demo/demo-data';
 import { DEMO_MARK } from '@/demo/world';
@@ -219,8 +220,7 @@ function apply(db: DemoDb, act: Row, official: DemoOfficial, opts: { mode: 'fini
       const name = zoneLabel(ev.zoneId, db.zones.get(ev.zoneId)?.name);
       db.insertNotification(userId, {
         type: 'conquest',
-        title: 'Zona conquistada',
-        body: `Você conquistou ${name} para os ${FACTION_NAME[faction]}.`,
+        ...zoneNoticeText('conquest', { place: zonePlaceName(name), team: FACTION_NAME[faction] }),
         data: { zoneId: ev.zoneId, activityId: act.id, lat: center.lat, lng: center.lng },
       });
     }

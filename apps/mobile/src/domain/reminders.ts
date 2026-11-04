@@ -509,3 +509,32 @@ export function shouldAskPlan(memory: NextRunPlanMemory | null, now: number): bo
   if (memory.at !== null && memory.at > now) return false;
   return memory.askedWeek !== brtCalendar.clock(now).weekId;
 }
+
+/* ---------- Avisos de zona do servidor (C2, migration 20261104120200) ---------- */
+
+/**
+ * Nome da zona nos avisos e telas: sem o número ("Jardim Goiás 59" → "Jardim Goiás") e com a referência, se houver
+ * ("Jardim Goiás · perto do Estádio"). Sem nome: "Zona". Igual a `private.zone_display` (SQL).
+ */
+export function zonePlaceName(name: string | null | undefined, nearRef?: string | null): string {
+  const base = (name ?? '').replace(/\s+\d+(?:\/\d+)?$/, '').trim() || 'Zona';
+  const ref = (nearRef ?? '').trim();
+  return ref && !base.includes(' · ') ? `${base} · ${ref}` : base;
+}
+
+export type ZoneNoticeKind = 'invasion' | 'territory_lost' | 'conquest';
+
+/**
+ * Texto único dos avisos de zona (regra 2 do prompt da F8: "até 02h30" só nos avisos), o mesmo que o trigger
+ * `notifications_zone_text` grava no servidor. `team` = nome do time (atacante, novo dono ou o da pessoa); `until`
+ * = fim do prazo de defesa (só na invasão), mostrado em Brasília.
+ */
+export function zoneNoticeText(kind: ZoneNoticeKind, p: { place: string; team: string; until?: number }): { title: string; body: string } {
+  if (kind === 'invasion') {
+    const c = brtCalendar.clock(p.until ?? 0);
+    const hhmm = `${String(c.hour).padStart(2, '0')}h${String(c.minute).padStart(2, '0')}`;
+    return { title: 'Alerta de invasão', body: `Os ${p.team} estão pintando suas ruas em ${p.place}. Defenda até ${hhmm}.` };
+  }
+  if (kind === 'territory_lost') return { title: 'Território perdido', body: `${p.place} agora é dos ${p.team}. Corra lá para pintar de volta.` };
+  return { title: 'Zona conquistada', body: `Você pintou ${p.place} com a cor dos ${p.team}.` };
+}

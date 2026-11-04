@@ -574,7 +574,7 @@ const EVER_CONQUERED_RUNS = 200;
 /** Missões que o servidor concluiu agora por um fato declarado (`record_share`, `record_ranking_opened`). */
 export type StateMissionsCompleted = { completed: { id: string; cadence: MissionCadence | null; xp: number }[] };
 
-const parseCompleted = (data: unknown): StateMissionsCompleted => ({
+export const parseCompleted = (data: unknown): StateMissionsCompleted => ({
   completed: arr(obj(data).completed)
     .map((c) => ({ id: str(c.id ?? c.defId), cadence: oneOf(CADENCES, c.cadence ?? c.kind), xp: Math.max(0, num(c.xp)) }))
     .filter((c) => c.id.length > 0),

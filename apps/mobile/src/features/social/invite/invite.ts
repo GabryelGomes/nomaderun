@@ -18,6 +18,19 @@ export function normalizeInviteCode(code: string): string {
   return code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
+/**
+ * Código a partir do trecho da rota (`/compartilhar/convite/[codigo]`). Escape quebrado (`%zz`, `%E0%A4%A`) não
+ * derruba a página: `decodeURIComponent` lança `URIError` e o resultado vira '' ("Convite inválido").
+ */
+export function inviteCodeFromParam(raw: string | string[] | null | undefined): string {
+  const value = Array.isArray(raw) ? (raw[0] ?? '') : (raw ?? '');
+  try {
+    return normalizeInviteCode(decodeURIComponent(value));
+  } catch {
+    return '';
+  }
+}
+
 /** Base do link sem a barra final, ou `null` quando não há domínio configurado. */
 export function inviteBaseUrl(configured: string | undefined = process.env.EXPO_PUBLIC_INVITE_BASE_URL, origin: string | null = webOrigin()): string | null {
   const raw = (configured ?? '').trim() || origin || '';
