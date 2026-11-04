@@ -3,6 +3,7 @@
 // pintura, recordes, feed e aplausos). Servidor ainda sem a migration (PGRST202) → exportação v1, como antes.
 import { corsHeaders, handler } from '../_shared/http.ts';
 import { DbError, requireUser, rpc } from '../_shared/supabase.ts';
+import { enforceRateLimit } from '../_shared/rate-limit.ts';
 
 async function exportData(userId: string): Promise<Record<string, unknown>> {
   try {
@@ -17,6 +18,7 @@ async function exportData(userId: string): Promise<Record<string, unknown>> {
 
 Deno.serve(handler(['GET'], async (req) => {
   const user = await requireUser(req);
+  await enforceRateLimit(user.id, 'conta');
   const data = await exportData(user.id);
   return new Response(JSON.stringify({ email: user.email ?? null, ...data }, null, 2), {
     status: 200,
