@@ -4,6 +4,7 @@
  */
 import * as repo from '@/services/api/engagement-repo';
 import { AppError, fail, ok, type Result } from '@/services/api/errors';
+import { recordShare } from '@/services/api/share-repo';
 import { useEngagement, type SlotKey } from '@/store/engagement-store';
 import { useSession } from '@/store/session-store';
 
@@ -169,6 +170,22 @@ export async function markRankingOpened(now: number = Date.now()): Promise<Resul
     void refreshEngagement(now);
   }
   return res;
+}
+
+/**
+ * C2 (E8): o card saiu da tela (Stories, feed, recap). Telemetria opt-in `share` e, com a corrida oficial, o
+ * `record_share` do servidor (missão "compartilhar"); cada missão que ele concluir vira `mission_complete`, como o
+ * ranking já fazia. A fila sai logo (o compartilhar costuma levar a pessoa para outro app).
+ */
+export async function recordShareDone(activityId: string | null, now: number = Date.now()): Promise<void> {
+  trackTelemetry('share', undefined, now);
+  if (activityId) {
+    const res = await recordShare(activityId);
+    const done = res.ok ? res.data.completed : [];
+    for (const m of done) trackTelemetry('mission_complete', { kind: m.cadence ?? undefined, missionId: m.id }, now);
+    if (done.length > 0) void refreshEngagement(now);
+  }
+  await flushTelemetry(now);
 }
 
 let conquestInflight: Promise<void> | null = null;

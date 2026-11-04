@@ -6,7 +6,7 @@
  * - Pausa (E6, conta): `<HealthPauseSheet visible onClose />`;
  * - Rotas próprias: `/missoes` e `/recompensas`.
  */
-export { refreshEngagement, recordRunResult, rerollDailyMission, openStoredChests, claimSeasonStep, startPause, endPause, markRankingOpened, ensureConquestHistory } from './controller';
+export { recordShareDone, refreshEngagement, recordRunResult, rerollDailyMission, openStoredChests, claimSeasonStep, startPause, endPause, markRankingOpened, ensureConquestHistory } from './controller';
 export { useEngagementData, useRunRewards, useTodayStrip, useWelcomeBack, useFirstConquestEver, getFirstConquestEver, type TodayStrip, type WelcomeBack } from './hooks';
 export { trackTelemetry, flushTelemetry, setTelemetryOptIn, loadTelemetryConsent, telemetryAllowed } from './telemetry';
 export { TELEMETRY_EVENTS, type TelemetryEventName } from './telemetry-model';
@@ -16,6 +16,7 @@ export { HealthPauseSheet, type HealthPauseSheetProps } from './health-pause-she
 export { WelcomeBackGate, WelcomeBackSheet, type WelcomeBackSheetProps } from './welcome-back-sheet';
 export { MissionsScreen } from './missions-screen';
 export { RewardsScreen } from './rewards-screen';
+export { hasRecruitFrame, RECRUIT_FRAME_ID, useRecruitFrame } from './recruit-frame';
 export { rewardSections, rewardPeak } from './run-rewards-model';
 export { todayData, featuredMission, type TodayData, type TodayChip, type TodayCoach } from './today';
 export { welcomeBackCards, shouldWelcomeBack, WELCOME_BACK_DAYS, type WelcomeCard } from './welcome-back';

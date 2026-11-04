@@ -16,7 +16,7 @@ import { buildBossCard, buildLevelCard, buildRunCard, buildWeekCard, buildZoneCa
 import { LogoSvgArt, MascotSvgArt, BossSvgArt } from '@/components/art';
 
 import { bossIdOf } from '../card-art';
-import { CARD_FORMATS, CARD_SLOGAN_FEED, CARD_SLOGAN_STORIES, cardLogoLayout, STORIES_SAFE } from '../card-frame';
+import { CARD_FORMATS, CARD_SLOGAN_FEED, CARD_SLOGAN_STORIES, cardLogoLayout, cardMotto, STORIES_SAFE, storiesA11yLabel } from '../card-frame';
 import { cardColors, DEMO_STAMP } from '../card-parts';
 import { frameRoutes } from '../route-geometry';
 import { ShareCard } from '../share-card';
@@ -64,11 +64,14 @@ describe('ShareCard — 5 modelos × 2 formatos', () => {
         const { W, H } = CARD_FORMATS[format];
         expect(svg.props.viewBox).toBe(`0 0 ${W} ${H}`);
         expect(svg.props.height).toBeCloseTo((360 * H) / W, 5);
-        expect(svg.props.accessibilityLabel).toBe(model.a11yLabel);
+        // C2: nos Stories, o rótulo ganha o lema do time (o mesmo texto do card)
+        expect(svg.props.accessibilityLabel).toBe(format === 'stories' ? storiesA11yLabel(model.a11yLabel, model.faction) : model.a11yLabel);
         const t = texts(r);
         const expected = EXPECTED[model.kind];
         for (const s of expected) expect(t).toContain(s);
         expect(t).toEqual(expect.arrayContaining(['NEON STRIDERS', DEMO_STAMP, format === 'stories' ? CARD_SLOGAN_STORIES : CARD_SLOGAN_FEED]));
+        if (format === 'stories') expect(t).toContain(cardMotto(model.faction));
+        else expect(t).not.toContain(cardMotto(model.faction));
         // T7.3.7: o logo é o oficial da E4 (traço, sem <text>), não mais o logotipo provisório em texto.
         const logos = r.root.findAllByType(LogoSvgArt);
         expect(logos).toHaveLength(1);

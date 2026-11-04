@@ -378,7 +378,7 @@ export function RewardsScreen() {
     await refresh();
     setRefreshing(false);
   };
-  // D-91: a moldura "Recruta" da cerimônia mora no aparelho (sem par no servidor ainda) e soma aos do servidor.
+  // D-91: a moldura "Recruta" da cerimônia fica no aparelho e soma aos do servidor (o servidor novo também concede, C2).
   const [local, setLocal] = useState<string[]>([]);
   useEffect(() => {
     let alive = true;

@@ -16,10 +16,11 @@ import { TeamBadge } from '@/components/team-badge';
 import { Text } from '@/components/text';
 import { districtOf } from '@/domain/grid';
 import type { FactionId } from '@/domain/types';
-import { markRankingOpened } from '@/features/engagement';
+import { CrewEchoCard, markRankingOpened } from '@/features/engagement';
 import { NO_DATA } from '@/features/format';
 import { CrewFeed } from '@/features/social/feed';
 import { InviteCard } from '@/features/social/invite/invite-card';
+import { useNow } from '@/features/use-now';
 import { getCrewWeekGoal, getMyCrew, type MyCrew } from '@/services/api/crews-repo';
 import { isDemoMode } from '@/services/api/env';
 import type { Result } from '@/services/api/errors';
@@ -170,6 +171,7 @@ export function ClubScreen() {
   const week = useResource(() => loadCrewWeek(myCrew), [myCrew?.crew.id ?? null, myCrew?.members.length ?? 0]);
   const reloadCrew = crew.reload;
   const [section, setSection] = useState<ClubSection>('corridas');
+  const now = useNow(60_000);
   useFocusEffect(
     useCallback(() => {
       void reloadCrew();
@@ -228,6 +230,8 @@ export function ClubScreen() {
           />
           {section === 'corridas' ? (
             <View testID="clube-feed" style={{ gap: space[2] }}>
+              {/* C2 (E8): o eco da crew também no topo do feed do Clube; fechar esconde o eco do dia (1×/dia). */}
+              <CrewEchoCard now={now} testID="clube-eco-da-crew" dismissible />
               <CrewFeed faction={faction} limit={FEED_PREVIEW} onSeeAll={() => router.push('/compartilhar/feed')} onJoinCrew={() => router.push('/clube/crew')} onCreateCrew={() => router.push('/clube/crew')} />
             </View>
           ) : (
