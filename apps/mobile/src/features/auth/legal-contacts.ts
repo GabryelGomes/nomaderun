@@ -2,20 +2,21 @@
  * Quem responde pelos dados (LGPD art. 9º, III e art. 41) — fonte única para a Política de Privacidade e para a
  * página pública de exclusão de conta (`/excluir-conta`, exigida pelo Google Play). F8 C3, D-99.
  *
- * Os autores preenchem estes campos (nomes e e-mails de verdade) antes de abrir o app para pessoas reais, e sobem a
- * `PRIVACY_VERSION` (services/api/auth-repo.ts). Enquanto houver marcador entre colchetes, o teste
- * `src/__tests__/publicacao.test.ts` avisa no Jest e falha com `NOMADE_RELEASE=1` (o mesmo vale para o
- * `scripts/check-publicacao.js`, chamado pelo `npm run publicar` e pelo `npm run apk`). Texto final: com revisão jurídica.
+ * Preenchido na F8-D (M3) com o padrão decidido pela coordenação — **o dono confirma** os nomes, o e-mail e a região
+ * (Supabase → Settings → General) antes de abrir para pessoas reais. Ao mudar qualquer campo, suba a
+ * `PRIVACY_VERSION` e a `PRIVACY_UPDATED_AT` (services/api/auth-repo.ts). Um marcador entre colchetes faz o
+ * `src/__tests__/publicacao.test.ts` falhar e o `scripts/check-publicacao.js` recusar o `npm run publicar` e o
+ * `npm run apk` (por padrão; só passa com `NOMADE_DEMO_OK=1`). Texto final: com revisão jurídica.
  */
 export const LEGAL_CONTACTS = {
-  /** Controlador: quem decide sobre o tratamento (para o TCC, os autores ou a instituição). */
-  controllerName: '[NOME DO CONTROLADOR]',
-  controllerEmail: '[E-MAIL DO CONTROLADOR]',
+  /** Controladores: quem decide sobre o tratamento (pessoas físicas, autores do projeto). */
+  controllerName: 'Gabryel Gomes Bahmad Camapum e Mateus Augusto de Faria Brito',
+  controllerEmail: 'byelgomys@gmail.com',
   /** Encarregado (DPO): canal com as pessoas e com a ANPD. */
-  dpoName: '[NOME DO ENCARREGADO]',
-  dpoEmail: '[E-MAIL DO ENCARREGADO]',
-  /** Região do projeto no Supabase (Settings → General), para a transferência internacional (art. 33). */
-  serverRegion: '[REGIÃO DO SERVIDOR]',
+  dpoName: 'Gabryel Gomes Bahmad Camapum',
+  dpoEmail: 'byelgomys@gmail.com',
+  /** Região do projeto no Supabase (supabase/DEPLOY.md §1: "South America (São Paulo)"), para o art. 33. */
+  serverRegion: 'América do Sul (São Paulo, Brasil)',
 } as const;
 
 export type LegalContactField = keyof typeof LEGAL_CONTACTS;

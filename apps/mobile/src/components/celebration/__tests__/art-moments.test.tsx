@@ -204,15 +204,28 @@ describe('arte da E4 nos momentos', () => {
 
   it('time: mascote da E4 em "vitória" que acena com a cabeça; reduzido sem aceno', () => {
     const r = render(<TeamConfirm testID="t" faction="volt" leader={{ name: 'Téo Faria', quote: 'Texto provisório' }} origin={{ x: 100, y: 600 }} onContinue={() => {}} />);
+    // F8-D: no quadro do toque saem a cor e o texto; o mascote (SVG neon pesado) monta depois do 1º quadro pintado
+    expect(artOf(r, Mascot)).toHaveLength(0);
+    expect(r.root.findAll((n: ReactTestInstance) => n.props.testID === 't-continuar').length).toBeGreaterThan(0);
+    act(() => {
+      jest.advanceTimersByTime(48);
+    });
     const [m] = artOf(r, Mascot);
     expect(m.team).toBe('volt');
     expect(m.pose).toBe('vitoria');
-    expect((m.parts?.cabeca as Record<string, unknown>).animationName).toEqual(MASCOT_NOD.keyframes);
+    const nod = m.parts?.cabeca as Record<string, unknown>;
+    expect(nod.animationName).toEqual(MASCOT_NOD.keyframes);
+    // o aceno desconta o tempo até a montagem: continua no mesmo relógio da cerimônia (T.name = 750 ms)
+    expect(nod.animationDelay as number).toBeLessThanOrEqual(750);
+    expect(nod.animationDelay as number).toBeGreaterThan(600);
     const reduced = render(
       <ReducedMotionOverride reduced>
         <TeamConfirm testID="t" faction="volt" leader={{ name: 'Téo Faria', quote: 'Texto provisório' }} origin={{ x: 100, y: 600 }} onContinue={() => {}} />
       </ReducedMotionOverride>,
     );
+    act(() => {
+      jest.advanceTimersByTime(48);
+    });
     expect(artOf(reduced, Mascot)[0].parts).toBeUndefined();
   });
 

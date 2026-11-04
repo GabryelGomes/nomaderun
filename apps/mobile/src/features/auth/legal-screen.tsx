@@ -5,7 +5,7 @@ import { Button, IconButton } from '@/components/button';
 import { Surface } from '@/components/surface';
 import { FadeUp, RevealText, Stagger } from '@/components/motion';
 import { Text } from '@/components/text';
-import { PRIVACY_VERSION, TERMS_VERSION } from '@/services/api/auth-repo';
+import { PRIVACY_UPDATED_AT, PRIVACY_VERSION, TERMS_VERSION } from '@/services/api/auth-repo';
 import { space } from '@/theme/tokens';
 
 import { FormScaffold } from './form-ui';
@@ -57,7 +57,7 @@ const PRIVACY: Section[] = [
   {
     title: 'Quem cuida dos seus dados',
     body: [
-      `Controlador: ${LEGAL_CONTACTS.controllerName} (${LEGAL_CONTACTS.controllerEmail}).`,
+      `Controladores: ${LEGAL_CONTACTS.controllerName}, pessoas físicas, autores do NOMADE RUN (${LEGAL_CONTACTS.controllerEmail}).`,
       `Encarregado (DPO): ${LEGAL_CONTACTS.dpoName} (${LEGAL_CONTACTS.dpoEmail}). Fale com o encarregado para qualquer pedido sobre seus dados.`,
     ],
   },
@@ -116,7 +116,7 @@ export function LegalScreen({ kind }: { kind: 'termos' | 'privacidade' }) {
           <RevealText testID="legal-titulo">{terms ? 'Termos de Uso' : 'Política de Privacidade'}</RevealText>
           <FadeUp delay={150}>
             <Text variant="small" muted>
-              Versão {terms ? TERMS_VERSION : PRIVACY_VERSION}
+              Versão {terms ? TERMS_VERSION : `${PRIVACY_VERSION} · atualizada em ${PRIVACY_UPDATED_AT}`}
             </Text>
           </FadeUp>
         </View>

@@ -35,6 +35,7 @@ describe('/excluir-conta', () => {
     expect(text).toContain('Você → Ajustes → Conta');
     expect(text).toContain('Excluir conta');
     expect(text).toContain(LEGAL_CONTACTS.dpoEmail);
+    expect(text).not.toMatch(/\[[^\]]*(NOME|E-MAIL|REGIÃO)[^\]]*\]/);
     expect(text).toContain('Nunca pedimos sua senha por e-mail.');
     expect(DELETE_ACCOUNT_STEPS).toHaveLength(3);
   });
@@ -61,7 +62,8 @@ describe('/excluir-conta', () => {
   it('a Política de Privacidade tem Controlador, Encarregado (DPO), art. 18 e o link para a página', () => {
     const r = render(<LegalScreen kind="privacidade" />);
     const text = r.text();
-    expect(text).toContain(`Controlador: ${LEGAL_CONTACTS.controllerName}`);
+    expect(text).toContain(`Controladores: ${LEGAL_CONTACTS.controllerName}`);
+    expect(text).not.toMatch(/\[[^\]]*(NOME|E-MAIL|REGIÃO)[^\]]*\]/);
     expect(text).toContain(`Encarregado (DPO): ${LEGAL_CONTACTS.dpoName}`);
     expect(text).toContain('art. 18 da LGPD');
     expect(text).toContain('Estatísticas de uso (opcional');

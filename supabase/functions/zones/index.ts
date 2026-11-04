@@ -21,7 +21,7 @@ type Row = {
 
 Deno.serve(handler(['GET'], async (req) => {
   const user = await requireUser(req);
-  await enforceRateLimit(user.id, 'geral');
+  await enforceRateLimit(user.id, 'mapa');
   const bbox = parseBbox(new URL(req.url).searchParams.get('bbox'));
   // QA-04: um único JSON com até 2.000 zonas (a RPC em linhas sofreria o max_rows do PostgREST)
   const rows = await rpc<Row[]>('zones_in_bbox_json', {

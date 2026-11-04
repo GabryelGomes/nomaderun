@@ -5,6 +5,8 @@ export const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Max-Age': '86400',
+  // Sem isto, o navegador esconde o `Retry-After` do 429 (F8-D, B2); o app lê `details.retryAfter` ou este cabeçalho.
+  'Access-Control-Expose-Headers': 'Retry-After',
 };
 
 export class HttpError extends Error {

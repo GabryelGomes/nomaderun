@@ -8,7 +8,7 @@
     "scheme": "nomaderun",
     "userInterfaceStyle": "dark",
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "sdkVersion"
     },
     "updates": {
       "checkAutomatically": "ON_LOAD",

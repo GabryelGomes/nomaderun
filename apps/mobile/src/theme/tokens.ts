@@ -39,6 +39,9 @@ export const light = {
   accentText: palette.orangeText,
   danger: palette.danger,
   onDanger: palette.white,
+  /** Botão desativado (F8-D): fundo cinza e texto 5,59:1, sem opacidade; borda `lineControl` desenha a pílula. */
+  disabledSurface: palette.surface2,
+  onDisabled: palette.ink2,
 } as const;
 
 /**
@@ -62,6 +65,12 @@ export const dark = {
   danger: '#FF4D45',
   /** Texto escuro no botão de perigo: 6,14:1 (D-75; o branco dava 3,28:1). */
   onDanger: '#070708',
+  /**
+   * Botão desativado (F8-D, QA da onda D): o laranja a 45% de opacidade deixava "Toque no seu time" a 2,56:1. Agora
+   * é grafite com texto 7,07:1 e borda `lineControl` (3,09:1 sobre ele), sem opacidade: lê como instrução, não some.
+   */
+  disabledSurface: '#1A1B20',
+  onDisabled: '#A8A6A1',
 } as const;
 
 export type ThemeColors = { [K in keyof typeof light]: string };

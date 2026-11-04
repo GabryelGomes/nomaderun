@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from '@jest/globals';
 
-import { fromHttp, MESSAGES, toAppError } from '../errors';
+import { fromHttp, MESSAGES, parseRetryAfter, toAppError } from '../errors';
 import { errorFromFunctions } from '../functions';
 import { parseFunctionsError } from '@/services/sync/transport';
 import { isRetryable } from '@/services/sync/types';
@@ -38,6 +38,25 @@ describe('limite de chamadas das Edge Functions (429 RATE_LIMITED)', () => {
     const e = await errorFromFunctions(httpError(429, body));
     expect(e.code).toBe('RATE_LIMITED');
     expect(e.message).toBe(MESSAGES.tooManyRequests);
+  });
+
+  it('lê o tempo de espera: details.retryAfter do corpo e, sem ele, o cabeçalho Retry-After (F8-D, B2)', async () => {
+    expect(fromHttp(429, body).retryAfter).toBe(17);
+    expect(fromHttp(429, { error: { code: 'RATE_LIMITED', message: 'x' } }, '9').retryAfter).toBe(9);
+    expect(fromHttp(429).retryAfter).toBeUndefined();
+    const headerOnly = {
+      name: 'FunctionsHttpError',
+      context: { status: 429, headers: { get: (n: string) => (n === 'Retry-After' ? '23' : null) }, clone: () => ({ json: async () => null }) },
+    };
+    expect((await errorFromFunctions(headerOnly)).retryAfter).toBe(23);
+    expect((await errorFromFunctions(httpError(429, body))).retryAfter).toBe(17);
+  });
+
+  it('parseRetryAfter aceita só segundos positivos (no máximo 1 hora)', () => {
+    expect(parseRetryAfter('17')).toBe(17);
+    expect(parseRetryAfter(2.2)).toBe(3);
+    expect(parseRetryAfter(99999)).toBe(3600);
+    for (const bad of ['', 'abc', '-3', 0, -1, NaN, null, undefined, 'Wed, 21 Oct 2015 07:28:00 GMT']) expect(parseRetryAfter(bad)).toBeUndefined();
   });
 
   it('o login continua com a frase do Auth (limite de minutos, não de instantes)', () => {
