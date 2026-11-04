@@ -30,6 +30,11 @@ jest.mock('@/features/engagement/local-store', () => ({
     else mockStore.set(name, value);
   },
 }));
+// D-96: o selo "Precisa de reforço" vem de 1 leitura (mockada) compartilhada pelos 4 cards.
+jest.mock('@/features/engagement/team-boost', () => ({
+  ...jest.requireActual<object>('@/features/engagement/team-boost'),
+  useFactionBoost: () => ({ needsBoost: 'coyotes', isDemo: true }),
+}));
 const mockChoose = jest.fn<(f: string) => Promise<{ ok: true; data: unknown } | { ok: false; error: { message: string } }>>();
 jest.mock('@/features/auth/session-controller', () => ({ chooseFaction: (f: string) => mockChoose(f), saveProfile: jest.fn() }));
 
@@ -72,6 +77,11 @@ describe('escolha do time antes da conta (D-91)', () => {
     // 4 capas à vista, nenhuma marcada; o botão espera a escolha
     for (const f of ['striders', 'coyotes', 'owls', 'volt']) expect(r.host(`onboarding-times-${f}`).props.accessibilityState).toMatchObject({ checked: false });
     expect(r.text()).toContain('Toque no seu time');
+    // D-96: selo só no time com menos ativos, marcado como demonstração e lido no rótulo do card
+    expect(r.has('selo-reforco-coyotes')).toBe(true);
+    expect(r.has('selo-reforco-volt')).toBe(false);
+    expect(r.host('onboarding-times-coyotes').props.accessibilityLabel).toContain('Precisa de reforço');
+    expect(r.text()).toContain('Precisa de reforço · demonstração');
 
     r.press('onboarding-times-volt'); // toque 1
     expect(r.host('onboarding-times-volt').props.accessibilityState).toMatchObject({ checked: true });

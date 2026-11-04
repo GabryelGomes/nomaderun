@@ -15,6 +15,7 @@ import { TEAM_BIO } from '@/domain/team-bio';
 import { FACTION_IDS, type FactionId } from '@/domain/types';
 import { ErrorNotice, InfoNotice } from '@/features/auth/form-ui';
 import { chooseFaction } from '@/features/auth/session-controller';
+import { boostLabel, TeamBoostBadge, useFactionBoost } from '@/features/engagement/team-boost';
 import { useNow } from '@/features/use-now';
 import { useSession } from '@/store/session-store';
 import { neon, neonTeam } from '@/theme/neon';
@@ -37,6 +38,8 @@ export function FactionScreen() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<FactionId | null>(null);
 
+  // D-96: selo "Precisa de reforço" (só cosmético), 1 leitura para o time atual e os outros 3.
+  const boost = useFactionBoost();
   const current = profile?.faction ?? null;
   const rule = factionChange({ faction: current, factionChangedSeason: profile?.factionChangedSeason ?? null }, new Date(now));
   const others = FACTION_IDS.filter((f) => f !== current);
@@ -77,6 +80,7 @@ export function FactionScreen() {
                 <Text variant="small" muted>
                   {TEAM_BIO[current].mascot}, {TEAM_BIO[current].mascotKind} · líder {TEAM_BIO[current].leader}
                 </Text>
+                <TeamBoostBadge team={current} boost={boost} />
               </View>
             </View>
           </View>
@@ -116,7 +120,7 @@ export function FactionScreen() {
                   testID={`faccao-opcao-${f}`}
                   accessibilityRole="radio"
                   accessibilityState={{ checked: on }}
-                  accessibilityLabel={`${factions[f].name}. ${TEAM_BIO[f].motto}. ${TEAM_BIO[f].bio[0]}`}
+                  accessibilityLabel={`${factions[f].name}. ${TEAM_BIO[f].motto}. ${TEAM_BIO[f].bio[0]}${boost?.needsBoost === f ? ` ${boostLabel(boost.isDemo).a11y}` : ''}`}
                   hitSlop={0}
                   onPress={() => {
                     setChoice(on ? null : f);
@@ -147,6 +151,9 @@ export function FactionScreen() {
                     <Text variant="small" muted numberOfLines={1}>
                       {TEAM_BIO[f].bio[0]}
                     </Text>
+                    <View aria-hidden importantForAccessibility="no-hide-descendants">
+                      <TeamBoostBadge team={f} boost={boost} />
+                    </View>
                   </View>
                   {on ? <Icon name="check" size={22} color={neonTeam[f]} /> : null}
                 </Pressable>

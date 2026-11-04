@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ScrollView, useWindowDimensions, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 
 import { TeamCover } from '@/components/art/team/cover';
@@ -23,12 +23,16 @@ export type TeamCoverCardProps = {
   onSelect: (f: FactionId) => void;
   /** Abre a folha do líder (`LeaderSheet`). */
   onLeader?: (f: FactionId) => void;
+  /** Selo extra do time (D-96 "Precisa de reforço", só cosmético), vindo de `features/engagement`. */
+  badge?: ReactNode;
+  /** Frase do selo para o leitor de tela (entra no rótulo do card). */
+  badgeLabel?: string | null;
   width: number;
   testID?: string;
 };
 
 /** Card de um time com a capa (D-93): capa animada + líder, valor e estilo em 1 linha + "Conhecer". */
-export function TeamCoverCard({ faction, selected, focused, suggested, onSelect, onLeader, width, testID }: TeamCoverCardProps) {
+export function TeamCoverCard({ faction, selected, focused, suggested, onSelect, onLeader, badge, badgeLabel, width, testID }: TeamCoverCardProps) {
   const { colors } = useTheme();
   const f = factions[faction];
   const b = TEAM_BIO[faction];
@@ -40,7 +44,7 @@ export function TeamCoverCard({ faction, selected, focused, suggested, onSelect,
       testID={id}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
-      accessibilityLabel={`${teamCardLabel(faction)}${suggested ? ' Combina com você, pelo quiz.' : ''}`}
+      accessibilityLabel={`${teamCardLabel(faction)}${suggested ? ' Combina com você, pelo quiz.' : ''}${badgeLabel ? ` ${badgeLabel}` : ''}`}
       onPress={() => onSelect(faction)}
       hitSlop={0}
       containerStyle={{ width }}
@@ -74,6 +78,11 @@ export function TeamCoverCard({ faction, selected, focused, suggested, onSelect,
           <Text variant="small" muted numberOfLines={1}>
             {b.value} · líder {b.leader}
           </Text>
+          {badge ? (
+            <View aria-hidden importantForAccessibility="no-hide-descendants" style={{ marginTop: space[1] }}>
+              {badge}
+            </View>
+          ) : null}
         </View>
         {onLeader ? (
           <PressableScale
@@ -98,6 +107,9 @@ export type TeamCoverCarouselProps = {
   onChange: (f: FactionId) => void;
   onLeader?: (f: FactionId) => void;
   suggested?: FactionId | null;
+  /** Selo por time (ex.: `TeamBoostBadge`) e a frase dele para o leitor de tela. */
+  renderBadge?: (f: FactionId) => ReactNode;
+  badgeLabel?: (f: FactionId) => string | null;
   testID?: string;
 };
 
@@ -108,7 +120,7 @@ const PEEK = 28;
  * Carrossel dos 4 times com as capas. Toque escolhe; deslizar só navega; só a capa no centro anima. A paginação
  * embaixo repete a forma de cada time pelo emblema mini (nunca uma bolinha). Leva o card escolhido ao centro.
  */
-export function TeamCoverCarousel({ value, onChange, onLeader, suggested, testID = 'times' }: TeamCoverCarouselProps) {
+export function TeamCoverCarousel({ value, onChange, onLeader, suggested, renderBadge, badgeLabel, testID = 'times' }: TeamCoverCarouselProps) {
   const { colors } = useTheme();
   const { width: screen } = useWindowDimensions();
   const cardW = Math.max(260, Math.min(screen - PEEK * 2, 420));
@@ -139,7 +151,7 @@ export function TeamCoverCarousel({ value, onChange, onLeader, suggested, testID
         contentContainerStyle={{ paddingHorizontal: (screen - cardW) / 2, gap: space[3] }}
         accessibilityRole="radiogroup">
         {FACTION_IDS.map((f, i) => (
-          <TeamCoverCard key={f} faction={f} width={cardW} selected={value === f} focused={focused === i} suggested={suggested === f} onSelect={onChange} onLeader={onLeader} testID={`${testID}-${f}`} />
+          <TeamCoverCard key={f} faction={f} width={cardW} selected={value === f} focused={focused === i} suggested={suggested === f} onSelect={onChange} onLeader={onLeader} badge={renderBadge?.(f)} badgeLabel={badgeLabel?.(f)} testID={`${testID}-${f}`} />
         ))}
       </ScrollView>
       <View aria-hidden importantForAccessibility="no-hide-descendants" style={{ flexDirection: 'row', justifyContent: 'center', gap: space[4] }}>

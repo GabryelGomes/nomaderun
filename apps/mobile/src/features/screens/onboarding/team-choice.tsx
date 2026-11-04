@@ -14,6 +14,7 @@ import { TEAM_BIO } from '@/domain/team-bio';
 import type { FactionId } from '@/domain/types';
 import { ErrorNotice } from '@/features/auth/form-ui';
 import { unlockLocalCosmetic } from '@/features/engagement/cosmetics';
+import { boostLabel, TeamBoostBadge, useFactionBoost } from '@/features/engagement/team-boost';
 import { space } from '@/theme/tokens';
 
 import { OnboardingSheet } from './onboarding-sheet';
@@ -60,6 +61,8 @@ export function TeamChoiceScreen({ initial = null, initialError = null, onJoin, 
   const [error, setError] = useState<string | null>(initialError);
   const [busy, setBusy] = useState(false);
   const cta = useRef<View>(null);
+  // D-96: selo "Precisa de reforço" (só cosmético) no card do time com menos ativos; 1 leitura para os 4 cards.
+  const boost = useFactionBoost();
 
   /** Centro do botão que confirmou (a cor do time nasce dali). Sem medida (ou sem resposta em 250 ms), o pé da tela. */
   const measureOrigin = () =>
@@ -134,6 +137,8 @@ export function TeamChoiceScreen({ initial = null, initialError = null, onJoin, 
               haptic('selection');
             }}
             onLeader={setLeader}
+            renderBadge={(f) => <TeamBoostBadge team={f} boost={boost} />}
+            badgeLabel={(f) => (boost?.needsBoost === f ? boostLabel(boost.isDemo).a11y : null)}
           />
           <View style={{ alignItems: 'center' }}>
             <Button testID={`${testID}-nao-sei`} label="Não sei escolher" kind="ghost" onPress={() => setQuiz(true)} />
