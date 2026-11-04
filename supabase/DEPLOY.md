@@ -246,3 +246,18 @@ A Vercel hospeda só as telas (o export web do Expo). O servidor continua no Sup
 | 6 | Conferir | Abrir `/`, `/entrar`, `/privacidade` e um link com parâmetro, como `/zona/<id>` e `/compartilhar/convite/<codigo>`: as rotas com parâmetro dependem dos `rewrites` do `vercel.json` (o export gera `zona/[id].html` etc.). Se alguma der 404, confira o nome do arquivo em `dist/` e ajuste o `rewrites`. |
 
 Testado aqui: `npx expo export -p web --clear` gera as 4 páginas com parâmetro (`zona/[id]`, `compartilhar/[id]`, `compartilhar/convite/[codigo]`, `moderacao/[id]`). O roteamento na Vercel em si só dá para conferir depois do primeiro deploy (passo 6).
+
+## 12. Publicação (Fase 8 · C3, D-99): OTA, lojas, limite de chamadas e pacote legal
+
+Tudo abaixo é feito **pelos autores**, logados nas próprias contas. O repositório já está pronto para receber cada passo.
+
+| Passo | O quê | Como |
+|---|---|---|
+| 1 | Projeto no EAS (`projectId`) | Em `apps/mobile`: `npx eas-cli@latest login` e `npx eas-cli@latest init`. Como o app usa `app.config.js`, o EAS pode pedir para colar o ID à mão: troque `COLE-AQUI-O-PROJECT-ID-DO-EAS-INIT` em `app.json` → `expo.extra.eas.projectId` pelo UUID. O `updates.url` (`https://u.expo.dev/<projectId>`) sai sozinho desse campo; com o marcador, o OTA fica desligado e o `npm run publicar`/`npm run apk` recusam (`apps/mobile/scripts/check-publicacao.js`). Depois, `npx eas-cli@latest update:configure` só para conferir (não deve mudar nada além do que já está) e commite o diff. |
+| 2 | Identificador nas lojas | `android.package` e `ios.bundleIdentifier` = `br.com.nomaderun.app`. Confirme antes do 1º build: depois de publicado na loja, não dá para trocar. |
+| 3 | APK com OTA | `npm run apk` (perfil `preview`, canal `demo`, ambiente `preview`). Só um build **novo** passa a procurar updates: o APK antigo, sem `expo-updates`, nunca recebe nada. |
+| 4 | Publicar um update | `npm run publicar -- "mensagem"` grava as `EXPO_PUBLIC_*` no ambiente do EAS e publica com `--branch demo --environment preview` (`BRANCH=` e `EAS_ENV=` mudam). No aparelho: feche o app de vez e abra de novo, até 2 vezes (a 1ª abertura baixa, a 2ª usa). Mudou pacote nativo ou a versão do app (`expo.version`, que é o `runtimeVersion`)? Gere build novo. |
+| 5 | Limite de chamadas | `supabase db push` aplica `20261104120100_rate_limit.sql` (tabela `private.rate_limits` + `svc_rate_limit_hit`) e `supabase functions deploy` sobe as functions com `enforceRateLimit`. Limites: 60/min geral, 120/min no `ingest-points`, 10/min no `finish-activity`, 5/min em `account-export`/`account-delete`. Sem a migration, as functions usam um contador em memória (mais frouxo) e seguem funcionando. Conferir: 11 chamadas seguidas de `finish-activity` com o mesmo token → a 11ª volta `429 RATE_LIMITED` com `Retry-After`. |
+| 6 | Política de Privacidade | Preencha controlador, encarregado (nome e e-mail) e a região do projeto no Supabase (Settings → General) em `apps/mobile/src/features/auth/legal-contacts.ts`, suba a `PRIVACY_VERSION` (`services/api/auth-repo.ts`) e rode `NOMADE_RELEASE=1 npx jest src/__tests__/publicacao.test.ts` (falha enquanto houver `[...]`). Texto final com revisão jurídica, junto da decisão 16+ × 18+ (ECA Digital). |
+| 7 | Página de exclusão de conta | Depois do deploy web (§11), o link para o Google Play é `https://<domínio>/excluir-conta` (página estática, abre sem login). Abra-a uma vez no domínio final. |
+| 8 | Antes de abrir para pessoas reais | SMTP próprio + confirmação de e-mail (§3), trocar as senhas das contas demo (§10, A-1) e, se houver build com push, ligar o canal (D-97). Lista completa em `docs/melhoria/relatorios/F8-C3.md`. |

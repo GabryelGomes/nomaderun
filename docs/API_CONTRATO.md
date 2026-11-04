@@ -23,6 +23,8 @@ Local: `http://127.0.0.1:54321` (ver `PROGRESSO.md` para as chaves). Datas nas f
 
 ## Edge Functions
 
+**Limite por pessoa (F8 C3, D-99):** toda function de usuário confere a sessão e, em seguida, conta 1 chamada no balde dela (janela deslizante de 60 s, por `auth.uid()`): `geral` 60/min (`register-device`, `zones`, `zone`, `moderate-activity`, `weekly-recap`), `ingest` 120/min (`ingest-points`), `finish` 10/min (`finish-activity`) e `conta` 5/min (`account-export`, `account-delete`). Acima do limite: **429** `{ "error": { "code": "RATE_LIMITED", "message": "Muitas tentativas. Tente de novo em instantes.", "details": { "retryAfter": <segundos> } } }` e o cabeçalho `Retry-After`. O app mostra a mensagem; o sync trata como erro temporário e reenvia depois.
+
 ### `POST /register-device`
 Registra (ou renova) a chave HMAC do aparelho (D-04). Idempotente por `deviceId`.
 ```json
