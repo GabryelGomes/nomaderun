@@ -27,6 +27,8 @@ export type TeamCoverCardProps = {
   suggested?: boolean;
   /** Este time está sendo confirmado: a capa cresce e some (a cerimônia nasce dela). */
   confirming?: boolean;
+  /** F8-D · B4: a gravação do time está em voo; o card não responde ao toque. */
+  locked?: boolean;
   onSelect: (f: FactionId) => void;
   /** Abre a folha do líder (`LeaderSheet`). */
   onLeader?: (f: FactionId) => void;
@@ -43,7 +45,7 @@ export type TeamCoverCardProps = {
  * Toque (F8 · C1, `F8/02` §3.3): mola 0,98 → 1,02 → 1 no card, flash do lema, pulo do corredor e a vibração do time;
  * `confirming`: a capa cresce e some enquanto a cerimônia nasce dela. "Reduzir movimento": sem escala (só o lema).
  */
-export function TeamCoverCard({ faction, selected, focused, suggested, confirming = false, onSelect, onLeader, badge, badgeLabel, width, testID }: TeamCoverCardProps) {
+export function TeamCoverCard({ faction, selected, focused, suggested, confirming = false, locked = false, onSelect, onLeader, badge, badgeLabel, width, testID }: TeamCoverCardProps) {
   const { colors } = useTheme();
   const f = factions[faction];
   const b = TEAM_BIO[faction];
@@ -83,7 +85,8 @@ export function TeamCoverCard({ faction, selected, focused, suggested, confirmin
     <PressableScale
       testID={id}
       accessibilityRole="radio"
-      accessibilityState={{ checked: selected }}
+      accessibilityState={{ checked: selected, disabled: locked }}
+      disabled={locked}
       accessibilityLabel={`${teamCardLabel(faction)}${suggested ? ' Combina com você, pelo quiz.' : ''}${badgeLabel ? ` ${badgeLabel}` : ''}`}
       onPress={press}
       hitSlop={0}
@@ -130,6 +133,8 @@ export function TeamCoverCard({ faction, selected, focused, suggested, confirmin
             accessibilityRole="button"
             accessibilityLabel={`Conhecer ${b.leader}, líder dos ${f.name}`}
             onPress={() => onLeader(faction)}
+            disabled={locked}
+            accessibilityState={{ disabled: locked }}
             hitSlop={8}
             style={{ minHeight: 44, minWidth: 44, justifyContent: 'center', alignItems: 'flex-end' }}>
             <Text variant="bodyBold" color={colors.accentText}>
@@ -153,6 +158,8 @@ export type TeamCoverCarouselProps = {
   badgeLabel?: (f: FactionId) => string | null;
   /** Time sendo confirmado: a capa dele cresce e some (F8 · C1). */
   confirming?: FactionId | null;
+  /** F8-D · B4: enquanto o time é reservado, nenhum card responde (evita um 2º time virar troca). */
+  locked?: boolean;
   testID?: string;
 };
 
@@ -163,7 +170,7 @@ const PEEK = 28;
  * Carrossel dos 4 times com as capas. Toque escolhe; deslizar só navega; só a capa no centro anima. A paginação
  * embaixo repete a forma de cada time pelo emblema mini (nunca uma bolinha). Leva o card escolhido ao centro.
  */
-export function TeamCoverCarousel({ value, onChange, onLeader, suggested, renderBadge, badgeLabel, confirming = null, testID = 'times' }: TeamCoverCarouselProps) {
+export function TeamCoverCarousel({ value, onChange, onLeader, suggested, renderBadge, badgeLabel, confirming = null, locked = false, testID = 'times' }: TeamCoverCarouselProps) {
   const { colors } = useTheme();
   const { width: screen } = useWindowDimensions();
   const cardW = Math.max(260, Math.min(screen - PEEK * 2, 420));
@@ -194,7 +201,7 @@ export function TeamCoverCarousel({ value, onChange, onLeader, suggested, render
         contentContainerStyle={{ paddingHorizontal: (screen - cardW) / 2, gap: space[3] }}
         accessibilityRole="radiogroup">
         {FACTION_IDS.map((f, i) => (
-          <TeamCoverCard key={f} faction={f} width={cardW} selected={value === f} focused={focused === i} suggested={suggested === f} confirming={confirming === f} onSelect={onChange} onLeader={onLeader} badge={renderBadge?.(f)} badgeLabel={badgeLabel?.(f)} testID={`${testID}-${f}`} />
+          <TeamCoverCard key={f} faction={f} width={cardW} selected={value === f} focused={focused === i} suggested={suggested === f} confirming={confirming === f} locked={locked} onSelect={onChange} onLeader={onLeader} badge={renderBadge?.(f)} badgeLabel={badgeLabel?.(f)} testID={`${testID}-${f}`} />
         ))}
       </ScrollView>
       <View aria-hidden importantForAccessibility="no-hide-descendants" style={{ flexDirection: 'row', justifyContent: 'center', gap: space[4] }}>
