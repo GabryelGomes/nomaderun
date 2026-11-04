@@ -39,7 +39,7 @@ import { Shake } from '@/components/motion/shake';
 import { ShimmerSkeleton } from '@/components/motion/shimmer-skeleton';
 import { SpinRays } from '@/components/motion/spin-rays';
 import { TeamBadge } from '@/components/team-badge';
-import { TeamCoverCard } from '@/components/team-cover-carousel';
+import { TeamCoverCarousel } from '@/components/team-cover-carousel';
 import { Text } from '@/components/text';
 import { DEMO_CENTER } from '@/demo/demo-data';
 import { cellCenter, zoneOf } from '@/domain/grid';
@@ -335,7 +335,10 @@ function MotionGallery() {
         // a capa em foco com o idle (1,6 s); tocar nela dá a mola, o flash do lema, o pulo e a vibração do time
         return (
           <View style={{ alignItems: 'center', gap: space[3] }}>
-            <TeamCoverCard testID="galeria-motion-capa-card" faction={faction} width={Math.min(340, stage.width - space[8])} selected focused onSelect={() => {}} confirming={coverConfirm} />
+            {/* o carrossel da escolha de time (4 capas, só a do centro anima), como na tela real */}
+            <View style={{ marginHorizontal: -space[4], alignSelf: 'stretch' }}>
+              <TeamCoverCarousel testID="galeria-motion-capas" value={faction} onChange={setFaction} confirming={coverConfirm ? faction : null} />
+            </View>
             <View style={{ flexDirection: 'row', gap: space[2] }}>
               <Chip testID="galeria-motion-capa-confirmar" accessibilityLabel={coverConfirm ? 'Voltar a capa' : 'Confirmar (a capa cresce)'} onPress={() => setCoverConfirm((c) => !c)} />
             </View>
