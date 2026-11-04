@@ -1,5 +1,5 @@
 import * as Linking from 'expo-linking';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { type TextInput, View } from 'react-native';
 
@@ -15,7 +15,7 @@ import { space } from '@/theme/tokens';
 
 import { CheckRow, ErrorNotice, FormScaffold, InfoNotice, InlineLink, StrengthMeter, TextField, TextLink } from './form-ui';
 import { NeonBackdrop } from './neon-backdrop';
-import { hydratePendingTeam, usePendingTeam } from './pending-team';
+import { clearPendingTeamOutsideChoice, hydratePendingTeam, markPendingTeamSignedUp, PENDING_TEAM_FROM_CHOICE, usePendingTeam } from './pending-team';
 import { hasErrors, maskBirthdate, MIN_AGE, parseBirthdate, passwordStrength, validateSignUp, type SignUpErrors } from './validation';
 
 /** Mensagem única do aceite (uma caixa grava os dois aceites; D-72). */
@@ -30,7 +30,14 @@ export const LEGAL_ERROR = 'Aceite os Termos e a Privacidade para continuar.';
  */
 export function SignUpScreen() {
   const team = usePendingTeam((s) => s.team);
-  useEffect(hydratePendingTeam, []);
+  // F8-D · B3: o time pendente só vale quando o cadastro veio da escolha de times (`?origem=times`). Vindo de outro
+  // lugar (ex.: Entrar → "Criar conta"), a escolha guardada é de outra pessoa ou de outra hora e é apagada.
+  const { origem } = useLocalSearchParams<{ origem?: string }>();
+  const fromChoice = origem === PENDING_TEAM_FROM_CHOICE;
+  useEffect(() => {
+    if (fromChoice) hydratePendingTeam();
+    else void clearPendingTeamOutsideChoice();
+  }, [fromChoice]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -78,6 +85,8 @@ export function SignUpScreen() {
       setServerError(res.error.message);
       return;
     }
+    // A escolha passa a ser desta pessoa: continua valendo quando ela voltar do e-mail e entrar (até 24 h).
+    if (fromChoice) await markPendingTeamSignedUp();
     if (res.data.needsConfirmation) setConfirmSent(true);
     // Com sessão, o guarda de rotas leva direto à escolha do time.
   };

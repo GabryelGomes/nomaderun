@@ -59,6 +59,10 @@ export function TeamChoiceScreen({ initial = null, initialError = null, onJoin, 
   const [confirming, setConfirming] = useState<Confirming | null>(null);
   const [error, setError] = useState<string | null>(initialError);
   const [busy, setBusy] = useState(false);
+  // F8-D · B4: do toque em "Entrar" até a cerimônia (a medida leva até 250 ms) a escolha fica travada. A trava em ref
+  // vale já no mesmo quadro (2 toques rápidos); o estado desabilita os cards e os botões.
+  const [reserving, setReserving] = useState(false);
+  const joining = useRef(false);
   const cta = useRef<View>(null);
   const covers = useRef<View>(null);
   // D-96: selo "Precisa de reforço" (só cosmético) no card do time com menos ativos; 1 leitura para os 4 cards.
@@ -81,7 +85,9 @@ export function TeamChoiceScreen({ initial = null, initialError = null, onJoin, 
     });
 
   const join = async (f: FactionId) => {
-    if (confirming || busy) return;
+    if (confirming || busy || joining.current) return;
+    joining.current = true;
+    setReserving(true);
     setError(null);
     setLeader(null);
     setChoice(f);
@@ -100,6 +106,9 @@ export function TeamChoiceScreen({ initial = null, initialError = null, onJoin, 
     if (err) {
       setConfirming(null);
       setError(err);
+      // Não gravou: dá para escolher de novo.
+      joining.current = false;
+      setReserving(false);
     }
   };
 
@@ -115,7 +124,7 @@ export function TeamChoiceScreen({ initial = null, initialError = null, onJoin, 
         footer={
           <View style={{ gap: space[2] }}>
             <View ref={cta} collapsable={false}>
-              <Button testID={`${testID}-entrar-time`} label={team ? `Entrar para os ${team.name}` : 'Toque no seu time'} size="lg" wide disabled={!choice || !!confirming} onPress={() => choice && void join(choice)} />
+              <Button testID={`${testID}-entrar-time`} label={team ? `Entrar para os ${team.name}` : 'Toque no seu time'} size="lg" wide disabled={!choice || !!confirming || reserving} onPress={() => choice && void join(choice)} />
             </View>
             <Text variant="caption" muted style={{ textAlign: 'center' }}>
               Dá para trocar 1 vez por temporada.
@@ -137,15 +146,18 @@ export function TeamChoiceScreen({ initial = null, initialError = null, onJoin, 
             value={choice}
             suggested={suggested}
             // F8 · C1: o card vibra no padrão do time (`teamHaptic`), com a mola e o flash do lema.
-            onChange={setChoice}
+            onChange={(f) => {
+              if (!joining.current) setChoice(f);
+            }}
             confirming={confirming?.faction ?? null}
+            locked={reserving}
             onLeader={setLeader}
             renderBadge={(f) => <TeamBoostBadge team={f} boost={boost} />}
             badgeLabel={(f) => (boost?.needsBoost === f ? boostLabel(boost.isDemo).a11y : null)}
           />
           </View>
           <View style={{ alignItems: 'center' }}>
-            <Button testID={`${testID}-nao-sei`} label="Não sei escolher" kind="ghost" onPress={() => setQuiz(true)} />
+            <Button testID={`${testID}-nao-sei`} label="Não sei escolher" kind="ghost" disabled={reserving} onPress={() => setQuiz(true)} />
           </View>
         </View>
       </ScreenScroll>
@@ -159,6 +171,7 @@ export function TeamChoiceScreen({ initial = null, initialError = null, onJoin, 
               // E4: o busto do líder fala e acena (1 por tela); o nome e a fala ficam em texto.
               art={<LeaderBust team={leader} pose="falando" size={112} animated />}
               onJoin={() => void join(leader)}
+              busy={reserving}
               onBack={() => setLeader(null)}
             />
           </ScrollView>
