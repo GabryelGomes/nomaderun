@@ -6,6 +6,7 @@ import { Mascot } from '@/components/art';
 import { Confetti } from '@/components/motion/confetti';
 import { PressableScale } from '@/components/motion/pressable';
 import { useReducedMotionSetting } from '@/components/motion/reduced-motion';
+import { useMountStage } from '@/components/motion/use-mount-stage';
 import { Text } from '@/components/text';
 import type { FactionId } from '@/domain/types';
 import { cssEasings, durations, springCss, springs } from '@/theme/motion';
@@ -68,6 +69,11 @@ export function TeamConfirm(props: TeamConfirmProps) {
   const { width, height } = useWindowDimensions();
   const scale = floodScale(origin, width, height, BASE);
   const words = team.name.split(' ');
+  // F8-D (QA da onda D): o mascote em SVG neon, as ondas e o confete montam 1 quadro pintado depois da cor e do texto
+  // (o quadro do toque caía para 150–316 ms a 4× de CPU). A caixa do mascote tem tamanho fixo: nada pula na tela.
+  // Os atrasos descontam o tempo até a montagem (`lag`), e a coreografia continua no mesmo relógio.
+  const { stage, lag } = useMountStage(1);
+  const late = (ms: number) => Math.max(0, ms - lag(1));
 
   return (
     <View testID={testID} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
@@ -93,7 +99,7 @@ export function TeamConfirm(props: TeamConfirmProps) {
       <Pressable testID={`${testID}-pular`} accessible={false} focusable={false} role="none" accessibilityLabel="Pular a cerimônia" onPress={skippable && !still ? () => setSkipped(true) : undefined} style={{ flex: 1 }}>
         <View accessible accessibilityLiveRegion="polite" accessibilityLabel={text} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[4], paddingHorizontal: space[6] }}>
         <View style={{ width: 160, height: 160, alignItems: 'center', justifyContent: 'center' }}>
-          {variant === 'ftue' && !still
+          {variant === 'ftue' && !still && stage >= 1
             ? [0, 160].map((d) => (
                 <Animated.View
                   key={d}
@@ -109,7 +115,7 @@ export function TeamConfirm(props: TeamConfirmProps) {
                     opacity: 0,
                     animationName: kf({ from: { opacity: 0.9, transform: [{ scale: 0.6 }] }, to: { opacity: 0, transform: [{ scale: 2.6 }] } }),
                     animationDuration: 800,
-                    animationDelay: T.waves + d,
+                    animationDelay: late(T.waves + d),
                     animationTimingFunction: cssEasings.standard,
                     animationFillMode: 'forwards',
                   }}
@@ -118,7 +124,7 @@ export function TeamConfirm(props: TeamConfirmProps) {
             : null}
           <Animated.View
             style={step(still, { from: { opacity: 0, transform: [{ translateY: 48 }, { scale: 0.4 }] }, to: { opacity: 1, transform: [{ translateY: 0 }, { scale: 1 }] } }, springs.bouncy.duration, T.content, springCss('bouncy'))}>
-            {mascot ?? (
+            {stage < 1 ? null : (mascot ?? (
               <Mascot
                 team={faction}
                 pose="vitoria"
@@ -126,10 +132,10 @@ export function TeamConfirm(props: TeamConfirmProps) {
                 parts={
                   still
                     ? undefined
-                    : { cabeca: { animationName: kf(MASCOT_NOD.keyframes), animationDuration: MASCOT_NOD.durationMs, animationDelay: T.name, animationTimingFunction: cssEasings.standard, animationFillMode: 'both' } }
+                    : { cabeca: { animationName: kf(MASCOT_NOD.keyframes), animationDuration: MASCOT_NOD.durationMs, animationDelay: late(T.name), animationTimingFunction: cssEasings.standard, animationFillMode: 'both' } }
                 }
               />
-            )}
+            ))}
           </Animated.View>
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: space[2] }}>
@@ -167,7 +173,7 @@ export function TeamConfirm(props: TeamConfirmProps) {
         </Animated.View>
         </View>
       </Pressable>
-      {variant === 'ftue' && !still ? <Confetti count={24} colors={['#FFFFFF', glow, team.tint]} width={width} height={height} origin={{ x: width / 2, y: height * 0.38 }} delay={T.waves} seed={13} /> : null}
+      {variant === 'ftue' && !still && stage >= 1 ? <Confetti count={24} colors={['#FFFFFF', glow, team.tint]} width={width} height={height} origin={{ x: width / 2, y: height * 0.38 }} delay={late(T.waves)} seed={13} /> : null}
     </View>
   );
 }
