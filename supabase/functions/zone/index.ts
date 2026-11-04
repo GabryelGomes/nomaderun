@@ -13,7 +13,7 @@ type Detail = {
 
 Deno.serve(handler(['GET'], async (req) => {
   const user = await requireUser(req);
-  await enforceRateLimit(user.id, 'geral');
+  await enforceRateLimit(user.id, 'mapa');
   const id = new URL(req.url).searchParams.get('id');
   if (!isH3(id)) throw new HttpError(400, 'VALIDATION', 'Parâmetro id deve ser o índice H3 da zona (15 caracteres hexadecimais).');
   const detail = await rpc<Detail | null>('svc_zone_detail', { p_zone: id });

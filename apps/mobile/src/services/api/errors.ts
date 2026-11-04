@@ -18,13 +18,16 @@ export class AppError extends Error {
   /** Código original (Auth, Postgres, contrato da API) para logs e decisões finas na tela. */
   readonly detail?: string;
   readonly status?: number;
+  /** Segundos para tentar de novo (429 das Edge Functions: `details.retryAfter` ou o cabeçalho `Retry-After`). */
+  readonly retryAfter?: number;
 
-  constructor(code: AppErrorCode, message: string, opts: { detail?: string; status?: number } = {}) {
+  constructor(code: AppErrorCode, message: string, opts: { detail?: string; status?: number; retryAfter?: number } = {}) {
     super(message);
     this.name = 'AppError';
     this.code = code;
     this.detail = opts.detail;
     this.status = opts.status;
+    this.retryAfter = opts.retryAfter;
   }
 }
 
@@ -107,9 +110,20 @@ function isNetworkMessage(msg: string | undefined) {
   return m.includes('network request failed') || m.includes('failed to fetch') || m.includes('fetch failed') || m.includes('networkerror') || m.includes('network error') || m.includes('load failed');
 }
 
-/** Mapeia um status HTTP (e o corpo `{ error: { code, message } }` do contrato) para AppError. */
-export function fromHttp(status: number, body?: unknown): AppError {
-  const e = (body && typeof body === 'object' ? (body as { error?: { code?: unknown; message?: unknown } }).error : undefined) ?? undefined;
+/** Segundos inteiros e positivos (até 1 hora), ou undefined. Aceita número ou texto ("17", o `Retry-After`). */
+export function parseRetryAfter(v: unknown): number | undefined {
+  const n = typeof v === 'number' ? v : typeof v === 'string' && /^\s*\d+\s*$/.test(v) ? Number(v) : NaN;
+  return Number.isFinite(n) && n > 0 ? Math.min(3600, Math.ceil(n)) : undefined;
+}
+
+/**
+ * Mapeia um status HTTP (e o corpo `{ error: { code, message, details } }` do contrato) para AppError. No 429, o
+ * tempo de espera vem de `details.retryAfter` e, sem ele, do cabeçalho `Retry-After` (`retryAfterHeader`).
+ */
+export function fromHttp(status: number, body?: unknown, retryAfterHeader?: string | null): AppError {
+  const e =
+    (body && typeof body === 'object' ? (body as { error?: { code?: unknown; message?: unknown; details?: unknown } }).error : undefined) ??
+    undefined;
   const serverCode = str(e?.code);
   const serverMsg = str(e?.message);
   const opts = { detail: serverCode, status };
@@ -124,7 +138,9 @@ export function fromHttp(status: number, body?: unknown): AppError {
   // do servidor mantém a mensagem dele.
   if (status === 429) {
     const useServer = serverMsg && serverCode !== 'RATE_LIMITED';
-    return new AppError('RATE_LIMITED', useServer ? serverMsg : MESSAGES.tooManyRequests, opts);
+    const details = e?.details && typeof e.details === 'object' ? (e.details as { retryAfter?: unknown }) : undefined;
+    const retryAfter = parseRetryAfter(details?.retryAfter) ?? parseRetryAfter(retryAfterHeader ?? undefined);
+    return new AppError('RATE_LIMITED', useServer ? serverMsg : MESSAGES.tooManyRequests, { ...opts, retryAfter });
   }
   if (status >= 500) return new AppError('SERVER', serverMsg ?? MESSAGES.server, opts);
   return new AppError('UNKNOWN', serverMsg ?? MESSAGES.unknown, opts);

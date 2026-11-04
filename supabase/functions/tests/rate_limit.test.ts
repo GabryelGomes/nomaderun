@@ -1,6 +1,6 @@
 // F8 C3 (D-99) — limite de chamadas por pessoa nas Edge Functions: algoritmo da janela deslizante (em memória, o
 // mesmo do SQL), caminho pelo banco, fallback sem banco, resposta 429 com Retry-After e todas as functions de
-// usuário chamando o limite logo depois de conferir a sessão.
+// usuário chamando o limite logo depois de conferir a sessão. F8-D (B2): balde `mapa` próprio e Retry-After exposto.
 import assert from 'node:assert/strict';
 import { handler } from '../_shared/http.ts';
 import {
@@ -15,8 +15,12 @@ import {
 const T0 = Date.UTC(2026, 10, 4, 12, 0, 0); // início exato de uma janela de 60 s
 const quiet = () => {};
 
-Deno.test('limites do contrato: 60/min geral, 10/min no finish-activity', () => {
+Deno.test('limites do contrato: 60/min geral, 180/min no mapa, 10/min no finish-activity', () => {
   assert.deepEqual(RATE_LIMITS.geral, { limit: 60, windowSeconds: 60 });
+  assert.deepEqual(RATE_LIMITS.mapa, { limit: 180, windowSeconds: 60 });
+  // F8-D B2: 1 minuto arrastando o mapa (1 pedido a cada ~600 ms depois que a câmera para) cabe no balde do mapa
+  assert.ok(RATE_LIMITS.mapa.limit >= Math.ceil(60 / 0.6) + 20, 'o mapa não pode dar 429 a quem só arrasta');
+  for (const b of Object.keys(RATE_LIMITS)) assert.match(b, /^[a-z][a-z_]{0,31}$/, `balde ${b} precisa passar no CHECK do SQL`);
   assert.deepEqual(RATE_LIMITS.finish, { limit: 10, windowSeconds: 60 });
   assert.ok(RATE_LIMITS.ingest.limit >= RATE_LIMITS.geral.limit, 'a fila offline do GPS não pode ficar mais apertada que o geral');
   assert.ok(RATE_LIMITS.conta.limit <= RATE_LIMITS.finish.limit, 'exportar/excluir conta é o balde mais apertado');
@@ -110,6 +114,10 @@ Deno.test('acima do limite: 429 RATE_LIMITED com retryAfter no corpo e Retry-Aft
   const res = await fn(new Request('http://x/finish-activity', { method: 'POST' }));
   assert.equal(res.status, 429);
   assert.equal(res.headers.get('Retry-After'), '17');
+  // F8-D B2: na web o navegador só deixa o app ler o Retry-After se ele estiver exposto no CORS
+  assert.match(res.headers.get('Access-Control-Expose-Headers') ?? '', /(^|,\s*)Retry-After(\s*,|$)/i);
+  const preflight = await fn(new Request('http://x/finish-activity', { method: 'OPTIONS' }));
+  assert.match(preflight.headers.get('Access-Control-Expose-Headers') ?? '', /Retry-After/);
   assert.deepEqual(await res.json(), { error: { code: 'RATE_LIMITED', message: RATE_LIMITED_MESSAGE, details: { retryAfter: 17 } } });
 });
 
@@ -118,8 +126,8 @@ Deno.test('toda function de usuário chama o limite logo depois de conferir a se
     'register-device': 'geral',
     'ingest-points': 'ingest',
     'finish-activity': 'finish',
-    zones: 'geral',
-    zone: 'geral',
+    zones: 'mapa',
+    zone: 'mapa',
     'moderate-activity': 'geral',
     'account-export': 'conta',
     'account-delete': 'conta',

@@ -11,20 +11,23 @@
  * fração que ainda cabe na janela atual. Chamada recusada não conta.
  *
  * Baldes (um por chamada; a function escolhe o seu):
- * - `geral`  60/min: register-device, zones, zone, moderate-activity, weekly-recap;
+ * - `geral`  60/min: register-device, moderate-activity, weekly-recap;
+ * - `mapa`   180/min: zones e zone (F8-D, B2: arrastar o mapa por um minuto, com a espera de 600 ms do app, passa de
+ *   60 pedidos; o balde próprio não deixa o mapa dar 429 nem consome o limite das outras chamadas);
  * - `ingest` 120/min: ingest-points (a fila offline manda lotes de 200 pontos em rajada ao voltar a rede);
  * - `finish` 10/min: finish-activity (o cálculo mais caro do servidor);
  * - `conta`  5/min: account-export e account-delete (exportação pesada; senha conferida na exclusão).
  * Resposta acima do limite: HTTP 429, `{ error: { code: 'RATE_LIMITED', message, details: { retryAfter } } }` e o
- * cabeçalho `Retry-After` (ver `handler` em http.ts). O app mostra "Muitas tentativas. Tente de novo em instantes."
+ * cabeçalho `Retry-After` (ver `handler` em http.ts; exposto à web em `Access-Control-Expose-Headers`). O app mostra "Muitas tentativas. Tente de novo em instantes."
  */
 import { HttpError } from './http.ts';
 import { rpc as dbRpc } from './supabase.ts';
 
-export type RateBucket = 'geral' | 'ingest' | 'finish' | 'conta';
+export type RateBucket = 'geral' | 'mapa' | 'ingest' | 'finish' | 'conta';
 
 export const RATE_LIMITS: Readonly<Record<RateBucket, { limit: number; windowSeconds: number }>> = {
   geral: { limit: 60, windowSeconds: 60 },
+  mapa: { limit: 180, windowSeconds: 60 },
   ingest: { limit: 120, windowSeconds: 60 },
   finish: { limit: 10, windowSeconds: 60 },
   conta: { limit: 5, windowSeconds: 60 },
