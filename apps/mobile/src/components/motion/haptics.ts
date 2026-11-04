@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useCallback } from 'react';
 
+import type { FactionId } from '@/domain/types';
 import { getMotionPrefs } from '@/store/motion-prefs-store';
 import { HAPTIC_MIN_GAP_MS, HAPTIC_PATTERNS, type HapticPattern } from '@/theme/motion';
 
@@ -176,6 +177,34 @@ export function haptic(pattern: HapticPattern, { enabled = true, force = false, 
 /** Zera o portão global (testes e troca de tela). */
 export function resetHaptics() {
   gate.reset();
+}
+
+/**
+ * Vibração por time no toque da capa (F8 · C1, `F8/02` §3.3): Striders 1 toque, Volt 2 curtos, Owls 1 longo,
+ * Coyotes 3 curtos. Os toques ficam a 160 ms um do outro (acima dos 150 ms do portão: nenhum é descartado).
+ */
+export const TEAM_HAPTIC_STEP_MS = 160;
+export type TeamHapticStep = { pattern: Extract<SingleHaptic, 'tap' | 'heavy'>; offsetMs: number };
+export const TEAM_HAPTICS: Record<FactionId, readonly TeamHapticStep[]> = {
+  striders: [{ pattern: 'tap', offsetMs: 0 }],
+  volt: [
+    { pattern: 'tap', offsetMs: 0 },
+    { pattern: 'tap', offsetMs: TEAM_HAPTIC_STEP_MS },
+  ],
+  owls: [{ pattern: 'heavy', offsetMs: 0 }],
+  coyotes: [
+    { pattern: 'tap', offsetMs: 0 },
+    { pattern: 'tap', offsetMs: TEAM_HAPTIC_STEP_MS },
+    { pattern: 'tap', offsetMs: TEAM_HAPTIC_STEP_MS * 2 },
+  ],
+};
+
+/** Toca o padrão do time (mesmas regras do `haptic`: preferência "Vibração", nada na web). */
+export function teamHaptic(team: FactionId, opts: HapticOptions = {}): void {
+  for (const s of TEAM_HAPTICS[team] ?? []) {
+    if (s.offsetMs === 0) haptic(s.pattern, opts);
+    else setTimeout(() => haptic(s.pattern, opts), s.offsetMs);
+  }
 }
 
 /** `haptic` já com a preferência "Vibração" aplicada. */

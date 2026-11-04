@@ -86,6 +86,9 @@ export const svg = {
   G: svgTag('G'),
   Defs: svgTag('Defs'),
   LinearGradient: svgTag('LinearGradient'),
+  // F8 · C1: a capa do time (brilho e pista) e o "antes e depois do bairro"
+  RadialGradient: svgTag('RadialGradient'),
+  Line: svgTag('Line'),
   Stop: svgTag('Stop'),
 };
 

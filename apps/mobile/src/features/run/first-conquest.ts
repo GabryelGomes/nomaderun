@@ -26,7 +26,10 @@ export function firstPaintLiveNow(): boolean {
   return firstPaintLiveEligible({ statusKnown: status !== null, lastActivityAt: status?.lastActivityAt, localRuns: useGame.getState().localRuns.length, celebrated: false });
 }
 
-/** O aviso do HUD (médio, sem vibração própria: o ritmo de 10 s da E3 continua valendo). */
+/**
+ * O aviso do HUD (médio). Vira o `FirstPaintSeal` da E5 (F8 · C1) com 1 vibração leve própria: é 1 vez na vida, e o
+ * portão de 150 ms (D-71) continua valendo.
+ */
 export function firstPaintToast(faction: FactionId): RunToast {
-  return { id: 'primeiro-trecho', size: 'medium', haptics: false, edgeGlow: true, title: 'Primeiro trecho!', subtitle: 'Seu rastro já pinta a cidade', faction };
+  return { id: 'primeiro-trecho', size: 'medium', haptics: true, edgeGlow: true, title: 'Primeiro trecho!', subtitle: 'Seu rastro já pinta a cidade', faction };
 }

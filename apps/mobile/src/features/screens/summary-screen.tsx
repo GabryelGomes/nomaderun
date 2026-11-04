@@ -4,7 +4,9 @@ import { Share, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
-import { CelebrationSequence, renderCelebrationMoment, type CelebrationEvent } from '@/components/celebration';
+import { NeighborhoodFlip } from '@/components/celebration/neighborhood-flip';
+import { neighborhoodZonesFrom } from '@/components/celebration/neighborhood-math';
+import { CelebrationSequence, renderCelebrationMoment, type CelebrationEvent} from '@/components/celebration';
 import { Icon, type IconName } from '@/components/icon';
 import { CountUp, FadeUp, ProgressBar, RevealText, ShimmerSkeleton, Stagger, useReducedMotionSetting } from '@/components/motion';
 import { PermissionPrimer } from '@/components/permission-primer';
@@ -14,6 +16,7 @@ import { TeamBadge } from '@/components/team-badge';
 import { EmptyState, Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import TerritoryMap from '@/components/territory-map';
+import { cellCenter } from '@/domain/grid';
 import { levelProgress } from '@/domain/progression';
 import { formatDuration, formatKm, formatPace } from '@/domain/geo';
 import { DEMO_CENTER } from '@/demo/demo-data';
@@ -121,6 +124,8 @@ export function SummaryScreen({ rewards, moments, plan, renderShare, xp }: Summa
   const official = record.state === 'official';
   const conquered = official && r ? r.zones.filter((z) => z.outcome === 'conquered') : [];
   const highlight = conquered[0];
+  // F8 · C1 (E5): "Antes e depois do bairro", só com o resultado oficial e alguma zona que mudou de dono.
+  const flipZones = useMemo(() => (official && r && r.status !== 'review' && r.status !== 'rejected' ? neighborhoodZonesFrom(r.zones, cellCenter) : null), [official, r]);
   const events = useMemo(() => (r ? summaryCelebrations(r, official, faction, xp?.gained) : []), [r, official, faction, xp?.gained]);
   const [sequenceDone, setSequenceDone] = useState(false);
   /** Sem conquista confirmada, o roteiro vai direto ao nível (depois dos números). */
@@ -365,6 +370,9 @@ export function SummaryScreen({ rewards, moments, plan, renderShare, xp }: Summa
             </Surface>
           </FadeUp>
         ) : null}
+
+        {/* F8 · C1 (E5): o bairro antes → depois (800 ms), as zonas viradas acendendo uma a uma (máx. 5). */}
+        {done && flipZones ? <NeighborhoodFlip testID="resumo-bairro-antes-depois" path={record.path} zones={flipZones} team={faction} routeColor={teamColor} delay={at(200)} /> : null}
 
         {/* Momentos da E7 (só com dado real): 1º trecho ou recorde, bairro novo e o líder comentando o feito. */}
         {done && moments ? moments : null}

@@ -2,14 +2,19 @@ import { useState, type ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BOSS_IDS, BOSS_NAMES, LeaderBust, MascotRunner, type BossId } from '@/components/art';
+import { BOSS_IDS, BOSS_NAMES, LeaderBust, Mascot, MascotRunner, type BossId } from '@/components/art';
 import {
   BoraReaction,
   BossDefeated,
   BossHit,
   CelebrationSequence,
   ChestOpening,
+  FirstPaintSeal,
+  leaderCommentDelay,
   LevelUp,
+  NeighborhoodFlip,
+  TeamWeekCard,
+  type NeighborhoodZone,
   PRStamp,
   RankShift,
   renderCelebrationMoment,
@@ -34,8 +39,13 @@ import { Shake } from '@/components/motion/shake';
 import { ShimmerSkeleton } from '@/components/motion/shimmer-skeleton';
 import { SpinRays } from '@/components/motion/spin-rays';
 import { TeamBadge } from '@/components/team-badge';
+import { TeamCoverCarousel } from '@/components/team-cover-carousel';
 import { Text } from '@/components/text';
-import type { FactionId } from '@/domain/types';
+import { DEMO_CENTER } from '@/demo/demo-data';
+import { cellCenter, zoneOf } from '@/domain/grid';
+import type { FactionId, LatLng } from '@/domain/types';
+import { DistrictStampMoment, LeaderComment } from '@/features/engagement/summary-moments';
+import { TrailReveal, trailRevealText } from '@/features/screens/onboarding/trail-reveal';
 import { useMotionPrefs } from '@/store/motion-prefs-store';
 import { HAPTIC_PATTERNS, type HapticPattern } from '@/theme/motion';
 import { neon, neonTeam } from '@/theme/neon';
@@ -84,7 +94,17 @@ type MomentKey =
   | 'resumo'
   | 'resumo-leitor'
   | 'confete-60'
-  | 'onboarding-arte';
+  | 'onboarding-arte'
+  // Fase 8 · onda C (C1)
+  | 'capa'
+  | 'cerimonia'
+  | 'primeiro-trecho'
+  | 'bairro'
+  | 'chefao-fase'
+  | 'semana-time'
+  | 'carimbo-bairro'
+  | 'recorde-trechos'
+  | 'lider';
 
 const MOMENTS: { key: MomentKey; label: string }[] = [
   { key: 'toast-pequeno', label: 'Toast pequeno' },
@@ -109,6 +129,35 @@ const MOMENTS: { key: MomentKey; label: string }[] = [
   { key: 'onboarding-arte', label: 'Arte do onboarding (medição)' },
 ];
 
+/** Cenas da Fase 8 · onda C (C1): a capa, a cerimônia e os momentos novos, para olhar e medir. */
+const MOMENTS_F8: { key: MomentKey; label: string }[] = [
+  { key: 'capa', label: 'Capa do time (toque)' },
+  { key: 'cerimonia', label: 'Cerimônia "Seu rastro"' },
+  { key: 'primeiro-trecho', label: 'Primeiro trecho (corrida)' },
+  { key: 'bairro', label: 'Antes e depois do bairro' },
+  { key: 'chefao-fase', label: 'Golpe que abre fase' },
+  { key: 'semana-time', label: 'A semana do time' },
+  { key: 'carimbo-bairro', label: 'Carimbo de bairro novo' },
+  { key: 'recorde-trechos', label: 'Recorde de trechos' },
+  { key: 'lider', label: 'Líder comenta' },
+];
+
+/** Rota de demonstração: uma volta em "8" perto do centro da demo (~2 km), e as zonas que ela toca. */
+const DEMO_PATH: LatLng[] = Array.from({ length: 90 }, (_, i) => {
+  const t = (i / 89) * Math.PI * 2;
+  return { lat: DEMO_CENTER.lat + 0.0042 * Math.sin(t), lng: DEMO_CENTER.lng + 0.0068 * Math.sin(t) * Math.cos(t) + 0.0016 * Math.cos(t) };
+});
+function demoFlipZones(team: FactionId): NeighborhoodZone[] {
+  const ids = [...new Set(DEMO_PATH.map(zoneOf))].slice(0, 9);
+  const rivals = FACTIONS.filter((f) => f !== team);
+  // 4 viradas para o time (uma era neutra), 2 já eram do time e o resto continua dos rivais
+  return ids.map((id, i) => {
+    const before: FactionId | null = i === 2 ? null : i < 6 && i % 3 === 1 ? team : rivals[i % rivals.length];
+    const after: FactionId | null = i < 6 ? team : before;
+    return { id, center: cellCenter(id), before, after };
+  });
+}
+
 const FACTIONS: FactionId[] = ['striders', 'volt', 'owls', 'coyotes'];
 const RARITIES: ChestRarity[] = ['comum', 'raro', 'lendario'];
 /** Chances só de demonstração (as reais vêm do servidor, D-66). */
@@ -120,7 +169,7 @@ const LEADERS: Record<FactionId, string> = { striders: 'Íris Valente', volt: 'T
 
 function demoEvents(faction: FactionId, rarity: ChestRarity, boss: BossId): CelebrationEvent[] {
   return [
-    { id: 'golpe', kind: 'boss-hit', level: 'small', label: 'causou 8,4 km de dano no chefão', payload: { boss: BOSS_NAMES[boss], bossId: boss, damageKm: 8.4, hpBefore: 1200, hpAfter: 1104, hpMax: 3600 } },
+    { id: 'golpe', kind: 'boss-hit', level: 'small', label: 'causou 8,4 km de dano no chefão', payload: { boss: BOSS_NAMES[boss], bossId: boss, damageKm: 8.4, hpBefore: 1500, hpAfter: 1404, hpMax: 3600 } },
     { id: 'zona', kind: 'zone-captured', level: 'medium', label: 'conquistou Setor Bueno', payload: { zone: 'Setor Bueno', faction, points: 120 } },
     { id: 'bau', kind: 'chest', level: rarity === 'lendario' ? 'epic' : rarity === 'raro' ? 'medium' : 'small', label: `abriu um baú ${rarity}`, payload: { rarity, xp: 40, odds: DEMO_ODDS } },
     { id: 'nivel', kind: 'level-up', level: 'epic', label: 'chegou ao nível 7', payload: { level: 7, title: 'Desbravador' } },
@@ -179,6 +228,7 @@ function MotionGallery() {
   const [stage, setStage] = useState({ width: 360, height: 460 });
   const [bar, setBar] = useState(0.6);
   const [fx, setFx] = useState(0);
+  const [coverConfirm, setCoverConfirm] = useState(false);
   const play = (key: MomentKey) => setActive((a) => ({ key, nonce: (a?.nonce ?? 0) + 1 }));
   const common = { testID: 'galeria-motion-momento' };
   const team = neonTeam[faction];
@@ -199,7 +249,7 @@ function MotionGallery() {
       case 'bau':
         return <ChestOpening {...common} rarity={rarity} xp={rarity === 'lendario' ? 120 : 40} odds={DEMO_ODDS} />;
       case 'chefao-golpe':
-        return <BossHit {...common} bossName={BOSS_NAMES[boss]} bossId={boss} hpFrom={1200} hpTo={1104} hpMax={3600} damageLabel="−96" mineLabel="Sua parte: 8,4 km" />;
+        return <BossHit {...common} bossName={BOSS_NAMES[boss]} bossId={boss} hpFrom={1500} hpTo={1404} hpMax={3600} damageLabel="−96" mineLabel="Sua parte: 8,4 km" />;
       case 'chefao-derrota':
         return <BossDefeated {...common} bossName={BOSS_NAMES[boss]} bossId={boss} city="Goiânia" myKm={42.3} />;
       case 'nivel':
@@ -281,6 +331,64 @@ function MotionGallery() {
             <LeaderBust team={faction} pose="falando" size={112} animated />
           </View>
         );
+      case 'capa':
+        // a capa em foco com o idle (1,6 s); tocar nela dá a mola, o flash do lema, o pulo e a vibração do time
+        return (
+          <View style={{ alignItems: 'center', gap: space[3] }}>
+            {/* o carrossel da escolha de time (4 capas, só a do centro anima), como na tela real */}
+            <View style={{ marginHorizontal: -space[4], alignSelf: 'stretch' }}>
+              <TeamCoverCarousel testID="galeria-motion-capas" value={faction} onChange={setFaction} confirming={coverConfirm ? faction : null} />
+            </View>
+            <View style={{ flexDirection: 'row', gap: space[2] }}>
+              <Chip testID="galeria-motion-capa-confirmar" accessibilityLabel={coverConfirm ? 'Voltar a capa' : 'Confirmar (a capa cresce)'} onPress={() => setCoverConfirm((c) => !c)} />
+            </View>
+          </View>
+        );
+      case 'cerimonia':
+        return (
+          <TeamConfirm
+            {...common}
+            faction={faction}
+            variant="ftue"
+            mascot={<Mascot team={faction} pose="vitoria" size={150} />}
+            leader={{ name: LEADERS[faction], quote: 'Texto provisório da frase do líder.' }}
+            origin={{ x: stage.width / 2, y: stage.height / 2 }}
+            finale={({ still, delay }) => <TrailReveal team={faction} still={still} delay={delay} testID="galeria-motion-rastro" />}
+            finaleText={trailRevealText(faction)}
+            ctaLabel="Continuar"
+            onContinue={() => setActive(null)}
+          />
+        );
+      case 'primeiro-trecho':
+        return <FirstPaintSeal {...common} color={team} />;
+      case 'bairro':
+        return (
+          <View style={{ alignSelf: 'stretch' }}>
+            <NeighborhoodFlip testID="galeria-motion-bairro" path={DEMO_PATH} zones={demoFlipZones(faction)} team={faction} routeColor={team} height={220} delay={300} />
+          </View>
+        );
+      case 'chefao-fase':
+        return <BossHit {...common} bossName={BOSS_NAMES[boss]} bossId={boss} hpFrom={2500} hpTo={2350} hpMax={3600} damageLabel="−6,0 km" mineLabel="Sua parte: 6,0 km" />;
+      case 'semana-time':
+        return (
+          <View style={{ alignSelf: 'stretch', paddingTop: space[4] }}>
+            <TeamWeekCard testID="galeria-motion-semana" team={faction} body="2º na temporada · 48 zonas · demonstração" first={false} onPress={() => setActive(null)} accessibilityLabel="Semana nova, demonstração. Toque para fechar." />
+          </View>
+        );
+      case 'carimbo-bairro':
+        return <DistrictStampMoment testID="galeria-motion-carimbo" name="Setor Bueno" />;
+      case 'recorde-trechos':
+        return <PRStamp {...common} label="Recorde" metric="47 trechos" count={{ value: 47, unit: 'trechos' }} pulses={2} />;
+      case 'lider':
+        // os números contam (900 ms) e o balão entra 300 ms depois
+        return (
+          <View style={{ alignSelf: 'stretch', gap: space[4] }}>
+            <View style={{ alignItems: 'center' }}>
+              <CountUp value={47} from={0} duration={900} variant="metric" unit="trechos" accessibilityLabel="47 trechos" />
+            </View>
+            <LeaderComment testID="galeria-motion-lider" team={faction} text="Texto de demonstração: 47 trechos numa corrida só." delay={leaderCommentDelay(900)} />
+          </View>
+        );
     }
   })();
 
@@ -326,6 +434,23 @@ function MotionGallery() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
             {MOMENTS.map((m) => (
               <Chip key={m.key} testID={`galeria-motion-${m.key}`} accessibilityLabel={m.label} active={active?.key === m.key} onPress={() => play(m.key)} />
+            ))}
+          </View>
+          <Text variant="label" muted>
+            FASE 8 · ONDA C
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
+            {MOMENTS_F8.map((m) => (
+              <Chip
+                key={m.key}
+                testID={`galeria-motion-${m.key}`}
+                accessibilityLabel={m.label}
+                active={active?.key === m.key}
+                onPress={() => {
+                  setCoverConfirm(false);
+                  play(m.key);
+                }}
+              />
             ))}
           </View>
           <View

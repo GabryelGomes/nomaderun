@@ -62,6 +62,24 @@ export const STRIPE_COUNT = 6;
 /** Idle da capa (§3.3): trote do corredor, faixas deslizando, janelas piscando e o brilho respirando. */
 export const COVER_IDLE = { stripesMs: 1600, blinkMs: 2600, blinkOpacity: [0.55, 0.2] as const, breatheMs: 2200, breatheScale: 1.04 } as const;
 
+/**
+ * Toque no card da capa (§3.3, E5 · F8 C1): mola 0,98 → 1,02 → 1 no card, flash do lema (opacidade 0,6 → 1) e o
+ * "pulo" do corredor (−6 pt, 180 ms). Mora aqui (puro, sem Reanimated) para a capa não puxar o tema de motion.
+ */
+export const COVER_TAP = {
+  /** Escalas do card: afunda, passa do alvo e assenta com a mola `bouncy`. */
+  scales: [0.98, 1.02, 1] as const,
+  /** Afundar e subir (ms); o assentar é a mola `bouncy` (650 ms percebidos). */
+  pressMs: 80,
+  liftMs: 140,
+  mottoFrom: 0.6,
+  mottoMs: 360,
+  /** Com "Reduzir movimento": o lema só esmaece (150 ms, = `durations.reducedFade`). */
+  reducedMs: 150,
+  jump: 6,
+  jumpMs: 180,
+} as const;
+
 export type CoverScene = {
   width: number;
   height: number;

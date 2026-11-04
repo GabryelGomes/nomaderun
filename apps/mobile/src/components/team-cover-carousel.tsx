@@ -1,10 +1,15 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ScrollView, useWindowDimensions, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 
 import { TeamCover } from '@/components/art/team/cover';
 import { TeamEmblem } from '@/components/art/team/emblem';
+import { COVER_CONFIRM, COVER_TAP } from '@/components/celebration/f8-choreography';
+import { teamHaptic } from '@/components/motion/haptics';
+import { useReducedMotionSetting } from '@/components/motion/reduced-motion';
 import { TEAM_BIO } from '@/domain/team-bio';
 import { FACTION_IDS, type FactionId } from '@/domain/types';
+import { durations, easings, springConfig } from '@/theme/motion';
 import { neonTeam } from '@/theme/neon';
 import { factions, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
@@ -20,6 +25,8 @@ export type TeamCoverCardProps = {
   focused: boolean;
   /** O quiz sugeriu este time (chip "Combina com você"); a escolha continua com a pessoa. */
   suggested?: boolean;
+  /** Este time está sendo confirmado: a capa cresce e some (a cerimônia nasce dela). */
+  confirming?: boolean;
   onSelect: (f: FactionId) => void;
   /** Abre a folha do líder (`LeaderSheet`). */
   onLeader?: (f: FactionId) => void;
@@ -31,21 +38,54 @@ export type TeamCoverCardProps = {
   testID?: string;
 };
 
-/** Card de um time com a capa (D-93): capa animada + líder, valor e estilo em 1 linha + "Conhecer". */
-export function TeamCoverCard({ faction, selected, focused, suggested, onSelect, onLeader, badge, badgeLabel, width, testID }: TeamCoverCardProps) {
+/**
+ * Card de um time com a capa (D-93): capa animada + líder, valor e estilo em 1 linha + "Conhecer".
+ * Toque (F8 · C1, `F8/02` §3.3): mola 0,98 → 1,02 → 1 no card, flash do lema, pulo do corredor e a vibração do time;
+ * `confirming`: a capa cresce e some enquanto a cerimônia nasce dela. "Reduzir movimento": sem escala (só o lema).
+ */
+export function TeamCoverCard({ faction, selected, focused, suggested, confirming = false, onSelect, onLeader, badge, badgeLabel, width, testID }: TeamCoverCardProps) {
   const { colors } = useTheme();
   const f = factions[faction];
   const b = TEAM_BIO[faction];
   const glow = neonTeam[faction];
   const id = testID ?? `time-${faction}`;
   const inner = width - 4; // borda de 2 pt
+  const reduced = useReducedMotionSetting();
+  const [tap, setTap] = useState(0);
+  const scale = useSharedValue(1);
+  const fade = useSharedValue(1);
+  useEffect(() => {
+    if (!confirming) {
+      // volta ao normal (ex.: a cerimônia fechou com erro e a escolha reaparece)
+      fade.set(1);
+      scale.set(1);
+      return;
+    }
+    if (reduced) {
+      fade.set(withTiming(0, { duration: durations.reducedFade }));
+      return;
+    }
+    scale.set(withTiming(COVER_CONFIRM.scale, { duration: COVER_CONFIRM.ms, easing: easings.enter }));
+    fade.set(withTiming(0, { duration: COVER_CONFIRM.ms, easing: easings.standard }));
+  }, [confirming, reduced, scale, fade]);
+  const cardStyle = useAnimatedStyle(() => ({ opacity: fade.get(), transform: [{ scale: scale.get() }] }));
+  const press = () => {
+    setTap((n) => n + 1);
+    teamHaptic(faction);
+    if (!reduced) {
+      const [down, up, rest] = COVER_TAP.scales;
+      scale.set(withSequence(withTiming(down, { duration: COVER_TAP.pressMs }), withTiming(up, { duration: COVER_TAP.liftMs, easing: easings.enter }), withSpring(rest, springConfig('bouncy'))));
+    }
+    onSelect(faction);
+  };
   return (
+    <Animated.View style={[{ width }, cardStyle]}>
     <PressableScale
       testID={id}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
       accessibilityLabel={`${teamCardLabel(faction)}${suggested ? ' Combina com você, pelo quiz.' : ''}${badgeLabel ? ` ${badgeLabel}` : ''}`}
-      onPress={() => onSelect(faction)}
+      onPress={press}
       hitSlop={0}
       containerStyle={{ width }}
       style={{
@@ -58,7 +98,7 @@ export function TeamCoverCard({ faction, selected, focused, suggested, onSelect,
         boxShadow: selected ? `0 0 28px ${glow}55` : undefined,
       }}>
       <View aria-hidden importantForAccessibility="no-hide-descendants">
-        <TeamCover team={faction} width={inner} variant="card" animated focused={focused} />
+        <TeamCover team={faction} width={inner} variant="card" animated focused={focused} tap={tap} testID={`${id}-capa`} />
         {suggested ? (
           <View style={{ position: 'absolute', left: space[3], top: space[3], paddingHorizontal: space[3], paddingVertical: 4, borderRadius: radius.pill, backgroundColor: glow }}>
             <Text variant="label" color="#070708">
@@ -99,6 +139,7 @@ export function TeamCoverCard({ faction, selected, focused, suggested, onSelect,
         ) : null}
       </View>
     </PressableScale>
+    </Animated.View>
   );
 }
 
@@ -110,6 +151,8 @@ export type TeamCoverCarouselProps = {
   /** Selo por time (ex.: `TeamBoostBadge`) e a frase dele para o leitor de tela. */
   renderBadge?: (f: FactionId) => ReactNode;
   badgeLabel?: (f: FactionId) => string | null;
+  /** Time sendo confirmado: a capa dele cresce e some (F8 · C1). */
+  confirming?: FactionId | null;
   testID?: string;
 };
 
@@ -120,7 +163,7 @@ const PEEK = 28;
  * Carrossel dos 4 times com as capas. Toque escolhe; deslizar só navega; só a capa no centro anima. A paginação
  * embaixo repete a forma de cada time pelo emblema mini (nunca uma bolinha). Leva o card escolhido ao centro.
  */
-export function TeamCoverCarousel({ value, onChange, onLeader, suggested, renderBadge, badgeLabel, testID = 'times' }: TeamCoverCarouselProps) {
+export function TeamCoverCarousel({ value, onChange, onLeader, suggested, renderBadge, badgeLabel, confirming = null, testID = 'times' }: TeamCoverCarouselProps) {
   const { colors } = useTheme();
   const { width: screen } = useWindowDimensions();
   const cardW = Math.max(260, Math.min(screen - PEEK * 2, 420));
@@ -151,7 +194,7 @@ export function TeamCoverCarousel({ value, onChange, onLeader, suggested, render
         contentContainerStyle={{ paddingHorizontal: (screen - cardW) / 2, gap: space[3] }}
         accessibilityRole="radiogroup">
         {FACTION_IDS.map((f, i) => (
-          <TeamCoverCard key={f} faction={f} width={cardW} selected={value === f} focused={focused === i} suggested={suggested === f} onSelect={onChange} onLeader={onLeader} badge={renderBadge?.(f)} badgeLabel={badgeLabel?.(f)} testID={`${testID}-${f}`} />
+          <TeamCoverCard key={f} faction={f} width={cardW} selected={value === f} focused={focused === i} suggested={suggested === f} confirming={confirming === f} onSelect={onChange} onLeader={onLeader} badge={renderBadge?.(f)} badgeLabel={badgeLabel?.(f)} testID={`${testID}-${f}`} />
         ))}
       </ScrollView>
       <View aria-hidden importantForAccessibility="no-hide-descendants" style={{ flexDirection: 'row', justifyContent: 'center', gap: space[4] }}>

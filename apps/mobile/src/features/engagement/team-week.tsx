@@ -3,19 +3,17 @@
  * mascote em pose e o lugar do time na temporada (número real do servidor, `ranking_factions`). Some com 1 toque ou
  * depois de 4 s. Na demonstração, o selo global da tela já marca o dado (e o leitor de tela ouve "Demonstração"). Destino comum: o time todo começa a semana junto. Sem o número, a faixa fica só com o convite.
  *
- * Encaixe da E5 (onda C): o mascote em pose animada (`Mascot animated`) e a entrada da faixa.
+ * E5 (onda C): a faixa é o `TeamWeekCard` (entra com mola, o mascote salta na pose e fica vivo, sai com fade).
  */
 import { useEffect, useState } from 'react';
-import { Pressable, View } from 'react-native';
 
-import { Mascot } from '@/components/art';
-import { FadeUp } from '@/components/motion';
-import { Text } from '@/components/text';
+import { TeamWeekCard } from '@/components/celebration/team-week-card';
 import { brtCalendar } from '@/domain/progression';
 import type { FactionId } from '@/domain/types';
 import { isDemoMode } from '@/services/api/env';
 import { rankFactions } from '@/services/api/leaderboard-repo';
-import { factions, floating, radius, space } from '@/theme/tokens';
+import { durations } from '@/theme/motion';
+import { factions } from '@/theme/tokens';
 
 import { readLocal, writeLocal } from './local-store';
 
@@ -61,36 +59,30 @@ export function TeamWeekBanner({ team, now, testID = 'mapa-semana-time' }: { tea
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [week, monday, team]);
 
+  // 1 toque ou 4 s: a faixa sai com fade (E5) e então desmonta
+  const [leaving, setLeaving] = useState(false);
   useEffect(() => {
-    if (!shown || gone) return;
-    const t = setTimeout(() => setGone(true), TEAM_WEEK_MS);
+    if (!shown || leaving) return;
+    const t = setTimeout(() => setLeaving(true), TEAM_WEEK_MS);
     return () => clearTimeout(t);
-  }, [shown, gone]);
+  }, [shown, leaving]);
+  useEffect(() => {
+    if (!leaving) return;
+    const t = setTimeout(() => setGone(true), durations.exit);
+    return () => clearTimeout(t);
+  }, [leaving]);
 
   if (!shown || gone) return null;
   const f = factions[team];
   return (
-    <FadeUp distance={-12} duration={400}>
-      <Pressable
-        testID={testID}
-        accessibilityRole="button"
-        accessibilityLabel={`Semana nova dos ${f.name}. ${shown.body}.${isDemoMode() ? ' Demonstração.' : ''} Toque para fechar.`}
-        accessibilityLiveRegion="polite"
-        onPress={() => setGone(true)}
-        // À direita ficam o sino e as camadas do mapa: a faixa para antes deles.
-        style={{ marginRight: 56, flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 56, paddingVertical: space[2], paddingHorizontal: space[3], borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: f.color, boxShadow: floating }}>
-        <View aria-hidden importantForAccessibility="no-hide-descendants" style={{ width: 40, height: 44 }}>
-          <Mascot team={team} pose={shown.first ? 'vitoria' : 'parado'} size={40} color={f.onColor} />
-        </View>
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text variant="bodyBold" color={f.onColor} numberOfLines={1}>
-            Semana nova!
-          </Text>
-          <Text variant="caption" color={f.onColor} numberOfLines={1}>
-            {shown.body}
-          </Text>
-        </View>
-      </Pressable>
-    </FadeUp>
+    <TeamWeekCard
+      testID={testID}
+      team={team}
+      body={shown.body}
+      first={shown.first}
+      leaving={leaving}
+      onPress={() => setLeaving(true)}
+      accessibilityLabel={`Semana nova dos ${f.name}. ${shown.body}.${isDemoMode() ? ' Demonstração.' : ''} Toque para fechar.`}
+    />
   );
 }
