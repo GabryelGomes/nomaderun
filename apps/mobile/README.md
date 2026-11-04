@@ -2,7 +2,7 @@
 
 App de corrida com disputa de território entre quatro times. O mesmo código roda no celular (Expo Go ou development build) e no navegador, onde também fica o painel de moderação. Feito com **Expo SDK 57 + React Native 0.86 + TypeScript**.
 
-Abas: **Mapa · Arena · Correr · Clube · Você**. Para subir o backend local e ver o passo a passo completo, comece pelo [`README.md` da raiz](../../README.md).
+Abas: **Mapa · Arena · Clube · Você**; correr começa pelo botão **CORRER** do Mapa (D-89). Na primeira abertura, a pessoa escolhe o time e vê a cerimônia antes de criar a conta (D-91). Para subir o backend local e ver o passo a passo completo, comece pelo [`README.md` da raiz](../../README.md).
 
 ## Rodar sem servidor (modo demonstração)
 
@@ -11,7 +11,7 @@ npm install
 EXPO_PUBLIC_DEMO=1 npx expo start --web --clear     # sem --web: QR para o Expo Go
 ```
 
-O app inteiro roda com dados de exemplo guardados no aparelho, com o selo "Demonstração" em toda tela, e não faz nenhum pedido a servidor. No navegador, o cenário vem da URL: `http://localhost:8081/?cenario=primeira-abertura` começa do cadastro; `cheio` (padrão), `vazio`, `sem-time`, `sob-ataque`, `moderador`, `lento`, `erro` e `offline` estão descritos em [`docs/COMO_APRESENTAR.md`](../../docs/COMO_APRESENTAR.md) §1. No celular, o cenário é sempre `cheio`.
+O app inteiro roda com dados de exemplo guardados no aparelho, com o selo "Demonstração" em toda tela, e não faz nenhum pedido a servidor. No navegador, o cenário vem da URL: `http://localhost:8081/?cenario=primeira-abertura` começa das boas-vindas (time, cerimônia e depois o cadastro); `cheio` (padrão), `vazio`, `sem-time`, `sob-ataque`, `moderador`, `lento`, `erro` e `offline` estão descritos em [`docs/COMO_APRESENTAR.md`](../../docs/COMO_APRESENTAR.md) §1. No celular, o cenário é sempre `cheio`.
 
 O `--clear` é obrigatório ao ligar ou desligar o `EXPO_PUBLIC_DEMO`: sem ele, o Metro reaproveita o pacote anterior. Num app ligado a um servidor, o botão **Ver demonstração** da tela Entrar abre o mesmo modo; sair dele apaga tudo o que a demonstração gravou no aparelho.
 
@@ -73,10 +73,11 @@ Esse caminho ainda não foi validado em aparelho (pendência P-17 em `docs/PROGR
 | Cobertura (falha se `src/domain` ficar abaixo de 90%) | `npx jest --coverage` | Não |
 | Tipos | `npm run typecheck` | Não |
 | Lint | `./node_modules/.bin/eslint src` | Não |
+| Casos adversariais no navegador (parâmetro malformado, guarda sem conta, fonte ×1,3) | `NODE_PATH="$(npm root -g)" node e2e-web/adversarial.cjs /tmp/nomade-demo` (detalhes em `e2e-web/README.md`) | Não |
 | Fluxo completo no modo demonstração (Playwright) | `EXPO_PUBLIC_DEMO=1 npx expo export -p web --clear --output-dir /tmp/nomade-demo` e `NODE_PATH="$(npm root -g)" node e2e-web/demo-mode-flow.cjs /tmp/nomade-demo` | Não |
 | Integração com o backend local | `NOMADE_IT=1 NOMADE_IT_URL=http://127.0.0.1:54321 NOMADE_IT_ANON=<anon key> NOMADE_IT_DB=postgresql://postgres:postgres@127.0.0.1:54322/postgres npx jest integration --forceExit` | Sim, com functions |
 
-Sem `NOMADE_IT=1`, os testes de integração aparecem como ignorados no `npm test`. Um teste proíbe `fetch` no modo demonstração.
+Sem `NOMADE_IT=1`, os testes de integração aparecem como ignorados no `npm test`. Última rodada (Fase 8): 1.672 ✅, 26 pulados; `demo-mode-flow` 62/62. Um teste proíbe `fetch` no modo demonstração.
 
 ### Navegador (Playwright)
 
@@ -104,14 +105,18 @@ src/
 
 Regras de camada (telas não chamam o Supabase direto, o domain não importa React) em [`docs/ARQUITETURA.md`](../../docs/ARQUITETURA.md).
 
+## Publicação
+
+Atualização pelo ar (`expo-updates`, `runtimeVersion` pela versão do SDK, para o Expo Go), identificador `br.com.nomaderun.app` e a trava `scripts/check-publicacao.js` (recusa enquanto faltar o `projectId` do `eas init` ou houver marcador na política): passo a passo em [`supabase/DEPLOY.md`](../../supabase/DEPLOY.md) §12.
+
 ## Limitações conhecidas
 
 | Parte | Hoje |
 |---|---|
 | Mapa | `react-native-maps` (Apple Maps no iPhone, Google Maps no Android) e MapLibre na web, em vez de Mapbox |
-| GPS com a tela bloqueada e push remoto | Só em development build |
+| GPS com a tela bloqueada e push remoto | Só em development build; no Expo Go os avisos chegam com o app aberto (D-97) |
 | Escolta | Compartilha a localização uma vez ao ligar; não acompanha ao vivo |
 | SOS e alerta de parada | Abrem o app de mensagens com a localização; a pessoa toca em enviar |
 | Feed | Só da crew, com reações prontas; sem seguir pessoas nem comentar |
 | Resumo | Sem parciais por km nem gráfico de ritmo na tela; corridas antigas abrem sem o bloco de recompensas |
-| Validação em aparelho | Ícone da aba Correr no Android, splash no Android 12+, animação do baú lendário em Android de entrada e leitores de tela ainda não conferidos |
+| Validação em aparelho | fps da capa e da cerimônia num Android médio, vibração por time, ícone das abas e splash no Android, animação do baú lendário em Android de entrada, leitores de tela e fonte grande ainda não conferidos |
