@@ -1,8 +1,10 @@
 /**
  * Medalhas (12) — base de `docs/melhoria/F1/arte/fonte/itens.cjs`, viewBox 120 × 150: fita em V, roseta de
  * 24 dentes, anel interno e ícone central. Nível por **estrelas e brilho**, nunca por dourado (o amarelo é
- * dos Coyotes): nível 1 = 1 estrela, laranja apagado; nível 2 = 2 estrelas, branco quente; nível 3 =
- * 3 estrelas, laranja pleno e raios. Bloqueada = roseta tracejada em cinza, ícone em silhueta e cadeado.
+ * dos Coyotes): nível 1 = 1 estrela, laranja apagado; nível 2 = 2 estrelas, laranja; nível 3 = 3 estrelas
+ * brancas, laranja e raios (F8: o branco do nível 2 lia como "prata acima do ouro"; agora a escala só sobe).
+ * O ícone central ocupa 55–60 % da roseta (F8: antes ~35 %, as 12 eram iguais à distância). Bloqueada =
+ * roseta tracejada em cinza, ícone em silhueta e cadeado.
  * Os critérios de cada medalha são da E3/E7; aqui só o desenho. Puro.
  */
 import { glowFill, memoArt, mirror, neon, pivot, star, type ArtNode } from '../neon/core';
@@ -56,9 +58,15 @@ export const MEDAL_BOX = { vbW: 120, vbH: 150 } as const;
 /** Pivô (viewBox 120 × 150) do carimbo: o centro da roseta. */
 export const MEDAL_PIVOTS = { roseta: { x: 60, y: 98 } } as const;
 
-/** Cor de cada nível (sem dourado). */
+/** Cor de cada nível (sem dourado): 1 = laranja apagado; 2 e 3 = laranja (o 3 soma raios e estrelas brancas). */
 export function tierColor(tier: MedalTier): string {
-  return tier === 1 ? mix(ART.orange, ART.ink2, 0.42) : tier === 2 ? ART.ink : ART.orange;
+  return tier === 1 ? mix(ART.orange, ART.ink2, 0.42) : ART.orange;
+}
+
+/** Escala do ícone central em torno do centro da roseta (F8): 55–60 % da roseta; o tênis é largo e sobe menos. */
+const ICON_SCALE: Partial<Record<MedalKind, number>> = { 'primeiros-passos': 1.14, cacador: 1.24 };
+function scaledIcon(kind: MedalKind, col: string, opacity?: number): ArtNode {
+  return pivot(icon(kind, col), { x: MEDAL_PIVOTS.roseta.x, y: MEDAL_PIVOTS.roseta.y, scale: ICON_SCALE[kind] ?? 1.3, opacity });
 }
 
 function icon(kind: MedalKind, col: string): ArtNode[] {
@@ -154,19 +162,19 @@ export function medalNodes(kind: MedalKind, tier: MedalTier, locked: boolean, co
       neon({ tag: 'circle', cx: 60, cy: 98, r: 33 }, col, 1.6, { glow: 0, hot: 0, opacity: 0.55 }),
     );
     if (locked) {
-      out.push(pivot(icon(kind, ART.ink2), { opacity: 0.3 }));
+      out.push(scaledIcon(kind, ART.ink2, 0.3));
       out.push(
         neon({ tag: 'rect', x: 51, y: 124, width: 18, height: 14, rx: 3 }, ART.ink2, 2, { fill: true, tint: 0, glow: 0.3, hot: 0 }),
         neon('M55 124 L 55 120 Q 55 115 60 115 Q 65 115 65 120 L 65 124', ART.ink2, 2, { glow: 0.3, hot: 0 }),
       );
       return out;
     }
-    out.push(...icon(kind, col));
+    out.push(scaledIcon(kind, col));
     // Placa de estrelas no encontro da fita com a roseta.
     const pw = tier * 13 + 9;
     out.push(neon({ tag: 'rect', x: 60 - pw / 2, y: 49, width: pw, height: 15, rx: 7.5 }, col, 1.6, { fill: true, tint: 0.12, glow: 0.4, hot: 0 }));
     const stars = Array.from({ length: tier }, (_, i) => star(60 - ((tier - 1) * 13) / 2 + i * 13, 56.5, 5, 2.1, 5, -90));
-    out.push(glowFill(stars, tier === 2 ? ART.ink : ART.orange, { w: 0.6, glow: tier === 1 ? 0.3 : 0.8 }));
+    out.push(glowFill(stars, tier === 3 ? ART.ink : ART.orange, { w: 0.6, glow: tier === 1 ? 0.3 : 0.8 }));
     if (tier >= 2) out.push(neon([`M96 56 L 96 64`, `M92 60 L 100 60`], ART.ink, 1.6, { hot: 0.6 }));
     return out;
   });

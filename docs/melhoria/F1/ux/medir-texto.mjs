@@ -43,7 +43,8 @@ const VISIBLE_ATTR = new Set(['title', 'body', 'label', 'placeholder', 'help', '
 const VISUAL = {
   mapa: ['TerritoryMap'],
   // E6a (onda 2): + as peças da E4 (`components/art`) e a arte feita com as primitivas dela (`StaticArt`).
-  ilustracao: ['CaptureCelebration', 'NeonBackdrop', 'HeroWordmark', 'NeonBadges', 'Svg', 'Image', 'Mascot', 'Boss', 'Chest', 'Medal', 'TutorialArt', 'EmptyArt', 'TeamEmblem', 'StaticArt'],
+  // F8 B1: + a capa do time, o corredor, o busto do líder e o logo oficial.
+  ilustracao: ['CaptureCelebration', 'NeonBackdrop', 'HeroWordmark', 'NeonBadges', 'Svg', 'Image', 'Mascot', 'Boss', 'Chest', 'Medal', 'TutorialArt', 'EmptyArt', 'TeamEmblem', 'StaticArt', 'TeamCover', 'MascotRunner', 'LeaderBust', 'Logo'],
   numeroGrande: ['CountUp', 'TickerText', 'StatCount', 'Metric', 'Countdown'],
   grafico: ['GrowBar', 'ProgressBar', 'InfluenceBar', 'GrowPillar', 'Podium', 'LineChart', 'StepProgress', 'StrengthMeter'],
   emblema: ['TeamBadge'],
@@ -59,21 +60,28 @@ const META = { jogo: 45, conta: 80, informativa: Infinity };
  */
 const SCREENS = [
   { rota: '(auth)/entrar', tipo: 'conta', partes: [['features/auth/sign-in-screen.tsx'], ['features/auth/neon-badges.tsx']] },
-  { rota: '(auth)/cadastro', tipo: 'conta', partes: [['features/auth/sign-up-screen.tsx']] },
+  // F8 B1 (D-91): o título vira "Garanta seu lugar nos <time>" (6 palavras dinâmicas) depois da cerimônia.
+  { rota: '(auth)/cadastro', tipo: 'conta', partes: [['features/auth/sign-up-screen.tsx']], extra: 6 },
   { rota: '(auth)/recuperar-senha', tipo: 'conta', partes: [['features/auth/forgot-password-screen.tsx']] },
   { rota: 'nova-senha', tipo: 'conta', partes: [['features/auth/new-password-screen.tsx']] },
   // E6a (onda 2, D-72): as boas-vindas viraram a 1ª tela do grupo (auth) e o onboarding foi para
   // `features/screens/onboarding/`. Os rótulos antigos continuam (para o --comparar antes); o passo de
   // notificações saiu da primeira abertura (vem depois da 1ª conquista).
-  { rota: 'onboarding · 1 boas-vindas', tipo: 'jogo', partes: [['features/auth/welcome-screen.tsx'], ['features/auth/neon-badges.tsx']] },
-  { rota: 'onboarding · 1b cidade dividida', tipo: 'jogo', partes: [['features/screens/onboarding/city-divided-step.tsx']], extra: 4 },
-  { rota: 'onboarding · 2 time', tipo: 'jogo', partes: [['features/screens/onboarding/onboarding-screen.tsx', "cond:step === 'times'"]], extra: 3 + 12 },
+  // F8 B1 (D-91): valor antes da conta. "cidade" e "times" viraram rotas do grupo (auth); a escolha usa as capas
+  // (`team-choice.tsx` + `team-cover-carousel.tsx`; nome, lema, 1ª linha da bio, líder, valor e estilo do card em foco
+  // são dinâmicos: `extra`); a cerimônia ganhou o quadro "Seu rastro agora é <cor>" (`trail-reveal.tsx`).
+  { rota: 'onboarding · 1 boas-vindas', tipo: 'jogo', partes: [['features/auth/welcome-screen.tsx']] },
+  { rota: 'onboarding · 1b cidade dividida', tipo: 'jogo', partes: [['features/screens/onboarding/city-divided-screen.tsx'], ['features/screens/onboarding/city-divided-step.tsx']], extra: 4 },
+  { rota: 'onboarding · 2 time', tipo: 'jogo', partes: [['features/screens/onboarding/team-choice.tsx'], ['features/screens/onboarding/team-choice-auth-screen.tsx'], ['components/team-cover-carousel.tsx']], extra: 3 + 3 + 7 + 6 },
   { rota: 'onboarding · 2b quiz', tipo: 'jogo', partes: [['features/screens/onboarding/team-quiz.tsx'], ['features/screens/onboarding/quiz.ts']] },
-  { rota: 'onboarding · 2c confirmação', tipo: 'jogo', partes: [['components/celebration/team-confirm.tsx']], extra: 4 },
+  { rota: 'onboarding · 2c confirmação', tipo: 'jogo', partes: [['components/celebration/team-confirm.tsx'], ['features/screens/onboarding/trail-reveal.tsx']], extra: 4 + 5 },
+  { rota: 'onboarding · 2d gravando o time', tipo: 'jogo', partes: [['features/screens/onboarding/onboarding-screen.tsx', 'SavingStep']], extra: 2 },
   { rota: 'onboarding · 3 localização', tipo: 'jogo', partes: [['features/screens/onboarding/onboarding-screen.tsx', 'LocationStep']] },
   { rota: 'onboarding · nome (só login social sem nome)', tipo: 'jogo', partes: [['features/screens/onboarding/onboarding-screen.tsx', "cond:step === 'nome'"]] },
   { rota: 'mapa · missão de boas-vindas', tipo: 'jogo', meta: 25, partes: [['features/screens/onboarding/welcome-mission-card.tsx'], ['features/screens/onboarding/welcome-mission.ts']] },
-  { rota: '(tabs)/correr', tipo: 'jogo', partes: [['components/app-tabs-correr.tsx']] },
+  // F8-A3 (D-89): a aba Correr saiu; `/correr` só redireciona para a Nova corrida (sem texto próprio).
+  { rota: '+not-found (rota inexistente)', tipo: 'informativa', partes: [['app/+not-found.tsx']] },
+  { rota: 'aviso sem conexão (OfflineNotice, D-95)', tipo: 'jogo', meta: 20, partes: [['components/offline-notice.tsx']] },
   { rota: 'atividades → perfil/atividades (redireciona)', tipo: 'informativa', partes: [['components/app-tabs-redirect.tsx']] },
   { rota: '(tabs)/index · Mapa', tipo: 'jogo', partes: [['features/screens/map-screen.tsx', 'MapScreen'], ['features/screens/map-layer-chips.tsx']] },
   { rota: 'corrida · preparação', tipo: 'jogo', partes: [['features/screens/run-screen.tsx', 'RunScreen']] },
@@ -81,6 +89,10 @@ const SCREENS = [
   { rota: 'corrida · contagem', tipo: 'jogo', partes: [['features/screens/run-screen.tsx', 'Countdown']] },
   { rota: 'corrida · ativa', tipo: 'jogo', meta: 90, partes: [['features/screens/run-screen.tsx', 'ActiveRun', 'Metric']] },
   { rota: 'resumo', tipo: 'jogo', meta: 60, partes: [['features/screens/summary-screen.tsx']] }, // capture-celebration.tsx saiu (T7.3.2): estava sem uso
+  // F8 B2 (E7): os encaixes do resumo medidos à parte (aparecem só com dado real, 1 de cada vez no máximo).
+  { rota: 'resumo · momentos (1º trecho, recorde, bairro novo, líder)', tipo: 'jogo', meta: 20, partes: [['features/engagement/summary-moments.tsx']] },
+  { rota: 'resumo · plano da próxima corrida (D-94)', tipo: 'jogo', meta: 20, partes: [['features/engagement/next-run-plan-card.tsx']] },
+  { rota: 'missoes', tipo: 'jogo', meta: 90, partes: [['features/engagement/missions-screen.tsx']] },
   { rota: 'zona/[id]', tipo: 'jogo', meta: 50, partes: [['features/screens/zone-sheet.tsx']] },
   { rota: '(tabs)/arena', tipo: 'jogo', partes: [['features/screens/arena-screen.tsx']] },
   { rota: '(tabs)/atividades', tipo: 'jogo', partes: [['features/screens/activities-screen.tsx'], ['features/run/history-model.ts']] }, // hoje em perfil/atividades
@@ -90,8 +102,16 @@ const SCREENS = [
   { rota: '(tabs)/perfil/time', tipo: 'jogo', meta: 60, partes: [['features/screens/faction-screen.tsx']] },
   // E6a (onda 3): os ajustes saíram do perfil para trás da engrenagem.
   { rota: '(tabs)/perfil/ajustes', tipo: 'conta', partes: [['features/screens/profile-screen.settings.tsx']] },
+  // F8-B3 (UX-16): Ajustes em 4 telas, cada uma com a sua rota (Conta continua em `perfil/conta`).
+  { rota: '(tabs)/perfil/seguranca', tipo: 'conta', partes: [['features/screens/settings-pages.tsx', 'SafetySettingsScreen']] },
+  { rota: '(tabs)/perfil/privacidade', tipo: 'conta', partes: [['features/screens/settings-pages.tsx', 'PrivacySettingsScreen']] },
+  { rota: '(tabs)/perfil/lembretes', tipo: 'conta', partes: [['features/screens/settings-pages.tsx', 'RemindersSettingsScreen', 'ALERTS']] },
+  // F8-B3: a folha da Liga (detalhe sob demanda da Arena) e o feed da crew em rota própria (UX-22).
+  { rota: 'arena · folha da Liga', tipo: 'jogo', partes: [['features/screens/arena-league-sheet.tsx'], ['features/screens/arena-league.model.ts']] },
+  { rota: 'compartilhar/feed (corridas da crew)', tipo: 'jogo', partes: [['features/social/feed/crew-feed-screen.tsx'], ['features/social/feed/crew-feed.tsx']] },
+  { rota: 'compartilhar/semana (minha semana)', tipo: 'jogo', meta: 60, partes: [['features/social/recap/recap-screen.tsx']] },
   { rota: '(tabs)/perfil/editar', tipo: 'conta', partes: [['features/screens/edit-profile-screen.tsx']] },
-  { rota: '(tabs)/perfil/conta', tipo: 'conta', partes: [['features/screens/account-screen.tsx']] },
+  { rota: '(tabs)/perfil/conta', tipo: 'conta', partes: [['features/screens/account-screen.tsx'], ['features/auth/sign-out-dialog.tsx']] },
   { rota: 'notificacoes', tipo: 'jogo', partes: [['features/notifications/notifications-screen.tsx']] },
   { rota: 'contatos-seguranca', tipo: 'conta', partes: [['features/safety/contacts-screen.tsx']] },
   { rota: 'zonas-privacidade', tipo: 'conta', partes: [['features/screens/privacy-zones-screen.tsx']] },

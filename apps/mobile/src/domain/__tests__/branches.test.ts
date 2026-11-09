@@ -6,9 +6,10 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
 import { validateActivity } from '../anti-cheat';
-import { closeWeek, ghostGap, ghostStatus, leagueOutcome, levelFromXp } from '../games';
+import { closeWeek, ghostGap, ghostStatus, leagueOutcome } from '../games';
 import { distanceMeters, formatDuration, formatKm, formatPace, offset, paceSecPerKm } from '../geo';
 import { cellBoundary, cellCenter, zoneOf } from '../grid';
+import { levelProgress } from '../progression';
 import { chaikin, relax, smoothCells, territoryRegions } from '../regions';
 import { addPoint, averagePace, finishRun, livePace, startRun, AUTO_PAUSE_SECONDS } from '../run-engine';
 import { DEFAULT_BASE_PACE, effortMultiplier, EFFORT_MIN } from '../scoring';
@@ -313,6 +314,6 @@ describe('scoring / territory / games — ramos restantes', () => {
     expect(leagueOutcome(1, 30, 4)).toBe('stays');
     expect(leagueOutcome(30, 30, 0)).toBe('stays');
     expect(closeWeek({ weeks: 3, freezesLeft: 0 }, 1)).toEqual({ weeks: 0, freezesLeft: 0, usedFreeze: false });
-    expect(levelFromXp(-10).level).toBe(1);
+    expect(levelProgress(-10).level).toBe(1);
   });
 });

@@ -4,12 +4,32 @@
  * Repositório do A4 (exceção combinada dentro de `services/api`).
  */
 import type { CheatFlag } from '@/domain/anti-cheat';
+import type { PaintMilestones } from '@/domain/faction-activity';
 import type { OfficialResult, OfficialStatus } from '@/services/sync/types';
 
 import { attempt, type Result } from './errors';
 import { requireSupabase } from './supabase';
 
 export type ActivityStatus = 'recording' | OfficialStatus;
+
+/**
+ * F8 A2 — marcos da pintura na resposta oficial (`extras.milestones` do `finish-activity`, também em
+ * `activities.v2_extras.milestones`): "primeiro trecho pintado" (1 vez na vida) e "recorde de trechos numa corrida".
+ * Só existe com a pintura v2 ligada; servidor antigo ou regra v1 → `null` (a tela não comemora nada).
+ */
+export function paintMilestonesOf(official: unknown): PaintMilestones | null {
+  const o = (v: unknown): Record<string, unknown> => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
+  const m = o(o(o(official).extras).milestones);
+  if (typeof m.firstPaint !== 'boolean') return null;
+  const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
+  const rec = o(m.cellsRecord);
+  const value = n(rec.value);
+  return {
+    firstPaint: m.firstPaint,
+    cells: n(m.cells),
+    cellsRecord: !m.firstPaint && value > 0 && n(rec.previous) > 0 && value > n(rec.previous) ? { value, previous: n(rec.previous) } : null,
+  };
+}
 
 export type ActivitySummary = {
   id: string;

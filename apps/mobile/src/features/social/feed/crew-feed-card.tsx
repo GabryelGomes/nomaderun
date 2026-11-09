@@ -2,19 +2,22 @@
  * Item do feed da crew (F1 §6): quem correu, selo do time, data sem hora, mini-mapa 16:9 da rota cortada
  * no servidor, km · tempo · ritmo, até 3 fichas de conquista e a barra de reações.
  */
+import { router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { View, type LayoutChangeEvent } from 'react-native';
 
 import { DemoBadge } from '@/components/demo-badge';
+import { Icon } from '@/components/icon';
 import { PressableScale } from '@/components/motion';
 import { TeamBadge } from '@/components/team-badge';
 import { Text } from '@/components/text';
+import { listMyActivities } from '@/services/api/activities-repo';
 import { listFeedItemKudos, type FeedItem, type FeedKudo, type FeedReaction } from '@/services/api/feed-repo';
 import { neonTeam } from '@/theme/neon';
 import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-import { feedDateLabel, feedItemLabel, feedStats, highlightLabel, REACTION_LABEL, totalReactions } from './feed-model';
+import { feedDateLabel, feedItemLabel, feedStats, highlightLabel, ownActivityFor, REACTION_LABEL, totalReactions } from './feed-model';
 import { ReactionBar } from './reaction-bar';
 import { ServerRouteMap } from './server-route-map';
 
@@ -37,12 +40,14 @@ export function CrewFeedCard({ item, today, onReact, onRemove }: CrewFeedCardPro
       testID={`feed-item-${item.id}`}
       style={{ gap: space[3], padding: space[3], borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line }}>
       <View accessible accessibilityLabel={feedItemLabel(item, today)} style={{ gap: space[3] }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+        {/* F8-D (fonte ×1,3): a linha quebra (o selo desce) em vez de cortar o nome em "ana.de…" (nome não tem espaço). */}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: space[2], rowGap: space[1] }}>
           <TeamBadge faction={item.author.faction} size={24} />
           <Text variant="bodyBold" numberOfLines={1} style={{ flexShrink: 1 }}>
             {item.you ? 'Você' : item.author.username}
           </Text>
-          <Text variant="small" muted>
+          {/* F8 onda D: a 360 px, com o selo de demonstração, o "· Hoje" quebrava em 2 linhas. */}
+          <Text variant="small" muted numberOfLines={1} style={{ flexShrink: 0 }}>
             · {feedDateLabel(item.day, today)}
           </Text>
           <View style={{ flex: 1 }} />
@@ -72,6 +77,14 @@ export function CrewFeedCard({ item, today, onReact, onRemove }: CrewFeedCardPro
       <ReactionBar itemId={item.id} reactions={item.kudos} myReaction={item.myReaction} readOnly={item.you} onReact={(r) => onReact(item.id, r)} />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space[2] }}>
         {totalReactions(item.kudos) > 0 ? <WhoReacted itemId={item.id} total={totalReactions(item.kudos)} /> : null}
+        {item.you ? (
+          <PressableScale testID={`feed-${item.id}-compartilhar`} accessibilityRole="button" accessibilityLabel="Compartilhar esta corrida" onPress={() => void shareOwn(item)} hitSlop={8} style={{ minHeight: 36, flexDirection: 'row', alignItems: 'center', gap: space[1] }}>
+            <Icon name="share" size={16} color={colors.accentText} />
+            <Text variant="small" color={colors.accentText}>
+              Compartilhar
+            </Text>
+          </PressableScale>
+        ) : null}
         {item.you && onRemove ? (
           <PressableScale testID={`feed-${item.id}-tirar`} accessibilityLabel="Tirar esta corrida do feed" onPress={() => onRemove(item.id)} hitSlop={8} style={{ minHeight: 36, justifyContent: 'center' }}>
             <Text variant="small" muted>
@@ -82,6 +95,18 @@ export function CrewFeedCard({ item, today, onReact, onRemove }: CrewFeedCardPro
       </View>
     </View>
   );
+}
+
+/** Abre o card da própria corrida (pelo `activityId` do item, se veio); sem achar a corrida (ou fora do ar), abre as Atividades, onde cada uma tem "Compartilhar". */
+async function shareOwn(item: FeedItem) {
+  // C2: o servidor novo manda o id da corrida no item da própria pessoa; o antigo não (acha pelo dia e pela distância).
+  if (item.activityId) {
+    router.push(`/compartilhar/${encodeURIComponent(item.activityId)}` as Href);
+    return;
+  }
+  const runs = await listMyActivities({ limit: 30 });
+  const id = runs.ok ? ownActivityFor(item, runs.data) : null;
+  router.push((id ? `/compartilhar/${encodeURIComponent(id)}` : '/perfil/atividades') as Href);
 }
 
 /** "Quem reagiu" (só nomes da crew, sob demanda). */

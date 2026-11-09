@@ -7,6 +7,7 @@ import { Icon } from '@/components/icon';
 import { CountUp, ProgressBar, Stagger } from '@/components/motion';
 import { Text } from '@/components/text';
 import { DAILY_CHEST, levelProgress } from '@/domain/progression';
+import { formatXp, signedInt } from '@/features/format';
 import type { RunEngagement } from '@/services/api/engagement-repo';
 import { useEngagement } from '@/store/engagement-store';
 import { neon } from '@/theme/neon';
@@ -15,7 +16,7 @@ import { useTheme } from '@/theme/use-theme';
 
 import { cosmeticName } from './cosmetics';
 import { pct, RARITY_LABEL } from './model';
-import { levelLine, rewardPeak, rewardsA11y, rewardSections, streakLine, type RewardSection } from './run-rewards-model';
+import { levelLine, rewardPeak, rewardsA11y, rewardSections, runChestsStored, streakLine, type RewardSection } from './run-rewards-model';
 
 export type RunRewardsBlockProps = {
   /** `useRunRewards(official)` ou `parseRunEngagement(official)`. Sem bloco (servidor v1), não desenha nada. */
@@ -33,9 +34,12 @@ export type RunRewardsBlockProps = {
 export function RunRewardsBlock({ block, testID = 'resumo-recompensas', demo }: RunRewardsBlockProps) {
   const { colors } = useTheme();
   const xpNow = useEngagement((s) => s.status.data?.xp ?? null);
+  // M-2: o baú do store só conta se foi lido depois desta corrida (antes disso, a soma do próprio bloco).
+  const freshChest = useEngagement((s) => (s.chest.status === 'ready' && s.lastRun && s.loadedAt !== null && s.loadedAt >= s.lastRun.at ? s.chest.data : null));
   if (!block) return null;
   const sections = rewardSections(block);
   const peak = rewardPeak(block);
+  const chestsLine = runChestsStored(block, freshChest);
 
   const frame = (s: RewardSection) => ({
     gap: space[2],
@@ -57,13 +61,22 @@ export function RunRewardsBlock({ block, testID = 'resumo-recompensas', demo }: 
                 <Text muted style={{ flex: 1 }}>
                   {l.label}
                 </Text>
-                <Text variant="bodyBold" tabular>{`+${l.amount}`}</Text>
+                <Text variant="bodyBold" tabular>
+                  {signedInt(l.amount)}
+                </Text>
               </View>
             ))}
             <View style={{ height: 1, backgroundColor: colors.line }} />
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
               <Text variant="bodyBold">Total</Text>
-              <CountUp value={block.xp.total} variant="headline" color={colors.accentText} unit="XP" accessibilityLabel={`${block.xp.total} XP`} testID={`${testID}-xp-total`} />
+              <CountUp
+                value={block.xp.total}
+                format={(n) => formatXp(n)}
+                variant="headline"
+                color={colors.accentText}
+                accessibilityLabel={`Mais ${block.xp.total} XP`}
+                testID={`${testID}-xp-total`}
+              />
             </View>
           </View>
         );
@@ -112,7 +125,9 @@ export function RunRewardsBlock({ block, testID = 'resumo-recompensas', demo }: 
                         </Text>
                       ) : null}
                     </View>
-                    <Text variant="bodyBold" tabular>{`+${c.xp} XP`}</Text>
+                    <Text variant="bodyBold" tabular>
+                      {formatXp(c.xp)}
+                    </Text>
                   </View>
                 ))}
                 <Text variant="caption" muted>
@@ -125,7 +140,7 @@ export function RunRewardsBlock({ block, testID = 'resumo-recompensas', demo }: 
                   <Chest rarity="comum" size={40} />
                 </View>
                 <Text muted style={{ flex: 1 }}>
-                  {`${block.dailyChests.stored === 1 ? '1 baú guardado' : `${block.dailyChests.stored} baús guardados`}. Abrem com 1 km.`}
+                  {chestsLine.text}
                 </Text>
               </View>
             )}
@@ -139,8 +154,8 @@ export function RunRewardsBlock({ block, testID = 'resumo-recompensas', demo }: 
                 <View style={{ width: 24, height: 24, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: neon.activeFill }}>
                   <Icon name="check" size={14} color={colors.accentText} />
                 </View>
+                {/* UX-10: o XP das missões já está na conta acima; aqui, só o que foi cumprido. */}
                 <Text style={{ flex: 1 }}>{m.text}</Text>
-                <Text variant="bodyBold" tabular>{`+${m.xp} XP`}</Text>
               </View>
             ))}
           </View>

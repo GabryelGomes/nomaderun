@@ -27,6 +27,10 @@ export type NotificationPrefs = {
   comeback?: boolean;
   /** Aplausos ("Bora!") da crew, agrupados em 1 aviso por dia (D-69; o servidor lê a chave `kudos`). */
   kudos?: boolean;
+  /** D-94: o aviso do plano que a própria pessoa marcou ("Quando você corre de novo?"). */
+  plan?: boolean;
+  /** Eco da crew ("Rafa reforçou 3 trechos que você pintou"), 1 por dia (F8). */
+  crewEcho?: boolean;
 };
 
 export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = { invasions: true, conquests: true, missions: true, moderation: true };
@@ -79,6 +83,8 @@ const PREF_DB_KEYS: Record<keyof NotificationPrefs, string> = {
   recap: 'recap',
   comeback: 'comeback',
   kudos: 'kudos',
+  plan: 'plan',
+  crewEcho: 'crew_echo',
 };
 
 /**

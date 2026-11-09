@@ -1,7 +1,8 @@
 /**
  * T7.1.9 — quais cards oferecer e em que ordem (carrossel da tela de compartilhar). Puro.
  *
- *  - o momento mais raro vem primeiro: chefão derrotado > nível novo > conquista de zona > corrida;
+ *  - o momento mais forte vem primeiro (UX-33): chefão derrotado > conquista de zona > nível novo > corrida
+ *    (antes, o nível vinha antes da zona: a corrida que tomou o bairro abria no card de nível);
  *  - o card "Corrida" aparece sempre (exceto corrida rejeitada, que não tem card);
  *  - corrida provisória ou em revisão: só o card "Corrida", sem pontos e com o selo do status;
  *  - rota com mais de 60% escondida (ou sem rota): o carrossel abre na versão sem rota, com aviso;
@@ -11,8 +12,8 @@ import type { SharedRoute } from '@/domain/share-privacy';
 
 import { buildCardModel, buildWeekCard, DEFAULT_CARD_CHOICES, featuredZone, type CardChoices, type CardKind, type CardModel, type ShareRunInput, type ShareWeekInput } from './card-model';
 
-/** Do mais raro para o mais comum. */
-export const CARD_RARITY_ORDER: readonly Exclude<CardKind, 'week'>[] = ['boss', 'level', 'zone', 'run'];
+/** Do momento mais forte para o mais comum; o 1º é o modelo padrão do carrossel (UX-33). */
+export const CARD_RARITY_ORDER: readonly Exclude<CardKind, 'week'>[] = ['boss', 'zone', 'level', 'run'];
 
 export const CARD_KIND_LABEL: Record<CardKind, string> = {
   run: 'Corrida',

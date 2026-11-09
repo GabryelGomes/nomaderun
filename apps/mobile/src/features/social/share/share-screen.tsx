@@ -21,12 +21,11 @@ import { layout, ScreenScroll } from '@/components/screen';
 import { Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import type { PrivacyCircle } from '@/domain/share-privacy';
-import { trackTelemetry } from '@/features/engagement';
+import { recordShareDone } from '@/features/engagement';
 import { useRunRecord } from '@/features/run/use-run-record';
 import { listMyActivities, type ActivitySummary } from '@/services/api/activities-repo';
 import { isDemoMode } from '@/services/api/env';
 import { listPrivacyZones } from '@/services/api/privacy-zones-repo';
-import { recordShare } from '@/services/api/share-repo';
 import { useGame } from '@/store/game-store';
 import { useSession } from '@/store/session-store';
 import { radius, space } from '@/theme/tokens';
@@ -51,10 +50,19 @@ function StickerBackdrop({ size, children }: { size: number; children: React.Rea
   );
 }
 
+/** F8 onda D: `/compartilhar/%25zz` chega como "%zz" e o `decodeURIComponent` lançava `URIError` (página em branco). */
+function safeDecode(v: string): string {
+  try {
+    return decodeURIComponent(v);
+  } catch {
+    return v;
+  }
+}
+
 export function ShareScreen() {
   const { colors } = useTheme();
   const { id: rawId, momentos } = useLocalSearchParams<{ id: string; momentos?: string }>();
-  const id = rawId ? decodeURIComponent(rawId) : undefined;
+  const id = rawId ? safeDecode(rawId) : undefined;
   const record = useRunRecord(id);
   const faction = useGame((s) => s.faction) ?? 'striders';
   const xp = useGame((s) => s.xp);
@@ -83,9 +91,9 @@ export function ShareScreen() {
   const share = useShareCard({
     onShared: () => {
       haptic('success');
-      // Telemetria opt-in da E7 (D-82): só conta se a pessoa ligou; o evento não leva nada além do nome.
-      trackTelemetry('share');
-      if (id && record.state === 'official') void recordShare(id);
+      // Telemetria opt-in da E7 (D-82): só conta se a pessoa ligou; o evento não leva nada além do nome. Com a
+      // corrida oficial, o servidor conta a missão "compartilhar" e cada missão concluída vira `mission_complete`.
+      void recordShareDone(id && record.state === 'official' ? id : null);
     },
   });
 

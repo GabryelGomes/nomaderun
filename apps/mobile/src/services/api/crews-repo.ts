@@ -1,6 +1,7 @@
 import type { FactionId } from '@/domain/types';
 
 import { attempt, type Result } from './errors';
+import { callFeatureRpc, type Unavailable } from './raid-repo';
 import { getIndividualRanking } from './leaderboard-repo';
 import { requireSupabase } from './supabase';
 import { isFaction } from './types';
@@ -147,6 +148,52 @@ export async function getCrewWeekGoal(): Promise<Result<CrewWeekGoal | null>> {
       reached: d.reached === true,
     };
   });
+}
+
+/**
+ * Eco da crew (F8 A2): "Rafa reforçou 3 trechos que você pintou" — o colega da crew que mais reforçou ONTEM os trechos
+ * que você pintou (`rpc('crew_echo')`). Só nome e contagens; o servidor já tira quem não compartilha corridas com a
+ * crew e os trechos nas zonas de privacidade do colega. `null` = sem eco (sem crew, sem reforço ou entre 22h e 7h).
+ * Flag `feed` desligada ou servidor antigo: `{ available: false }`.
+ */
+export type CrewEcho = {
+  available: true;
+  /** Dia do reforço (AAAA-MM-DD, Brasília): ontem. */
+  day: string;
+  mateUsername: string;
+  /** Trechos seus que esse colega reforçou. */
+  cells: number;
+  /** Outros colegas que também reforçaram. */
+  othersCount: number;
+  /** Trechos seus reforçados por alguém da crew (sem repetir). */
+  totalCells: number;
+  /** Janela do aviso (epoch ms): 07h–22h de hoje, Brasília. */
+  notifyFrom: number;
+  notifyUntil: number;
+  isDemo: boolean;
+};
+
+export function parseCrewEcho(data: unknown): CrewEcho | null {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+  const d = data as Row;
+  const mate = (d.mate && typeof d.mate === 'object' ? d.mate : {}) as Row;
+  const cells = num(d.cells);
+  if (typeof mate.username !== 'string' || !mate.username || cells <= 0) return null;
+  return {
+    available: true,
+    day: String(d.day ?? ''),
+    mateUsername: mate.username,
+    cells,
+    othersCount: Math.max(0, num(d.othersCount)),
+    totalCells: Math.max(cells, num(d.totalCells)),
+    notifyFrom: num(d.notifyFrom),
+    notifyUntil: num(d.notifyUntil),
+    isDemo: d.isDemo === true,
+  };
+}
+
+export async function getCrewEcho(): Promise<Result<CrewEcho | null | Unavailable>> {
+  return callFeatureRpc(() => requireSupabase().rpc('crew_echo'), parseCrewEcho);
 }
 
 export async function leaveCrew(): Promise<Result<boolean>> {

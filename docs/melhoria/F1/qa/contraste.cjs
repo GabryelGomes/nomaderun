@@ -108,6 +108,12 @@ const onDanger = dark.onDanger ?? '#FFFFFF';
 add('dark.onDanger', onDanger, 'dark.danger', dark.danger, 'texto', 'Button danger — button.tsx');
 add('dark.onDanger', onDanger, 'dark.danger', dark.danger, 'grande', 'Button danger lg');
 add('dark.action', dark.action, 'dark.background', dark.background, 'ui', 'IconButton action / anel de foco');
+// F8-D: botão desativado com tokens próprios (antes: laranja a 45% de opacidade, "Toque no seu time" a 2,56:1).
+if (dark.disabledSurface && dark.onDisabled) {
+  add('dark.onDisabled', dark.onDisabled, 'dark.disabledSurface', dark.disabledSurface, 'texto', 'Button desativado (rótulo) — button.tsx');
+  add('dark.onDisabled', dark.onDisabled, 'dark.background', dark.background, 'texto', 'Button ghost desativado (rótulo sem fundo)');
+  add('dark.lineControl', dark.lineControl, 'dark.disabledSurface', dark.disabledSurface, 'ui', 'borda do Button desativado');
+}
 // Bordas de controles (1.4.11): secondary button, cartões, campos.
 // E6 (onda 1, D-75): controles (campo, botão secundário, chip, caixa de seleção) usam `lineControl`.
 // `dark.line` ficou só para a borda sutil de cartão e divisória (decorativa, fora do 1.4.11).

@@ -535,3 +535,104 @@ Já auditadas e registradas acima neste arquivo; copiadas para o Claude Code car
 - `Abhishekrajpurohit/motion-dev-mcp` (MIT): MCP comunitário de motion.dev, sem commits desde 2025-08, raspa a documentação; preferir o MCP oficial do AI Kit.
 - `dicklesworthstone/meta_skill` → `creating-share-images`: Next.js `next/og` (web).
 - Rive (`@rive-app/react-native`): **não roda no Expo Go** (precisa de development build) — nenhuma skill de Rive instalada.
+
+
+---
+
+# Fase 8 — Finalização 100%
+
+Curadoria da **E2 — Skills e MCPs** (2026-10-30) para arte dos times, primeira abertura, efeitos visuais, segurança e publicação. Mesmo método da Fase 7 (skills.sh bloqueado no proxy: ranking por WebSearch e agregadores; `git clone --depth 1 --filter=blob:none` em pasta própria do scratchpad; `SKILL.md` lido inteiro; varredura de `curl | sh`, segredos e prompt injection; licença conferida). Todas as pastas são novas em `.claude/skills/`, levam o `LICENSE` original e uma nota NOMADE no topo. Relatório: `docs/melhoria/F8/04-skills-e-tecnologias.md`.
+
+## eas-update (OTA, canais, runtime version) — publicação
+- **Repo:** `expo/skills` (Expo, oficial) — MIT. Commit `05754e7` (2026-10-28). Substitui, em `.claude/skills`, a cópia antiga de `.agents/skills/eas-update` (texto diferente).
+- **Raw URL:** https://raw.githubusercontent.com/expo/skills/main/plugins/expo/skills/eas-update/SKILL.md
+- **Descrição:** configurar e publicar EAS Update; modelo build × update × branch × canal × runtime; teste em até duas aberturas a frio; depuração de update que não chega. Diz que o SDK 55+ exige `--environment` ao publicar.
+- **Arquivos:** só `SKILL.md`.
+- **Instalar:** `npx skills add expo/skills --skill eas-update`
+- **Installs:** ~940 (skills.sh, out/2026).
+
+## eas-app-stores (TestFlight, App Store, Play Store) — publicação
+- **Repo:** `expo/skills` — MIT. Commit `05754e7`.
+- **Raw URL:** https://raw.githubusercontent.com/expo/skills/main/plugins/expo/skills/eas-app-stores/SKILL.md
+- **Descrição:** build e envio às lojas com EAS, metadados e credenciais. Versão mais nova que a de `.agents/skills/eas-app-stores`.
+- **Arquivos:** `references/app-store-metadata.md`, `play-store.md`, `ios-app-store.md` (as outras 3 ficam no repositório).
+- **Instalar:** `npx skills add expo/skills --skill eas-app-stores`
+- **Installs:** não confirmado (o repo tem ~2,5K estrelas).
+
+## character-design (mascotes e chefões legíveis) — arte
+- **Repo:** `omer-metin/skills-for-antigravity` — Apache-2.0. Commit `e8dcf4e` (2026-01-22). Mesmo repositório da `gamification-loops` (Fase 7).
+- **Raw URL:** https://raw.githubusercontent.com/omer-metin/skills-for-antigravity/main/skills/character-design/SKILL.md
+- **Descrição:** regra das três leituras (silhueta, cor, detalhe), linguagem de formas, escala, família de personagens, desenho pensando na animação.
+- **Arquivos:** `references/patterns.md`, `sharp_edges.md`, `validations.md`.
+- **Instalar:** `npx skills add omer-metin/skills-for-antigravity --skill character-design`
+- **Installs:** não encontrado (skills irmãs do repo: ~40–90).
+
+## icon-design (emblemas, ícones de aba e de modo) — arte
+- **Repo:** `omer-metin/skills-for-antigravity` — Apache-2.0. Commit `e8dcf4e`.
+- **Raw URL:** https://raw.githubusercontent.com/omer-metin/skills-for-antigravity/main/skills/icon-design/SKILL.md
+- **Descrição:** grade, alinhamento ótico, traço consistente, menor tamanho primeiro, coerência do conjunto, otimização de SVG.
+- **Arquivos:** `references/patterns.md`, `sharp_edges.md`, `validations.md`.
+- **Instalar:** `npx skills add omer-metin/skills-for-antigravity --skill icon-design`
+- **Installs:** ~93.
+
+## player-onboarding (FTUE de jogo) — primeira abertura
+- **Repo:** `omer-metin/skills-for-antigravity` — Apache-2.0. Commit `e8dcf4e`.
+- **Raw URL:** https://raw.githubusercontent.com/omer-metin/skills-for-antigravity/main/skills/player-onboarding/SKILL.md
+- **Descrição:** gancho em 30 s, um conceito por vez, ensinar jogando, falha segura, revelação progressiva, medir abandono por passo.
+- **Arquivos:** `references/patterns.md`, `sharp_edges.md`, `validations.md`.
+- **Instalar:** `npx skills add omer-metin/skills-for-antigravity --skill player-onboarding`
+- **Installs:** ~44.
+
+## mobile-audit (OWASP MASVS/MASTG) — segurança
+- **Repo:** `briiirussell/cybersecurity-skills` — MIT. Commit `05409bb` (2026-10-30). Auditoria Socket no skills.sh: 1 alerta LOW ("anomalia"), sem roubo de credencial nem cadeia de instalação suspeita.
+- **Raw URL:** https://raw.githubusercontent.com/briiirussell/cybersecurity-skills/main/skills/mobile-audit/SKILL.md
+- **Descrição:** checklist MASVS por categoria (STORAGE, CRYPTO, NETWORK, AUTH, PLATFORM, CODE, RESILIENCE), passo de refutação por achado e calibração de gravidade (chave publicável ≠ segredo). `allowed-tools` só de leitura; recusa testar app de terceiros.
+- **Arquivos:** `references/verification.md`, `findings-format.md`, `severity-calibration.md` (os validadores `.mjs` ficaram no repositório).
+- **Instalar:** `npx skills add briiirussell/cybersecurity-skills --skill mobile-audit`
+- **Installs:** ~60.
+
+## maestro-e2e (fluxos Maestro) — testes E2E
+- **Repo:** `raphaelbarbosaqwerty/maestro-dev-skills` — MIT. Commit `53ce7c0` (2026-02-05).
+- **Raw URL:** https://raw.githubusercontent.com/raphaelbarbosaqwerty/maestro-dev-skills/main/SKILL.md
+- **Descrição:** comandos, seletores, permissões, subfluxos e espera em Maestro; RN com `testID`.
+- **Arquivos:** `rules/platforms/react-native.md`, `rules/commands.md`, `rules/permissions.md` (as outras 21 regras ficam no repositório).
+- **Instalar:** `npx skills add raphaelbarbosaqwerty/maestro-dev-skills`
+- **Installs:** ~85.
+- **Cuidado:** `rules/installation.md` (não copiado) usa `curl … | bash` do instalador oficial do Maestro: passo do dono, nunca do agente.
+
+## lgpd-privacy-policy (Art. 9º da LGPD) — LGPD
+- **Repo:** `goul4rt/lgpd-skills` — MIT. Commit `d85d79a` (2026-05-31). Em pt-BR.
+- **Raw URL:** https://raw.githubusercontent.com/goul4rt/lgpd-skills/main/skills/lgpd-privacy-policy/SKILL.md
+- **Descrição:** os 7 elementos obrigatórios da política (controlador, contato do encarregado, finalidade, compartilhamento, direitos do Art. 18…), versionamento e revisão humana obrigatória.
+- **Arquivos:** `assets/privacy-policy-template.md`.
+- **Instalar:** `npx skills add goul4rt/lgpd-skills --skill lgpd-privacy-policy`
+- **Installs:** não encontrado.
+
+## lgpd-eca-digital-minors (Lei 15.211/2025) — LGPD
+- **Repo:** `goul4rt/lgpd-skills` — MIT. Commit `d85d79a`.
+- **Raw URL:** https://raw.githubusercontent.com/goul4rt/lgpd-skills/main/skills/lgpd-eca-digital-minors/SKILL.md
+- **Descrição:** aplicabilidade do ECA Digital (vigente desde 17/03/2026), verificação de idade, vínculo com responsável até 16 anos, perfilamento, caixas de recompensa.
+- **Arquivos:** só `SKILL.md`.
+- **Instalar:** `npx skills add goul4rt/lgpd-skills --skill lgpd-eca-digital-minors`
+- **Installs:** não encontrado.
+
+## localize-pt (pt-BR sem calques) — textos
+- **Repo:** `i18n-agent/i18nstack` — MIT. Commit `6bf6587` (2026-10-22).
+- **Raw URL:** https://raw.githubusercontent.com/i18n-agent/i18nstack/main/skills/localize-pt/SKILL.md
+- **Descrição:** regras de português (pt-BR e pt-PT): calques e falsos amigos, contrações, estados vazios, mensagens de conclusão. A nota NOMADE fixa pt-BR.
+- **Arquivos:** só `SKILL.md`.
+- **Instalar:** `npx skills add i18n-agent/i18nstack --skill localize-pt`
+- **Installs:** não encontrado.
+
+## Avaliadas e não instaladas (Fase 8)
+- `heygen-com/hyperframes` (Apache-2.0, ~7 skills, `/hyperframes` com 1,4 MB de referências): só para a apresentação; usar fora do repositório (`npx skills add heygen-com/hyperframes --skill hyperframes`, numa pasta de vídeo).
+- `tovimx/maestro-mobile-testing-skill` (~970 installs): **sem licença**.
+- `calesthio/OpenMontage` → `svg-character-animation`: **AGPL-3.0** e feita para GSAP/Remotion na web.
+- `dtsvetkov1/agent-rules` → `security-audit`: **sem licença**.
+- `JubaKitiashvili/everything-react-native-expo` → `security-review` (MIT): checklist raso; a `mobile-audit` cobre mais.
+- `transilienceai/communitytools` → `mobile-security` (MIT): ofensiva (descompilação, Frida, bypass de pinning); fora do escopo.
+- `yoanbernabeu/supabase-pentest-skills` (MIT, ~660 installs na `supabase-audit-rls`): pentest caixa-preta do projeto na nuvem, com várias skills dependentes e escrita de arquivos de contexto; rodar uma vez, pelo dono, depois do deploy, fora do repositório.
+- `omer-metin/skills-for-antigravity` → `supabase-security`: rasa perto de `supabase` e `supabase-postgres-best-practices`.
+- `dylantarre/design-system-skills` → `icon-system` (MIT, ~10 installs): só implementação web.
+- `goul4rt/lgpd-skills` → `lgpd-audit` (orquestrador): depende das 18 sub-skills e grava em `.lgpd/`.
+- Rive (`bowtiedswan/rive-skills`, `stevysmith/rive-skills`): Rive não roda no Expo Go.

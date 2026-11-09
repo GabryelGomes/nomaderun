@@ -60,7 +60,7 @@ describe('quiz "Não sei escolher" (3 perguntas, 4 respostas, 1 por time)', () =
     r.press('onboarding-quiz-corrida-owls');
     r.press('onboarding-quiz-fim-owls');
     r.press('onboarding-quiz-superpoder-volt');
-    expect(r.text()).toContain('Sugerimos os Night Owls');
+    expect(r.text()).toContain('Combina com você: Night Owls');
     expect(r.text()).toContain('A escolha é sua.');
     r.press('onboarding-quiz-ver');
     expect(picked).toEqual(['owls']);

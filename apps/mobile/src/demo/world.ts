@@ -11,7 +11,8 @@
  */
 import { cellCenter, cellsAround, districtOf, zoneOf } from '@/domain/grid';
 import { distanceMeters, offset } from '@/domain/geo';
-import type { Zone } from '@/domain/territory';
+import { zoneNoticeText, zonePlaceName } from '@/domain/reminders';
+import { DEFENSE_WINDOW_MS, type Zone } from '@/domain/territory';
 import type { FactionId, LatLng } from '@/domain/types';
 
 import { DEMO_CENTER, DEMO_CITY, demoCityWar, demoRoute, seedZones, zoneName } from './demo-data';
@@ -282,17 +283,16 @@ export function createWorld(opts: WorldOptions): DemoWorld {
         {
           id: `${DEMO_ID_PREFIX}notificacao-1`,
           type: 'invasion',
-          title: 'Alerta de Invasão!',
-          body: `Seu território em ${zoneNames[centerZone]} está sendo conquistado pelos Urban Coyotes. Corra lá nas próximas 24h para defender.`,
-          data: { zoneId: centerZone, lat: parkCenter.lat, lng: parkCenter.lng, demonstracao: true },
+          // C2: o mesmo formato do servidor (zoneNoticeText): "até 02h30", zona sem número
+          ...zoneNoticeText('invasion', { place: zonePlaceName(zoneNames[centerZone]), team: 'Urban Coyotes', until: now - 6.5 * 3600_000 + DEFENSE_WINDOW_MS /* o mesmo prazo da folha da zona (ataque há 6,5 h) */ }),
+          data: { zoneId: centerZone, lat: parkCenter.lat, lng: parkCenter.lng, defendUntil: now - 6.5 * 3600_000 + DEFENSE_WINDOW_MS /* o mesmo prazo da folha da zona (ataque há 6,5 h) */, demonstracao: true },
           createdAt: now - 2 * 3600_000,
           readAt: null,
         },
         {
           id: `${DEMO_ID_PREFIX}notificacao-2`,
           type: 'territory_lost',
-          title: 'Território perdido',
-          body: `${zoneNames[lostZone]} agora pertence aos Urban Coyotes. Corra lá para reconquistar.`,
+          ...zoneNoticeText('territory_lost', { place: zonePlaceName(zoneNames[lostZone]), team: 'Urban Coyotes' }),
           data: { zoneId: lostZone, demonstracao: true },
           createdAt: now - 26 * 3600_000,
           readAt: null,

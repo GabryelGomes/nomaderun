@@ -181,6 +181,14 @@ A medição "depois" (régua de texto, capturas de todas as rotas e teste de 5 s
 
 ---
 
+### Fase 8 — Finalização 100% (2026-10-30 a 2026-11-04)
+Prompt: `docs/melhoria/01-PROMPT-FINALIZACAO-100.md`; decisões D-89 a D-99; relatórios `docs/melhoria/relatorios/F8-*.md`.
+- **Onda A:** `TeamEmblem` com a cabeça do mascote em todo lugar (D-90); uma curva de nível com paridade SQL (D-92) e `faction_activity()` (D-96); 4 abas e CORRER só no Mapa (D-89), estados honestos (D-95).
+- **Onda B:** time antes da conta, com capas e cerimônia "Seu rastro" (D-91, D-93); missões com "Ir", "Como jogar", plano da próxima corrida (D-94); Arena com ação, Ajustes em 4 telas, Clube e Atividades revistos.
+- **Onda C:** animações da capa e da cerimônia a ≥ 55 fps com a CPU 4× mais lenta (D-98); eco da crew e card com emblema; OTA, limite de chamadas, `/excluir-conta` e política (D-99).
+- **Onda D:** QA adversarial e revisão de lógica e segurança até 0 Alto e 0 Médio aberto.
+- **Resultado:** Jest 1.672 ✅ · pgTAP 964/964 (34 arquivos) · Deno 108 ok · `demo-mode-flow` 62/62 · teste de 5 s 96% · 0 telas acima da meta de texto · 4 toques até a cerimônia · bundle 1.238.936 B gzip · **10/10 critérios de "100%"**. O que fica com os autores: `docs/PROGRESSO.md` (P-45 a P-55).
+
 ## 3. Donos de pastas (implementação)
 
 | Equipe | Pastas |

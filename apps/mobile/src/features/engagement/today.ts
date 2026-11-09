@@ -7,7 +7,7 @@ import type { IconName } from '@/components/icon';
 import { STREAK_V2 } from '@/domain/progression';
 import type { DailyChestState, EngagementMission, EngagementMissions, EngagementStatus } from '@/services/api/engagement-repo';
 
-import { FTUE_SHORT, ftueDoneCount, ftueRows, missionRatio, pauseActive, pct } from './model';
+import { FTUE_SHORT, ftueDoneCount, ftueRows, missionRatio, pauseActive } from './model';
 
 export type TodayChip = {
   key: 'sequencia' | 'bau' | 'missao';
@@ -86,10 +86,10 @@ export function todayData(input: { status: EngagementStatus | null; missions: En
     chips.push({ key: 'bau', testID: 'hoje-bau', icon: 'chest', value: String(n), label: n === 1 ? 'Baú' : 'Baús', href: '/recompensas' });
   }
   const featured = featuredMission(missions);
-  if (featured) {
-    chips.push({ key: 'missao', testID: 'hoje-missao', icon: 'trophy', value: pct(missionRatio(featured)), label: 'Missão', href: '/missoes' });
-  } else if (missions && missions.daily.length > 0) {
-    chips.push({ key: 'missao', testID: 'hoje-missao', icon: 'check', value: 'Feitas', label: 'Missões', href: '/missoes' });
+  // UX-17: chip fixo "Missões 1/3" (feitas de hoje / do dia), sem porcentagem quebrada.
+  if (missions && missions.daily.length > 0) {
+    const done = missions.daily.filter((m) => m.completedAt !== null).length;
+    chips.push({ key: 'missao', testID: 'hoje-missao', icon: done === missions.daily.length ? 'check' : 'trophy', value: `${done}/${missions.daily.length}`, label: 'Missões', href: '/missoes' });
   }
   return { chips, coach: coachOf(missions, now), featured, streak, chest: chestInfo };
 }

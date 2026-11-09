@@ -114,7 +114,19 @@ Prompt: `docs/melhoria/00-PROMPT-MELHORIA-COLOSSAL.md`. Equipes: `.claude/agents
 | T7.2 | Onda 2 — Jogo de verdade e fluxos (gravação v2, engajamento, compartilhar, primeira abertura, Mapa, Correr, Resumo) | E4–E9 | T7.1 | ✅ |
 | T7.3 | Onda 3 — Outras telas (Arena, Você, Clube, zona, secundárias) e medição depois | E6, E3, E7, E9, E10 | T7.2 | ✅ |
 | T7.4 | Onda 4 — QA adversarial e polimento | E10 + revisor + donos | T7.3 | ✅ |
-| T7.5 | Fechamento: docs, apresentação, ERS v1.2 (proposta), push final | Coordenador | T7.4 | 🟡 docs ✅; slides da v2 ✅ (P-41); falta o push (autores) |
+| T7.5 | Fechamento: docs, apresentação, ERS v1.2 (proposta), push final | Coordenador | T7.4 | ✅ docs e slides (P-41); o push segue com a coordenação junto com a Fase 8 |
+
+### Fase 8 — Finalização 100% (D-89 a D-99)
+Prompt: `docs/melhoria/01-PROMPT-FINALIZACAO-100.md`. Relatórios: `docs/melhoria/relatorios/F8-*.md`. Resultado: os 10 critérios de "100%" verdes (resumo em `docs/melhoria/PLANO-MESTRE.md`, seção "Fase 8").
+
+| ID | Etapa | Dono | Depende | Status |
+|---|---|---|---|---|
+| T8.F | Pesquisas (`docs/melhoria/F8/`), prompt da fase e decisões D-89 a D-97 | Coordenador + equipes de pesquisa (4 relatórios) | T7.4 | ✅ |
+| T8.A | Onda A — Fundação: emblemas (A1), uma verdade só no servidor e domínio (A2), navegação e estados (A3) | E4, E9 + E3, E6 | T8.F | ✅ |
+| T8.B | Onda B — Experiência: primeira abertura e capas (B1), engajamento (B2), telas que fecham (B3) | E6 + E4, E7, E6 + E8 | T8.A | ✅ |
+| T8.C | Onda C — Animações (C1), social que volta (C2), publicação e segurança (C3) | E5, E9 + E8 + E7, E10 + E9 | T8.B | ✅ |
+| T8.D | Onda D — QA adversarial e revisão de lógica e segurança até zerar Alto/Médio | E10 + revisor + donos | T8.C | ✅ |
+| T8.E | Fechamento: docs, guia de teste, slides com as telas da Fase 8 | Coordenador | T8.D | ✅ (push e PR para a `main`: coordenação/dono) |
 
 ## 5. Pós-MVP / próximos passos
 

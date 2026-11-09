@@ -418,7 +418,10 @@ function processActivity(db: DemoDb, st: EngState, userId: string, act: Row, liv
     band: { before: runnerBand(lifetimeBefore).band.id, after: runnerBand(lifetimeBefore + (f.scored ? f.meters : 0)).band.id },
     dailyChests: opened
       ? { opened: opened.prizes.map((p) => ({ n: p.n, rarity: p.rarity, xp: p.xp, cosmeticDrop: p.cosmeticId !== null || p.duplicate, cosmeticId: p.cosmeticId, duplicate: p.duplicate, guaranteed: p.guaranteed, bonus: p.bonus })), pityLeft: opened.pityLeft }
-      : { opened: [], reason: gate.ok ? 'already' : gate.reason, stored: chestState(db, st, userId, at).stored },
+      : (() => {
+          const c = chestState(db, st, userId, at);
+          return { opened: [], reason: gate.ok ? 'already' : gate.reason, stored: c.stored, bonusStored: c.bonus.length };
+        })(),
     missions: completed.map(({ slot: _slot, ...c }) => c),
     streak: { activitiesThisWeek: weekAfter, weekKept: kept > 0, weeks, best: Math.max(st.best, weeks), freezesLeft: Number(profile.freezes_left ?? 0), paused: isPaused(st, day) },
     season: { stepBefore, stepAfter, medal: seasonTrackStep(seasonXp(st, season)).medal },

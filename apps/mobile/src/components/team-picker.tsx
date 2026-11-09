@@ -28,7 +28,7 @@ export type TeamPickerCardProps = {
 /** Leitura do card: time, lema, estilo e se está escolhido. */
 export function teamCardLabel(f: FactionId): string {
   const t = TEAM_STORY[f];
-  return `${factions[f].name}. ${factions[f].motto}. Mascote: ${t.mascot}, ${t.mascotKind}. Estilo: ${t.style}.`;
+  return `${factions[f].name}. ${t.motto}. Mascote: ${t.mascot}, ${t.mascotKind}. Estilo: ${t.style}.`;
 }
 
 /** Card grande de um time (escolha no estilo Pokémon GO): mascote, nome, forma, estilo e 1 frase. */

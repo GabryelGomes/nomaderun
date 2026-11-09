@@ -15,7 +15,7 @@ const block = (before: number, after: number): RunEngagement => ({
   xp: { total: 80, lines: [] },
   level: { before, after, titleAfter: null },
   band: null,
-  dailyChests: { opened: [], pityLeft: null, reason: 'distance', stored: 0 },
+  dailyChests: { opened: [], pityLeft: null, reason: 'distance', stored: 0, bonusStored: 0 },
   missions: [],
   streak: null,
   season: null,

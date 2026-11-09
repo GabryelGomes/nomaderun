@@ -6,6 +6,8 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import { zoneNoticeText, zonePlaceName } from '@/domain/reminders';
+
 import { DemoAuth } from './auth';
 import { DEMO_BUCKETS, DemoDb, DemoPgError, type Row } from './db';
 import { functionsFetchError, functionsHttpError, runFunction } from './functions';
@@ -119,11 +121,12 @@ export function createDemoClient(opts: DemoClientOptions = {}): DemoClient {
             const me = auth.currentUserId();
             if (!me) return;
             const park = [...db.zones.values()].find((z) => z.attack_started_at !== null);
+            // C2: o mesmo formato do servidor (trigger notifications_zone_text): "até 02h30", zona sem número
+            const until = db.now() + 24 * 3600_000;
             db.insertNotification(me, {
               type: 'invasion',
-              title: 'Alerta de Invasão!',
-              body: `Seu território em ${park?.name ?? 'Parque Flamboyant'} está sendo conquistado pelos Urban Coyotes. Corra lá nas próximas 24h para defender.`,
-              data: park ? { zoneId: park.id } : {},
+              ...zoneNoticeText('invasion', { place: zonePlaceName(park?.name ?? 'Parque Flamboyant'), team: 'Urban Coyotes', until }),
+              data: park ? { zoneId: park.id, defendUntil: until } : { defendUntil: until },
             });
           });
         },

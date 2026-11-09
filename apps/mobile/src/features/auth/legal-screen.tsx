@@ -1,14 +1,15 @@
 import { router } from 'expo-router';
 import { View } from 'react-native';
 
-import { IconButton } from '@/components/button';
+import { Button, IconButton } from '@/components/button';
 import { Surface } from '@/components/surface';
 import { FadeUp, RevealText, Stagger } from '@/components/motion';
 import { Text } from '@/components/text';
-import { PRIVACY_VERSION, TERMS_VERSION } from '@/services/api/auth-repo';
+import { PRIVACY_UPDATED_AT, PRIVACY_VERSION, TERMS_VERSION } from '@/services/api/auth-repo';
 import { space } from '@/theme/tokens';
 
 import { FormScaffold } from './form-ui';
+import { DELETE_ACCOUNT_PATH, LEGAL_CONTACTS } from './legal-contacts';
 import { MIN_AGE } from './validation';
 
 type Section = { title: string; body: string[] };
@@ -47,12 +48,19 @@ const TERMS: Section[] = [
     title: '6. Disponibilidade e mudanças',
     body: [
       'Por ser um MVP, o serviço pode ficar fora do ar, perder dados de demonstração ou mudar regras de pontuação. Avisaremos no aplicativo sobre mudanças relevantes nestes termos.',
-      'Você pode encerrar sua conta a qualquer momento em Perfil > Conta e privacidade.',
+      'Você pode encerrar sua conta a qualquer momento em Você > Ajustes > Conta.',
     ],
   },
 ];
 
 const PRIVACY: Section[] = [
+  {
+    title: 'Quem cuida dos seus dados',
+    body: [
+      `Controladores: ${LEGAL_CONTACTS.controllerName}, pessoas físicas, autores do NOMADE RUN (${LEGAL_CONTACTS.controllerEmail}).`,
+      `Encarregado (DPO): ${LEGAL_CONTACTS.dpoName} (${LEGAL_CONTACTS.dpoEmail}). Fale com o encarregado para qualquer pedido sobre seus dados.`,
+    ],
+  },
   {
     title: '1. Quais dados coletamos',
     body: [
@@ -79,12 +87,15 @@ const PRIVACY: Section[] = [
     body: [
       'Tratamos os dados para executar o serviço que você contratou e com o seu consentimento, conforme a LGPD (Lei 13.709/2018). Não vendemos seus dados. Outros corredores veem apenas seu nome de usuário, time, cidade, nível e as zonas que você conquistou.',
       'Os dados ficam em servidores do provedor de nuvem do projeto (Supabase), com acesso restrito por usuário e comunicação criptografada.',
+      `Região dos servidores: ${LEGAL_CONTACTS.serverRegion}. Se ficarem fora do Brasil, a transferência internacional segue o art. 33 da LGPD, com as garantias contratuais do provedor.`,
     ],
   },
   {
     title: '5. Seus direitos',
     body: [
-      'Você pode ver e corrigir seus dados no perfil, exportar tudo em um arquivo JSON e excluir sua conta em Perfil > Conta e privacidade. Pedidos de exportação e exclusão são atendidos em até 30 dias; a exclusão pelo aplicativo é imediata para os dados pessoais.',
+      'Você pode ver e corrigir seus dados no perfil, exportar tudo em um arquivo e excluir sua conta em Você > Ajustes > Conta. Pedidos de exportação e exclusão são atendidos em até 30 dias; a exclusão pelo aplicativo é imediata para os dados pessoais.',
+      'Pelo art. 18 da LGPD, você pode pedir: confirmação de que tratamos seus dados, acesso, correção, anonimização ou eliminação do que for desnecessário, portabilidade, informação sobre com quem compartilhamos, revisão de decisões automáticas e a revogação do consentimento.',
+      `Sem o aplicativo, a exclusão também pode ser pedida pela página ${DELETE_ACCOUNT_PATH} do site do NOMADE RUN ou pelo e-mail do encarregado.`,
     ],
   },
   {
@@ -105,7 +116,7 @@ export function LegalScreen({ kind }: { kind: 'termos' | 'privacidade' }) {
           <RevealText testID="legal-titulo">{terms ? 'Termos de Uso' : 'Política de Privacidade'}</RevealText>
           <FadeUp delay={150}>
             <Text variant="small" muted>
-              Versão {terms ? TERMS_VERSION : PRIVACY_VERSION}
+              Versão {terms ? TERMS_VERSION : `${PRIVACY_VERSION} · atualizada em ${PRIVACY_UPDATED_AT}`}
             </Text>
           </FadeUp>
         </View>
@@ -124,6 +135,17 @@ export function LegalScreen({ kind }: { kind: 'termos' | 'privacidade' }) {
             ))}
           </Surface>
         ))}
+        {terms ? null : (
+          <Button
+            testID="legal-excluir-conta"
+            label="Como excluir sua conta"
+            kind="secondary"
+            icon="lock"
+            wide
+            accessibilityHint="Abre a página com o passo a passo para excluir a conta pelo app ou por e-mail"
+            onPress={() => router.push(DELETE_ACCOUNT_PATH)}
+          />
+        )}
       </Stagger>
     </FormScaffold>
   );

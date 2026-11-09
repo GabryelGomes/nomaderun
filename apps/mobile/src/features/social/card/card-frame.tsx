@@ -10,11 +10,12 @@ import { Platform } from 'react-native';
 import Svg from 'react-native-svg';
 
 import { LogoSvgArt } from '@/components/art';
+import { TEAM_BIO } from '@/domain/team-bio';
 import type { FactionId } from '@/domain/types';
 
 import type { ShareCardFormat } from './card-model';
 import { CARD_FORMATS } from './card-sizes';
-import { Background, CardText, cardColors, DemoStamp, StatusTag, TeamPill } from './card-parts';
+import { Background, CardText, cardColors, DemoStamp, StatusTag, TeamPill, teamColor } from './card-parts';
 import { cardFonts, truncateToWidth } from './font-metrics';
 
 export { CARD_FORMATS };
@@ -60,6 +61,11 @@ export function cardLogoLayout(format: ShareCardFormat) {
 export const CARD_SLOGAN_STORIES ='CORRA A SUA CIDADE. CADA RUA CONTA.';
 export const CARD_SLOGAN_FEED = 'CORRA A SUA CIDADE.';
 
+/** C2 (E8, D-93): o lema do time (fonte única `team-bio`) nos Stories, logo acima do slogan. */
+export const cardMotto = (faction: FactionId) => TEAM_BIO[faction].motto.toUpperCase();
+/** Rótulo do card nos Stories: o do modelo + o lema (o leitor de tela recebe a frase inteira). */
+export const storiesA11yLabel = (label: string, faction: FactionId) => `${label} Lema dos ${TEAM_BIO[faction].name}: ${TEAM_BIO[faction].motto}.`;
+
 export type CardSurfaceProps = {
   /** Largura de exibição (dp). A altura segue a proporção do formato. Padrão: o tamanho real em pixels. */
   width?: number;
@@ -86,7 +92,7 @@ export function CardFrame({ format, faction, isDemo, username, statusTag, a11yLa
   const displayW = width ?? W;
   const logo = cardLogoLayout(format);
   return (
-    <Svg ref={svgRef} width={displayW} height={(displayW * H) / W} viewBox={`0 0 ${W} ${H}`} testID={testID} accessible={A11Y_GROUP} accessibilityRole="image" accessibilityLabel={a11yLabel}>
+    <Svg ref={svgRef} width={displayW} height={(displayW * H) / W} viewBox={`0 0 ${W} ${H}`} testID={testID} accessible={A11Y_GROUP} accessibilityRole="image" accessibilityLabel={stories ? storiesA11yLabel(a11yLabel, faction) : a11yLabel}>
       <Background id={bgId} W={W} H={H} faction={faction} {...bg} />
       {children}
       <LogoSvgArt variant="horizontal" box={logo.box} quality="completo" />
@@ -99,6 +105,9 @@ export function CardFrame({ format, faction, isDemo, username, statusTag, a11yLa
       {statusTag ? <StatusTag right={W - 72} cy={top + 62} label={statusTag} /> : null}
       {stories ? (
         <>
+          <CardText x={W / 2} y={1728} size={30} fill={teamColor(faction)} ls={6} anchor="middle">
+            {cardMotto(faction)}
+          </CardText>
           <CardText x={W / 2} y={1780} size={24} fill={cardColors.ink2} ls={5} anchor="middle">
             {CARD_SLOGAN_STORIES}
           </CardText>

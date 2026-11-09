@@ -99,9 +99,9 @@ export function FeedRunCard({ testID, path, title, distance, detail, badges = []
           </View>
         ) : null}
       </View>
-      {aside ? <View style={{ alignSelf: 'center' }}>{aside}</View> : null}
     </>
   );
+  const asideNode = aside ? <View style={{ alignSelf: 'center' }}>{aside}</View> : null;
   const frame = {
     flexDirection: 'row' as const,
     gap: space[3],
@@ -112,6 +112,17 @@ export function FeedRunCard({ testID, path, title, distance, detail, badges = []
     borderWidth: 1,
     borderColor: colors.line,
   };
+  // Com ação no canto (ex.: "Compartilhar", F8-B3), o canto fica fora da área de toque do card: dois alvos, sem aninhar botões.
+  if (onPress && asideNode) {
+    return (
+      <View style={[frame, { padding: 0, gap: 0, alignItems: 'center', paddingRight: space[3] }]}>
+        <PressableScale testID={testID} accessibilityLabel={label} accessibilityHint="Abre a corrida" onPress={onPress} hitSlop={0} containerStyle={{ flex: 1 }} style={{ flexDirection: 'row', gap: space[3], padding: space[3] }}>
+          {body}
+        </PressableScale>
+        {asideNode}
+      </View>
+    );
+  }
   return onPress ? (
     <PressableScale testID={testID} accessibilityLabel={label} accessibilityHint="Abre a corrida" onPress={onPress} hitSlop={0} style={frame}>
       {body}
@@ -119,6 +130,7 @@ export function FeedRunCard({ testID, path, title, distance, detail, badges = []
   ) : (
     <View testID={testID} accessible={!aside} accessibilityLabel={aside ? undefined : label} style={frame}>
       {body}
+      {asideNode}
     </View>
   );
 }

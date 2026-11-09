@@ -1,0 +1,62 @@
+{
+  "mapa__vazio": {
+    "url": "/?cenario=vazio",
+    "palavras": 31,
+    "erros": []
+  },
+  "mapa__cheio": {
+    "url": "/?cenario=cheio",
+    "palavras": 30,
+    "erros": []
+  },
+  "mapa__segunda": {
+    "url": "/?cenario=cheio",
+    "palavras": 37,
+    "erros": []
+  },
+  "missoes__cheio": {
+    "url": "/missoes?cenario=cheio",
+    "palavras": 87,
+    "erros": []
+  },
+  "missoes__cheio--2": {
+    "url": "/missoes?cenario=cheio",
+    "palavras": 87,
+    "erros": []
+  },
+  "x-voce-medalhas-toque": {
+    "url": "/perfil?cenario=cheio",
+    "palavras": 71,
+    "erros": []
+  },
+  "voce__cheio--2": {
+    "url": "/perfil?cenario=cheio",
+    "palavras": 59,
+    "erros": []
+  },
+  "recompensas__cheio": {
+    "url": "/recompensas?cenario=cheio",
+    "palavras": 122,
+    "erros": []
+  },
+  "x-recompensas-cosmeticos-todos--2": {
+    "url": "/recompensas?cenario=cheio",
+    "palavras": 258,
+    "erros": []
+  },
+  "x-arena-ajuda": {
+    "url": "/arena?cenario=cheio",
+    "palavras": 176,
+    "erros": []
+  },
+  "x-arena-ajuda--2": {
+    "url": "/arena?cenario=cheio",
+    "palavras": 176,
+    "erros": []
+  },
+  "notificacoes__cheio": {
+    "url": "/notificacoes?cenario=cheio",
+    "palavras": 98,
+    "erros": []
+  }
+}

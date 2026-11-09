@@ -120,6 +120,8 @@ export default function RootLayout() {
             <Stack.Screen name="recompensas" options={{ ...pushHeader, ...push, title: 'Recompensas' }} />
             {/* D-73: Atividades moraram para "Você"; o endereço antigo só redireciona. */}
             <Stack.Screen name="atividades" options={fade} />
+            {/* D-89: a aba Correr saiu; `/correr` (links antigos) só redireciona para a Nova corrida. */}
+            <Stack.Screen name="correr" options={fade} />
             {/* D-78/D-79 (E8): compartilhar a corrida e o feed da crew precisam de sessão. */}
             <Stack.Screen name="compartilhar/[id]" options={{ presentation: 'modal', ...modal }} />
             <Stack.Screen name="compartilhar/semana" options={{ presentation: 'modal', ...modal }} />
@@ -144,6 +146,8 @@ export default function RootLayout() {
           <Stack.Screen name="compartilhar/convite/[codigo]" options={{ presentation: 'modal', ...modal }} />
           <Stack.Screen name="termos" options={{ presentation: 'modal', ...modal }} />
           <Stack.Screen name="privacidade" options={{ presentation: 'modal', ...modal }} />
+          {/* D-99: página pública de exclusão de conta (Google Play), aberta com ou sem sessão. */}
+          <Stack.Screen name="excluir-conta" options={{ presentation: 'modal', ...modal }} />
         </Stack>
         <LinkConfirmDialog />
         {/* D-77: dado de demonstração sempre identificado; o selo fica fixo por cima de tudo. */}

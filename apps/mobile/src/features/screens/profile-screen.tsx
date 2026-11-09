@@ -1,29 +1,37 @@
 import { Image } from 'expo-image';
 import { router, type Href } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
-import { Mascot, Medal } from '@/components/art';
-import { FadeUp, ProgressRing, Stagger } from '@/components/motion';
+import { Medal, medalLabel, TeamEmblem } from '@/components/art';
+import { FadeUp, PressableScale, ProgressRing, ShimmerSkeleton, Stagger } from '@/components/motion';
+import { OfflineNotice } from '@/components/offline-notice';
 import { ScreenScroll } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { SettingsRow } from '@/components/settings-row';
 import { PlayerCard } from '@/components/player-card';
 import { StatTile } from '@/components/stat-tile';
 import { Text } from '@/components/text';
-import { districtsExploration, levelFromXp } from '@/domain/games';
+import { districtsExploration } from '@/domain/games';
 import { formatKm } from '@/domain/geo';
-import { titleForLevel } from '@/domain/progression';
-import { useEngagementData } from '@/features/engagement';
+import { levelProgress, titleForLevel } from '@/domain/progression';
+import { formatInt, NO_DATA } from '@/features/format';
 import { mergeHistory } from '@/features/run/history-model';
 import { useNow } from '@/features/use-now';
 import { listMyActivities } from '@/services/api/activities-repo';
 import { useGame } from '@/store/game-store';
 import { useSession } from '@/store/session-store';
-import { neonTeam } from '@/theme/neon';
+import { neon, neonTeam } from '@/theme/neon';
 import { factions, fonts, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-import { conqueredZones, initialsOf, medalShelf, weekKm } from './profile-screen.model';
+import { useEngagementData } from '@/features/engagement';
+import { useRecruitFrame } from '@/features/engagement/recruit-frame';
+import { AtlasStamps } from '@/features/engagement/atlas-stamps';
+import { MedalSheet, medalInfo, type MedalInfo } from '@/features/engagement/medal-sheet';
+import { districtStamps } from '@/features/engagement/moments';
+
+import { conqueredZones, initialsOf, medalShelf, SHELF_RULES, weekKm } from './profile-screen.model';
 import { useResource } from './use-resource';
 
 /** Rotas da aba "Você" (D-73). */
@@ -47,6 +55,10 @@ export function ProfileScreen() {
   const serverRuns = useGame((s) => s.serverRuns);
   const localRuns = useGame((s) => s.localRuns);
   const profile = useSession((s) => s.profile);
+  const profileError = useSession((s) => s.profileError);
+  const profileSavedAt = useSession((s) => s.profileSavedAt);
+  const historySync = useGame((s) => s.sync.history);
+  const fogSync = useGame((s) => s.sync.fog);
   const userId = useSession((s) => s.session?.userId ?? null);
   const now = useNow(60_000);
   const { track } = useEngagementData();
@@ -54,9 +66,11 @@ export function ProfileScreen() {
   const all = useResource(() => listMyActivities({ limit: 200 }), [userId]);
 
   const faction = gameFaction ?? profile?.faction ?? 'striders';
+  // C2 (E7): a moldura "Recruta" do servidor (ou da cerimônia, no aparelho) aparece no cartão
+  const frameName = useRecruitFrame(userId);
   const team = factions[faction];
   const display = name || profile?.username || 'Corredor';
-  const lvl = levelFromXp(xp);
+  const lvl = levelProgress(xp); // D-92: a mesma curva do servidor e das Recompensas
   const runsSource = all.data ?? serverRuns;
   const history = mergeHistory(runsSource, localRuns);
   const counted = history.filter((h) => h.counts);
@@ -64,14 +78,34 @@ export function ProfileScreen() {
   const totalKm = history.filter((h) => h.tag !== 'rejeitada' && h.tag !== 'erro').reduce((s, h) => s + h.meters, 0);
   const week = weekKm(history, now);
   const atlas = districtsExploration(fog)[0]?.pct ?? 0;
-  const shelf = medalShelf({ runs: counted.length, zones, atlasCells: fog.length, streakWeeks });
+  const shelfInput = { runs: counted.length, zones, atlasCells: fog.length, streakWeeks };
+  const shelf = medalShelf(shelfInput);
+  // UX-34: medalha tocável → folha com nome, critério e progresso (número real). Atlas: carimbos de bairro (5.8).
+  const [medal, setMedal] = useState<MedalInfo | null>(null);
+  const openMedal = (kind: (typeof SHELF_RULES)[number]['kind']) => {
+    const rule = SHELF_RULES.find((r) => r.kind === kind);
+    if (rule) setMedal(medalInfo(kind, rule.metric, shelfInput[rule.metric], rule.steps));
+  };
+  const stamps = useMemo(() => (all.data ? districtStamps(all.data) : []), [all.data]);
   const season = track.data;
+  // D-95: número só quando ele é conhecido (do servidor, agora ou antes); carregando = esqueleto; falhou = "—".
+  const runsKnown = all.data !== null || historySync.at !== null;
+  const runsFailed = !runsKnown && (all.error !== null || historySync.failed);
+  const atlasKnown = fogSync.at !== null;
+  const notice = all.error ?? (profile && profileError ? profileError : null);
+  const noticeSavedAt = all.error ? (all.savedAt ?? historySync.at) : (profileSavedAt ?? null);
+  const tiles: { testID: string; label: string; value: string; unit?: string; accent?: string; known: boolean; failed: boolean }[] = [
+    { testID: 'perfil-km', label: 'Distância', value: formatKm(totalKm, totalKm >= 100_000 ? 0 : 1), unit: 'km', known: runsKnown, failed: runsFailed },
+    { testID: 'perfil-zonas', label: 'Zonas', value: formatInt(zones), accent: neonTeam[faction], known: runsKnown, failed: runsFailed },
+    { testID: 'perfil-atlas', label: 'Atlas', value: String(atlas), unit: '% do bairro', known: atlasKnown, failed: !atlasKnown && (fogSync.failed || notice !== null) },
+  ];
 
   const avatar = profile?.avatarUrl ? (
     <Image testID="perfil-avatar-foto" source={{ uri: profile.avatarUrl }} style={{ width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2 }} contentFit="cover" />
   ) : (
-    <View style={{ width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: team.color }}>
-      <Text style={{ fontFamily: fonts.display, fontSize: 22, lineHeight: 26 }} color={team.onColor} maxFontSizeMultiplier={1}>
+    // D-90 (F8-D): ao lado do emblema neon, o avatar usa o neon do time (não o sólido do mapa), com tinta escura (≥ 5:1).
+    <View testID="perfil-avatar-iniciais" style={{ width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: neonTeam[faction] }}>
+      <Text style={{ fontFamily: fonts.display, fontSize: 22, lineHeight: 26 }} color={neon.bg} maxFontSizeMultiplier={1}>
         {initialsOf(display)}
       </Text>
     </View>
@@ -79,6 +113,16 @@ export function ProfileScreen() {
 
   return (
     <ScreenScroll testID="tela-perfil" edges={[]} contentInsetAdjustmentBehavior="automatic" gap={space[6]}>
+      {notice ? (
+        <OfflineNotice
+          testID="perfil-sem-conexao"
+          code={notice.code}
+          hasData={all.error ? runsKnown : true}
+          savedAt={noticeSavedAt}
+          onRetry={() => void all.reload()}
+          busy={all.loading}
+        />
+      ) : null}
       <FadeUp>
         <PlayerCard
           testID="perfil-cartao"
@@ -100,15 +144,20 @@ export function ProfileScreen() {
               accessibilityLabel={`Nível ${lvl.level}: ${lvl.intoLevel} de ${lvl.needed} XP`}
             />
           }
-          mascot={<Mascot team={faction} pose="parado" size={72} animated />}
+          mascot={<TeamEmblem team={faction} size={72} variant="medio" />}
+          frameName={frameName}
           onPress={() => router.push('/recompensas' as Href)}
         />
       </FadeUp>
 
       <Stagger delay={120} style={{ flexDirection: 'row', gap: space[2] }} itemStyle={{ flex: 1 }}>
-        <StatTile testID="perfil-km" label="Distância" value={formatKm(totalKm, totalKm >= 100_000 ? 0 : 1)} unit="km" />
-        <StatTile testID="perfil-zonas" label="Zonas" value={String(zones)} accent={neonTeam[faction]} />
-        <StatTile testID="perfil-atlas" label="Atlas" value={String(atlas)} unit="% do bairro" />
+        {tiles.map((t) =>
+          t.known || t.failed ? (
+            <StatTile key={t.testID} testID={t.testID} label={t.label} value={t.known ? t.value : NO_DATA} unit={t.known ? t.unit : undefined} accent={t.known ? t.accent : undefined} />
+          ) : (
+            <ShimmerSkeleton key={t.testID} testID={`${t.testID}-carregando`} shape="card" height={88} accessibilityLabel={`Carregando ${t.label.toLowerCase()}`} />
+          ),
+        )}
       </Stagger>
 
       <FadeUp delay={200} style={{ gap: space[2] }}>
@@ -116,26 +165,47 @@ export function ProfileScreen() {
           testID="perfil-medalhas-titulo"
           title="Medalhas"
           action={
-            <Text testID="perfil-medalhas-contagem" variant="bodyBold" color={colors.accentText} tabular>
-              {shelf.earned} de {shelf.total}
-            </Text>
+            // Carregando: nada (o esqueleto está logo abaixo); falhou: "—"; nunca "0 de 4".
+            runsKnown || runsFailed ? (
+              <Text testID="perfil-medalhas-contagem" variant="bodyBold" color={colors.accentText} tabular>
+                {runsKnown ? `${shelf.earned} de ${shelf.total}` : NO_DATA}
+              </Text>
+            ) : undefined
           }
         />
-        <View testID="perfil-medalhas" style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: space[1] }}>
-          {shelf.medals.map((m) => (
-            <Medal key={m.kind} kind={m.kind} tier={m.tier} locked={m.locked} size={64} quality="leve" />
-          ))}
-        </View>
+        {runsKnown ? (
+          <View testID="perfil-medalhas" style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: space[1] }}>
+            {shelf.medals.map((m) => (
+              <PressableScale
+                key={m.kind}
+                testID={`perfil-medalha-${m.kind}`}
+                accessibilityLabel={`${medalLabel(m.kind, m.tier, m.locked)}. Toque para ver como ganhar`}
+                onPress={() => openMedal(m.kind)}
+                hitSlop={0}
+                style={{ minWidth: 64, minHeight: 64, alignItems: 'center', justifyContent: 'center' }}>
+                <Medal kind={m.kind} tier={m.tier} locked={m.locked} size={64} quality="leve" />
+              </PressableScale>
+            ))}
+          </View>
+        ) : runsFailed ? null : (
+          <ShimmerSkeleton testID="perfil-medalhas-carregando" shape="card" height={64} accessibilityLabel="Carregando as medalhas" />
+        )}
       </FadeUp>
+
+      {stamps.length > 0 ? (
+        <FadeUp delay={230}>
+          <AtlasStamps stamps={stamps} />
+        </FadeUp>
+      ) : null}
 
       <FadeUp delay={260}>
         <View style={{ borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, overflow: 'hidden' }}>
           <SettingsRow
             testID="voce-atividades"
             icon="activities"
-            title="Corridas"
+            title="Atividades"
             value={week.total > 0 ? `${formatKm(week.total * 1000, 1)} km na semana` : undefined}
-            accessibilityLabel={week.total > 0 ? `Corridas, ${formatKm(week.total * 1000, 1)} quilômetros nesta semana` : 'Corridas'}
+            accessibilityLabel={week.total > 0 ? `Atividades, ${formatKm(week.total * 1000, 1)} quilômetros nesta semana` : 'Atividades'}
             onPress={() => router.push(VOCE_ROUTES.corridas as Href)}
           />
           <SettingsRow testID="perfil-time" icon="flag" title="Meu time" value={team.name} onPress={() => router.push(VOCE_ROUTES.time as Href)} />
@@ -149,6 +219,7 @@ export function ProfileScreen() {
           />
         </View>
       </FadeUp>
+      <MedalSheet info={medal} onClose={() => setMedal(null)} />
     </ScreenScroll>
   );
 }

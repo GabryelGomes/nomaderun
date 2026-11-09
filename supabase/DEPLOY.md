@@ -217,6 +217,49 @@ Resumo das seções 7 a 9 mais as correções da revisão (`20261028120000_revie
 
 **Para desligar a v2 de uma vez** (o que já foi gravado fica): `update public.game_config set value = (select jsonb_object_agg(k, false) from jsonb_object_keys(value) k) where key = 'features';` e `territory_rule = 'v1'`.
 
+## 10.1 Fase 8 · A2 (`20261031120000_f8_fundacao`)
+
+Mesma ordem da §10: **migration → functions → EAS Update**. Nada liga sozinho e nada muda para o app antigo.
+
+| Passo | O quê | Observação |
+|---|---|---|
+| 1 | Testes locais | `NR_PORT=54345 npm run db:test:local` (**877** pgTAP em 31 arquivos), `npm run functions:test` (Deno: 94 ok, 1 ignorado), `npm run functions:check` |
+| 2 | Migration | `npx supabase db push` (só `20261031120000_f8_fundacao`): `faction_activity()`, `crew_echo()`, `svc_paint_milestones()` e o índice `activities_scored_started_idx`. Sem tabela, job, flag ou Realtime novos |
+| 3 | Functions | `npx supabase functions deploy finish-activity moderate-activity` (o `runV2` passa a pedir os marcos). Function nova com banco antigo: a chamada falha, é registrada no log e a resposta sai sem `extras.milestones`. Banco novo com function antiga: nada muda |
+| 4 | App | EAS Update. App antigo com servidor novo: ignora as RPCs e o campo novo. App novo com servidor antigo: `faction_activity`/`crew_echo` viram `{ available: false }` (sem selo, sem eco) |
+
+**Volta atrás:** basta não usar (as RPCs são só leitura e o marco é um campo a mais em `v2_extras`). Se precisar: `drop function public.faction_activity(), public.crew_echo(), private.crew_echo_at(uuid, timestamptz), public.svc_paint_milestones(uuid, uuid), private.paint_cells_of(jsonb);` (a function antiga segue funcionando sem elas).
+
+Na máquina com Docker: `npm run db:reset`, `npm run db:test:psql`, `npm run e2e` e `npm run functions:bundle-check`.
+
+## 10.2 Fase 8 · C2 (`20261104120200_f8_social`)
+
+Depois da C3 (`20261104120100_rate_limit`). Mesma ordem: **migration → functions → EAS Update**.
+
+| Passo | O quê | Observação |
+|---|---|---|
+| 1 | Testes locais | `NR_PORT=54347 npm run db:test:local` (**941** pgTAP em 33 arquivos; com o seed v2, 951 em 34), Deno em `supabase/functions` (`deno test -A`: 106 ok, 1 ignorado) e `deno check` das 9 functions |
+| 2 | Migration | `npx supabase db push`: `faction_activity()` para `anon`, moldura `moldura-recruta` (catálogo + `choose_faction` + trigger + backfill), `activityId` no item do próprio feed, `landmarks` + `zones.near_ref` (trigger + backfill), `nearRef` em `/zones`, `/zone/:id` e `zone_paint_near`, trigger `notifications_zone_text`. Sem job, flag ou Realtime novos |
+| 3 | Functions | `npx supabase functions deploy zones` (passa `nearRef`). `zone` não muda (o detalhe já vem com `nearRef`). Function antiga com banco novo: só não manda `nearRef` |
+| 4 | App | EAS Update. Compatível nos dois sentidos (`docs/API_CONTRATO.md`, seção "Fase 8 · C2") |
+| 5 | Marcos | Novos marcos da cidade: `insert into public.landmarks (name, near_phrase, lat, lng) values (...)` e `update public.zones set name = name` nas zonas da região (o trigger recalcula `near_ref`) |
+
+**Volta atrás:** `drop trigger notifications_zone_text on public.notifications; drop trigger zones_near_ref on public.zones; drop trigger profiles_recruit_frame on public.profiles; revoke execute on function public.faction_activity() from anon;` (as colunas e a tabela nova ficam: o app antigo não lê). Para voltar `choose_faction`, `feed_item_json`, `zones_in_bbox_json`, `svc_zone_detail` e `zone_paint_near` ao texto anterior, reaplicar a definição das migrations `20261022120000`, `20261023120800`, `20261020120200` e `20261029120000`.
+
+Na máquina com Docker: `npm run db:reset`, `npm run db:test:psql`, `npm run e2e` e `npm run functions:bundle-check`.
+
+### Fase 8 · D — correções da revisão (`20261104120300_f8_revisao`)
+
+Depois da C2 (`20261104120200_f8_social`). Ordem: **migration → EAS Update** (nenhuma function muda).
+
+| Passo | O quê | Observação |
+|---|---|---|
+| 1 | Testes locais | `NR_PORT=54353 npm run db:test:local` (**964** pgTAP em 34 arquivos), Deno em `supabase/functions` (`deno test -A`: 108 ok, 1 ignorado) e `deno check` das functions |
+| 2 | Migration | `npx supabase db push`: eco da crew sem colega de mapa oculto (M2) e sem colega de outro tipo de conta, com `isDemo` (B5); `join_crew` recusa crew de outro tipo de conta (B5); `faction_activity()` sem sessão só `{ needsBoost, isDemo }` do cache `private.faction_activity_cache` (B1). Sem job, flag ou Realtime novos |
+| 3 | App | EAS Update. Compatível nos dois sentidos (`docs/API_CONTRATO.md`, seção "Fase 8 · D") |
+
+**Volta atrás:** reaplicar as definições de `public.faction_activity()` (`20261104120200_f8_social`), `private.crew_echo_at(uuid, timestamptz)` (`20261031120000_f8_fundacao`) e `public.join_crew(text)` (`20261022120000_qa_hardening`). A tabela `private.faction_activity_cache` e as funções privadas novas podem ficar (ninguém de fora lê); se quiser tirar: `drop function private.faction_activity_anon_at(timestamptz), private.faction_counts(boolean, timestamptz), private.faction_needing_boost(jsonb); drop table private.faction_activity_cache;` (depois de reaplicar `faction_activity`).
+
 ## 11. Versão web na Vercel
 
 A Vercel hospeda só as telas (o export web do Expo). O servidor continua no Supabase Cloud (§10). A configuração está em `apps/mobile/vercel.json`.
@@ -231,3 +274,25 @@ A Vercel hospeda só as telas (o export web do Expo). O servidor continua no Sup
 | 6 | Conferir | Abrir `/`, `/entrar`, `/privacidade` e um link com parâmetro, como `/zona/<id>` e `/compartilhar/convite/<codigo>`: as rotas com parâmetro dependem dos `rewrites` do `vercel.json` (o export gera `zona/[id].html` etc.). Se alguma der 404, confira o nome do arquivo em `dist/` e ajuste o `rewrites`. |
 
 Testado aqui: `npx expo export -p web --clear` gera as 4 páginas com parâmetro (`zona/[id]`, `compartilhar/[id]`, `compartilhar/convite/[codigo]`, `moderacao/[id]`). O roteamento na Vercel em si só dá para conferir depois do primeiro deploy (passo 6).
+
+## 12. Publicação (Fase 8 · C3, D-99): OTA, lojas, limite de chamadas e pacote legal
+
+Tudo abaixo é feito **pelos autores**, logados nas próprias contas. O repositório já está pronto para receber cada passo.
+
+| Passo | O quê | Como |
+|---|---|---|
+| 1 | Projeto no EAS (`projectId`) | Em `apps/mobile`: `npx eas-cli@latest login` e `npx eas-cli@latest init`. Como o app usa `app.config.js`, o EAS pode pedir para colar o ID à mão: troque `COLE-AQUI-O-PROJECT-ID-DO-EAS-INIT` em `app.json` → `expo.extra.eas.projectId` pelo UUID. O `updates.url` (`https://u.expo.dev/<projectId>`) sai sozinho desse campo; com o marcador, o OTA fica desligado e o `npm run publicar`/`npm run apk` recusam (`apps/mobile/scripts/check-publicacao.js`). Depois, `npx eas-cli@latest update:configure` só para conferir (não deve mudar nada além do que já está) e commite o diff. |
+| 2 | Identificador nas lojas | `android.package` e `ios.bundleIdentifier` = `br.com.nomaderun.app`. Confirme antes do 1º build: depois de publicado na loja, não dá para trocar. |
+| 3 | APK com OTA | `npm run apk` (perfil `preview`, canal `demo`, ambiente `preview`). Só um build **novo** passa a procurar updates: o APK antigo, sem `expo-updates`, nunca recebe nada. |
+| 4 | Publicar um update | `npm run publicar -- "mensagem"` grava as `EXPO_PUBLIC_*` no ambiente do EAS e publica com `--branch demo --environment preview` (`BRANCH=` e `EAS_ENV=` mudam). O canal `demo` (do APK, `eas.json` → `preview`) aponta para a branch `demo`; o EAS cria esse canal no 1º `npm run apk` (ou `npx eas-cli@latest channel:create demo`). No aparelho: feche o app de vez e abra de novo, até 2 vezes (a 1ª abertura baixa, a 2ª usa). A `runtimeVersion` é a do SDK (`exposdk:57.0.0`, veja "Expo Go e runtime" abaixo). |
+| 5 | Limite de chamadas | `supabase db push` aplica `20261104120100_rate_limit.sql` (tabela `private.rate_limits` + `svc_rate_limit_hit`) e `supabase functions deploy` sobe as functions com `enforceRateLimit`. Limites: 60/min geral, 180/min no mapa (`/zones` e `/zone`, F8-D B2), 120/min no `ingest-points`, 10/min no `finish-activity`, 5/min em `account-export`/`account-delete`. Sem a migration, as functions usam um contador em memória (mais frouxo) e seguem funcionando. Conferir: 11 chamadas seguidas de `finish-activity` com o mesmo token → a 11ª volta `429 RATE_LIMITED` com `Retry-After`. |
+| 6 | Política de Privacidade | **Preenchida na F8-D (M3), o dono confirma:** controladores "Gabryel Gomes Bahmad Camapum e Mateus Augusto de Faria Brito" (pessoas físicas, autores), encarregado "Gabryel Gomes Bahmad Camapum", e-mail `byelgomys@gmail.com` e região "América do Sul (São Paulo, Brasil)" (a do passo 1 da §1; confira em Settings → General). Fonte única: `apps/mobile/src/features/auth/legal-contacts.ts`. Mudou algum campo? Suba `PRIVACY_VERSION` e `PRIVACY_UPDATED_AT` (`services/api/auth-repo.ts`). Um marcador `[...]` faz o Jest (`src/__tests__/publicacao.test.ts`) falhar e a trava `check-publicacao.js` **recusar por padrão** o `publicar`/`apk` (só passa com `NOMADE_DEMO_OK=1`, para teste interno). Texto final com revisão jurídica, junto da decisão 16+ × 18+ (ECA Digital). |
+| 7 | Página de exclusão de conta | Depois do deploy web (§11), o link para o Google Play é `https://<domínio>/excluir-conta` (página estática, abre sem login). Abra-a uma vez no domínio final. |
+| 8 | Antes de abrir para pessoas reais | SMTP próprio + confirmação de e-mail (§3), trocar as senhas das contas demo (§10, A-1) e, se houver build com push, ligar o canal (D-97). Lista completa em `docs/melhoria/relatorios/F8-C3.md`. |
+
+**Expo Go e runtime (F8-D, M4).** O app é distribuído pelo **Expo Go** (opção A do guia de teste) e pelo APK do canal `demo`. O Expo Go só abre updates do EAS cuja `runtimeVersion` é a do SDK, por isso `app.json` usa `runtimeVersion: { policy: "sdkVersion" }`: cada `npm run publicar` sai com a runtime `exposdk:57.0.0` e serve aos dois. Link para o Expo Go (o QR também aparece na página do update em expo.dev): `exp://u.expo.dev/<projectId>?channel-name=demo&runtime-version=exposdk:57.0.0`. Não conferido nesta sessão (`docs.expo.dev` e `api.expo.dev` bloqueados): abra o link no Expo Go 57 depois do 1º `publicar`.
+
+Consequências:
+- **Pacote nativo novo precisa de build novo de qualquer jeito.** Com `sdkVersion`, mudar a versão do app (`expo.version`) **não** separa os updates: um update que dependa de um módulo nativo novo chegaria ao APK antigo e ao Expo Go e quebraria. Regra: só `npx expo install` de pacotes que já vêm no Expo Go 57. Se um dia o app precisar de módulo nativo fora do Expo Go, o Expo Go deixa de servir: troque a política para `appVersion` (ou `fingerprint`), suba `expo.version`, gere APK novo e mude o guia para o APK.
+- **Troca de SDK** (58, 59…) muda a runtime sozinha: os updates antigos param de chegar ao Expo Go novo, e é preciso APK novo e `publicar` de novo.
+- Branch e canal usados pelo `publicar.sh`: branch `demo` (`BRANCH=`), ambiente `preview` (`EAS_ENV=`); o APK lê o canal `demo` → branch `demo`. O perfil `production` (canal `production`) fica para a loja.

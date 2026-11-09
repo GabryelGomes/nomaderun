@@ -80,8 +80,9 @@ select results_eq($$ select owner, attacker, version from public.zones where id 
 select is((select status from public.activities where id = 'a6666666-0000-4000-8000-000000000001'), 'valid', 'corrida finalizada');
 select is((select xp from public.profiles where id = '66666666-0000-4000-8000-000000000001'), 6, 'XP somado ao perfil');
 select is((select count(*)::int from public.fog_cells where user_id = '66666666-0000-4000-8000-000000000001'), 1, 'neblina gravada');
-select is((select body from public.notifications where user_id = '66666666-0000-4000-8000-000000000002' and type = 'invasion'),
-  'Seu território em Zona 8177 está sendo conquistado pelos Urban Coyotes. Corra lá nas próximas 24h para defender.',
+-- C2 (20261104120200): formato único dos avisos (zona sem número, "até 02h30"); conferido em detalhe no 33
+select matches((select body from public.notifications where user_id = '66666666-0000-4000-8000-000000000002' and type = 'invasion'),
+  '^Os Urban Coyotes estão pintando suas ruas em Zona\. Defenda até [0-2][0-9]h[0-5][0-9]\.$',
   'texto do alerta de invasão (RF-009)');
 select is((public.svc_apply_activity_result(pg_temp.result('a6666666-0000-4000-8000-000000000001', '891f1d48177ffff', 4, '{}'::jsonb)) ->> 'error'),
   'ALREADY_FINISHED', 'finalizar de novo não aplica pontos duas vezes');

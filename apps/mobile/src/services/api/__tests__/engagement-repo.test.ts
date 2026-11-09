@@ -89,7 +89,7 @@ describe('leitura tolerante', () => {
     })!;
     expect(e.xp.lines.map((l) => l.label)).toEqual(['Distância', 'Atividade concluída']);
     expect(e.level.titleAfter?.name).toBe('Pé na Rua');
-    expect(e.dailyChests).toEqual({ opened: [], pityLeft: null, reason: 'distance', stored: 2 });
+    expect(e.dailyChests).toEqual({ opened: [], pityLeft: null, reason: 'distance', stored: 2, bonusStored: 0 });
     expect(e.missions[0].text).toBe('Corra 3 km hoje');
   });
 

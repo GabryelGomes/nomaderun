@@ -1,24 +1,20 @@
 import { Modal, View } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 
-import { TutorialArt } from '@/components/art';
 import { HelpSheet, type HelpCard } from '@/components/help-sheet';
 import { PressableScale } from '@/components/motion';
 import { Text } from '@/components/text';
 import type { FactionId } from '@/domain/types';
+import { howToPlayCards } from '@/features/engagement/how-to-play';
 import { useTheme } from '@/theme/use-theme';
 
 /**
- * "?" da Arena (T7.3.3): a regra do território em 3 cartões ilustrados (E4, `TutorialArt`). É detalhe sob
- * demanda, numa folha à parte: as palavras daqui não somam na régua da Arena e vão à parte no relatório.
- * As frases valem para a regra v1 e para a v2 (D-62), porque a virada é por flag do servidor.
+ * "?" da Arena (T7.3.3; F8 B2, UX-07/UX-19): "Como jogar" em 6 cartões ilustrados (E4) — Corra, Pinte, Defenda,
+ * Chefão, Missões e baú, Liga. Os cartões são da E7 (`howToPlayCards`); abre sozinho 1 vez na 1ª visita à Arena.
+ * É detalhe sob demanda, numa folha à parte: as palavras daqui não somam na régua da Arena.
  */
 export function arenaHelpCards(team: FactionId): HelpCard[] {
-  return [
-    { key: 'corra', title: 'Corra', body: 'Cada metro que você corre conta para o seu time.', art: <TutorialArt step="corra" team={team} size={64} /> },
-    { key: 'pinte', title: 'Pinte', body: 'A zona fica com o time que mais correu nela.', art: <TutorialArt step="pinte" team={team} size={64} /> },
-    { key: 'defenda', title: 'Defenda', body: 'Rival na sua zona? Corra lá para segurar a cor.', art: <TutorialArt step="defenda" team={team} size={64} /> },
-  ];
+  return howToPlayCards(team);
 }
 
 /** Folha com a regra. Com "Reduzir movimento", aparece por esmaecimento, sem deslizar. */
@@ -42,7 +38,7 @@ export function ArenaHelpButton({ onPress }: { onPress: () => void }) {
     <PressableScale
       testID="arena-ajuda-abrir"
       accessibilityRole="button"
-      accessibilityLabel="Como jogar: a regra em 3 passos"
+      accessibilityLabel="Como jogar: a regra em 6 cartões"
       onPress={onPress}
       style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.lineControl }}>
       <Text variant="title" aria-hidden maxFontSizeMultiplier={1.2}>

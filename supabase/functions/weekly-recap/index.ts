@@ -7,9 +7,11 @@ import { loadActivity } from '../_shared/finish.ts';
 import { handler, HttpError, json, readJson } from '../_shared/http.ts';
 import { parseRecapInput, type RecapRoute, recapResponse, recapRoute, type SvcWeeklyRecap } from '../_shared/recap.ts';
 import { DbError, requireUser, rpc, sqlErrorToHttp } from '../_shared/supabase.ts';
+import { enforceRateLimit } from '../_shared/rate-limit.ts';
 
 Deno.serve(handler(['GET', 'POST'], async (req) => {
   const user = await requireUser(req);
+  await enforceRateLimit(user.id, 'geral');
   const input = req.method === 'GET'
     ? parseRecapInput({ weekStart: new URL(req.url).searchParams.get('weekStart') })
     : parseRecapInput(await readJson(req, 1024));

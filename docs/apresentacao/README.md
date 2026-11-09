@@ -12,7 +12,7 @@ Visual **preto + laranja neon** sobre o **mapa real** de Goiânia, com as **tela
 |---|---|
 | `web/NOMADE RUN Apresentação.html` | **Apresentação para apresentar**: os 12 slides, com animações. Abra no Chrome. Setas, espaço ou clique avançam; **F** tela cheia; **N** notas. Precisa das pastas `web/img` e `web/fonts` ao lado |
 | `NOMADE RUN - Apresentação.pdf` | Os 12 slides em PDF |
-| `telas-v2/` | Capturas reais da v2 usadas nos slides (390 px, modo demonstração, comprimidas com `pngquant`). Origem: `docs/melhoria/capturas/depois/*__390.png`, `docs/melhoria/capturas/e7-missoes-depois/` e `docs/melhoria/relatorios/E6b-onda3/` |
+| `telas-v2/` | Capturas reais da v2 usadas nos slides (390 px, modo demonstração, comprimidas com `pngquant`). Origem (Fase 8): `docs/melhoria/capturas/depois/*__390.png`, `docs/melhoria/relatorios/F8-B1/depois/`, `F8-B2/depois/fluxo/` e `F8-B3/depois/`; os emblemas `emblema-*.png` foram recortados de `docs/melhoria/relatorios/F8-A1/depois-emblemas@3x.png` (96 pt, fundo transparente) |
 | `mockup/NOMADE RUN Mockup.html` | Mockup interativo da v1, sozinho (hover, celulares em 3D, rota se desenhando). Não entra mais na página web |
 | `mockup/imagens/` | Capa com o mapa e os 3 celulares em PNG transparente |
 | `slides/` | **Fonte dos slides**: `deck.json` (ordem) e um HTML por slide em `slides/slides/` |
@@ -28,14 +28,14 @@ Visual **preto + laranja neon** sobre o **mapa real** de Goiânia, com as **tela
 | 1 | Capa | Mapa real do Parque Flamboyant | Nome, autores, "Corra a sua cidade. Cada rua conta." |
 | 2 | 15 milhões correm na rua | — | O hábito cresce; três problemas: falta motivo para voltar, jogo de território favorece quem corre muito, medo de correr sozinha |
 | 3 | Objetivo: Correr · Explorar · Conquistar | — | O objetivo geral e as três ideias |
-| 4 | Primeira abertura | Escolha do time e Meu time | Quatro times com cor, forma e mascote; quiz "Não sei escolher"; localização explicada antes do pedido |
-| 5 | 01 · Correr | Corrida ao vivo, Resumo e Recompensas | GPS, SOS sempre visível, conquista provável ao vivo; resumo com XP, missão, baú e sequência (nada pago) |
-| 6 | 02 · Conquistar | Mapa e zona sob ataque | Corra pelas ruas para pintá-las; a zona fica com o time que pintou mais ruas; a tinta desbota em 7 dias; novato que conquista na 1ª corrida: 13% → 62% (simulação). O mapa mostra regiões suavizadas, nunca a grade |
-| 7 | 03 · Explorar e competir | Arena (chefão Soneca) e Missões | Raid semanal (cada km tira 10 de vida), Liga semanal, missões e baú do dia com as chances à vista |
-| 8 | 04 · Juntos | Card Stories, feed da crew, recap semanal | Card sem começo e fim da rota; feed só da crew, com "Bora!" e sem comentários; recap da semana |
+| 4 | Primeira abertura | Boas-vindas, capa do time e cerimônia | Time antes da conta (4 toques, sem digitar); emblemas e lemas dos 4 times; quiz que sugere; cerimônia "Seu rastro"; cadastro depois |
+| 5 | 01 · Correr | Corrida ao vivo, Resumo e o fim do Resumo | GPS, SOS sempre visível, conquista provável ao vivo; "Primeiro trecho!", recompensas (nada pago) e "Quando você corre de novo?" |
+| 6 | 02 · Conquistar | Mapa (CORRER e 4 abas) e zona sob ataque, com os emblemas | Corra pelas ruas para pintá-las; a zona fica com o time que pintou mais ruas; a tinta desbota em 7 dias; novato que conquista na 1ª corrida: 13% → 62% (simulação). O mapa mostra regiões suavizadas, nunca a grade |
+| 7 | 03 · Explorar e competir | Arena (chefão Soneca) e folha da Liga | Raid semanal (cada km tira 10 de vida), "Correr contra o Soneca", Liga com quem sobe e os emblemas, missões com "Ir" e baú com as chances |
+| 8 | 04 · Juntos | Card Stories, Clube com o eco da crew, recap semanal | Card com emblema e lema, sem começo e fim da rota; eco da crew e feed só da crew, com "Bora!"; recap com o líder |
 | 9 | Como construímos | — | ERS (27 + 15 + 19), app + servidor, as regras do jogo com o mesmo código nos dois lados, RLS e HMAC |
-| 10 | Demonstração | Mapa real | Modo demonstração (dados de exemplo): primeira abertura → corrida simulada → resumo e card → Arena e crew. Roteiro completo em `docs/COMO_APRESENTAR.md` §3 |
-| 11 | O que entregamos e o que falta | — | 1.419 testes do app, 832 do banco (29 arquivos), 87 das funções, fluxo demo 21/21, 39/61 requisitos (17 parciais), 87 decisões; limitações e próximos passos |
+| 10 | Demonstração | Mapa real | Modo demonstração (dados de exemplo): time e cerimônia → cadastro → corrida simulada → resumo e card → Arena, Clube e Você. Roteiro completo em `docs/COMO_APRESENTAR.md` §3 |
+| 11 | O que entregamos e o que falta | — | 1.672 testes do app, 964 do banco (34 arquivos), 108 das funções, fluxo demo 62/62, 4 toques até o time, teste de 5 s 96%, 39/61 requisitos (17 parciais), 98 decisões (até a D-99), 0 achado alto; limitações e próximos passos |
 | 12 | A cidade é o tabuleiro | Mapa real | Três ideias e perguntas (respostas curtas em `docs/COMO_APRESENTAR.md` §6) |
 
 Regras fixas: rodapé só com o número do slide; dados e telas de demonstração sempre marcados como demonstração; o mapa nunca mostra a grade de hexágonos.

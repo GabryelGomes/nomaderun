@@ -1,4 +1,5 @@
-# T7.3.3 (E6c): Arena (chefão, "?" com a regra em 3 cartões, grade de modos) e Clube (crew, ranking com 1 linha de filtro).
+# T7.3.3 (E6c): Arena (chefão, "?" com "Como jogar" em 6 cartões, grade de modos) e Clube (crew, ranking com 1 linha de filtro).
+# F8 B2 (UX-19): na 1ª visita à Arena, "Como jogar" abre sozinho; o fluxo fecha se ele estiver aberto.
 # Os toques nas abas usam o texto (o testID das abas nativas não chega ao Maestro no Android).
 appId: ${APP_ID}
 name: Arena e Clube
@@ -11,6 +12,13 @@ tags: [t7-3-3, arena, clube]
     visible:
       id: "tela-arena"
     timeout: 15000
+- runFlow:
+    when:
+      visible:
+        id: "arena-ajuda"
+    commands:
+      - tapOn:
+          id: "arena-ajuda-fechar"
 - tapOn:
     id: "arena-ajuda-abrir"
 - extendedWaitUntil:

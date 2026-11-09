@@ -8,6 +8,7 @@ import { CountUp } from '@/components/motion/count-up';
 import { haptic } from '@/components/motion/haptics';
 import { useReducedMotionSetting } from '@/components/motion/reduced-motion';
 import { SpinRays } from '@/components/motion/spin-rays';
+import { pulseKeyframes } from '@/components/motion/stamp-in';
 import { Text } from '@/components/text';
 import type { FactionId } from '@/domain/types';
 import { cssEasings, durations, springCss, springs } from '@/theme/motion';
@@ -16,6 +17,7 @@ import { radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
 import { LEVEL_TIMELINE as L, rankOffsets } from './choreography';
+import { RECORD_COUNT } from './f8-choreography';
 import { type MomentBaseProps, kf, pop, rise, step, useMoment } from './moment';
 
 /* ------------------------------------------------------------------ LevelUp */
@@ -138,16 +140,34 @@ export type PRStampProps = MomentBaseProps & {
   label?: string;
   /** O recorde: "5 km em 24:10". */
   metric: string;
+  /**
+   * Número que conta de 0 até o valor no lugar do `metric` (F8 · C1, "Recorde: 47 trechos"); o `metric` continua
+   * sendo o texto do leitor de tela.
+   */
+  count?: { value: number; unit: string };
+  /** O selo pulsa N vezes depois de carimbar (F8 · C1: 2 no recorde de trechos). Padrão 0. */
+  pulses?: number;
 };
 
-/** Recorde pessoal: o selo carimba (1,6 → 1, giro −8° → 0, mola `stamp`) e um brilho varre o selo. */
+/**
+ * Recorde pessoal: o selo carimba (1,6 → 1, giro −8° → 0, mola `stamp`) e um brilho varre o selo; com `count`, o
+ * número conta de 0 ao valor; com `pulses`, o selo pulsa depois. "Reduzir movimento": tudo com fade, número final.
+ */
 export function PRStamp(props: PRStampProps) {
-  const { label = 'PR', metric, testID } = props;
+  const { label = 'PR', metric, count, pulses = 0, testID } = props;
   const text = `Recorde pessoal: ${metric}`;
   const reduced = useReducedMotionSetting();
   const { still } = useMoment('personal-record', 'medium', props, text, reduced);
+  const pulse = !still && pulses > 0;
   return (
     <View testID={testID} accessible accessibilityLiveRegion="polite" accessibilityLabel={text} style={{ alignItems: 'center', gap: 8 }}>
+      <Animated.View
+        testID={pulse && testID ? `${testID}-pulso` : undefined}
+        style={
+          pulse
+            ? { animationName: kf(pulseKeyframes(pulses, RECORD_COUNT.pulseScale)), animationDuration: RECORD_COUNT.pulseMs * pulses, animationDelay: springs.stamp.duration, animationTimingFunction: cssEasings.swap, animationFillMode: 'both' }
+            : null
+        }>
       <Animated.View
         style={[
           { paddingHorizontal: space[4], paddingVertical: space[2], borderRadius: radius.sm, borderWidth: 3, borderColor: neon.orange, overflow: 'hidden', boxShadow: `0 0 18px ${neon.orange}66` },
@@ -174,8 +194,16 @@ export function PRStamp(props: PRStampProps) {
           />
         ) : null}
       </Animated.View>
+      </Animated.View>
       <Animated.View style={step(still, rise(10), 400, 250)}>
-        <Text variant="bodyBold">{metric}</Text>
+        {count ? (
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+            <CountUp testID={testID ? `${testID}-numero` : undefined} value={count.value} from={0} duration={still ? 0 : RECORD_COUNT.countMs} delay={still ? 0 : RECORD_COUNT.countAt} variant="title" accessibilityLabel={metric} />
+            <Text variant="bodyBold">{count.unit}</Text>
+          </View>
+        ) : (
+          <Text variant="bodyBold">{metric}</Text>
+        )}
       </Animated.View>
     </View>
   );

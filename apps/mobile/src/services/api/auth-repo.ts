@@ -7,7 +7,9 @@ import { getSupabase, requireSupabase } from './supabase';
 
 /** Versões dos textos legais aceitos no cadastro (guardadas no perfil pelo trigger do backend). */
 export const TERMS_VERSION = '2026-10';
-export const PRIVACY_VERSION = '2026-10';
+export const PRIVACY_VERSION = '2026-11';
+/** Data da última mudança da Política (mostrada na tela). F8-D: controladores, encarregado e região preenchidos. */
+export const PRIVACY_UPDATED_AT = '4 de novembro de 2026';
 
 export type SignUpInput = {
   email: string;

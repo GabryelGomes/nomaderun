@@ -23,6 +23,8 @@ Local: `http://127.0.0.1:54321` (ver `PROGRESSO.md` para as chaves). Datas nas f
 
 ## Edge Functions
 
+**Limite por pessoa (F8 C3, D-99):** toda function de usuário confere a sessão e, em seguida, conta 1 chamada no balde dela (janela deslizante de 60 s, por `auth.uid()`): `geral` 60/min (`register-device`, `zones`, `zone`, `moderate-activity`, `weekly-recap`), `ingest` 120/min (`ingest-points`), `finish` 10/min (`finish-activity`) e `conta` 5/min (`account-export`, `account-delete`). Acima do limite: **429** `{ "error": { "code": "RATE_LIMITED", "message": "Muitas tentativas. Tente de novo em instantes.", "details": { "retryAfter": <segundos> } } }` e o cabeçalho `Retry-After`. O app mostra a mensagem; o sync trata como erro temporário e reenvia depois.
+
 ### `POST /register-device`
 Registra (ou renova) a chave HMAC do aparelho (D-04). Idempotente por `deviceId`.
 ```json
@@ -501,3 +503,93 @@ Migration `20261029120000_final_fixes` (aditiva; pgTAP `30_final_fixes`). O que 
 - Erros: `UNAUTHORIZED`, `ACCOUNT_INACTIVE`. Sem tabela nova, sem Realtime, nada novo no export LGPD (só leitura do que já existe).
 - App: `getCrewWeekGoal()` em `crews-repo.ts`; a barra do herói do Clube usa `progress` (km ÷ meta). Servidor antigo (sem a RPC): o Clube volta para a conta pelo `ranking_runners` (quem correu ÷ membros).
 
+
+## Fase 8 · A2 (E9 + E3): uma verdade só (`20261031120000_f8_fundacao`)
+
+Só aditivo: 3 RPCs novas, 1 índice (`activities_scored_started_idx`, parcial em `scored`), nenhuma tabela nova, nenhuma flag nova, nada novo no Realtime nem no export LGPD (o que entra fica em `activities.v2_extras`, que já é exportado e apagado).
+
+### D-92: curva de nível
+
+Uma só: `levelProgress(totalXp)` em `src/domain/progression.ts` (`xpToNextLevel(n) = arred10(50·n^1,3) + 50`, nível máximo 50), a mesma de `private.level_progress` (usada por `my_engagement()` e pelo bloco `extras.engagement.level`). A curva v1 (`xpForLevel`/`levelFromXp`, `games.ts`) foi **removida**: Resumo, Você, Recompensas e card usam `levelProgress`. Paridade: o pgTAP 31 compara 50 valores de XP (0 a 50.000, com as fronteiras dos níveis 2 a 13) com o SQL, e o Deno `f8_fundacao.test.ts` confere a mesma tabela contra o domain.
+
+### `faction_activity()` → `jsonb` (D-96, `authenticated`)
+
+```json
+{ "windowDays": 7, "since": 1793400000000, "counts": { "striders": 12, "coyotes": 9, "owls": 3, "volt": 10 }, "total": 34, "isDemo": false }
+```
+
+- **Ativo** = conta `active`, com time, com pelo menos 1 corrida **aceita** (pontuada, `valid`/`partial`) que terminou nos últimos 7 dias (janela móvel). Conta pessoas, não corridas. Os 4 times sempre aparecem (0 quando ninguém correu).
+- **Só números**: nenhum `user_id`, nome ou lugar.
+- **Demonstração separada**: conta real só conta contas reais; conta de demonstração (`profiles.is_demo`) só conta demonstração e recebe `isDemo: true` (a tela marca "demonstração").
+- O selo "Precisa de reforço": o app decide com `factionNeedingBoost(counts)` (`src/domain/faction-activity.ts`): o time com menos ativos, só se for o **único** no menor número e se o total for ≥ 4. Só cosmético. Desde a F8-D (B1) o servidor também manda `needsBoost` (mesma regra em `private.faction_needing_boost`) e, **sem sessão, manda só ele** (ver "Fase 8 · D").
+- Erros: `UNAUTHORIZED`, `ACCOUNT_INACTIVE`. App: `getFactionActivity()` (`services/api/faction-activity-repo.ts`); servidor antigo → `{ available: false, reason: 'servidor-antigo' }` (sem selo).
+
+### `extras.milestones` no `POST /finish-activity` (e `moderate-activity`) — para a E7
+
+Só com a **pintura v2** (`extras.paint` presente). Opcional: servidor antigo, regra v1 ou corrida não pontuada → o campo não vem.
+
+```json
+"milestones": { "firstPaint": true, "cells": 12, "cellsRecord": null }
+"milestones": { "firstPaint": false, "cells": 47, "cellsRecord": { "value": 47, "previous": 31 } }
+```
+
+| Campo | Significado |
+|---|---|
+| `firstPaint` | "Primeiro trecho pintado": a 1ª corrida **da vida** com ≥ 1 trecho. 1 vez só, mesmo com corridas sincronizadas fora de ordem (desempate: a que terminou antes) e mesmo para corridas pintadas antes desta migration (contam como "antes") |
+| `cells` | Trechos pintados nesta corrida (= `extras.paint.cells`) |
+| `cellsRecord` | "Recorde de trechos numa corrida": `value` > o maior número de trechos de **qualquer outra** corrida da pessoa (`previous` ≥ 1). Comparação só consigo. Nunca junto com `firstPaint` |
+
+- Quem decide: `public.svc_paint_milestones(p_user, p_activity)` (`service_role`), chamada pelo `runV2` logo depois do `svc_apply_v2`, com o mesmo travamento por pessoa (perfil `for update`). Idempotente: grava em `activities.v2_extras.milestones` e a repetição devolve o mesmo. Function nova com banco antigo (sem a RPC): segue sem o marco, nunca derruba o finish.
+- App: `paintMilestonesOf(official)` (`services/api/activities-repo.ts`) lê a resposta do finish **ou** `activities.v2_extras` (resumo reaberto). Regra pura igual em `paintMilestones()` (demonstração e testes).
+
+### `crew_echo()` → `jsonb | null` ("eco da crew", `authenticated`, flag `feed`)
+
+"Rafa reforçou 3 trechos que você pintou": o colega da crew que mais reforçou **ontem** (Brasília) os trechos que você pintou ontem ou anteontem.
+
+```json
+{ "day": "2026-11-03", "mate": { "username": "rafa" }, "cells": 3, "othersCount": 1, "totalCells": 4,
+  "notifyFrom": 1793786400000, "notifyUntil": 1793840400000, "isDemo": false }
+```
+
+- `null` quando: sem crew, ninguém reforçou, ou **entre 22h e 7h** (o aviso nunca sai nesse horário). 1 agregado por dia (o de ontem); `notifyFrom`/`notifyUntil` = 07h–22h de hoje.
+- Fonte: `paint_marks` (o servidor guarda 2 dias). Fica de fora: colega com "mostrar minhas corridas na crew" desligado (`user_settings.share_runs_to_feed`) **ou com "mostrar mapa no feed" desligado** (`feed_show_map`, F8-D M2), colega de **outro tipo de conta** (real ↔ demonstração, F8-D B5), conta não ativa, trecho sem lugar conhecido e trecho dentro da **máscara** de uma zona de privacidade **do colega** (D-87, + 50 m). Só o nome do colega (que a crew já vê) e contagens; nada de lugar.
+- Erros: `UNAUTHORIZED`, `ACCOUNT_INACTIVE`, `FEATURE_DISABLED` (flag `feed`). App: `getCrewEcho()` (`crews-repo.ts`); servidor antigo ou flag desligada → `{ available: false }`. O aviso local respeita o limite de 1/dia e 4/semana (D-69) e `isEchoHour()` (domain).
+- Regra com relógio: `private.crew_echo_at(p_uid, p_now)` (não chamável pelo app; o pgTAP fixa a hora).
+
+## Fase 8 · D (E9): correções da revisão (`20261104120300_f8_revisao`)
+
+Só aditivo. Nenhuma RPC muda de assinatura. pgTAP `34_f8_revisao` (23), Deno `f8_revisao.test.ts` (paridade do selo SQL × domain), pares na demonstração (`services/api/demo/{f8,social}.ts`, Jest `demo/__tests__/f8-revisao.test.ts`).
+
+| O quê | Contrato |
+|---|---|
+| `crew_echo()` (M2) | Colega com **"mostrar mapa no feed" desligado** (`user_settings.feed_show_map = false`) fica fora do eco, como quem não compartilha corridas: o eco diria por onde a pessoa passou ontem |
+| `crew_echo()` (B5) | Só conta colega do **mesmo tipo de conta** de quem pede (`profiles.is_demo`: real ↔ real, demonstração ↔ demonstração). A resposta ganha **`isDemo`** (o tipo de quem pede). App: `CrewEcho.isDemo` (já lido por `parseCrewEcho`) |
+| `join_crew(p_code)` (B5) | Conta real não entra numa crew com líder ou membro de demonstração, nem o contrário. Resposta: **`CREW_NOT_FOUND`** (igual a código inválido; não confirma que o código existe). Os outros erros não mudam |
+| `faction_activity()` **sem sessão** (B1) | Só `{ "needsBoost": "owls" \| null, "isDemo": false }`: **sem contagens**, sem `since`, sem `windowDays`. Vem de um cache (`private.faction_activity_cache`, uma linha, só contas reais) refeito sob demanda quando tem 5 min ou mais, por **um** pedido de cada vez (`pg_try_advisory_xact_lock`); os outros leem o que está lá. Chamar em laço não varre `activities` mais que 1 vez a cada 5 min |
+| `faction_activity()` **com sessão** (B1) | Como antes (contagens ao vivo, `since`, demonstração só conta demonstração) **+ `needsBoost`** (mesma regra). A função passa a `volatile` (o caminho sem sessão grava o cache); o app chama por POST (`supabase.rpc`), como sempre |
+
+```json
+{ "needsBoost": "owls", "isDemo": false }
+{ "windowDays": 7, "since": 1793400000000, "counts": { "striders": 12, "coyotes": 9, "owls": 3, "volt": 10 }, "total": 34, "needsBoost": "owls", "isDemo": false }
+```
+
+- App: `FactionActivity.counts`/`total` passam a `null` quando o servidor não manda contagens; `needsBoost` sai das contagens pela regra do domain quando há contagens, senão do `needsBoost` do servidor validado por `asBoostFaction()` (domain). A escolha do time antes da conta (`team-boost.tsx`) usa só `needsBoost` e `isDemo`.
+- Funções novas (privadas, fora do `anon`/`authenticated`): `private.faction_needing_boost(jsonb)`, `private.faction_counts(boolean, timestamptz)`, `private.faction_activity_anon_at(timestamptz)`. Tabela nova: `private.faction_activity_cache` (RLS ligada, sem política, sem grant; só 4 contagens agregadas: não é dado pessoal, fora do export/delete LGPD). Sem job, flag ou Realtime novos.
+
+Compatibilidade: **app antigo × servidor novo** — com sessão, ignora `needsBoost`/`isDemo` a mais e segue com as contagens; sem sessão (escolha do time antes da conta), não acha contagens, lê tudo 0 e **não mostra o selo** (honesto, nada quebra); o eco só some quando o colega esconde o mapa ou é de outro tipo de conta; `join_crew` recusado entre tipos aparece como "código inválido", que o app já trata. **App novo × servidor antigo** — sem sessão chegam as contagens antigas e o app calcula o selo pelo domain (igual); com sessão, idem; eco sem `isDemo` → `false` (como antes).
+
+## Fase 8 · C2 (E9 + E8 + E7): social que volta (`20261104120200_f8_social`)
+
+Só aditivo. Campos novos são opcionais (app antigo ignora); nenhuma RPC muda de assinatura. pgTAP `33_f8_social` (41), Deno `f8_social.test.ts`, pares na demonstração (`services/api/demo/{f8,rpc,social,db}.ts`).
+
+| O quê | Contrato |
+|---|---|
+| `faction_activity()` | **Agora também `anon`** (D-91: o selo "Precisa de reforço" na escolha do time, antes da conta). Sem sessão: `{ windowDays, counts: { striders, coyotes, owls, volt }, total, isDemo: false }`, só contas **reais** (`is_demo = false`), sem `since`. Com sessão: como na A2 (com `since`; demonstração só conta demonstração). Nada de id, nome, lugar ou horário |
+| `choose_faction(p_faction)` | Resposta ganha `recruitFrame: { id: 'moldura-recruta', unlockedNow }`. A moldura "Recruta" (`cosmetic_defs`, `frame`, `comum`, `source = 'ftue'`, fora do baú) é concedida de forma idempotente sempre que a pessoa termina com time; também pelo trigger `profiles_recruit_frame` (qualquer caminho que grava `profiles.faction`) e por backfill. O app lê como sempre: `user_cosmetics` (`fetchOwnedCosmetics`) |
+| `crew_feed()` → item | `activityId` **só quando `you = true`** (o "Compartilhar" do próprio item). Para os colegas o id continua de fora (D-79). App: `FeedItem.activityId?` (`feed-repo.ts`); sem ele, o app acha a corrida pelo dia e pela distância |
+| Zona: `near_ref` | Coluna nova `zones.near_ref` ("perto do Estádio"; nula sem marco a até 3 km ou quando a zona já tem o nome do marco), preenchida pelo trigger `zones_near_ref` a partir de `public.landmarks` (marcos públicos; RLS sem política: o cliente não lê). Sai em `GET /zones` (`nearRef`, só quando há), `GET /zone/:id` (`nearRef`), `zone_paint_near` (`zones[id].nearRef`, só quando há) e no Realtime de `zones` (`near_ref`). App: `withNearRef(name, nearRef)` (`services/api/zone-name.ts`) → "Jardim Goiás · perto do Estádio"; sem referência, só o nome sem número (`zoneDisplayName`) |
+| Avisos de zona | Trigger `notifications_zone_text` (antes de gravar `invasion`, `territory_lost` e `conquest` com `data.zoneId` de uma zona que existe) refaz título e corpo num formato só, para a regra v1 e a v2: **"Alerta de invasão"** · "Os Urban Coyotes estão pintando suas ruas em Jardim Goiás · perto do Estádio. Defenda até 02h30." (+ `data.defendUntil`, ms; v2 = último avanço do ataque + 24 h, v1 = início + 24 h, horário de Brasília) · **"Território perdido"** · "Jardim Goiás agora é dos Urban Coyotes. Corra lá para pintar de volta." · **"Zona conquistada"** · "Você pintou Jardim Goiás com a cor dos Neon Striders.". Os limites (RN-003) não mudam. Texto igual no domain: `zoneNoticeText()` / `zonePlaceName()` (`domain/reminders.ts`, usado pela demonstração; o Deno confere com o SQL) |
+
+Funções novas (privadas): `private.zone_near_ref(text, geometry)`, `private.zone_display(text, text)`, `private.zones_set_near_ref()`, `private.zone_notice_text()`, `private.profiles_recruit_frame()`. Tabela nova: `public.landmarks` (sem dado pessoal; não entra no export/delete LGPD). Nada novo de dado pessoal: a moldura já sai em `user_cosmetics` no export e cai com a conta.
+
+Compatibilidade: app antigo × servidor novo — ignora `recruitFrame`, `activityId`, `nearRef`, `defendUntil`; os avisos já chegam no formato novo. App novo × servidor antigo — sem `anon` em `faction_activity` (erro → sem selo na escolha, honesto), moldura só do aparelho (a cerimônia já guarda), feed sem `activityId` (busca por dia/distância), zona sem referência (nome sem número), avisos no texto antigo.

@@ -3,6 +3,7 @@ import { verifyBatchSignature } from '../_shared/hmac.ts';
 import { handler, HttpError, json, readJson } from '../_shared/http.ts';
 import { requireUser, rpc } from '../_shared/supabase.ts';
 import { parseIngestBody } from '../_shared/validate.ts';
+import { enforceRateLimit } from '../_shared/rate-limit.ts';
 
 const ERRORS: Record<string, [number, string]> = {
   NOT_OWNER: [403, 'Esta corrida pertence a outra conta.'],
@@ -17,6 +18,7 @@ const ERRORS: Record<string, [number, string]> = {
 
 Deno.serve(handler(['POST'], async (req) => {
   const user = await requireUser(req);
+  await enforceRateLimit(user.id, 'ingest');
   const body = parseIngestBody(await readJson(req, 1024 * 1024));
 
   const secret = await rpc<string | null>('svc_device_secret', { p_user: user.id, p_device: body.deviceId });

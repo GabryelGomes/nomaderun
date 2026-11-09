@@ -27,7 +27,11 @@ export type ReminderKind =
   | 'volta'
   | 'invasao'
   | 'conquista'
-  | 'moderacao';
+  | 'moderacao'
+  /** D-94: o plano que a própria pessoa marcou ("Quando você corre de novo?"). */
+  | 'plano'
+  /** F8 B2: eco da crew ("Rafa reforçou 3 trechos que você pintou"). */
+  | 'eco';
 
 /** Chaves de `NotificationPrefs` (as 4 primeiras já existem; ausente = ligada). */
 export type ReminderPrefKey =
@@ -41,7 +45,9 @@ export type ReminderPrefKey =
   | 'raid'
   | 'season'
   | 'recap'
-  | 'comeback';
+  | 'comeback'
+  | 'plan'
+  | 'crewEcho';
 
 export type ReminderDef = {
   id: string;
@@ -50,7 +56,7 @@ export type ReminderDef = {
   budget: 'engajamento' | 'jogo';
   pref: ReminderPrefKey;
   delivery: 'local' | 'servidor';
-  /** Modelo do texto: {x}, {y}, {mes}, {passo}, {zona}. */
+  /** Modelo do texto: {x}, {y}, {mes}, {passo}, {zona}, {hora}, {colega}. */
   template: string;
 };
 
@@ -68,6 +74,8 @@ export const REMINDER_CATALOG: readonly ReminderDef[] = [
   { id: 'n-volta-14-zona', kind: 'volta', budget: 'engajamento', pref: 'comeback', delivery: 'servidor', template: '{zona} está sob ataque. Bora defender?' },
   { id: 'n-volta-21', kind: 'volta', budget: 'engajamento', pref: 'comeback', delivery: 'local', template: 'Precisa de uma pausa? Sua sequência fica guardada.' },
   { id: 'n-volta-30', kind: 'volta', budget: 'engajamento', pref: 'comeback', delivery: 'local', template: 'Quando quiser voltar, tem um baú lendário te esperando.' },
+  { id: 'n-plano', kind: 'plano', budget: 'engajamento', pref: 'plan', delivery: 'local', template: 'Seu plano: correr hoje às {hora}. Caminhar também vale.' },
+  { id: 'n-eco', kind: 'eco', budget: 'engajamento', pref: 'crewEcho', delivery: 'local', template: '{colega} reforçou {x} que você pintou.' },
   { id: 'n-invasao', kind: 'invasao', budget: 'jogo', pref: 'invasions', delivery: 'servidor', template: 'Alerta de invasão! {zona} está sob ataque.' },
   { id: 'n-conquista', kind: 'conquista', budget: 'jogo', pref: 'conquests', delivery: 'servidor', template: 'Você conquistou {x} para o seu time!' },
 ];
@@ -95,10 +103,13 @@ export const REMINDER_LIMITS = {
 
 /** Prioridade quando há mais de um aviso no mesmo dia (menor = mais importante). */
 const PRIORITY: Readonly<Record<string, number>> = {
+  // O plano foi a própria pessoa que pediu (D-94): vence os outros no mesmo dia.
+  'n-plano': -1,
   'n-chefao': 0,
   'n-liga': 1,
   'n-sequencia': 2,
   'n-missao': 3,
+  'n-eco': 3.5,
   'n-bau': 4,
   'n-ftue': 5,
   'n-recap': 6,
@@ -153,7 +164,27 @@ export type ReminderVars = {
   zone?: string;
   /** Distância em metros (missão, recap). */
   meters?: number;
+  /** Horário do plano (Brasília). */
+  hour?: number;
+  minute?: number;
+  /** Nome do colega da crew (eco). */
+  mate?: string;
 };
+
+/** 19 → "19h"; 19:30 → "19h30". */
+export function hourLabel(hour: number, minute = 0): string {
+  const h = Math.max(0, Math.min(23, Math.floor(hour)));
+  const m = Math.max(0, Math.min(59, Math.floor(minute)));
+  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}`;
+}
+
+const MATE_MAX = 16;
+
+/** Nome do colega com no máximo 16 caracteres (o aviso inteiro cabe em 60). */
+function shortMate(name: string): string {
+  const n = name.trim() || 'Alguém da crew';
+  return n.length > MATE_MAX ? `${n.slice(0, MATE_MAX - 1).trimEnd()}…` : n;
+}
 
 function fit(text: string): string {
   return text.length > REMINDER_TEXT_MAX ? `${text.slice(0, REMINDER_TEXT_MAX - 1)}…` : text;
@@ -186,6 +217,12 @@ export function reminderText(id: string, vars: ReminderVars = {}): string {
       break;
     case 'n-conquista':
       text = text.replace('{x}', x === 1 ? '1 zona' : `${x} zonas`);
+      break;
+    case 'n-plano':
+      text = text.replace('{hora}', hourLabel(vars.hour ?? 0, vars.minute ?? 0));
+      break;
+    case 'n-eco':
+      text = text.replace('{colega}', shortMate(vars.mate ?? '')).replace('{x}', x === 1 ? '1 trecho' : `${x} trechos`);
       break;
     default:
       text = text.replace('{x}', String(x)).replace('{zona}', shortZoneName(vars.zone ?? ''));
@@ -225,6 +262,10 @@ export type ReminderState = {
   sent: readonly SentReminder[];
   /** Quantas das últimas notificações de engajamento seguidas não foram abertas. */
   ignoredInARow: number;
+  /** D-94: horário que a própria pessoa escolheu para a próxima corrida (ms), ou nada. */
+  plan?: { at: number } | null;
+  /** Eco da crew de hoje (servidor, `crew_echo()`): só vira aviso dentro da janela `notifyFrom`–`notifyUntil`. */
+  crewEcho?: { mate: string; cells: number; notifyFrom: number; notifyUntil: number } | null;
 };
 
 export type PlannedReminder = {
@@ -240,7 +281,13 @@ export type PlannedReminder = {
   text: string;
 };
 
-type Candidate = { id: string; key: string; hour: number; minute: number; vars: ReminderVars };
+type Candidate = { id: string; key: string; hour: number; minute: number; vars: ReminderVars; until?: number };
+
+/** Próximo quarto de hora pelo menos 15 min depois de `now` (o eco sai logo, mas não em cima da abertura). */
+function nextQuarter(now: number): number {
+  const q = 15 * 60_000;
+  return Math.ceil((now + q) / q) * q;
+}
 
 /** Hora habitual (Brasília) da pessoa: mediana das horas de início das 10 atividades mais novas. */
 export function usualStartHour(recentStartTimes: readonly number[]): number {
@@ -318,6 +365,19 @@ export function planReminders(state: ReminderState, prefs: ReminderPrefs, now: n
     const candidates: Candidate[] = [];
 
     if (daysAway > 30) continue; // silêncio total até a pessoa voltar
+    // Plano (D-94) e eco da crew só na semana em que a pessoa está ativa: longe há 7 dias ou mais, só a escada de volta.
+    const mine = daysAway < 7 ? state.plan : null;
+    if (mine && mine.at > now && brtCalendar.clock(mine.at).dayId === day) {
+      const pc = brtCalendar.clock(mine.at);
+      candidates.push({ id: 'n-plano', key: `n-plano:${mine.at}`, hour: pc.hour, minute: pc.minute, vars: { hour: pc.hour, minute: pc.minute } });
+    }
+    const echo = state.crewEcho;
+    if (offset === 0 && daysAway < 7 && echo && echo.cells > 0 && brtCalendar.clock(echo.notifyFrom).dayId === day) {
+      const usual = brtCalendar.at(day, usualHour);
+      const at = Math.max(usual, nextQuarter(now), echo.notifyFrom);
+      const ac = brtCalendar.clock(at);
+      if (ac.dayId === day) candidates.push({ id: 'n-eco', key: `n-eco:${day}`, hour: ac.hour, minute: ac.minute, vars: { x: echo.cells, mate: echo.mate }, until: echo.notifyUntil });
+    }
     if (daysAway >= 7) {
       // Longe há 7 dias ou mais: só a escada de volta (para quem já correu alguma vez).
       if (everRan && L.comebackLadder.includes(daysAway)) {
@@ -367,7 +427,7 @@ export function planReminders(state: ReminderState, prefs: ReminderPrefs, now: n
         const minutes = Math.min(win.end, Math.max(win.start, c.hour * 60 + c.minute));
         return { c, at: brtCalendar.at(day, Math.floor(minutes / 60), minutes % 60) };
       })
-      .filter(({ at }) => at > now && !(prefs.snoozeUntil && at < prefs.snoozeUntil))
+      .filter(({ c, at }) => at > now && !(c.until !== undefined && at >= c.until) && !(prefs.snoozeUntil && at < prefs.snoozeUntil))
       .sort((a, b) => (PRIORITY[a.c.id] ?? 99) - (PRIORITY[b.c.id] ?? 99) || a.at - b.at)[0];
     if (!chosen) continue;
 
@@ -399,4 +459,82 @@ export function gameAlertMode(at: number, prefs: ReminderPrefs = {}): 'banner' |
   const minutes = c.hour * 60 + c.minute;
   const q = quietHours(prefs);
   return minutes >= q.start * 60 || minutes < q.end * 60 ? 'central' : 'banner';
+}
+
+/* ---------- D-94: "Quando você corre de novo?" ---------- */
+
+/** Uma das 3 opções do plano: o instante e o rótulo curto ("Amanhã · 19h", "Sábado · 8h"). */
+export type PlanOption = { at: number; label: string; a11y: string };
+
+const WEEKDAY_NAMES = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+
+/** Manhã do fim de semana: a opção "sem pressa" (dentro da janela de 8h às 21h). */
+export const PLAN_WEEKEND_HOUR = 8;
+
+/**
+ * As 3 opções do plano da próxima corrida, todas no futuro e dentro da janela dos avisos (8h às 21h): amanhã e
+ * depois de amanhã no horário habitual da pessoa, e a manhã do fim de semana seguinte (ou o 3º dia, se o fim de
+ * semana já for uma das duas primeiras). Nunca hoje (correu agora: o descanso também conta).
+ */
+export function nextRunPlanOptions(now: number, recentStartTimes: readonly number[] = []): PlanOption[] {
+  const L = REMINDER_LIMITS;
+  const hour = Math.min(L.windowEndHour - 1, Math.max(L.windowStartHour, usualStartHour(recentStartTimes)));
+  const today = brtCalendar.clock(now).dayId;
+  const weekdayOf = (offset: number) => brtCalendar.clock(brtCalendar.at(brtCalendar.addDays(today, offset), 12)).weekday;
+  const option = (offset: number, h: number): PlanOption => {
+    const day = brtCalendar.addDays(today, offset);
+    const name = offset === 1 ? 'Amanhã' : WEEKDAY_NAMES[weekdayOf(offset)];
+    return { at: brtCalendar.at(day, h), label: `${name} · ${hourLabel(h)}`, a11y: `${name} às ${h} horas` };
+  };
+  const out = [option(1, hour), option(2, hour)];
+  // Próximo sábado ou domingo que ainda não é uma das duas primeiras opções.
+  let third: PlanOption | null = null;
+  for (let offset = 3; offset <= 6 && !third; offset++) {
+    const wd = weekdayOf(offset);
+    if (wd === 5 || wd === 6) third = option(offset, PLAN_WEEKEND_HOUR);
+  }
+  out.push(third ?? option(3, hour));
+  return out;
+}
+
+/** O que o aparelho lembra do plano: o horário escolhido (ou nada) e a semana em que a pergunta foi feita. */
+export type NextRunPlanMemory = { at: number | null; askedWeek: string | null };
+
+/**
+ * Pergunta "Quando você corre de novo?" no 1º resumo e depois 1 vez por semana, só quando não há plano marcado
+ * para o futuro. "Agora não" também conta como pergunta da semana (nunca insistir).
+ */
+export function shouldAskPlan(memory: NextRunPlanMemory | null, now: number): boolean {
+  if (!memory) return true;
+  if (memory.at !== null && memory.at > now) return false;
+  return memory.askedWeek !== brtCalendar.clock(now).weekId;
+}
+
+/* ---------- Avisos de zona do servidor (C2, migration 20261104120200) ---------- */
+
+/**
+ * Nome da zona nos avisos e telas: sem o número ("Jardim Goiás 59" → "Jardim Goiás") e com a referência, se houver
+ * ("Jardim Goiás · perto do Estádio"). Sem nome: "Zona". Igual a `private.zone_display` (SQL).
+ */
+export function zonePlaceName(name: string | null | undefined, nearRef?: string | null): string {
+  const base = (name ?? '').replace(/\s+\d+(?:\/\d+)?$/, '').trim() || 'Zona';
+  const ref = (nearRef ?? '').trim();
+  return ref && !base.includes(' · ') ? `${base} · ${ref}` : base;
+}
+
+export type ZoneNoticeKind = 'invasion' | 'territory_lost' | 'conquest';
+
+/**
+ * Texto único dos avisos de zona (regra 2 do prompt da F8: "até 02h30" só nos avisos), o mesmo que o trigger
+ * `notifications_zone_text` grava no servidor. `team` = nome do time (atacante, novo dono ou o da pessoa); `until`
+ * = fim do prazo de defesa (só na invasão), mostrado em Brasília.
+ */
+export function zoneNoticeText(kind: ZoneNoticeKind, p: { place: string; team: string; until?: number }): { title: string; body: string } {
+  if (kind === 'invasion') {
+    const c = brtCalendar.clock(p.until ?? 0);
+    const hhmm = `${String(c.hour).padStart(2, '0')}h${String(c.minute).padStart(2, '0')}`;
+    return { title: 'Alerta de invasão', body: `Os ${p.team} estão pintando suas ruas em ${p.place}. Defenda até ${hhmm}.` };
+  }
+  if (kind === 'territory_lost') return { title: 'Território perdido', body: `${p.place} agora é dos ${p.team}. Corra lá para pintar de volta.` };
+  return { title: 'Zona conquistada', body: `Você pintou ${p.place} com a cor dos ${p.team}.` };
 }

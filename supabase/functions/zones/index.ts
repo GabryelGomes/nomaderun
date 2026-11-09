@@ -3,6 +3,7 @@ import { handler, json } from '../_shared/http.ts';
 import { zoneLabel } from '../_shared/scoring.ts';
 import { requireUser, rpc } from '../_shared/supabase.ts';
 import { parseBbox } from '../_shared/validate.ts';
+import { enforceRateLimit } from '../_shared/rate-limit.ts';
 
 type Row = {
   id: string;
@@ -14,10 +15,13 @@ type Row = {
   attacker: string | null;
   attack_started_at: string | null;
   blocked: boolean;
+  /** C2 (20261104120200): "perto do Estádio"; ausente no banco antigo. */
+  near_ref?: string | null;
 };
 
 Deno.serve(handler(['GET'], async (req) => {
-  await requireUser(req);
+  const user = await requireUser(req);
+  await enforceRateLimit(user.id, 'mapa');
   const bbox = parseBbox(new URL(req.url).searchParams.get('bbox'));
   // QA-04: um único JSON com até 2.000 zonas (a RPC em linhas sofreria o max_rows do PostgREST)
   const rows = await rpc<Row[]>('zones_in_bbox_json', {
@@ -37,6 +41,8 @@ Deno.serve(handler(['GET'], async (req) => {
       attacker: z.attacker,
       attackStartedAt: z.attack_started_at ? Date.parse(z.attack_started_at) : null,
       blocked: z.blocked,
+      // C2: campo novo e opcional (o app antigo ignora); só sai quando há referência
+      ...(typeof z.near_ref === 'string' && z.near_ref ? { nearRef: z.near_ref } : {}),
     })),
   });
 }));

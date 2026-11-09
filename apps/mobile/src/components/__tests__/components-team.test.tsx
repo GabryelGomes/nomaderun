@@ -11,8 +11,8 @@ jest.mock('react-native-reanimated', () => ({ ...require('react-native-reanimate
 /* eslint-disable import/first */
 import { Text as RNText } from 'react-native';
 
+import { TEAM_BIO } from '@/domain/team-bio';
 import { FACTION_IDS, type FactionId } from '@/domain/types';
-import { factions } from '@/theme/tokens';
 
 import { HelpSheet } from '../help-sheet';
 import { LeaderSheet } from '../leader-sheet';
@@ -37,9 +37,9 @@ describe('Identidade dos times (D-70)', () => {
     expect(TEAM_STORY.coyotes.leader).toBe('Bento Rocha');
   });
 
-  it('lema dos Night Owls não incentiva a madrugada', () => {
-    expect(factions.owls.motto).toBe('Donos das luzes da cidade');
-    const all = [factions.owls.motto, ...Object.values(TEAM_STORY.owls)].join(' ').toLowerCase();
+  it('lema dos Night Owls (fonte única, D-93) não incentiva a madrugada', () => {
+    expect(TEAM_STORY.owls.motto).toBe(TEAM_BIO.owls.motto);
+    const all = [TEAM_BIO.owls.motto, ...TEAM_BIO.owls.bio, ...Object.values(TEAM_STORY.owls)].join(' ').toLowerCase();
     expect(all).not.toContain('madrugada');
   });
 });
