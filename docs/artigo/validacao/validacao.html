@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>NOMADE RUN — Validação com Usuários</title>
+<style>
+  @page { size: A4; margin: 16mm 16mm 16mm 16mm; }
+  body { font-family: "Liberation Sans", Arial, sans-serif; font-size: 10pt; line-height: 1.32; color: #111; margin: 0; }
+  h1 { font-size: 17pt; margin: 0 0 4pt; }
+  h2 { font-size: 12pt; margin: 10pt 0 4pt; border-bottom: 1.5pt solid #111; padding-bottom: 2pt; }
+  p { margin: 4pt 0; }
+  ol, ul { margin: 4pt 0; padding-left: 18pt; }
+  table { width: 100%; border-collapse: collapse; margin: 6pt 0; font-size: 10pt; }
+  th, td { border: 0.75pt solid #444; padding: 2.5pt 5pt; vertical-align: top; text-align: left; }
+  th { background: #eee; }
+  td.c { text-align: center; width: 9%; }
+  .box { border: 1pt solid #444; padding: 5pt 8pt; margin: 5pt 0; font-size: 9.5pt; }
+  .campo { display: inline-block; border-bottom: 0.75pt solid #444; min-width: 120pt; }
+  .quebra { break-before: page; }
+  .peq { font-size: 9pt; color: #444; }
+</style>
+</head>
+<body>
+
+<h1>NOMADE RUN — Validação com Usuários</h1>
+<p class="peq">Roteiro para os autores (página 1) e folha do participante (página 2). Uma folha por pessoa.</p>
+
+<h2>1. Como aplicar (15 a 20 minutos por pessoa)</h2>
+<ol>
+  <li><b>Quem:</b> de 5 a 10 pessoas que não participaram do desenvolvimento, de preferência que corram ou caminhem. Com 5 participantes já é possível encontrar a maior parte dos problemas de uso [Nielsen e Landauer 1993].</li>
+  <li><b>Aparelho:</b> celular Android com o APK do modo demonstração instalado e aberto pela primeira vez (se já foi usado, desinstale e instale de novo).</li>
+  <li><b>Antes:</b> leia o termo de consentimento da folha do participante e peça a assinatura. Explique que quem está sendo testado é o aplicativo, não a pessoa.</li>
+  <li><b>Durante:</b> leia uma tarefa por vez, sem explicar como fazer. Cronometre do fim da leitura até a pessoa concluir ou desistir. Só ajude se ela pedir; nesse caso, marque "com ajuda". Anote comentários e dificuldades.</li>
+  <li><b>Depois:</b> a pessoa responde sozinha ao questionário SUS (folha do participante, parte B), sem pular itens.</li>
+  <li><b>Registro:</b> passe os dados para a planilha <code>validacao-usuarios.xlsx</code>; ela calcula a taxa de sucesso, o tempo médio e a nota SUS. Guarde as folhas assinadas.</li>
+</ol>
+
+<h2>2. Tarefas</h2>
+<table>
+  <tr><th style="width:6%">#</th><th>Tarefa (ler em voz alta)</th><th style="width:32%">Concluída quando</th></tr>
+  <tr><td>T1</td><td>"Escolha um time e crie a sua conta."</td><td>Chega ao Mapa com o time escolhido.</td></tr>
+  <tr><td>T2</td><td>"Comece uma corrida simulada e encerre depois de alguns segundos."</td><td>Abre o Resumo da corrida.</td></tr>
+  <tr><td>T3</td><td>"Diga quantos pontos você ganhou e qual zona foi conquistada."</td><td>Lê os pontos e o nome da zona no Resumo.</td></tr>
+  <tr><td>T4</td><td>"Descubra em que posição o seu time está no ranking."</td><td>Abre o ranking no Clube e diz a posição.</td></tr>
+  <tr><td>T5</td><td>"Cadastre um contato de segurança para as suas corridas."</td><td>O contato aparece na lista de contatos de segurança.</td></tr>
+</table>
+
+<h2>3. Como interpretar</h2>
+<ul>
+  <li><b>Taxa de sucesso:</b> tarefas concluídas sem ajuda ÷ tarefas aplicadas.</li>
+  <li><b>Nota SUS (0 a 100):</b> itens ímpares valem (resposta − 1); itens pares valem (5 − resposta); a soma multiplicada por 2,5 dá a nota de cada pessoa [Brooke 1996]. A média geral de sistemas avaliados com o SUS fica em torno de 68 [Bangor et al. 2008]; acima disso, a usabilidade é considerada acima da média.</li>
+</ul>
+<p class="peq">Referências: Bangor, A., Kortum, P. T. e Miller, J. T. (2008). An empirical evaluation of the System Usability Scale. International Journal of Human-Computer Interaction, 24(6):574–594. · Brooke, J. (1996). SUS: a "quick and dirty" usability scale. In Usability Evaluation in Industry, pages 189–194. Taylor &amp; Francis. · Nielsen, J. e Landauer, T. K. (1993). A mathematical model of the finding of usability problems. In Proceedings of the INTERACT'93 and CHI'93 Conference, pages 206–213. ACM.</p>
+
+<div class="quebra"></div>
+<h1 style="font-size:14pt">Folha do Participante</h1>
+<p>Participante nº <span class="campo" style="min-width:40pt">&nbsp;</span> &nbsp; Idade <span class="campo" style="min-width:40pt">&nbsp;</span> &nbsp; Corre ou caminha com frequência? ( ) sim ( ) não &nbsp; Data <span class="campo" style="min-width:70pt">&nbsp;</span></p>
+
+<div class="box"><b>Termo de consentimento.</b> Concordo em participar voluntariamente da avaliação do aplicativo NOMADE RUN, parte de um trabalho acadêmico do curso de Engenharia de Software do Centro Universitário Alfredo Nasser (UNIFAN). Sei que o aplicativo usa dados de demonstração, que não informo dados pessoais além dos desta folha, que as respostas serão usadas apenas de forma anônima e agregada e que posso desistir a qualquer momento.<br><br>Assinatura: <span class="campo" style="min-width:260pt">&nbsp;</span></div>
+
+<p><b>A. Tarefas</b> (preenchido pelo aplicador)</p>
+<table>
+  <tr><th>Tarefa</th><th>Concluiu sem ajuda</th><th>Concluiu com ajuda</th><th>Não concluiu</th><th>Tempo (s)</th><th style="width:30%">Observações</th></tr>
+  <tr><td>T1 Escolher time e criar conta</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>T2 Corrida simulada</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>T3 Pontos e zona no resumo</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>T4 Posição no ranking</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>T5 Contato de segurança</td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<p><b>B. Questionário SUS</b> (preenchido pelo participante). Marque de 1 (discordo totalmente) a 5 (concordo totalmente).</p>
+<table>
+  <tr><th>Afirmação</th><th class="c">1</th><th class="c">2</th><th class="c">3</th><th class="c">4</th><th class="c">5</th></tr>
+  <tr><td>1. Eu acho que gostaria de usar este aplicativo com frequência.</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
+  <tr><td>2. Achei o aplicativo desnecessariamente complexo.</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
+  <tr><td>3. Achei o aplicativo fácil de usar.</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
+  <tr><td>4. Acho que precisaria da ajuda de uma pessoa com conhecimento técnico para usar o aplicativo.</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
+  <tr><td>5. Achei que as funções do aplicativo estão bem integradas.</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
+  <tr><td>6. Achei que o aplicativo tem muitas inconsistências.</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
+  <tr><td>7. Imagino que a maioria das pessoas aprenderia a usar este aplicativo rapidamente.</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
+  <tr><td>8. Achei o aplicativo complicado de usar.</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
+  <tr><td>9. Eu me senti confiante ao usar o aplicativo.</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
+  <tr><td>10. Precisei aprender várias coisas antes de conseguir usar o aplicativo.</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
+</table>
+<p><b>C. Comentário livre</b> (opcional): o que mais gostou e o que mais atrapalhou?</p>
+<div class="box" style="height:40pt"></div>
+
+</body>
+</html>

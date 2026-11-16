@@ -4,7 +4,7 @@
 TITULO = "NOMADE RUN: Um Aplicativo Móvel de Corrida com Disputa de Território sobre o Mapa Real da Cidade"
 
 # A orientadora é a última autora (guia da professora).
-AUTORES = "Gabryel Gomes Bahmad Camapum, Mateus Augusto de Faria Brito, Dianne [SOBRENOME DA ORIENTADORA]"
+AUTORES = "Gabryel Gomes Bahmad Camapum, Mateus Augusto de Faria Brito, Dianne Dias Silva"
 ENDERECO = [
     "Instituto de Ciências Exatas – Centro Universitário Alfredo Nasser (UNIFAN)",
     "Aparecida de Goiânia – GO – Brasil",
@@ -206,8 +206,9 @@ tab("Tabela 3. Estratégia de Verificação e Validação", [
 ], [4.0, 3.4, 7.6])
 p("Todos os níveis automatizados que dispensam serviços externos rodam na integração contínua a cada envio de "
   "código: verificação de tipos, análise estática, testes do aplicativo com cobertura mínima de 90% no módulo de "
-  "regras, testes das funções do servidor, testes do banco e geração da versão web. A usabilidade foi avaliada por "
-  "inspeção, com um teste de 5 segundos aplicado às capturas de cada tela principal.")
+  "regras, testes das funções do servidor, testes do banco e geração da versão web. Para a validação com usuários, "
+  "definiu-se um protocolo com cinco tarefas executadas no aplicativo, medindo-se a taxa de sucesso e o tempo de "
+  "cada tarefa, seguido do questionário System Usability Scale (SUS), que resulta em uma nota de 0 a 100 [Brooke 1996].")
 
 # ---------------------------------------------------------------- 4
 h1("4. Resultados e Demonstração do Sistema")
@@ -220,8 +221,9 @@ p("A Figura 3 apresenta seis telas da versão final do aplicativo, capturadas no
 fig("telas.png", "Figura 3. Telas da Versão Final: Escolha da Equipe, Mapa, Nova Corrida, Resumo, Como Jogar e Clube", 15.0)
 p("A Tabela 4 reúne as métricas de qualidade obtidas. Em cada linha, \"aprovados\" indica casos de teste que "
   "produziram exatamente o resultado esperado, definido antes da execução; no formato X/Y, X é o número de casos "
-  "aprovados e Y o de casos executados, de modo que X igual a Y indica que nenhum caso falhou. As três linhas "
-  "marcadas como MVP foram executadas ao fim da fase F5, porque dependem do servidor completo em execução local.")
+  "aprovados e Y o de casos executados, de modo que X igual a Y indica que nenhum caso falhou. As linhas sem marcação "
+  "foram executadas novamente sobre a versão final; as três marcadas como MVP foram executadas ao fim da fase F5, "
+  "porque dependem do servidor completo em execução local.")
 tab("Tabela 4. Métricas de Qualidade e Significado de Cada Resultado", [
     ["Métrica", "Resultado", "Significado"],
     ["Testes unitários e de propriedade", "1.672 aprovados", "Nenhuma falha nos casos executados"],
@@ -233,13 +235,13 @@ tab("Tabela 4. Métricas de Qualidade e Significado de Cada Resultado", [
     ["Ponta a ponta da API (MVP)", "56/56", "Todas as etapas responderam como especificado"],
     ["Auditoria de segurança (MVP)", "89/89", "Todas as tentativas de ataque foram bloqueadas"],
     ["Consulta de zonas (2.000 zonas)", "35 ms", "Tempo em 95% das requisições; meta de 150 ms"],
-    ["Teste de 5 segundos (inspeção)", "96%", "Telas compreendidas em 5 s; meta de 85%"],
+    ["Contraste de cores (pares de tokens)", "64/65", "Pares acima do mínimo; o único abaixo é do tema claro, não usado"],
 ], [5.6, 3.0, 6.4])
 p("Quanto ao atendimento aos requisitos, a Tabela 5 resume a situação final da ERS. Os 25 requisitos de prioridade "
   "P0 foram atendidos, 18 integralmente e 7 de forma parcial, com o núcleo funcionando e as pendências documentadas. "
   "Os três não implementados são o mapa de calor, o título de Prefeito de uma zona e uma meta de desempenho que exige "
-  "medição em aparelho. Assim, o objetivo de desenvolver e verificar a solução de ponta a ponta foi atingido; a "
-  "validação com usuários reais, no entanto, ainda não foi realizada.")
+  "medição em aparelho. Assim, o objetivo de desenvolver e verificar a solução de ponta a ponta foi atingido; o "
+  "protocolo de validação com usuários descrito na Seção 3.4, no entanto, ainda não foi aplicado.")
 tab("Tabela 5. Situação Final dos Requisitos", [
     ["Tipo", "Implementado", "Parcial", "Não Implementado", "Fora do MVP"],
     ["Requisitos Funcionais (27)", "18", "8", "1", "0"],
@@ -262,8 +264,8 @@ p("O sistema tem limitações. O mapa de calor não foi implementado, e o feed s
   "interfaces nativas em todas as plataformas; no MVP, adotou-se a tela acesa durante a corrida e uma central de "
   "notificações interna. Os roteiros de teste em aparelho foram escritos, mas não executados em dispositivos físicos, "
   "e não foram feitos o teste de carga nem a medição de bateria. A assinatura HMAC não prova que o cliente é o "
-  "aplicativo oficial, e o teste de 5 segundos foi feito por inspeção, não com usuários.")
-p("Como trabalhos futuros, propõem-se: publicar o servidor da versão final e a versão compilada com gravação em "
+  "aplicativo oficial, e o protocolo de validação com usuários ainda não foi aplicado.")
+p("Como trabalhos futuros, propõem-se: aplicar o protocolo de validação com usuários; publicar o servidor da versão final e a versão compilada com gravação em "
   "segundo plano e notificações push; implementar o mapa de calor; executar os testes em aparelhos físicos e o teste "
   "de carga; adotar a atestação do aparelho no antifraude; e conduzir um estudo com corredores reais para medir se a "
   "camada de jogo aumenta a regularidade de treino em relação a um aplicativo de corrida convencional.")
@@ -272,6 +274,7 @@ REFERENCIAS = [
     "Althoff, T., White, R. W. e Horvitz, E. (2016). Influence of Pokémon Go on physical activity: study and implications. Journal of Medical Internet Research, 18(12):e315.",
     "Anderson, D. J. (2010). Kanban: Successful Evolutionary Change for Your Technology Business. Blue Hole Press.",
     "Brasil (2018). Lei nº 13.709, de 14 de agosto de 2018. Lei Geral de Proteção de Dados Pessoais (LGPD). Diário Oficial da União, Brasília.",
+    "Brooke, J. (1996). SUS: a \"quick and dirty\" usability scale. In Usability Evaluation in Industry, pages 189–194. Taylor & Francis.",
     "Brodsky, I. (2018). H3: Uber's hexagonal hierarchical spatial index. Uber Engineering Blog. https://www.uber.com/blog/h3/.",
     "Claessen, K. e Hughes, J. (2000). QuickCheck: a lightweight tool for random testing of Haskell programs. In Proceedings of the 5th ACM SIGPLAN International Conference on Functional Programming, pages 268–279. ACM.",
     "Clegg, D. e Barker, R. (1994). Case Method Fast-Track: A RAD Approach. Addison-Wesley.",
