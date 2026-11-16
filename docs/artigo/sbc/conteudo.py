@@ -12,7 +12,7 @@ ENDERECO = [
 EMAILS = "byelgomys@gmail.com, mateusbrito07@gmail.com, diannesilva@unifan.edu.br"
 
 ABSTRACT = (
-    "Many beginner runners quit within a few weeks for lack of motivation to keep a regular routine. This paper "
+    "Many beginner runners quit within a few weeks for lack of motivation. This paper "
     "presents NOMADE RUN, a mobile application developed in the Software Development Project (PDS) that turns "
     "running into a territory dispute between teams on the real city map. An iterative and incremental process "
     "was adopted, with nine phases closed by automated verification and 61 requirements prioritized with the MoSCoW "
@@ -22,14 +22,18 @@ ABSTRACT = (
 )
 
 RESUMO = (
-    "Muitos corredores iniciantes abandonam a corrida em poucas semanas por falta de motivação para manter a "
-    "regularidade. Este artigo apresenta o NOMADE RUN, aplicativo móvel desenvolvido no Projeto de Desenvolvimento "
+    "Muitos corredores iniciantes abandonam a corrida em poucas semanas por falta de motivação. Este artigo apresenta o NOMADE RUN, aplicativo móvel desenvolvido no Projeto de Desenvolvimento "
     "de Software (PDS) que transforma a corrida em uma disputa de território entre equipes sobre o mapa real da "
     "cidade. Adotou-se um processo iterativo e incremental em nove fases, encerradas por verificação automatizada, "
     "com 61 requisitos priorizados pela técnica MoSCoW. A solução usa React Native/Expo e Supabase, com servidor "
     "autoritativo. A versão final foi aprovada em 1.672 testes unitários e 964 de banco de dados e atendeu "
     "integralmente 39 dos 61 requisitos e parcialmente outros 17."
 )
+
+# O modelo da SBC traz as palavras-chave logo após o Abstract e o Resumo ("Keywords—" e "Palavras-chave—").
+KEYWORDS = "gamification, running, location-based games, mobile applications, software engineering"
+PALAVRAS_CHAVE = "gamificação, corrida de rua, jogos baseados em localização, aplicativos móveis, engenharia de software"
+TITULO_REFERENCIAS = "Referências Bibliográficas"
 
 B = []  # blocos do corpo
 def h1(t): B.append(("h1", t))
@@ -248,7 +252,7 @@ tab("Tabela 5. Situação Final dos Requisitos", [
     ["Requisitos Não Funcionais (15)", "6", "6", "1", "2"],
     ["Regras de Negócio (19)", "15", "3", "1", "0"],
     ["Total (61)", "39", "17", "3", "2"],
-], [5.0, 2.4, 1.8, 3.0, 2.2])
+], [4.4, 2.8, 1.8, 3.2, 2.4])
 
 # ---------------------------------------------------------------- 5
 h1("5. Conclusão e Trabalhos Futuros")
