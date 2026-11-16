@@ -142,7 +142,7 @@ def montar(saida):
 
     def legenda(texto):
         # modelo, Seção 5: centralizada se cabe em uma linha; senão justificada (como a Figura 2 do modelo)
-        return novo("leg" if len(texto) <= 88 else "leg_longa", texto)
+        return novo("leg" if len(texto) <= 72 else "leg_longa", texto)
 
     depois_de_titulo = True
     for b in C.B:
