@@ -1,0 +1,14 @@
+**/node_modules
+**/.expo
+**/dist
+**/dist-web
+**/coverage
+apps/mobile/android
+apps/mobile/ios
+apps/mobile/.env
+apps/mobile/.env.*
+!apps/mobile/.env.example
+!apps/mobile/.env.production.example
+.git
+docs
+supabase

@@ -1,0 +1,20 @@
+# NOMADE RUN no Expo Go via Docker. Rode na pasta do projeto: docker compose up --build
+#
+# Por padrão o app abre em MODO DEMONSTRAÇÃO (dados fictícios, sem servidor). Para usar o servidor da nuvem, crie um
+# arquivo .env nesta pasta (ao lado deste arquivo) com:
+#   EXPO_PUBLIC_DEMO=0
+#   EXPO_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co
+#   EXPO_PUBLIC_SUPABASE_ANON_KEY=<chave anon/publishable — nunca a secret>
+services:
+  app:
+    build: .
+    image: nomaderun-expo
+    ports:
+      - "8081:8081"
+    environment:
+      EXPO_PUBLIC_DEMO: ${EXPO_PUBLIC_DEMO:-1}
+      EXPO_PUBLIC_SUPABASE_URL: ${EXPO_PUBLIC_SUPABASE_URL:-}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${EXPO_PUBLIC_SUPABASE_ANON_KEY:-}
+    # Terminal interativo: o Expo mostra o QR code e aceita as teclas (r recarrega).
+    stdin_open: true
+    tty: true
