@@ -91,6 +91,11 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-11-16 — Artigo científico, 3ª versão (guia novo da professora, modelo SBC)
+- **Feito:** artigo reescrito na estrutura exigida pelo guia (1. Introdução sem subseções · 2. Fundamentação Teórica · 3. Processo de Desenvolvimento de Software com 3.1 Ciclo de Vida e Metodologia, 3.2 Engenharia de Requisitos, 3.3 Arquitetura e Modelagem, 3.4 Garantia da Qualidade e Testes · 4. Resultados e Demonstração do Sistema · 5. Conclusão e Trabalhos Futuros · Referências), voz impessoal, resumo de 10 linhas, orientadora como última autora, números da versão final (Jest 1.672 rodado de novo na `main`; cobertura do domain 100% linhas / 98,45% ramos).
+- **Arquivos:** `docs/artigo/sbc/conteudo.py` (texto), `docs/artigo/sbc/montar_docx.py` (gera o .docx com as medidas do modelo da SBC, conferidas contra `sbc/sbc_template.pdf`), figuras `sbc/processo.png`, `sbc/arquitetura.png`, `sbc/telas.png`; saídas `NOMADE RUN - Artigo Científico (3ª versão).docx/.pdf` (10 páginas).
+- **Pendências:** sobrenome da orientadora (marcador `[SOBRENOME DA ORIENTADORA]` em `conteudo.py`); o .docx/.odt oficial da SBC não baixa deste ambiente (o servidor da SBC derruba a conexão). Validação com usuários não foi feita (dito no texto).
+
 ### 2026-11-16 — Artigo científico, 2ª versão (adequações da professora)
 - **Feito:** `docs/artigo/artigo.html` refeito no modelo da SBC (margens 3,5/2,5/3 cm, Times 12, sem numeração, legendas em Helvetica 10, referências autor-ano) com os 15 comentários do PDF anotado e os 5 pontos da lista: título e seções com iniciais maiúsculas, afiliação "Instituto de Ciências Exatas – Centro Universitário Alfredo Nasser (UNIFAN), Aparecida de Goiânia – GO – Brasil", primeiro parágrafo de cada seção sem recuo, referências a seções no texto corrido, Tabela 2 com a coluna "Significado do Resultado", limitações explicadas (funcionalidades parciais e dependência de versão compilada fora do Expo Go) e 11 referências novas na fundamentação. Corrigidos dois números: Tabela 3 (31/23/5/2, erro de soma já apontado no `REQUISITOS.md`) e cobertura do domain (100% linhas, 99,5% ramos).
 - **Arquivos:** `docs/artigo/artigo.html`, `NOMADE RUN - Artigo Científico (2ª versão).pdf` (10 páginas) e `.docx`, `figuras/arquitetura.png`. A 1ª versão ficou guardada.
