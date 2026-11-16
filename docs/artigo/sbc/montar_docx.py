@@ -106,17 +106,22 @@ def montar(saida):
         p._p.getparent().remove(p._p)
     trocar_texto(email, C.EMAILS)
 
-    abstract, keywords, resumo, palavras = P[7], P[8], P[9], P[10]
-    for p, rotulo, texto in ((abstract, "Abstract.", C.ABSTRACT), (resumo, "Resumo.", C.RESUMO)):
+    # O guia da professora pede o Resumo antes do Abstract (o modelo traz o contrário); onde o guia e o modelo
+    # divergem, vale o guia. Os parágrafos do modelo são reaproveitados na mesma posição, só com o conteúdo trocado.
+    primeiro, kw1, segundo, kw2 = P[7], P[8], P[9], P[10]
+    for p, rotulo, texto in ((primeiro, "Resumo.", C.RESUMO), (segundo, "Abstract.", C.ABSTRACT)):
         runs = p.runs
         runs[0].text = rotulo
         runs[1].text = " " + texto
         for r in runs[2:]:
             r._r.getparent().remove(r._r)
-    for p, texto in ((keywords, C.KEYWORDS), (palavras, C.PALAVRAS_CHAVE)):
+    for p, rotulo, texto in ((kw1, "Palavras-chave", C.PALAVRAS_CHAVE), (kw2, "Keywords", C.KEYWORDS)):
+        p.runs[0].text = rotulo
         p.runs[-1].text = texto
-    for p in (titulo, autores, end2, email, resumo, palavras):
+    for p in (titulo, autores, end2, email, primeiro, kw1):
         lingua(p, "pt-BR")
+    for p in (segundo, kw2):
+        lingua(p, "en-US")
 
     # ---- apaga o texto de exemplo do modelo (do "1. General Information" até o fim), mantendo a seção final
     corpo = doc.element.body
