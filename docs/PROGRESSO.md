@@ -91,6 +91,11 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-11-16 — Artigo científico, 2ª versão (adequações da professora)
+- **Feito:** `docs/artigo/artigo.html` refeito no modelo da SBC (margens 3,5/2,5/3 cm, Times 12, sem numeração, legendas em Helvetica 10, referências autor-ano) com os 15 comentários do PDF anotado e os 5 pontos da lista: título e seções com iniciais maiúsculas, afiliação "Instituto de Ciências Exatas – Centro Universitário Alfredo Nasser (UNIFAN), Aparecida de Goiânia – GO – Brasil", primeiro parágrafo de cada seção sem recuo, referências a seções no texto corrido, Tabela 2 com a coluna "Significado do Resultado", limitações explicadas (funcionalidades parciais e dependência de versão compilada fora do Expo Go) e 11 referências novas na fundamentação. Corrigidos dois números: Tabela 3 (31/23/5/2, erro de soma já apontado no `REQUISITOS.md`) e cobertura do domain (100% linhas, 99,5% ramos).
+- **Arquivos:** `docs/artigo/artigo.html`, `NOMADE RUN - Artigo Científico (2ª versão).pdf` (10 páginas) e `.docx`, `figuras/arquitetura.png`. A 1ª versão ficou guardada.
+- **Pendência:** o artigo descreve o MVP (números da Fase 5); se a banca quiser a v2/Fase 8, atualizar as Seções 5 e 6.
+
 ### 2026-11-04 — Fase 8: fechamento (Coordenador)
 
 - **Feito (o que entrou, por onda):**
