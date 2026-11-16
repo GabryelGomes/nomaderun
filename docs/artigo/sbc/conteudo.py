@@ -107,8 +107,8 @@ p("O aplicativo foi desenvolvido em TypeScript com React Native e o framework Ex
   "aplicativos para Android, iOS e navegador a partir de uma única base de código. O servidor foi construído sobre o "
   "Supabase [Supabase 2026], plataforma que reúne o banco de dados PostgreSQL com a extensão geográfica PostGIS, "
   "autenticação por tokens JWT, segurança por linha (Row Level Security, RLS), funções sem servidor (Edge Functions), "
-  "atualização em tempo real e tarefas agendadas. A segurança por linha permite que o próprio banco restrinja quais "
-  "registros cada usuário pode ler ou alterar, o que reduz a dependência de verificações no código do aplicativo.")
+  "atualização em tempo real e tarefas agendadas; com a segurança por linha, o próprio banco restringe quais "
+  "registros cada usuário pode ler ou alterar.")
 
 h2("2.4. Trabalhos Relacionados")
 p("A Tabela 1 compara o NOMADE RUN com produtos que inspiraram o projeto, segundo as funções declaradas por cada "
@@ -135,7 +135,7 @@ p("Adotou-se um ciclo de vida iterativo e incremental [Sommerville 2019, Pressma
   "inspirado no Kanban [Anderson 2010]; a implementação ocorria em frentes paralelas, separadas por área do código; "
   "e a fase só era encerrada depois que todas as verificações automatizadas passassem, o que funcionou como portão "
   "de qualidade.")
-fig("processo.png", "Figura 1. Ciclo de Vida Adotado: Etapas de Cada Fase e Sequência de Fases do Projeto", 15.0)
+fig("processo.png", "Figura 1. Ciclo de Vida Adotado: Etapas de Cada Fase e Sequência de Fases do Projeto", 13.5)
 p("As fases F0 a F5 produziram o Produto Mínimo Viável (MVP): análise e base documental, infraestrutura de banco "
   "e autenticação, corrida de ponta a ponta com GPS, funcionalidades de jogo e sociais, qualidade e segurança, e "
   "entrega. As fases F6 a F8 evoluíram a solução: adequação da interface ao uso móvel, reformulação da experiência "
@@ -157,17 +157,10 @@ p("Os requisitos foram levantados a partir de pesquisa de mercado com aplicativo
   "possível, um critério de aceite mensurável, para permitir a rastreabilidade até os testes por meio de uma matriz "
   "requisito-teste.")
 p("A priorização usou a técnica MoSCoW [Clegg e Barker 1994] em três níveis: P0, obrigatórios para a demonstração; "
-  "P1, importantes; e P2, desejáveis. A Tabela 2 mostra a distribuição resultante. Dois requisitos não funcionais, o "
+  "P1, importantes; e P2, desejáveis. Resultaram 25 requisitos P0, 24 P1 e 10 P2. Dois requisitos não funcionais, o "
   "teste de carga e a medição de bateria, foram classificados como fora do MVP por dependerem de infraestrutura e de "
   "aparelhos indisponíveis. Mudanças posteriores, como as da reformulação da fase F7, foram registradas em uma "
   "proposta de revisão da ERS.")
-tab("Tabela 2. Requisitos da ERS por Tipo e Prioridade", [
-    ["Tipo", "P0", "P1", "P2", "Fora do MVP", "Total"],
-    ["Requisitos Funcionais", "11", "10", "6", "0", "27"],
-    ["Requisitos Não Funcionais", "6", "7", "0", "2", "15"],
-    ["Regras de Negócio", "8", "7", "4", "0", "19"],
-    ["Total", "25", "24", "10", "2", "61"],
-], [5.0, 1.6, 1.6, 1.6, 2.4, 1.6])
 
 h2("3.3. Arquitetura e Modelagem")
 p("A Figura 2 apresenta a arquitetura do sistema, composta pelo aplicativo móvel, pelo servidor no Supabase e pelo "
@@ -193,13 +186,13 @@ p("O multiplicador de esforço é a razão entre o ritmo habitual do corredor e 
 
 h2("3.4. Garantia da Qualidade e Testes")
 p("A estratégia de verificação e validação seguiu a pirâmide de testes [Cohn 2009]: muitos testes rápidos e "
-  "isolados na base e poucos testes de ponta a ponta no topo. A Tabela 3 descreve cada nível adotado, a ferramenta "
+  "isolados na base e poucos testes de ponta a ponta no topo. A Tabela 2 descreve cada nível adotado, a ferramenta "
   "utilizada e o que ele verifica. No módulo de regras, além de exemplos fixos, foram usados testes baseados em "
   "propriedades [Claessen e Hughes 2000], que geram centenas de entradas aleatórias e verificam invariantes, como "
   "pontos nunca negativos e nenhum trecho válido acima de 40 km/h. A segurança foi verificada por uma auditoria "
   "adversarial, guiada pelo OWASP Top 10 [OWASP 2021], que tentou acessar dados de terceiros, escalar papéis e "
   "adulterar assinaturas.")
-tab("Tabela 3. Estratégia de Verificação e Validação", [
+tab("Tabela 2. Estratégia de Verificação e Validação", [
     ["Nível", "Ferramenta", "O Que Verifica"],
     ["Unitário e de propriedade", "Jest", "Regras do jogo, serviços, sincronização e telas"],
     ["Banco de dados", "pgTAP", "Políticas de segurança por linha, gatilhos e funções SQL"],
@@ -207,12 +200,16 @@ tab("Tabela 3. Estratégia de Verificação e Validação", [
     ["Integração e ponta a ponta", "Jest e scripts da API", "Aplicativo e servidor juntos, do cadastro ao resultado"],
     ["Segurança", "Auditoria adversarial", "Ataques às funções e às políticas de acesso"],
     ["Interface", "Playwright", "Fluxo completo no navegador, comparação de telas, contraste e acessibilidade"],
+    ["Aceitação externa", "Equipes de teste", "Funcionalidades contra a ERS, registro de defeitos e retestes semanais"],
 ], [4.0, 3.4, 7.6])
 p("Todos os níveis automatizados que dispensam serviços externos rodam na integração contínua a cada envio de "
   "código: verificação de tipos, análise estática, testes do aplicativo com cobertura mínima de 90% no módulo de "
-  "regras, testes das funções do servidor, testes do banco e geração da versão web. Para a validação com usuários, "
-  "definiu-se um protocolo com cinco tarefas executadas no aplicativo, medindo-se a taxa de sucesso e o tempo de "
-  "cada tarefa, seguido do questionário System Usability Scale (SUS), que resulta em uma nota de 0 a 100 [Brooke 1996].")
+  "regras, testes das funções do servidor, testes do banco e geração da versão web. A validação externa foi "
+  "realizada por sete equipes de alunos da disciplina de Teste de Software, que, em baterias semanais, executaram "
+  "testes funcionais de caixa-preta e inspeções de código contra a ERS sobre a versão vigente do aplicativo, "
+  "registrando casos de teste, defeitos com severidade e retestes; os defeitos relatados alimentaram as fases "
+  "seguintes. Para a avaliação de usabilidade, definiu-se ainda um protocolo com cinco tarefas e o questionário "
+  "System Usability Scale (SUS), que resulta em uma nota de 0 a 100 [Brooke 1996].")
 
 # ---------------------------------------------------------------- 4
 h1("4. Resultados e Demonstração do Sistema")
@@ -223,29 +220,42 @@ p("A Figura 3 apresenta seis telas da versão final do aplicativo, capturadas no
   "mostra a distância, o tempo, o ritmo, os pontos e as zonas conquistadas. A Arena explica as regras do jogo, e o "
   "Clube reúne a crew, a meta da semana e os rankings.")
 fig("telas.png", "Figura 3. Telas da Versão Final: Escolha da Equipe, Mapa, Nova Corrida, Resumo, Como Jogar e Clube", 15.0)
-p("A Tabela 4 reúne as métricas de qualidade obtidas. Em cada linha, \"aprovados\" indica casos de teste que "
+p("A Tabela 3 reúne as métricas de qualidade obtidas. Em cada linha, \"aprovados\" indica casos de teste que "
   "produziram exatamente o resultado esperado, definido antes da execução; no formato X/Y, X é o número de casos "
-  "aprovados e Y o de casos executados, de modo que X igual a Y indica que nenhum caso falhou. As linhas sem marcação "
-  "foram executadas novamente sobre a versão final; as três marcadas como MVP foram executadas ao fim da fase F5, "
-  "porque dependem do servidor completo em execução local.")
-tab("Tabela 4. Métricas de Qualidade e Significado de Cada Resultado", [
+  "aprovados e Y o de casos executados, de modo que X igual a Y indica que nenhum caso falhou. Os testes foram "
+  "executados novamente sobre a versão final. Os que dependem do servidor completo em execução local foram medidos "
+  "ao fim da fase F5: integração entre aplicativo e servidor (26/26), ponta a ponta da API (56/56) e auditoria de "
+  "segurança (89/89).")
+tab("Tabela 3. Métricas de Qualidade e Significado de Cada Resultado", [
     ["Métrica", "Resultado", "Significado"],
     ["Testes unitários e de propriedade", "1.672 aprovados", "Nenhuma falha nos casos executados"],
     ["Cobertura do módulo de regras", "100% e 98,4%", "Linhas e ramos exercitados; meta de 90%"],
     ["Testes do banco de dados", "964/964", "Permissões e regras do banco atendidas"],
     ["Testes das funções do servidor", "108 aprovados", "Nenhuma falha (1 caso ignorado por depender de rede)"],
     ["Fluxo completo no navegador", "62/62", "Todas as etapas do roteiro concluídas"],
-    ["Integração aplicativo e servidor (MVP)", "26/26", "Todos os cenários funcionaram em conjunto"],
-    ["Ponta a ponta da API (MVP)", "56/56", "Todas as etapas responderam como especificado"],
-    ["Auditoria de segurança (MVP)", "89/89", "Todas as tentativas de ataque foram bloqueadas"],
     ["Consulta de zonas (2.000 zonas)", "35 ms", "Tempo em 95% das requisições; meta de 150 ms"],
     ["Contraste de cores (pares de tokens)", "64/65", "Pares acima do mínimo; o único abaixo é do tema claro, não usado"],
 ], [5.6, 3.0, 6.4])
+p("A Tabela 4 resume as três primeiras baterias de testes externos, realizadas em 2026 e consolidadas a partir dos 18 relatórios "
+  "entregues pelas equipes, 14 deles nessas baterias. Reprovados incluem os casos com ressalva ou atendidos em parte, "
+  "bloqueados incluem os não aplicáveis, e as reavaliações feitas só por inspeção de código entram apenas nos "
+  "defeitos. A taxa de aprovação subiu de 28% para 47% entre a primeira e a terceira bateria, ainda que os "
+  "conjuntos de casos não sejam idênticos. Os retestes mostraram as correções: dos 12 casos de uma equipe, 6 foram "
+  "corrigidos e 5 corrigidos em parte entre a primeira e a segunda bateria, e os 3 defeitos de outra equipe foram "
+  "corrigidos; dos 8 defeitos de uma terceira equipe na segunda bateria, 3 foram corrigidos, 1 em parte e 3 "
+  "continuaram abertos. Na quarta bateria, as equipes receberam um pacote antigo ou sem alterações, e por isso ela "
+  "não foi considerada.")
+tab("Tabela 4. Baterias de Testes Externos Executadas por Equipes da Disciplina de Teste de Software", [
+    ["Bateria", "Equipes", "Casos", "Aprovados", "Reprovados", "Bloqueados", "Defeitos Novos"],
+    ["1ª (24 a 26/10)", "4", "25", "7 (28%)", "17", "1", "20"],
+    ["2ª (27 a 29/10)", "5", "36", "16 (44%)", "20", "0", "20"],
+    ["3ª (6 e 7/11)", "5", "38", "18 (47%)", "16", "4", "17"],
+], [3.2, 1.7, 1.3, 2.1, 2.4, 2.3, 2.0])
 p("Quanto ao atendimento aos requisitos, a Tabela 5 resume a situação final da ERS. Os 25 requisitos de prioridade "
   "P0 foram atendidos, 18 integralmente e 7 de forma parcial, com o núcleo funcionando e as pendências documentadas. "
   "Os três não implementados são o mapa de calor, o título de Prefeito de uma zona e uma meta de desempenho que exige "
   "medição em aparelho. Assim, o objetivo de desenvolver e verificar a solução de ponta a ponta foi atingido; o "
-  "protocolo de validação com usuários descrito na Seção 3.4, no entanto, ainda não foi aplicado.")
+  "questionário de usabilidade descrito na Seção 3.4, no entanto, ainda não foi aplicado.")
 tab("Tabela 5. Situação Final dos Requisitos", [
     ["Tipo", "Implementado", "Parcial", "Não Implementado", "Fora do MVP"],
     ["Requisitos Funcionais (27)", "18", "8", "1", "0"],
@@ -267,9 +277,11 @@ p("O sistema tem limitações. O mapa de calor não foi implementado, e o feed s
   "bloqueada e as notificações push dependem de uma versão compilada do aplicativo, pois o Expo Go não oferece essas "
   "interfaces nativas em todas as plataformas; no MVP, adotou-se a tela acesa durante a corrida e uma central de "
   "notificações interna. Os roteiros de teste em aparelho foram escritos, mas não executados em dispositivos físicos, "
-  "e não foram feitos o teste de carga nem a medição de bateria. A assinatura HMAC não prova que o cliente é o "
-  "aplicativo oficial, e o protocolo de validação com usuários ainda não foi aplicado.")
-p("Como trabalhos futuros, propõem-se: aplicar o protocolo de validação com usuários; publicar o servidor da versão final e a versão compilada com gravação em "
+  "e não foram feitos o teste de carga nem a medição de bateria. Os testes externos deixaram defeitos em aberto, "
+  "como a distância percorrida durante a pausa ainda ser contada na corrida, a unidade em milhas não ser aplicada a "
+  "todas as métricas e o histórico omitir corridas acima de 200 registros. Por fim, a assinatura HMAC não prova que "
+  "o cliente é o aplicativo oficial, e o questionário de usabilidade ainda não foi aplicado.")
+p("Como trabalhos futuros, propõem-se: corrigir os defeitos ainda abertos nos testes externos; aplicar o questionário de usabilidade; publicar o servidor da versão final e a versão compilada com gravação em "
   "segundo plano e notificações push; implementar o mapa de calor; executar os testes em aparelhos físicos e o teste "
   "de carga; adotar a atestação do aparelho no antifraude; e conduzir um estudo com corredores reais para medir se a "
   "camada de jogo aumenta a regularidade de treino em relação a um aplicativo de corrida convencional.")

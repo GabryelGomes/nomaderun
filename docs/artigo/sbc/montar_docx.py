@@ -206,7 +206,7 @@ def montar(saida):
                     p = cel.paragraphs[0]
                     p.style = doc.styles["Normal"]
                     pf = p.paragraph_format
-                    pf.space_before, pf.space_after, pf.alignment = Pt(2), Pt(2), AL.LEFT
+                    pf.space_before, pf.space_after, pf.alignment = Pt(1), Pt(1), AL.LEFT
                     pf.keep_with_next = i < ultima
                     r = p.add_run(iniciais(valor) if (i == 0 or j == 0) else valor)
                     r.font.size = Pt(10)
