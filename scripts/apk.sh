@@ -22,6 +22,9 @@ KEY="$(sed -n 's/^EXPO_PUBLIC_SUPABASE_ANON_KEY=//p' "$PROD" | tr -d '\r' | head
 
 [[ "$URL" == https://*.supabase.co ]] || fail "EXPO_PUBLIC_SUPABASE_URL em .env.production precisa ser a URL da nuvem (https://<ref>.supabase.co). Valor atual: '${URL:-vazio}'."
 [ -n "$KEY" ] || fail "EXPO_PUBLIC_SUPABASE_ANON_KEY vazia em .env.production."
+MAPS="$(sed -n 's/^GOOGLE_MAPS_ANDROID_API_KEY=//p' "$PROD" | tr -d '\r' | head -1)"
+[ -n "$MAPS" ] || fail "GOOGLE_MAPS_ANDROID_API_KEY vazia em .env.production: sem a chave do Maps SDK for Android o APK fecha ao abrir o mapa."
+
 case "$KEY" in
   sb_secret_*|*service_role*) fail "Essa é uma chave secreta: use a anon/publishable. A secreta nunca vai no app." ;;
 esac
@@ -33,6 +36,7 @@ printf '\n\033[1;33m▶ Gravando o backend %s no ambiente "preview" do EAS\033[0
 # A chave anon/publishable é pública por natureza (vai dentro do app), por isso "plaintext".
 npx eas-cli@latest env:set --environment preview --name EXPO_PUBLIC_SUPABASE_URL --value "$URL" --visibility plaintext --non-interactive
 npx eas-cli@latest env:set --environment preview --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "$KEY" --visibility plaintext --non-interactive
+npx eas-cli@latest env:set --environment preview --name GOOGLE_MAPS_ANDROID_API_KEY --value "$MAPS" --visibility sensitive --non-interactive
 
 printf '\n\033[1;33m▶ Gerando o APK na nuvem do EAS (leva uns 10 a 20 minutos)\033[0m\n'
 npx eas-cli@latest build --platform android --profile preview

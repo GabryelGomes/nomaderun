@@ -32,6 +32,16 @@ function withUpdates(config) {
   return { ...config, extra: { ...extra, eas: easRest }, updates: { ...updatesRest, enabled: false } };
 }
 
+// 3) Mapa no Android: o react-native-maps usa o Google Maps, que num app instalado (APK) exige a chave do Maps SDK for
+// Android; sem ela o app fecha ao abrir o mapa (no Expo Go funciona porque o Expo Go traz a própria chave). A chave vem
+// da variável GOOGLE_MAPS_ANDROID_API_KEY no momento do build e nunca fica no repositório.
+function withGoogleMaps(config) {
+  const apiKey = process.env.GOOGLE_MAPS_ANDROID_API_KEY?.trim();
+  if (!apiKey) return config;
+  const android = config.android ?? {};
+  return { ...config, android: { ...android, config: { ...android.config, googleMaps: { apiKey } } } };
+}
+
 module.exports = ({ config }) => {
   const background = process.env.NOMADE_BACKGROUND_LOCATION === '1';
   const plugins = (config.plugins ?? []).map((plugin) => {
@@ -46,7 +56,7 @@ module.exports = ({ config }) => {
       },
     ];
   });
-  return withUpdates({ ...config, plugins, extra: { ...config.extra, backgroundLocation: background } });
+  return withGoogleMaps(withUpdates({ ...config, plugins, extra: { ...config.extra, backgroundLocation: background } }));
 };
 
 module.exports.EAS_PROJECT_PLACEHOLDER = EAS_PROJECT_PLACEHOLDER;
