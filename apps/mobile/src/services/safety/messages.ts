@@ -74,3 +74,17 @@ export async function sendToContacts(contacts: ContactLike[], body: string, api:
     return { method: 'none', ok: false, message: 'Não foi possível abrir o envio. Ligue para alguém de confiança.' };
   }
 }
+
+export type SafetyNoticeKind = 'sos' | 'stop' | 'escort';
+
+/**
+ * Título do aviso depois de abrir o envio (N-01 dos testes externos: "Aviso de parada enviado" aparecia quando o app só
+ * tinha aberto o SMS, e a pessoa ainda precisava tocar em enviar). Diz o que de fato aconteceu: mensagem pronta,
+ * escolher como enviar ou falha ao abrir. Nada aqui afirma que a mensagem chegou.
+ */
+export function safetyNoticeTitle(kind: SafetyNoticeKind, method: SendResult['method']): string {
+  const what = kind === 'sos' ? 'SOS' : kind === 'stop' ? 'Aviso de parada' : 'Sua localização';
+  if (method === 'none') return `${what}: não deu para abrir o envio`;
+  if (method === 'share') return `${what}: escolha como enviar`;
+  return kind === 'escort' ? 'Sua localização está pronta: toque em enviar' : `${what} pronto: toque em enviar`;
+}

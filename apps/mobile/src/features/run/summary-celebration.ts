@@ -26,6 +26,6 @@ export function summaryCelebrations(summary: RunSummary, official: boolean, fact
 }
 
 /** Frase de abertura do anúncio único ao leitor de tela. */
-export function summaryIntro(km: string, time: string): string {
-  return `Corrida concluída: ${km} km em ${time}.`;
+export function summaryIntro(distance: string, time: string, unit: 'km' | 'mi' = 'km'): string {
+  return `Corrida concluída: ${distance} ${unit} em ${time}.`;
 }

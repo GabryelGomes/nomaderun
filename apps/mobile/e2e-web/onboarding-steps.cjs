@@ -50,6 +50,7 @@ async function fillSignUp(page, user) {
   await id('tela-cadastro').waitFor({ timeout: 30_000 });
   await id('cadastro-email').fill(user.email);
   await id('cadastro-senha').fill(user.password);
+  await id('cadastro-confirmar-senha').fill(user.password);
   await id('cadastro-usuario').fill(user.username);
   await id('cadastro-nascimento').fill(user.birth ?? '15/05/2000');
   await id('cadastro-aceite').click();

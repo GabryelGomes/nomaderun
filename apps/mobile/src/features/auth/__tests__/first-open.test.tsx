@@ -146,6 +146,7 @@ describe('Cadastro enxuto (D-72)', () => {
       });
     type('cadastro-email', 'ana@exemplo.com');
     type('cadastro-senha', 'Corrida@2026');
+    type('cadastro-confirmar-senha', 'Corrida@2026');
     type('cadastro-usuario', 'ana_corre');
     type('cadastro-nascimento', '15052000');
     r.press('cadastro-aceite');
@@ -176,7 +177,7 @@ describe('Cadastro enxuto (D-72)', () => {
 
   it('no máximo 4 campos, sem cidade, e 1 caixa para Termos e Privacidade', () => {
     const r = render(<SignUpScreen />);
-    const fields = ['cadastro-email', 'cadastro-senha', 'cadastro-usuario', 'cadastro-nascimento'];
+    const fields = ['cadastro-email', 'cadastro-senha', 'cadastro-confirmar-senha', 'cadastro-usuario', 'cadastro-nascimento'];
     for (const f of fields) expect(r.has(f)).toBe(true);
     expect(r.has('cadastro-cidade')).toBe(false);
     expect(r.has('cadastro-aceite')).toBe(true);
@@ -193,6 +194,7 @@ describe('Cadastro enxuto (D-72)', () => {
       });
     type('cadastro-email', 'ana@exemplo.com');
     type('cadastro-senha', 'Corrida@2026');
+    type('cadastro-confirmar-senha', 'Corrida@2026');
     type('cadastro-usuario', 'ana_corre');
     type('cadastro-nascimento', '15052000');
     await act(async () => {

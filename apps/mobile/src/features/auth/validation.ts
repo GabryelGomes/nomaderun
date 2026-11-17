@@ -18,22 +18,36 @@ export function validateEmail(email: string): string | null {
 
 export type PasswordStrength = { ok: boolean; level: 0 | 1 | 2 | 3; label: string; hint: string };
 
-/** Mínimo de 8 caracteres; o nível dá feedback enquanto a pessoa digita. */
+const hasLetter = (pw: string) => /\p{L}/u.test(pw);
+const hasDigit = (pw: string) => /[0-9]/.test(pw);
+
+/**
+ * Mínimo de 8 caracteres com letras e números (teste externo, bateria 2: "12345678" era aceita com só um aviso);
+ * o nível dá feedback enquanto a pessoa digita. O Auth do Supabase exige o mesmo (`password_requirements`).
+ */
 export function passwordStrength(pw: string): PasswordStrength {
-  if (pw.length === 0) return { ok: false, level: 0, label: '', hint: `Use pelo menos ${PASSWORD_MIN} caracteres.` };
+  if (pw.length === 0) return { ok: false, level: 0, label: '', hint: `Use pelo menos ${PASSWORD_MIN} caracteres, com letras e números.` };
   if (pw.length < PASSWORD_MIN) {
     const left = PASSWORD_MIN - pw.length;
     return { ok: false, level: 0, label: 'Curta demais', hint: `Faltam ${left} ${left === 1 ? 'caractere' : 'caracteres'}.` };
   }
+  if (!hasLetter(pw) || !hasDigit(pw)) return { ok: false, level: 1, label: 'Fraca', hint: 'Misture letras e números.' };
   const kinds = [/[a-z]/, /[A-Z]/, /[0-9]/, /[^A-Za-z0-9]/].filter((re) => re.test(pw)).length;
   const long = pw.length >= 12;
   if (kinds >= 3 && long) return { ok: true, level: 3, label: 'Forte', hint: 'Boa senha.' };
-  if (kinds >= 3 || (kinds >= 2 && long)) return { ok: true, level: 2, label: 'Média', hint: 'Aceita. Fica mais forte com 12 caracteres ou mais.' };
-  return { ok: true, level: 1, label: 'Fraca', hint: 'Aceita, mas misture letras maiúsculas, números e símbolos.' };
+  return { ok: true, level: 2, label: 'Média', hint: 'Aceita. Fica mais forte com 12 caracteres, maiúsculas e símbolos.' };
 }
 
 export function validatePassword(pw: string): string | null {
-  return pw.length >= PASSWORD_MIN ? null : `A senha precisa ter pelo menos ${PASSWORD_MIN} caracteres.`;
+  if (pw.length < PASSWORD_MIN) return `A senha precisa ter pelo menos ${PASSWORD_MIN} caracteres.`;
+  if (!hasLetter(pw) || !hasDigit(pw)) return 'A senha precisa ter letras e números.';
+  return null;
+}
+
+/** Confirmação da senha no cadastro (teste externo, bateria 3: um erro de digitação trancava a conta). */
+export function validatePasswordConfirm(pw: string, confirm: string): string | null {
+  if (!confirm) return 'Repita a senha.';
+  return pw === confirm ? null : 'As senhas não são iguais.';
 }
 
 export function validateUsername(raw: string): string | null {
@@ -98,6 +112,8 @@ export function validateCity(raw: string | undefined): string | null {
 export type SignUpForm = {
   email: string;
   password: string;
+  /** Repetição da senha; quando presente, precisa ser igual. */
+  passwordConfirm?: string;
   username: string;
   birthdate: string;
   /** Cidade natal (opcional). */
@@ -115,6 +131,7 @@ export function validateSignUp(f: SignUpForm, today: Date = new Date()): SignUpE
   };
   set('email', validateEmail(f.email));
   set('password', validatePassword(f.password));
+  if (f.passwordConfirm !== undefined) set('passwordConfirm', validatePasswordConfirm(f.password, f.passwordConfirm));
   set('username', validateUsername(f.username));
   set('birthdate', validateBirthdate(f.birthdate, today));
   set('city', validateCity(f.city));

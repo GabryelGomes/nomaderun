@@ -14,6 +14,14 @@ export const CADENCE_CHECK_MAX_KMH = 20;
 export const MIN_CADENCE_SPM = 60;
 export const LOW_CADENCE_SECONDS = 60;
 export const NO_PEDOMETER_REVIEW_METERS = 10_000;
+/**
+ * Pausa e parada (RF-004): um trecho com mais de 15 s entre dois pontos (pausa manual, em que o app não grava, ou
+ * GPS sem sinal) ou abaixo de 1 km/h (parado sem pausar) não entra na distância, no tempo em movimento nem nos
+ * pontos. Não é fraude: o trecho fica de fora sem alerta e sem afetar o Índice de Confiança. O GPS grava 1 ponto
+ * por segundo, então nenhum trecho corrido de verdade chega perto desse intervalo.
+ */
+export const MAX_STEP_GAP_SECONDS = 15;
+export const IDLE_KMH = 1;
 
 export type CheatFlag = 'MOCK_LOCATION' | 'TELEPORT' | 'POINT_SPEED' | 'VEHICLE_SUSPECTED' | 'NO_STEPS' | 'NO_PEDOMETER';
 
@@ -26,6 +34,8 @@ export type Step = {
   kmh: number;
   valid: boolean;
   reason?: CheatFlag;
+  /** Pausa, parada ou falha longa de GPS: não conta, mas também não é fraude (sem `reason`). */
+  idle?: true;
 };
 
 export type ActivityValidation = {
@@ -88,7 +98,10 @@ export function validateActivity(points: GeoPoint[]): ActivityValidation {
     const seconds = Math.max(0, (b.p.t - a.p.t) / 1000);
     const kmh = seconds > 0 ? mpsToKmh(meters / seconds) : meters > 0 ? Infinity : 0;
     const step: Step = { from: a.index, to: b.index, meters, seconds, kmh, valid: true };
-    if (meters > TELEPORT_METERS && seconds <= TELEPORT_SECONDS) {
+    if (seconds > MAX_STEP_GAP_SECONDS || kmh < IDLE_KMH) {
+      step.valid = false;
+      step.idle = true;
+    } else if (meters > TELEPORT_METERS && seconds <= TELEPORT_SECONDS) {
       step.valid = false;
       step.reason = 'TELEPORT';
     } else if (kmh > MAX_POINT_KMH) {
@@ -118,7 +131,7 @@ export function validateActivity(points: GeoPoint[]): ActivityValidation {
   let invalidMeters = 0;
   for (const s of steps) {
     if (s.valid) validMeters += s.meters;
-    else {
+    else if (!s.idle) {
       invalidMeters += s.meters;
       if (s.reason) flags.add(s.reason);
     }

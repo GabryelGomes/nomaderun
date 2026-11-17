@@ -13,9 +13,8 @@ import { PlayerCard } from '@/components/player-card';
 import { StatTile } from '@/components/stat-tile';
 import { Text } from '@/components/text';
 import { districtsExploration } from '@/domain/games';
-import { formatKm } from '@/domain/geo';
 import { levelProgress, titleForLevel } from '@/domain/progression';
-import { formatInt, NO_DATA } from '@/features/format';
+import { distanceLabel, distanceSpoken, formatDistance, formatInt, NO_DATA, useDistanceUnit } from '@/features/format';
 import { mergeHistory } from '@/features/run/history-model';
 import { useNow } from '@/features/use-now';
 import { listMyActivities } from '@/services/api/activities-repo';
@@ -46,6 +45,7 @@ const AVATAR = 56;
  * Nenhum número é inventado: tudo sai das corridas, das zonas e do Atlas reais (D-76).
  */
 export function ProfileScreen() {
+  const unit = useDistanceUnit();
   const { colors } = useTheme();
   const name = useGame((s) => s.name);
   const gameFaction = useGame((s) => s.faction);
@@ -63,7 +63,7 @@ export function ProfileScreen() {
   const now = useNow(60_000);
   const { track } = useEngagementData();
   // Histórico inteiro só para os números desta tela (o store guarda o período escolhido nas Corridas).
-  const all = useResource(() => listMyActivities({ limit: 200 }), [userId]);
+  const all = useResource(() => listMyActivities(), [userId]);
 
   const faction = gameFaction ?? profile?.faction ?? 'striders';
   // C2 (E7): a moldura "Recruta" do servidor (ou da cerimônia, no aparelho) aparece no cartão
@@ -95,7 +95,7 @@ export function ProfileScreen() {
   const notice = all.error ?? (profile && profileError ? profileError : null);
   const noticeSavedAt = all.error ? (all.savedAt ?? historySync.at) : (profileSavedAt ?? null);
   const tiles: { testID: string; label: string; value: string; unit?: string; accent?: string; known: boolean; failed: boolean }[] = [
-    { testID: 'perfil-km', label: 'Distância', value: formatKm(totalKm, totalKm >= 100_000 ? 0 : 1), unit: 'km', known: runsKnown, failed: runsFailed },
+    { testID: 'perfil-km', label: 'Distância', value: formatDistance(totalKm, unit, totalKm >= 100_000 ? 0 : 1), unit: distanceLabel(unit), known: runsKnown, failed: runsFailed },
     { testID: 'perfil-zonas', label: 'Zonas', value: formatInt(zones), accent: neonTeam[faction], known: runsKnown, failed: runsFailed },
     { testID: 'perfil-atlas', label: 'Atlas', value: String(atlas), unit: '% do bairro', known: atlasKnown, failed: !atlasKnown && (fogSync.failed || notice !== null) },
   ];
@@ -204,8 +204,8 @@ export function ProfileScreen() {
             testID="voce-atividades"
             icon="activities"
             title="Atividades"
-            value={week.total > 0 ? `${formatKm(week.total * 1000, 1)} km na semana` : undefined}
-            accessibilityLabel={week.total > 0 ? `Atividades, ${formatKm(week.total * 1000, 1)} quilômetros nesta semana` : 'Atividades'}
+            value={week.total > 0 ? `${formatDistance(week.total * 1000, unit, 1)} ${distanceLabel(unit)} na semana` : undefined}
+            accessibilityLabel={week.total > 0 ? `Atividades, ${formatDistance(week.total * 1000, unit, 1)} ${distanceSpoken(unit)} nesta semana` : 'Atividades'}
             onPress={() => router.push(VOCE_ROUTES.corridas as Href)}
           />
           <SettingsRow testID="perfil-time" icon="flag" title="Meu time" value={team.name} onPress={() => router.push(VOCE_ROUTES.time as Href)} />

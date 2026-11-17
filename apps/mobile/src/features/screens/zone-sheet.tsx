@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { EmptyArt, TeamEmblem } from '@/components/art';
-import { Button } from '@/components/button';
+import { Button, IconButton } from '@/components/button';
 import { Icon } from '@/components/icon';
 import { OfflineNotice } from '@/components/offline-notice';
 import { TeamBadge } from '@/components/team-badge';
@@ -167,6 +167,10 @@ export function ZoneSheet() {
     router.back();
     router.push('/corrida');
   };
+  const closeZone = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/');
+  };
 
   if (!zone) {
     if (loading || !hydrated) {
@@ -238,6 +242,8 @@ export function ZoneSheet() {
             </Text>
           </FadeUp>
         </View>
+        {/* Teste externo (baterias 1 e 3): sem gesto de arrastar (web, leitor de tela), faltava como voltar ao mapa. */}
+        <IconButton testID="zona-fechar" icon="close" label="Fechar e voltar ao mapa" tone="sunken" size={44} onPress={closeZone} />
       </View>
 
       {/* 2. Placar de 2 cores (trechos na v2, domínio na v1). */}

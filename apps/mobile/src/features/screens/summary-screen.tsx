@@ -18,16 +18,17 @@ import { Text } from '@/components/text';
 import TerritoryMap from '@/components/territory-map';
 import { cellCenter } from '@/domain/grid';
 import { levelProgress } from '@/domain/progression';
-import { formatDuration, formatKm, formatPace } from '@/domain/geo';
+import { formatDuration } from '@/domain/geo';
 import { DEMO_CENTER } from '@/demo/demo-data';
-import { formatInt, formatXp, signedInt, zoneDisplayName } from '@/features/format';
+import { distanceLabel, distanceSpoken, formatDistance, formatInt, formatPaceIn, formatXp, paceLabel, signedInt, useDistanceUnit, zoneDisplayName } from '@/features/format';
 import { mapZonesNear } from '@/features/map-data';
 import { NeonBackdrop } from '@/features/auth/neon-backdrop';
 import { notificationPermissionStatus, requestNotificationPermission, shouldAskNotifications } from '@/features/run/notification-permission';
 import { RouteDraw } from '@/features/run/route-draw';
 import { ROUTE_DRAW_MS } from '@/features/run/route-draw.math';
 import { summaryCelebrations, summaryIntro } from '@/features/run/summary-celebration';
-import { invalidReasons, type RunSummary } from '@/features/run/summary-model';
+import { RunStatsView } from '@/features/run/run-stats-view';
+import { invalidReasons, personalBests, type RunSummary } from '@/features/run/summary-model';
 import type { SummaryXp } from '@/features/run/summary-extras';
 import { useRunRecord } from '@/features/run/use-run-record';
 import { getInvalidStretches } from '@/services/api/track-repo';
@@ -132,6 +133,8 @@ export function SummaryScreen({ rewards, moments, plan, renderShare, xp }: Summa
   const zones = useZones((s) => s.zones);
   const faction = useGame((s) => s.faction) ?? 'striders';
   const xpTotal = useGame((s) => s.xp);
+  const localRuns = useGame((s) => s.localRuns);
+  const unit = useDistanceUnit();
   const center = record.path[Math.floor(record.path.length / 2)] ?? DEMO_CENTER;
   const [details, setDetails] = useState(false);
   const mapZones = useMemo(() => (details ? mapZonesNear(zones, center, 1200) : []), [details, zones, center]);
@@ -206,7 +209,7 @@ export function SummaryScreen({ rewards, moments, plan, renderShare, xp }: Summa
   const runId = id ?? '';
   const share = () =>
     Share.share({
-      message: `Corri ${formatKm(r.meters)} km a ${r.avgPace ? formatPace(r.avgPace) : '--:--'}/km no NOMADE RUN e ${conquered.length ? `conquistei ${conquered.length} zona(s)` : 'pintei o bairro'}.`,
+      message: `Corri ${formatDistance(r.meters, unit)} ${distanceLabel(unit)} a ${r.avgPace ? formatPaceIn(r.avgPace, unit) : '--:--'}${paceLabel(unit)} no NOMADE RUN e ${conquered.length ? `conquistei ${conquered.length} zona(s)` : 'pintei o bairro'}.`,
     });
 
   // 1 linha por estado (F1 §5.5); o porquê fica em "Ver detalhes".
@@ -286,10 +289,17 @@ export function SummaryScreen({ rewards, moments, plan, renderShare, xp }: Summa
           <View style={{ flexDirection: 'row', gap: space[2], width: '100%' }}>
             <StatTile
               label="Distância"
-              value={formatKm(r.meters)}
-              unit="km"
+              value={formatDistance(r.meters, unit)}
+              unit={distanceLabel(unit)}
               valueSlot={
-                <CountUp value={r.meters} format={(n) => formatKm(n)} variant="headline" delay={at(NUMBERS_AT)} duration={COUNT_MS} accessibilityLabel={`${formatKm(r.meters)} quilômetros`} />
+                <CountUp
+                  value={r.meters}
+                  format={(n) => formatDistance(n, unit)}
+                  variant="headline"
+                  delay={at(NUMBERS_AT)}
+                  duration={COUNT_MS}
+                  accessibilityLabel={`${formatDistance(r.meters, unit)} ${distanceSpoken(unit)}`}
+                />
               }
             />
             <StatTile
@@ -310,17 +320,17 @@ export function SummaryScreen({ rewards, moments, plan, renderShare, xp }: Summa
           <View style={{ flexDirection: 'row', gap: space[2], width: '100%' }}>
             <StatTile
               label="Ritmo"
-              value={r.avgPace ? formatPace(r.avgPace) : '--:--'}
-              unit="/km"
+              value={r.avgPace ? formatPaceIn(r.avgPace, unit) : '--:--'}
+              unit={paceLabel(unit)}
               valueSlot={
                 <CountUp
                   value={r.avgPace ?? 0}
                   from={r.avgPace ? r.avgPace + 120 : 0}
-                  format={(n) => (r.avgPace ? formatPace(n) : '--:--')}
+                  format={(n) => (r.avgPace ? formatPaceIn(n, unit) : '--:--')}
                   variant="headline"
                   delay={at(NUMBERS_AT + 2 * NUMBER_STEP)}
                   duration={COUNT_MS}
-                  accessibilityLabel={`Ritmo médio ${r.avgPace ? formatPace(r.avgPace) : 'indisponível'} por quilômetro`}
+                  accessibilityLabel={`Ritmo médio ${r.avgPace ? formatPaceIn(r.avgPace, unit) : 'indisponível'} por ${unit === 'mi' ? 'milha' : 'quilômetro'}`}
                 />
               }
             />
@@ -450,6 +460,16 @@ export function SummaryScreen({ rewards, moments, plan, renderShare, xp }: Summa
                 </Text>
               ) : null}
             </Surface>
+            {r.stats ? (
+              <RunStatsView
+                stats={r.stats}
+                unit={unit}
+                bests={personalBests(
+                  r.stats,
+                  localRuns.filter((lr) => lr.id !== id && lr.startedAt < (localRuns.find((x) => x.id === id)?.startedAt ?? Infinity)).map((lr) => lr.summary?.stats),
+                )}
+              />
+            ) : null}
             {reasons.length > 0 || r.review ? (
               <Surface style={{ borderWidth: 1, borderColor: colors.line }}>
                 <View testID="resumo-trechos-invalidos" style={{ gap: space[2] }}>
@@ -485,7 +505,7 @@ export function SummaryScreen({ rewards, moments, plan, renderShare, xp }: Summa
               layout="single"
               // react-native-web responde sempre "leitor de tela ligado" (`isScreenReaderEnabled` → true), o que
               // pularia o roteiro inteiro na web. Pedido à E5: tratar isso dentro do CelebrationSequence.
-              intro={summaryIntro(formatKm(r.meters), formatDuration(r.movingSeconds))}
+              intro={summaryIntro(formatDistance(r.meters, unit), formatDuration(r.movingSeconds), distanceLabel(unit))}
               renderMoment={(m, ctx) => <View style={{ minHeight: CONQUEST_STAGE, justifyContent: 'center' }}>{renderMoment(m, ctx)}</View>}
               onDone={() => setSequenceDone(true)}
             />

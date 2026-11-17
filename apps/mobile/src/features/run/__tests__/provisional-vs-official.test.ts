@@ -109,7 +109,8 @@ function compare(points: QueuedPoint[], opts: { trust?: number; recentPaces?: nu
   const { activityId: _id, chests, group, ...rest } = official;
   expect(chests).toEqual([]);
   expect(group).toBeNull();
-  const { source, ...mine } = summary;
+  // `stats` (parciais, ritmo e recordes) é só de exibição: o resumo oficial herda o do provisório (toLocalRun).
+  const { source, stats: _stats, ...mine } = summary;
   expect(source).toBe('provisional');
   expect(mine).toEqual(rest);
   return summary;

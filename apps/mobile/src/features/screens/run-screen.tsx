@@ -19,7 +19,7 @@ import { Text } from '@/components/text';
 import TerritoryMap from '@/components/territory-map';
 import { ghostStatus } from '@/domain/games';
 import { RAID_BOSS_IDS, RAID_DAMAGE_PER_KM, type RaidBossId } from '@/domain/raid';
-import { formatDuration, formatKm, formatPace } from '@/domain/geo';
+import { formatDuration, formatPace } from '@/domain/geo';
 import { isUnderAttackAt } from '@/domain/territory';
 import { DEMO_CENTER, zoneName } from '@/demo/demo-data';
 import { mapZonesNear } from '@/features/map-data';
@@ -31,7 +31,8 @@ import { useGpsPreflight } from '@/features/run/use-gps-preflight';
 import { bootstrapOfflineSync } from '@/features/run/use-offline-sync';
 import { useRunSession, type RunMode } from '@/features/run/use-run-session';
 import { useRunSafety } from '@/features/safety/use-run-safety';
-import { zoneDisplayName } from '@/features/format';
+import { safetyNoticeTitle } from '@/services/safety/messages';
+import { distanceLabel, distanceSpoken, formatDistance, formatPaceIn, paceLabel, useDistanceUnit, zoneDisplayName } from '@/features/format';
 import { useNow } from '@/features/use-now';
 import { bboxAround } from '@/services/api/zones-repo';
 import { isDemoActive } from '@/services/demo-mode';
@@ -297,6 +298,7 @@ function SafetyToggle({ testID, icon, title, body, value, onChange }: { testID: 
 }
 
 function ActiveRun({ mode }: { mode: RunMode }) {
+  const unit = useDistanceUnit();
   // E10 (onda 4): na demonstração, a faixa do território e os avisos descem a altura do selo "Demonstração".
   const safeInsets = useSafeAreaInsets();
   const sealSpace = useDemoSealSpace();
@@ -492,8 +494,21 @@ function ActiveRun({ mode }: { mode: RunMode }) {
           </View>
           <TickerText testID="corrida-tempo" variant="hero" animate={mode === 'gps'} value={timeText} fontSize={timeFontSize(timeText)} accessibilityLabel={`Tempo ${timeText}`} />
           <View style={{ flexDirection: 'row' }}>
-            <Metric animate={mode === 'gps'} testID="corrida-metrica-km" label="km" value={formatKm(s.run.meters)} a11y={`${formatKm(s.run.meters)} quilômetros`} />
-            <Metric animate={mode === 'gps'} testID="corrida-metrica-ritmo" label="ritmo /km" value={formatPace(s.pace)} a11y={`Ritmo ${formatPace(s.pace)} por quilômetro`} />
+            <Metric
+              animate={mode === 'gps'}
+              testID="corrida-metrica-km"
+              label={distanceLabel(unit)}
+              value={formatDistance(s.run.meters, unit)}
+              a11y={`${formatDistance(s.run.meters, unit)} ${distanceSpoken(unit)}`}
+            />
+            {/* RF-004: ritmo atual em número grande e o médio na legenda (RNF-015: no máximo 3 números grandes). */}
+            <Metric
+              animate={mode === 'gps'}
+              testID="corrida-metrica-ritmo"
+              label={`ritmo ${paceLabel(unit)} · médio ${formatPaceIn(s.avgPace, unit)}`}
+              value={formatPaceIn(s.pace, unit)}
+              a11y={`Ritmo atual ${formatPaceIn(s.pace, unit)}, ritmo médio ${formatPaceIn(s.avgPace, unit)}, por ${unit === 'mi' ? 'milha' : 'quilômetro'}`}
+            />
           </View>
         </View>
 
@@ -592,7 +607,7 @@ function ActiveRun({ mode }: { mode: RunMode }) {
           }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
             <Text variant="bodyBold" color={safety.notice.kind === 'escort' ? colors.text : colors.onDanger} style={{ flex: 1 }}>
-              {safety.notice.kind === 'sos' ? 'SOS com sua localização' : safety.notice.kind === 'stop' ? 'Aviso de parada enviado' : 'Localização compartilhada ao vivo'}
+              {safetyNoticeTitle(safety.notice.kind, safety.notice.result.method)}
             </Text>
             {/* O "x" substitui o "Toque para fechar." (o aviso inteiro fecha no toque). */}
             <Icon name="close" size={18} color={safety.notice.kind === 'escort' ? colors.text : colors.onDanger} />

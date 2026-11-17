@@ -1,4 +1,4 @@
-import { validateActivity, type ActivityValidation, MAX_POINT_KMH, TELEPORT_METERS, TELEPORT_SECONDS } from './anti-cheat';
+import { validateActivity, type ActivityValidation, IDLE_KMH, MAX_POINT_KMH, MAX_STEP_GAP_SECONDS, TELEPORT_METERS, TELEPORT_SECONDS } from './anti-cheat';
 import { revealFog, FOG_XP_PER_CELL, ghostGap, GHOST_WIN_XP, XP_PER_100M } from './games';
 import { distanceMeters, mpsToKmh, paceSecPerKm } from './geo';
 import { zoneOf } from './grid';
@@ -7,7 +7,7 @@ import { scoreZone, scoreZoneV2 } from './scoring';
 import { applyRunPoints, applyRunPointsV2, defenseWindowOpen, newZone, type Zone, type ZoneEvent } from './territory';
 import type { FactionId, GeoPoint, LatLng } from './types';
 
-export const AUTO_PAUSE_KMH = 1;
+export const AUTO_PAUSE_KMH = IDLE_KMH;
 export const AUTO_PAUSE_SECONDS = 10;
 const LIVE_PACE_WINDOW_S = 30;
 
@@ -59,7 +59,10 @@ function advance(run: LiveRun, points: GeoPoint[], p: GeoPoint, last: GeoPoint |
 
   const slowSeconds = kmh < AUTO_PAUSE_KMH ? run.slowSeconds + seconds : 0;
   const autoPaused = slowSeconds >= AUTO_PAUSE_SECONDS;
-  if (implausible || autoPaused) {
+  // Igual ao oficial (`validateActivity`): parado (< 1 km/h) ou depois de uma pausa/falha de GPS (> 15 s entre
+  // pontos), o trecho não soma distância nem tempo. O aviso de pausa automática continua depois de 10 s parado.
+  const idle = seconds > MAX_STEP_GAP_SECONDS || kmh < AUTO_PAUSE_KMH;
+  if (implausible || autoPaused || idle) {
     return { ...run, points, slowSeconds, autoPaused, currentZone: zone };
   }
 

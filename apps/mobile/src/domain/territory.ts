@@ -8,6 +8,12 @@ import { FACTION_IDS, type FactionId } from './types';
  */
 export const CAPTURE_THRESHOLD = 30;
 export const TAKEOVER_RATIO = 1.1;
+/**
+ * A desafiante toma a zona ao atingir 110% do dono (RN-002). `ownerValue * 1.1` em ponto flutuante dá
+ * 110,00000000000001 para 100, e o rival com exatamente 110 não conquistava (teste externo, bateria 3): a conta é
+ * feita em décimos inteiros (11 × dono ≤ 10 × rival), com folga para o arredondamento.
+ */
+export const reachesTakeover = (rival: number, owner: number) => rival * 10 >= owner * TAKEOVER_RATIO * 10 - 1e-9 * Math.max(1, owner);
 /** RN-003 */
 export const ATTACK_RATIO = 0.5;
 export const ATTACK_CLEAR_RATIO = 0.4;
@@ -98,7 +104,7 @@ export function resolveZone(zone: Zone, now: number): { zone: Zone; events: Zone
   const ownerValue = z.influence[z.owner];
   const rival = strongestRival(z.influence, z.owner);
 
-  if (rival.faction && rival.value >= ownerValue * TAKEOVER_RATIO && rival.value >= CAPTURE_THRESHOLD) {
+  if (rival.faction && reachesTakeover(rival.value, ownerValue) && rival.value >= CAPTURE_THRESHOLD) {
     const from = z.owner;
     z.owner = rival.faction;
     z.shield = 0;
@@ -226,7 +232,7 @@ export function resolveZoneV2(zone: Zone, now: number, actor?: FactionId): { zon
   const ownerValue = z.influence[z.owner];
   const rival = strongestRivalV2(z.influence, z.owner);
 
-  if (canCapture(rival.faction) && rival.value >= ownerValue * TAKEOVER_RATIO && rival.value >= CAPTURE_THRESHOLD) {
+  if (canCapture(rival.faction) && reachesTakeover(rival.value, ownerValue) && rival.value >= CAPTURE_THRESHOLD) {
     const from = z.owner;
     z.owner = rival.faction;
     z.shield = 0;

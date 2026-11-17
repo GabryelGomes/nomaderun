@@ -177,13 +177,15 @@ describe('anti-cheat — casos-limite', () => {
   const base = (over: Partial<GeoPoint>[]): GeoPoint[] =>
     over.map((o, i) => ({ ...offset(ORIGIN, i * 3, 90), t: i * 1000, accuracy: 5, steps: 3, ...o }));
 
-  it('timestamps repetidos: parado conta 0 km/h; movido conta como velocidade infinita', () => {
+  it('timestamps repetidos: parado conta 0 km/h e fica de fora sem alerta; movido conta como velocidade infinita', () => {
     const still = validateActivity([
       { ...ORIGIN, t: 0, steps: 0 },
       { ...ORIGIN, t: 0, steps: 0 },
     ]);
     expect(still.steps[0].kmh).toBe(0);
-    expect(still.steps[0].valid).toBe(true);
+    expect(still.steps[0].valid).toBe(false);
+    expect(still.steps[0].idle).toBe(true);
+    expect(still.steps[0].reason).toBeUndefined();
     const moved = validateActivity(base([{ t: 0 }, { t: 0 }]));
     expect(moved.steps[0].kmh).toBe(Infinity);
     expect(moved.steps[0].reason).toBe('POINT_SPEED');

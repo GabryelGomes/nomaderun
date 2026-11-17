@@ -10,11 +10,29 @@ export const PHONE_PATTERN = /^\+?[0-9 ()-]{8,20}$/;
 
 export type SafetyContact = { id: string; name: string; phone: string };
 
+/**
+ * Telefone que recebe o SMS do SOS (DF05 dos testes externos: "00000000" sem DDD era aceito).
+ * Brasil (com ou sem +55 ou 0 na frente): DDD de 11 a 99 + 8 dígitos (fixo) ou 9 dígitos começando com 9
+ * (celular). Outro país: precisa do "+" e do código do país, com 8 a 15 dígitos. Todos os dígitos iguais não vale.
+ */
+export function isValidPhone(phone: string): boolean {
+  const p = phone.trim();
+  if (!PHONE_PATTERN.test(p)) return false;
+  let digits = p.replace(/\D/g, '');
+  if (/^(\d)\1+$/.test(digits)) return false;
+  const international = p.startsWith('+');
+  if (international && !digits.startsWith('55')) return digits.length >= 8 && digits.length <= 15;
+  if (digits.startsWith('55') && (international || digits.length > 11)) digits = digits.slice(2);
+  else if (digits.startsWith('0')) digits = digits.slice(1);
+  if (!/^[1-9][1-9]/.test(digits)) return false;
+  const local = digits.slice(2);
+  return (local.length === 8 && /^[2-5]/.test(local)) || (local.length === 9 && local.startsWith('9'));
+}
+
 export function validateContact(name: string, phone: string): string | null {
   const n = name.trim();
-  const p = phone.trim();
   if (n.length < 1 || n.length > 80) return 'Informe o nome do contato (até 80 caracteres).';
-  if (!PHONE_PATTERN.test(p) || p.replace(/\D/g, '').length < 8) return 'Telefone inválido. Use DDD e número, por exemplo +55 62 99999-0000.';
+  if (!isValidPhone(phone)) return 'Telefone inválido. Use DDD e número, por exemplo (62) 99999-0000.';
   return null;
 }
 

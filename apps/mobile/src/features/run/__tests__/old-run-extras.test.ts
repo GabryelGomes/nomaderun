@@ -13,7 +13,7 @@ let mockRespond: (columns: string) => Resp = () => ({ data: [], error: null });
 jest.mock('@/services/api/supabase', () => {
   const builder = (columns: string) => {
     const b: Record<string, unknown> = {};
-    for (const m of ['order', 'limit', 'gte', 'lt', 'eq']) b[m] = () => b;
+    for (const m of ['order', 'limit', 'gte', 'lt', 'eq', 'range']) b[m] = () => b;
     b.maybeSingle = () => Promise.resolve(mockRespond(columns));
     b.then = (ok: (r: Resp) => unknown, ko?: (e: unknown) => unknown) => Promise.resolve(mockRespond(columns)).then(ok, ko);
     return b;

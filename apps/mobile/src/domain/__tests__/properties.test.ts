@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from '@jest/globals';
 
-import { MAX_POINT_KMH, TELEPORT_METERS, TELEPORT_SECONDS, validateActivity, type CheatFlag } from '../anti-cheat';
+import { IDLE_KMH, MAX_POINT_KMH, MAX_STEP_GAP_SECONDS, TELEPORT_METERS, TELEPORT_SECONDS, type CheatFlag, validateActivity } from '../anti-cheat';
 import { offset } from '../geo';
 import { finishRun, startRun, addPoint } from '../run-engine';
 import { DAILY_ZONE_CAP, EFFORT_MAX, EFFORT_MIN, scoreZone } from '../scoring';
@@ -254,20 +254,27 @@ describe('RN-005 — decaimento monotônico', () => {
 });
 
 describe('RN-007/RN-008 — antifraude', () => {
-  it('nenhum trecho válido passa de 40 km/h nem é salto de > 50 m em ≤ 1 s; metros válidos + inválidos = soma dos trechos', () => {
+  it('nenhum trecho válido passa de 40 km/h nem é salto de > 50 m em ≤ 1 s; metros válidos + inválidos + parados = soma dos trechos', () => {
     forAll(trackGen, (points) => {
       const v = validateActivity(points);
       let total = 0;
+      let idle = 0;
       for (const s of v.steps) {
         total += s.meters;
         if (s.valid) {
           expect(s.kmh).toBeLessThanOrEqual(MAX_POINT_KMH);
           expect(s.meters > TELEPORT_METERS && s.seconds <= TELEPORT_SECONDS).toBe(false);
+          expect(s.seconds).toBeLessThanOrEqual(MAX_STEP_GAP_SECONDS);
+        } else if (s.idle) {
+          // pausa, parada ou falha de GPS: não conta e não é fraude
+          expect(s.reason).toBeUndefined();
+          expect(s.seconds > MAX_STEP_GAP_SECONDS || s.kmh < IDLE_KMH).toBe(true);
+          idle += s.meters;
         } else {
           expect(s.reason).toBeDefined();
         }
       }
-      expect(v.validMeters + v.invalidMeters).toBeCloseTo(total, 6);
+      expect(v.validMeters + v.invalidMeters + idle).toBeCloseTo(total, 6);
       expect(v.status === 'rejected').toBe(false);
       if (v.invalidMeters > 0) expect(v.status === 'valid').toBe(false);
     });

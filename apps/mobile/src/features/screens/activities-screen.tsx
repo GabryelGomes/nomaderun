@@ -16,9 +16,9 @@ import { Surface } from '@/components/surface';
 import { Text } from '@/components/text';
 import { WeekBars } from '@/components/week-bars';
 import { STREAK_RUNS_PER_WEEK } from '@/domain/games';
-import { formatDuration, formatKm, formatPace } from '@/domain/geo';
+import { formatDuration } from '@/domain/geo';
 import type { LatLng } from '@/domain/types';
-import { NO_DATA } from '@/features/format';
+import { distanceLabel, distanceSpoken, formatDistance, formatPaceIn, NO_DATA, paceLabel, useDistanceUnit } from '@/features/format';
 import { mergeHistory, periodStart, PERIODS, TAG_LABEL, type PeriodId } from '@/features/run/history-model';
 import { loadHistory, refreshLocalRuns } from '@/features/run/run-controller';
 import { bootstrapOfflineSync } from '@/features/run/use-offline-sync';
@@ -62,6 +62,7 @@ function useServerPaths(ids: readonly string[]): Record<string, LatLng[]> {
  * sequência); embaixo, cada corrida com o mini-mapa da rota (`FeedRunCard`). Vazio = arte + 1 frase + Correr.
  */
 export function ActivitiesScreen() {
+  const unit = useDistanceUnit();
   const { colors } = useTheme();
   const serverRuns = useGame((s) => s.serverRuns);
   const localRuns = useGame((s) => s.localRuns);
@@ -144,14 +145,14 @@ export function ActivitiesScreen() {
                 <CountUp
                   testID="atividades-semana-km"
                   value={week.total * 1000}
-                  format={(n) => formatKm(n, 1)}
-                  unit="km"
+                  format={(n) => formatDistance(n, unit, 1)}
+                  unit={distanceLabel(unit)}
                   variant="metric"
                   delay={150}
-                  accessibilityLabel={`${formatKm(week.total * 1000, 1)} quilômetros nesta semana`}
+                  accessibilityLabel={`${formatDistance(week.total * 1000, unit, 1)} ${distanceSpoken(unit)} nesta semana`}
                 />
               ) : runsFailed ? (
-                <Text testID="atividades-semana-km" variant="metric" muted accessibilityLabel="Quilômetros desta semana: sem dado agora">
+                <Text testID="atividades-semana-km" variant="metric" muted accessibilityLabel={`${unit === 'mi' ? 'Milhas' : 'Quilômetros'} desta semana: sem dado agora`}>
                   {NO_DATA}
                 </Text>
               ) : (
@@ -229,8 +230,8 @@ export function ActivitiesScreen() {
                   testID={`atividade-${h.id}`}
                   path={localPath.get(h.id) ?? serverPaths[h.id] ?? []}
                   title={`${when} · ${MISSION_LABEL[h.mission]}`}
-                  distance={`${formatKm(h.meters)} km`}
-                  detail={`${formatDuration(h.movingSeconds)} · ${h.avgPace ? formatPace(h.avgPace) : '--:--'} /km`}
+                  distance={`${formatDistance(h.meters, unit)} ${distanceLabel(unit)}`}
+                  detail={`${formatDuration(h.movingSeconds)} · ${h.avgPace ? formatPaceIn(h.avgPace, unit) : '--:--'} ${paceLabel(unit)}`}
                   badges={runBadges(h, resultOf.get(h.id), (t) => TAG_LABEL[t])}
                   onPress={() => router.push({ pathname: '/resumo', params: { id: h.id } })}
                   aside={

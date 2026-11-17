@@ -49,6 +49,9 @@ tags: [auth, rf-001, rf-003, d-72, d-91]
     id: "cadastro-senha"
 - inputText: Maestro@${output.stamp}
 - tapOn:
+    id: "cadastro-confirmar-senha"
+- inputText: Maestro@${output.stamp}
+- tapOn:
     id: "cadastro-usuario"
 - inputText: qa_${output.stamp}
 - tapOn:

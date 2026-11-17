@@ -101,16 +101,41 @@ async function selectActivities<T>(run: (columns: string) => PromiseLike<{ data:
   return legacy.data;
 }
 
-/** Corridas do usuário, mais recentes primeiro, opcionalmente num período (`started_at` em [from, to)). */
+/**
+ * Tamanho de cada página pedida ao PostgREST. O Supabase devolve no máximo 1.000 linhas por pedido (`max_rows`), então
+ * listas maiores são lidas em páginas (DF07/DF08 dos testes externos: o histórico parava em 200 corridas e o
+ * percurso em 2.000 pontos).
+ */
+export const PAGE_SIZE = 1000;
+/** Teto de segurança: 50 páginas (50 mil linhas). */
+const MAX_PAGES = 50;
+
+/** Lê página a página até a última (menor que `PAGE_SIZE`) ou até `max` linhas. */
+async function readPages<T>(page: (from: number, to: number) => Promise<T[]>, max = PAGE_SIZE * MAX_PAGES): Promise<T[]> {
+  const out: T[] = [];
+  for (let i = 0; i < MAX_PAGES && out.length < max; i++) {
+    const from = i * PAGE_SIZE;
+    const size = Math.min(PAGE_SIZE, max - out.length);
+    const rows = await page(from, from + size - 1);
+    out.push(...rows);
+    if (rows.length < size) break;
+  }
+  return out;
+}
+
+/** Corridas do usuário, mais recentes primeiro, opcionalmente num período (`started_at` em [from, to)); todas, em páginas. */
 export async function listMyActivities(opts: { from?: number; to?: number; limit?: number } = {}): Promise<Result<ActivitySummary[]>> {
   return attempt(async () => {
-    const data = await selectActivities((columns) => {
-      let q = requireSupabase().from('activities').select(columns).order('started_at', { ascending: false }).limit(opts.limit ?? 200);
-      if (opts.from !== undefined) q = q.gte('started_at', new Date(opts.from).toISOString());
-      if (opts.to !== undefined) q = q.lt('started_at', new Date(opts.to).toISOString());
-      return q;
-    });
-    return ((data ?? []) as unknown as Row[]).map(toActivity);
+    const rows = await readPages(async (from, to) => {
+      const data = await selectActivities((columns) => {
+        let q = requireSupabase().from('activities').select(columns).order('started_at', { ascending: false }).order('id').range(from, to);
+        if (opts.from !== undefined) q = q.gte('started_at', new Date(opts.from).toISOString());
+        if (opts.to !== undefined) q = q.lt('started_at', new Date(opts.to).toISOString());
+        return q;
+      });
+      return (data ?? []) as unknown as Row[];
+    }, opts.limit);
+    return rows.map(toActivity);
   });
 }
 
@@ -128,12 +153,15 @@ export async function getActivityResult(id: string): Promise<Result<OfficialResu
   return { ok: true, data: res.data?.result ?? null };
 }
 
-/** Percurso gravado no servidor (para o mapa do resumo de corridas antigas). */
-export async function getActivityPath(id: string, max = 2000): Promise<Result<{ lat: number; lng: number }[]>> {
+/** Percurso gravado no servidor (para o mapa do resumo de corridas antigas), completo, em páginas. */
+export async function getActivityPath(id: string, max?: number): Promise<Result<{ lat: number; lng: number }[]>> {
   return attempt(async () => {
-    const { data, error } = await requireSupabase().from('activity_points').select('lat,lng').eq('activity_id', id).order('seq').limit(max);
-    if (error) throw error;
-    return ((data ?? []) as Row[]).map((p) => ({ lat: num(p.lat), lng: num(p.lng) }));
+    const rows = await readPages(async (from, to) => {
+      const { data, error } = await requireSupabase().from('activity_points').select('lat,lng').eq('activity_id', id).order('seq').range(from, to);
+      if (error) throw error;
+      return (data ?? []) as Row[];
+    }, max);
+    return rows.map((p) => ({ lat: num(p.lat), lng: num(p.lng) }));
   });
 }
 

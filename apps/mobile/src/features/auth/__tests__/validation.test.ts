@@ -10,6 +10,7 @@ import {
   validateBirthdate,
   validateEmail,
   validatePassword,
+  validatePasswordConfirm,
   validateSignUp,
   validateUsername,
 } from '../validation';
@@ -61,11 +62,18 @@ describe('senha (mín. 8 com feedback)', () => {
   });
 
   it('níveis fraca, média e forte', () => {
-    expect(passwordStrength('abcdefgh')).toMatchObject({ ok: true, level: 1 });
+    // teste externo (bateria 2): só letras ou só números não passa mais
+    expect(passwordStrength('abcdefgh')).toMatchObject({ ok: false, level: 1 });
+    expect(passwordStrength('12345678')).toMatchObject({ ok: false, level: 1 });
     expect(passwordStrength('Abcdefg1')).toMatchObject({ ok: true, level: 2 });
     expect(passwordStrength('abcdefgh1234')).toMatchObject({ ok: true, level: 2 });
     expect(passwordStrength('Abcdefgh1234!')).toMatchObject({ ok: true, level: 3 });
-    expect(validatePassword('12345678')).toBeNull();
+    expect(validatePassword('12345678')).toBe('A senha precisa ter letras e números.');
+    expect(validatePassword('abcdefgh')).toBe('A senha precisa ter letras e números.');
+    expect(validatePassword('corrida26')).toBeNull();
+    expect(validatePasswordConfirm('corrida26', '')).toBe('Repita a senha.');
+    expect(validatePasswordConfirm('corrida26', 'corrida62')).toBe('As senhas não são iguais.');
+    expect(validatePasswordConfirm('corrida26', 'corrida26')).toBeNull();
   });
 });
 
@@ -77,7 +85,7 @@ describe('e-mail e formulário completo', () => {
   });
 
   it('exige os dois aceites separados', () => {
-    const base = { email: 'a@b.com', password: '12345678', username: 'ana', birthdate: '01/01/2000', acceptedTerms: true, acceptedPrivacy: true };
+    const base = { email: 'a@b.com', password: 'corrida26', username: 'ana', birthdate: '01/01/2000', acceptedTerms: true, acceptedPrivacy: true };
     expect(hasErrors(validateSignUp(base, today))).toBe(false);
     expect(validateSignUp({ ...base, acceptedTerms: false }, today)).toEqual({ acceptedTerms: expect.any(String) });
     expect(validateSignUp({ ...base, acceptedPrivacy: false }, today)).toEqual({ acceptedPrivacy: expect.any(String) });

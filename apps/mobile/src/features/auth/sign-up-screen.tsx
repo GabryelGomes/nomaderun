@@ -40,6 +40,7 @@ export function SignUpScreen() {
   }, [fromChoice]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [username, setUsername] = useState('');
   const [birthdate, setBirthdate] = useState('');
   const [accepted, setAccepted] = useState(false);
@@ -50,6 +51,7 @@ export function SignUpScreen() {
 
   const strength = passwordStrength(password);
   const senhaRef = useRef<TextInput>(null);
+  const confirmarRef = useRef<TextInput>(null);
   const usuarioRef = useRef<TextInput>(null);
   const nascimentoRef = useRef<TextInput>(null);
   /** "Próximo" do teclado leva ao campo seguinte. */
@@ -57,7 +59,7 @@ export function SignUpScreen() {
   const legalError = errors.acceptedTerms || errors.acceptedPrivacy ? LEGAL_ERROR : undefined;
 
   const submit = async () => {
-    const form = { email, password, username, birthdate, acceptedTerms: accepted, acceptedPrivacy: accepted };
+    const form = { email, password, passwordConfirm, username, birthdate, acceptedTerms: accepted, acceptedPrivacy: accepted };
     const errs = validateSignUp(form);
     setErrors(errs);
     if (hasErrors(errs)) return;
@@ -143,16 +145,30 @@ export function SignUpScreen() {
           testID="cadastro-senha"
           inputRef={senhaRef}
           {...next}
-          onSubmitEditing={() => usuarioRef.current?.focus()}
+          onSubmitEditing={() => confirmarRef.current?.focus()}
           label="Senha"
           value={password}
           onChangeText={setPassword}
-          placeholder="Pelo menos 8 caracteres"
+          placeholder="8 caracteres, letras e números"
           secret
           autoComplete="new-password"
           textContentType="newPassword"
           error={errors.password}
           help={password ? <StrengthMeter level={strength.level} label={strength.label} hint={strength.hint} /> : undefined}
+        />
+        <TextField
+          testID="cadastro-confirmar-senha"
+          inputRef={confirmarRef}
+          {...next}
+          onSubmitEditing={() => usuarioRef.current?.focus()}
+          label="Confirmar senha"
+          value={passwordConfirm}
+          onChangeText={setPasswordConfirm}
+          placeholder="Repita a senha"
+          secret
+          autoComplete="new-password"
+          textContentType="newPassword"
+          error={errors.passwordConfirm}
         />
         <TextField
           testID="cadastro-usuario"

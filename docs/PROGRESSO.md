@@ -91,6 +91,12 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-11-17 — Correções dos testes externos (baterias 1 a 3) e zip Docker
+
+**Feito:** tempo e distância da pausa ou de quando o corredor fica parado não contam mais (`anti-cheat.ts` marca os trechos `idle`, e `run-engine.ts` faz o mesmo ao vivo; intervalo máximo de 15 s). Desafiante com exatamente 110% conquista (`reachesTakeover`). O resumo agora tem a seção "Desempenho": parciais por km ou milha, gráfico de ritmo e recordes pessoais, com `records.ts` movido para o domínio. A corrida ao vivo mostra o ritmo médio. A unidade escolhida (km ou mi) vale nas telas. Senha com 8 caracteres, letras e números, e campo de confirmação. Telefone do contato de segurança validado. O aviso do SOS nunca diz "enviado". Histórico e percurso agora são lidos em páginas, sem os limites de 200 corridas e 2.000 pontos. A folha da zona tem botão Fechar.
+**Testes:** Jest 1.688 passaram (26 ignorados); ESLint ok; Deno 108/108; typecheck com os mesmos 44 erros de antes (estilos CSS do Reanimated em celebration/onboarding).
+**Pendências:** DF06 (a marca de corrida simulada ainda não vai ao servidor; precisa de migração), mapa de calor (RF-013), pgTAP não rodado nesta rodada, e conferir no navegador o cenário `?cenario=moderador`.
+
 ### 2026-11-16 — Artigo científico, 3ª versão (guia novo da professora, modelo SBC)
 - **Feito:** artigo reescrito na estrutura exigida pelo guia (1. Introdução sem subseções · 2. Fundamentação Teórica · 3. Processo de Desenvolvimento de Software com 3.1 Ciclo de Vida e Metodologia, 3.2 Engenharia de Requisitos, 3.3 Arquitetura e Modelagem, 3.4 Garantia da Qualidade e Testes · 4. Resultados e Demonstração do Sistema · 5. Conclusão e Trabalhos Futuros · Referências), voz impessoal, resumo de 10 linhas, orientadora como última autora, números da versão final (Jest 1.672 rodado de novo na `main`; cobertura do domain 100% linhas / 98,45% ramos).
 - **Arquivos:** `docs/artigo/sbc/conteudo.py` (texto), `docs/artigo/sbc/montar_docx.py` (gera o .docx com as medidas do modelo da SBC, conferidas contra `sbc/sbc_template.pdf`), figuras `sbc/processo.png`, `sbc/arquitetura.png`, `sbc/telas.png`; saídas `NOMADE RUN - Artigo Científico (3ª versão).docx/.pdf` (10 páginas).

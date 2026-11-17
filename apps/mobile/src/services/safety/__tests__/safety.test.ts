@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import { MAX_SAFETY_CONTACTS, validateContact } from '../contacts-repo';
+import { isValidPhone, MAX_SAFETY_CONTACTS, validateContact } from '../contacts-repo';
 import { cleanPhone, escortMessage, mapsLink, sendToContacts, smsUrl, sosMessage } from '../messages';
 import { createStopAlert, STOP_ALERT_GRACE_MS, STOP_ALERT_MS, STOP_ALERT_TICK_MS } from '../stop-alert';
 
@@ -97,5 +97,29 @@ describe('mensagens da Corrida Segura', () => {
     expect(validateContact('', '+55 62 99999-0000')).toMatch(/nome/);
     expect(validateContact('Mãe', '123')).toMatch(/Telefone/);
     expect(validateContact('Mãe', 'abc defgh ijk')).toMatch(/Telefone/);
+  });
+
+  it('telefone (DF05 dos testes externos): exige DDD e número válidos', () => {
+    for (const ok of ['+55 62 99999-0000', '(62) 99999-0000', '62999990000', '062 99999 0000', '(11) 3333-4444', '+1 415 555 0100', '+351 912 345 678']) {
+      expect([ok, isValidPhone(ok)]).toEqual([ok, true]);
+    }
+    for (const bad of ['00000000', '0000-0000', '99999-0000', '(01) 99999-0000', '(62) 89999-0000', '(62) 1999-0000', '11111111111', '+55 62 1234', '+12']) {
+      expect([bad, isValidPhone(bad)]).toEqual([bad, false]);
+    }
+    expect(validateContact('Mãe', '00000000')).toMatch(/Telefone/);
+  });
+});
+
+describe('título do aviso de segurança (N-01 dos testes externos)', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { safetyNoticeTitle } = require('../messages') as typeof import('../messages');
+  it('nunca diz "enviado": só que a mensagem está pronta, a escolha ou a falha', () => {
+    for (const kind of ['sos', 'stop', 'escort'] as const) {
+      for (const method of ['sms', 'share', 'none'] as const) {
+        expect(safetyNoticeTitle(kind, method)).not.toMatch(/enviad|compartilhada/i);
+      }
+    }
+    expect(safetyNoticeTitle('stop', 'sms')).toBe('Aviso de parada pronto: toque em enviar');
+    expect(safetyNoticeTitle('sos', 'none')).toBe('SOS: não deu para abrir o envio');
   });
 });

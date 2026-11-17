@@ -8,6 +8,8 @@ import { FLAG_EXPLANATION, type CheatFlag } from '@/domain/anti-cheat';
 import { finishRun, startRun, type RunContext, type RunResult } from '@/domain/run-engine';
 import { applyTrust, trustLevel } from '@/domain/trust';
 import type { FactionId, GeoPoint, LatLng } from '@/domain/types';
+import { computeRunStats, splitTimes, type RunStats } from '@/domain/records';
+import { METERS_PER_MILE } from '@/features/format/units';
 import type { QueuedPoint } from '@/services/offline/types';
 import type { InvalidSegment, OfficialOutcome, OfficialResult, OfficialStatus, ReviewReason } from '@/services/sync/types';
 
@@ -20,6 +22,9 @@ export type SummaryZone = {
   ownerBefore: FactionId | null;
   ownerAfter: FactionId | null;
 };
+
+/** Parciais (por km e por milha), ritmo para o gráfico e melhores esforços (RF-006), dos trechos válidos. */
+export type SummaryStats = RunStats & { splitsMi: number[] };
 
 export type RunSummary = {
   source: 'provisional' | 'official';
@@ -36,6 +41,12 @@ export type RunSummary = {
   beatGhost: boolean | null;
   trust: number | null;
   review: { reason: ReviewReason; message: string } | null;
+  /**
+   * Calculadas no aparelho com os pontos da corrida (mesma conta do servidor, `domain/records`). O resultado
+   * oficial não traz os pontos de volta, então o oficial herda as do provisório (`toLocalRun`). Ausente em corridas
+   * antigas e nas que vêm só do servidor.
+   */
+  stats?: SummaryStats | null;
 };
 
 /** Mesmos textos do servidor (`supabase/functions/_shared/scoring.ts`). */
@@ -123,8 +134,39 @@ export function provisionalSummary(input: ProvisionalInput): { summary: RunSumma
       beatGhost: result.beatGhost,
       trust: trustAfter,
       review: status === 'review' && reviewReason ? { reason: reviewReason, message: REVIEW_MESSAGE[reviewReason] } : null,
+      stats: v.status === 'rejected' ? null : { ...computeRunStats(run.points, v), splitsMi: splitTimes(run.points, v, METERS_PER_MILE) },
     },
   };
+}
+
+export type BestKind = '1k' | '5k' | '10k' | '21k';
+export type PersonalBest = { kind: BestKind; label: string; seconds: number; isNew: boolean; previous: number | null };
+
+const BEST_FIELDS: { kind: BestKind; field: 'best1k' | 'best5k' | 'best10k' | 'best21k'; label: string }[] = [
+  { kind: '1k', field: 'best1k', label: '1 km' },
+  { kind: '5k', field: 'best5k', label: '5 km' },
+  { kind: '10k', field: 'best10k', label: '10 km' },
+  { kind: '21k', field: 'best21k', label: 'Meia maratona' },
+];
+
+/**
+ * Recordes pessoais (RF-006): o melhor tempo desta corrida em cada distância e se ele bate o das corridas
+ * anteriores do aparelho. `isNew` só quando havia uma marca anterior (a 1ª corrida não "bate" nada).
+ */
+export function personalBests(current: SummaryStats | null | undefined, earlier: readonly (SummaryStats | null | undefined)[]): PersonalBest[] {
+  if (!current) return [];
+  const out: PersonalBest[] = [];
+  for (const { kind, field, label } of BEST_FIELDS) {
+    const seconds = current[field];
+    if (seconds === null || !(seconds > 0)) continue;
+    let previous: number | null = null;
+    for (const e of earlier) {
+      const v = e?.[field];
+      if (v !== null && v !== undefined && v > 0 && (previous === null || v < previous)) previous = v;
+    }
+    out.push({ kind, label, seconds, previous, isNew: previous !== null && seconds < previous });
+  }
+  return out;
 }
 
 export function officialSummary(r: OfficialResult): RunSummary {

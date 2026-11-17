@@ -32,3 +32,4 @@ export * from '../../../apps/mobile/src/domain/gpx.ts';
 export * from '../../../apps/mobile/src/domain/crew-goal.ts';
 export * from '../../../apps/mobile/src/domain/faction-activity.ts';
 export * from '../../../apps/mobile/src/domain/team-bio.ts';
+export * from '../../../apps/mobile/src/domain/records.ts';

@@ -51,7 +51,8 @@ export function toLocalRun(q: QueuedRun): LocalRun {
     startedAt: q.startedAt,
     endedAt: q.endedAt,
     simulated: q.simulated,
-    summary: official ? officialSummary(official) : provisional,
+    // O oficial não traz os pontos: herda as parciais e o gráfico calculados no aparelho (mesma conta).
+    summary: official ? { ...officialSummary(official), stats: provisional?.stats ?? null } : provisional,
     path,
     error: q.error,
   };
