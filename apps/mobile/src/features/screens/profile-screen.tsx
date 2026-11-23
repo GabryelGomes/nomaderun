@@ -15,6 +15,7 @@ import { Text } from '@/components/text';
 import { districtsExploration } from '@/domain/games';
 import { levelProgress, titleForLevel } from '@/domain/progression';
 import { distanceLabel, distanceSpoken, formatDistance, formatInt, NO_DATA, useDistanceUnit } from '@/features/format';
+import { canModerate } from '@/features/moderation/guard';
 import { mergeHistory } from '@/features/run/history-model';
 import { useNow } from '@/features/use-now';
 import { listMyActivities } from '@/services/api/activities-repo';
@@ -217,6 +218,10 @@ export function ProfileScreen() {
             value={season ? `degrau ${season.step} de ${season.steps}` : undefined}
             onPress={() => router.push('/recompensas' as Href)}
           />
+          {/* Moderador: o painel também aqui, não só em Ajustes (5ª bateria, D02: não acharam a entrada). */}
+          {canModerate(profile?.role) ? (
+            <SettingsRow testID="voce-moderacao" icon="eye" title="Moderação" accessibilityLabel="Moderação: corridas em revisão" onPress={() => router.push('/moderacao' as Href)} />
+          ) : null}
         </View>
       </FadeUp>
       <MedalSheet info={medal} onClose={() => setMedal(null)} />

@@ -52,9 +52,12 @@ describe('(1) corrida antiga: activities.v2_extras', () => {
     mockRespond = (cols) => (cols.includes('v2_extras') ? { data: null, error: { code: '42703', message: 'column activities.v2_extras does not exist' } } : { data: [ROW], error: null });
     const res = await listMyActivities();
     expect(res.ok && res.data[0]).toMatchObject({ id: 'a1', extras: null });
-    expect(mockCalls).toHaveLength(2);
-    expect(mockCalls[0]).toContain('v2_extras');
-    expect(mockCalls[1]).not.toContain('v2_extras');
+    // completo (v2_extras + simulated) → sem simulated → sem as duas
+    expect(mockCalls).toHaveLength(3);
+    expect(mockCalls[0]).toContain('simulated');
+    expect(mockCalls[1]).toContain('v2_extras');
+    expect(mockCalls[1]).not.toContain('simulated');
+    expect(mockCalls[2]).not.toContain('v2_extras');
     expect(isMissingColumn({ code: 'PGRST204' })).toBe(true);
     expect(isMissingColumn({ code: '42501' })).toBe(false);
   });

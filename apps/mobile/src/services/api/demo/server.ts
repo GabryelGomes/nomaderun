@@ -99,6 +99,7 @@ export function ingestPoints(db: DemoDb, userId: string, body: Row): { accepted:
     accepted++;
   }
   act.last_seq = Math.max(lastSeq, toSeq);
+  if (body.simulated === true) act.simulated = true; // DF06, como o svc_mark_simulated: só liga
   return { accepted, duplicates, lastSeq: Number(act.last_seq) };
 }
 

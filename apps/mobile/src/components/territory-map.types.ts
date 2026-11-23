@@ -12,6 +12,9 @@ export type MapZone = {
   blocked?: boolean;
 };
 
+/** Mancha do mapa de calor (RF-013): centro da zona e intensidade de 0 a 1. Desenhada como círculos suaves, sem a grade. */
+export type HeatSpot = { id: string; center: LatLng; weight: number };
+
 export type MapCircle = { id: string; center: LatLng; radius: number };
 
 /** Visible area of the map (degrees), reported after the camera stops moving. */
@@ -40,6 +43,8 @@ export type TerritoryMapProps = {
   /** Circles in meters (privacy zones, RN-010), drawn as quiet gray discs. */
   circles?: MapCircle[];
   chests?: Chest[];
+  /** Mapa de calor (RF-013): onde mais se correu e onde as zonas mudaram de dono no período. */
+  heat?: HeatSpot[];
   /** Explored cells (personal map), drawn like a personal heatmap. */
   explored?: string[];
   onZonePress?: (id: string) => void;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AccessibilityInfo, Pressable as RNPressable, type StyleProp, Text as RNText, View, type ViewStyle } from 'react-native';
+import { AccessibilityInfo, Pressable as RNPressable, type StyleProp, Text as RNText, type TextStyle, View, type ViewStyle } from 'react-native';
 import { cancelAnimation, type SharedValue, useAnimatedReaction, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
@@ -61,7 +61,7 @@ export type CelebrationSequenceProps = {
 const LIVE_REGION_DELAY_MS = 250;
 
 /** Fora da tela, mas ainda na árvore de acessibilidade (sem `opacity: 0` nem `display: none`). */
-const VISUALLY_HIDDEN: ViewStyle = { position: 'absolute', width: 1, height: 1, overflow: 'hidden', left: -10000, top: 0 };
+const VISUALLY_HIDDEN: TextStyle = { position: 'absolute', width: 1, height: 1, overflow: 'hidden', left: -10000, top: 0 };
 
 type Run = { plan: CelebrationPlan; started: number; doneIds: readonly string[]; finished: boolean };
 

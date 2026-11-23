@@ -50,6 +50,8 @@ export type IngestBody = {
   startedAt: number | null;
   mission: (typeof MISSIONS)[number] | null;
   ghostPace: number | null;
+  /** Corrida do modo Simulação (DF06): só `true` liga a marca no servidor; ausente ou `false`, nada muda. */
+  simulated: boolean;
   fromSeq: number;
   toSeq: number;
   points: SignedPoint[];
@@ -108,6 +110,8 @@ export function parseIngestBody(body: unknown, now = Date.now()): IngestBody {
   }
   const pace = optionalNumber(b.ghostPace, 'ghostPace (150 a 900 s/km)', GHOST_PACE_MIN, GHOST_PACE_MAX);
   const ghostPace = mission === 'fuga' ? pace : null;
+  if (b.simulated !== undefined && b.simulated !== null && typeof b.simulated !== 'boolean') fail('Campo simulated deve ser true ou false.');
+  const simulated = b.simulated === true;
   const startedAt = b.startedAt === undefined || b.startedAt === null ? null : (b.startedAt as number);
   if (startedAt !== null && (!isInt(startedAt) || startedAt < MIN_EPOCH_MS || startedAt > maxT)) fail('Campo startedAt inválido.');
 
@@ -117,6 +121,7 @@ export function parseIngestBody(body: unknown, now = Date.now()): IngestBody {
     startedAt,
     mission,
     ghostPace,
+    simulated,
     fromSeq,
     toSeq,
     points,

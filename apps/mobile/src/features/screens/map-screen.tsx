@@ -22,6 +22,7 @@ import { DEMO_CENTER, zoneName } from '@/demo/demo-data';
 import { useOnboardingFlow } from '@/features/auth/onboarding-flow';
 import { ensureConquestHistory, TeamWeekBanner, useWelcomeDone, WelcomeDoneToast } from '@/features/engagement';
 import { mapZonesInBounds } from '@/features/map-data';
+import type { HeatPeriod } from '@/services/api/heat-repo';
 import { loadHistory } from '@/features/run/run-controller';
 import { useNow } from '@/features/use-now';
 import { bboxAround } from '@/services/api/zones-repo';
@@ -37,6 +38,7 @@ import { zoneDisplayName } from '@/features/format';
 
 import { CounterBadge } from './game-motion';
 import { mapControlsTop } from './game-motion-math';
+import { HeatPanel, useZoneHeat } from './map-heat';
 import { LayerChips, type Layer } from './map-layer-chips';
 import { recapAlert } from './recap-alert';
 import { changesSinceYesterday, changesText, expiredAttackKey, mapAlerts, pickMapMission, todayChips, welcomeMission, zonesUnderAttack, type MapToday } from './map-screen.model';
@@ -138,6 +140,7 @@ export function MapScreen({ today }: MapScreenProps = {}) {
   const runCount = useRunCount();
   const [layer, setLayer] = useState<Layer>('todos');
   const [layersOpen, setLayersOpen] = useState(false);
+  const [heatPeriod, setHeatPeriod] = useState<HeatPeriod>('7d');
   const [dismissed, setDismissed] = useState<readonly string[]>([]);
   const [bounds, setBounds] = useState<MapBounds>(INITIAL_BOUNDS);
   const requestBbox = useLiveZones();
@@ -190,6 +193,7 @@ export function MapScreen({ today }: MapScreenProps = {}) {
     return mapZonesInBounds(zones, bounds).map((z) => (expired.has(z.id) ? { ...z, attacker: null } : z));
   }, [zones, bounds, expiredKey]);
   const explored = useMemo(() => (layer === 'explorado' ? fog.slice(-600) : undefined), [fog, layer]);
+  const heat = useZoneHeat(layer === 'calor', bounds, heatPeriod);
 
   // Cidade do que está no mapa (zonas da área visível), não a cidade natal do perfil (QA E10).
   const mine = useMemo(() => Object.values(zones).filter((z) => z.owner === faction).length, [zones, faction]);
@@ -244,7 +248,8 @@ export function MapScreen({ today }: MapScreenProps = {}) {
   return (
     <View testID="tela-mapa" style={{ flex: 1, backgroundColor: colors.background }}>
       <TerritoryMap
-        zones={layer === 'explorado' ? [] : mapZones}
+        zones={layer === 'explorado' || layer === 'calor' ? [] : mapZones}
+        heat={layer === 'calor' ? heat.spots : undefined}
         myFaction={faction}
         onlyMine={layer === 'meu-time'}
         explored={explored}
@@ -368,6 +373,11 @@ export function MapScreen({ today }: MapScreenProps = {}) {
 
       {/* Zona do polegar, acima da barra de abas flutuante do iOS: 1 alerta (ou a missão) e o CORRER. */}
       <View style={{ position: 'absolute', left: space[4], right: space[4], bottom: tabBarClearance(insets.bottom), gap: space[3] }}>
+        {layer === 'calor' ? (
+          <FadeUp distance={12} duration={300}>
+            <HeatPanel period={heatPeriod} onPeriod={setHeatPeriod} status={heat.status} />
+          </FadeUp>
+        ) : null}
         {(top?.kind === 'mission' || top?.kind === 'welcome') && mission ? (
           <FadeUp key={top.id} distance={24} duration={600} curve="reveal" delay={200}>
             <MissionCoachCard

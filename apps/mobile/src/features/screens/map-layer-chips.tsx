@@ -8,13 +8,14 @@ import { floating, radius, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 import { CHIP_FONT_MAX } from '@/components/chip-row';
 
-export type Layer = 'todos' | 'meu-time' | 'explorado';
+export type Layer = 'todos' | 'meu-time' | 'explorado' | 'calor';
 
 /** Glossário D-74: "Onde já corri" (neblina) vira "Atlas". */
 export const LAYERS: readonly (readonly [Layer, string, string])[] = [
   ['todos', 'Todos os times', 'Mostra as zonas de todos os times'],
   ['meu-time', 'Só meu time', 'Mostra só as zonas do seu time'],
   ['explorado', 'Atlas', 'Mostra as ruas onde você já correu'],
+  ['calor', 'Calor', 'Mostra onde mais se correu e onde as zonas mudaram de dono'],
 ];
 
 /**

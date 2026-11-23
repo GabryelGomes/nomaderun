@@ -1,8 +1,9 @@
+import { cellCenter } from '@/domain/grid';
 import { chaikin, relax, smoothCells, territoryRegions } from '@/domain/regions';
 import type { FactionId, LatLng } from '@/domain/types';
-import { factions, territoryOpacity } from '@/theme/tokens';
+import { factions, palette, territoryOpacity } from '@/theme/tokens';
 
-import type { TerritoryMapProps } from './territory-map.types';
+import type { HeatSpot, TerritoryMapProps } from './territory-map.types';
 
 export type RegionLayer = { key: string; rings: LatLng[][]; color: string; opacity: number };
 export type ContestedLayer = { id: string; ring: LatLng[]; color: string };
@@ -46,3 +47,33 @@ export function circleRing(center: LatLng, radius: number, steps = 48): LatLng[]
     return { lat: center.lat + dLat * Math.sin(a), lng: center.lng + dLng * Math.cos(a) };
   });
 }
+
+/** Abaixo disso (raiz da fração da mais quente) a mancha não aparece. */
+export const HEAT_MIN_WEIGHT = 0.2;
+/** Uma troca de dono pesa como 3 corridas: é o que muda o mapa. */
+export const HEAT_FLIP_WEIGHT = 3;
+/** Raios (m) dos 3 anéis de cada mancha, do mais largo ao centro, e a opacidade máxima de cada um. */
+export const HEAT_RINGS: readonly (readonly [radius: number, opacity: number])[] = [
+  [320, 0.12],
+  [210, 0.18],
+  [110, 0.26],
+];
+
+/**
+ * Contagens do servidor → manchas do mapa de calor (RF-013). A intensidade é relativa à zona mais quente da área
+ * (0 a 1) com raiz quadrada, para as zonas mornas ainda aparecerem; zona sem nada, ou quase nada perto da mais
+ * quente (abaixo de `HEAT_MIN_WEIGHT`), fica de fora para o mapa não virar um tapete.
+ */
+export function heatSpots(rows: readonly { id: string; runs: number; flips: number }[]): HeatSpot[] {
+  const score = (r: { runs: number; flips: number }) => r.runs + HEAT_FLIP_WEIGHT * r.flips;
+  const max = rows.reduce((m, r) => Math.max(m, score(r)), 0);
+  if (max <= 0) return [];
+  return rows
+    .map((r) => ({ id: r.id, weight: Math.sqrt(score(r) / max) }))
+    .filter((r) => r.weight >= HEAT_MIN_WEIGHT)
+    .map((r) => ({ ...r, center: cellCenter(r.id) }))
+    .sort((a, b) => a.weight - b.weight); // as mais quentes por cima
+}
+
+/** Cor da mancha: laranja da marca no morno, amarelo (alerta) no mais quente. */
+export const heatColor = (weight: number) => (weight >= 0.75 ? palette.warning : palette.orange);

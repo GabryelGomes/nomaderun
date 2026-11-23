@@ -7,6 +7,7 @@ import { DEMO_EMAIL, DEMO_USER_ID } from '@/demo/world';
 
 import { AppError } from '../errors';
 import type { DemoDb, Row } from './db';
+import { rememberSignedIn } from './scenario';
 
 export const DEMO_UNAVAILABLE = 'Indisponível na demonstração.';
 
@@ -23,6 +24,8 @@ export type DemoSession = {
 
 export class DemoAuth {
   private session: DemoSession | null;
+  /** E-mail digitado no cadastro da demonstração (sem ele, o da conta de demonstração). */
+  private email = DEMO_EMAIL;
   private listeners = new Set<Listener>();
 
   constructor(
@@ -44,7 +47,7 @@ export class DemoAuth {
       token_type: 'bearer',
       expires_in: 86_400,
       expires_at: nowS + 86_400,
-      user: { id: userId, email: DEMO_EMAIL, aud: 'authenticated', role: 'authenticated', app_metadata: { provider: 'demonstracao' }, user_metadata: {}, identities: [{ provider: 'email' }], created_at: new Date(this.db.now()).toISOString() },
+      user: { id: userId, email: this.email, aud: 'authenticated', role: 'authenticated', app_metadata: { provider: 'demonstracao' }, user_metadata: {}, identities: [{ provider: 'email' }], created_at: new Date(this.db.now()).toISOString() },
     };
   }
 
@@ -58,6 +61,7 @@ export class DemoAuth {
 
   private signInAs(userId: string, event = 'SIGNED_IN') {
     this.session = this.build(userId);
+    rememberSignedIn();
     this.emit(event);
     return { data: { session: this.session, user: this.session.user }, error: null };
   }
@@ -75,12 +79,21 @@ export class DemoAuth {
     return { data: { subscription: { id: 'demonstracao', callback, unsubscribe: () => void this.listeners.delete(callback) } } };
   };
 
-  signInWithPassword = async (_creds: { email: string; password: string }) => this.signInAs(DEMO_USER_ID);
+  signInWithPassword = async (_creds: { email: string; password: string }) => {
+    this.email = DEMO_EMAIL;
+    return this.signInAs(DEMO_USER_ID);
+  };
 
   signUp = async (args: { email: string; password: string; options?: { data?: Row } }) => {
     const me = this.db.profile(DEMO_USER_ID);
     const meta = args.options?.data ?? {};
+    // Conta nova na demonstração: o perfil mostra o que a pessoa digitou e o time que ela escolheu na cerimônia
+    // (o `choose_faction` do onboarding grava em seguida), não os dados da conta de demonstração (5ª bateria, D03).
+    const email = args.email.trim();
+    if (email) this.email = email;
     if (me) {
+      me.faction = null;
+      me.faction_changed_season = null;
       if (typeof meta.username === 'string' && meta.username.trim()) me.username = meta.username.trim();
       if (typeof meta.city === 'string' && meta.city.trim()) me.city = meta.city.trim();
       if (typeof meta.birthdate === 'string') me.birthdate = meta.birthdate;

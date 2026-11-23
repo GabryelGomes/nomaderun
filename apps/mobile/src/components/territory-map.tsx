@@ -6,7 +6,7 @@ import { zoneOf } from '@/domain/grid';
 import { palette } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-import { mapLayers } from './territory-map.layers';
+import { HEAT_RINGS, heatColor, mapLayers } from './territory-map.layers';
 import type { TerritoryMapProps } from './territory-map.types';
 
 /** Desaturated Google style for Android (the base map stays quiet, territories carry the color). */
@@ -49,6 +49,7 @@ export default function TerritoryMap(props: TerritoryMapProps) {
     myFaction,
     onlyMine,
     explored,
+    heat,
     user,
     path,
     pathVersion,
@@ -119,6 +120,11 @@ export default function TerritoryMap(props: TerritoryMapProps) {
           const id = zoneOf({ lat: latitude, lng: longitude });
           if (zones.some((z) => z.id === id)) onZonePress(id);
         }}>
+        {heat?.flatMap((h) =>
+          HEAT_RINGS.map(([radius, opacity], i) => (
+            <Circle key={`heat-${h.id}-${i}`} center={toCoord(h.center)} radius={radius} fillColor={alpha(heatColor(h.weight), opacity * h.weight)} strokeColor="transparent" strokeWidth={0} />
+          )),
+        )}
         {layers.explored.map(([outline, ...holes], i) => (
           <Polygon key={`exp-${i}`} coordinates={toCoords(outline)} holes={holes.map(toCoords)} fillColor={alpha(palette.orange, 0.22)} strokeColor={alpha(palette.orange, 0.7)} strokeWidth={1.5} />
         ))}

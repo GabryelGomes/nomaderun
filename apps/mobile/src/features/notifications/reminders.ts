@@ -12,6 +12,8 @@ import { readPendingPlan } from '@/features/engagement/next-run-plan';
 import { useEngagement } from '@/store/engagement-store';
 import { useSession } from '@/store/session-store';
 
+import { loadNotifications, notificationsAvailable, type NotificationsModule } from './load-notifications';
+
 import {
   buildReminderState,
   EMPTY_DEVICE_PREFS,
@@ -51,12 +53,15 @@ export function reminderRoute(kind: PlannedReminder['kind']): '/missoes' | '/rec
 
 /** `expo-notifications` de verdade (iOS e Android; a web não tem notificação local agendada). */
 export function expoNotifier(): Notifier {
-  type N = typeof import('expo-notifications');
-  let mod: Promise<N> | null = null;
-  const load = () => (mod ??= import('expo-notifications'));
+  let mod: Promise<NotificationsModule> | null = null;
+  const load = () =>
+    (mod ??= loadNotifications().then((N) => {
+      if (!N) throw new Error('notificações indisponíveis aqui');
+      return N;
+    }));
   let channel: Promise<unknown> | null = null;
   return {
-    supported: () => process.env.EXPO_OS === 'ios' || process.env.EXPO_OS === 'android',
+    supported: notificationsAvailable,
     permitted: async () => (await (await load()).getPermissionsAsync()).granted,
     scheduledIds: async () => (await (await load()).getAllScheduledNotificationsAsync()).map((n) => n.identifier),
     cancel: async (id) => (await load()).cancelScheduledNotificationAsync(id),

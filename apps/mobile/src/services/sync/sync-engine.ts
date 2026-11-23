@@ -87,6 +87,7 @@ export function toBody(run: QueuedRun, key: DeviceKey, points: QueuedPoint[]): I
   const signature = signBatch(key.secret, { activityId: run.id, deviceId: key.deviceId, fromSeq, toSeq, points: pts });
   const body: IngestBody = { activityId: run.id, deviceId: key.deviceId, startedAt: run.startedAt, mission: run.mission, fromSeq, toSeq, points: pts, signature };
   if (run.mission === 'fuga' && run.ghostPace !== null) body.ghostPace = Math.round(run.ghostPace);
+  if (run.simulated) body.simulated = true;
   return body;
 }
 

@@ -9,7 +9,7 @@ import type { LatLng } from '@/domain/types';
 import { palette } from '@/theme/tokens';
 import { useTheme } from '@/theme/use-theme';
 
-import { circleRing, mapLayers } from './territory-map.layers';
+import { circleRing, HEAT_RINGS, heatColor, mapLayers } from './territory-map.layers';
 import type { TerritoryMapProps } from './territory-map.types';
 
 /** Free vector basemap (OpenFreeMap, no key). If it can't load, the map still shows territory on a plain background. */
@@ -44,9 +44,15 @@ const polygon = (rings: LatLng[][], properties: Record<string, unknown>): GeoJSO
 const collection = (features: GeoJSON.Feature[]): GeoJSON.FeatureCollection => ({ type: 'FeatureCollection', features });
 
 /** The same layers as the native map, as GeoJSON sources (zones and static overlays; the route and points are separate). */
-function sources(props: Pick<TerritoryMapProps, 'zones' | 'myFaction' | 'onlyMine' | 'explored' | 'circles' | 'invalidPaths'>) {
+function sources(props: Pick<TerritoryMapProps, 'zones' | 'myFaction' | 'onlyMine' | 'explored' | 'circles' | 'invalidPaths' | 'heat'>) {
   const l = mapLayers(props);
   return {
+    // Mesmo desenho do nativo: 3 anéis suaves por zona quente, nunca o hexágono (RF-013).
+    heat: collection(
+      (props.heat ?? []).flatMap((h) =>
+        HEAT_RINGS.map(([radius, opacity]) => polygon([circleRing(h.center, radius, 32)], { color: heatColor(h.weight), opacity: opacity * h.weight })),
+      ),
+    ),
     regions: collection(l.regions.map((r) => polygon(r.rings, { color: r.color, opacity: r.opacity }))),
     contested: collection(l.contested.map((c) => polygon([c.ring], { color: c.color }))),
     blocked: collection(l.blocked.map((rings) => polygon(rings, {}))),
@@ -94,6 +100,7 @@ export default function TerritoryMap(props: TerritoryMapProps) {
         for (const [id, fc] of Object.entries(data)) map.addSource(id, { type: 'geojson', data: fc });
         map.addSource('path', { type: 'geojson', data: collection([]) });
         map.addSource('points', { type: 'geojson', data: collection([]) });
+        map.addLayer({ id: 'heat-fill', type: 'fill', source: 'heat', paint: { 'fill-color': ['get', 'color'], 'fill-opacity': ['get', 'opacity'] } });
         map.addLayer({ id: 'explored-fill', type: 'fill', source: 'explored', paint: { 'fill-color': palette.orange, 'fill-opacity': 0.22 } });
         map.addLayer({ id: 'explored-edge', type: 'line', source: 'explored', paint: { 'line-color': palette.orange, 'line-opacity': 0.7, 'line-width': 1.5 } });
         map.addLayer({ id: 'blocked-fill', type: 'fill', source: 'blocked', paint: { 'fill-color': palette.ink2, 'fill-opacity': 0.18 } });
@@ -160,12 +167,12 @@ export default function TerritoryMap(props: TerritoryMapProps) {
   }, [night]);
 
   // Regiões: só quando as zonas (ou a camada) mudam, nunca a cada ponto de GPS (a suavização é a parte cara).
-  const { zones, myFaction, onlyMine, explored, circles, invalidPaths, path, pathVersion, pathColor = palette.orange, chests, user, followUser } = props;
+  const { zones, myFaction, onlyMine, explored, heat, circles, invalidPaths, path, pathVersion, pathColor = palette.orange, chests, user, followUser } = props;
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map) return;
-    for (const [id, fc] of Object.entries(sources({ zones, myFaction, onlyMine, explored, circles, invalidPaths }))) (map.getSource(id) as GeoJSONSource | undefined)?.setData(fc);
-  }, [ready, zones, myFaction, onlyMine, explored, circles, invalidPaths]);
+    for (const [id, fc] of Object.entries(sources({ zones, myFaction, onlyMine, explored, heat, circles, invalidPaths }))) (map.getSource(id) as GeoJSONSource | undefined)?.setData(fc);
+  }, [ready, zones, myFaction, onlyMine, explored, heat, circles, invalidPaths]);
 
   // Rastro: `path` pode ser o mesmo vetor crescendo (appendPoint, E-12); a versão diz quando redesenhar.
   const routeVersion = pathVersion ?? path?.length ?? 0;

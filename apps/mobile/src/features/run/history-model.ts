@@ -63,7 +63,7 @@ export function mergeHistory(serverRuns: ActivitySummary[], localRuns: LocalRun[
       movingSeconds: a.movingSeconds,
       avgPace: a.avgPace,
       rp: a.rpTotal,
-      simulated: false,
+      simulated: a.simulated === true,
       tag: statusTag(a.status),
       counts: a.status === 'valid' || a.status === 'partial',
     });
@@ -72,7 +72,7 @@ export function mergeHistory(serverRuns: ActivitySummary[], localRuns: LocalRun[
     if (l.state === 'recording' || !l.summary) continue;
     const prev = byId.get(l.id);
     if (prev && l.state === 'synced') {
-      byId.set(l.id, { ...prev, simulated: l.simulated });
+      byId.set(l.id, { ...prev, simulated: prev.simulated || l.simulated });
       continue;
     }
     const s = l.summary;

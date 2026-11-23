@@ -1,6 +1,8 @@
 import type { AppNotification } from '@/services/api/notifications-repo';
 import type { NotificationPrefs } from '@/services/api/types';
 
+import { loadNotifications } from './load-notifications';
+
 /**
  * Notificação local quando um alerta chega com o app aberto (RF-009). Push remoto fica para o
  * development build (D-13). Respeita as preferências do perfil e a permissão já pedida no onboarding.
@@ -25,9 +27,9 @@ export function prefAllows(n: AppNotification, prefs: NotificationPrefs | null |
 let handlerSet = false;
 
 export async function showLocalAlert(n: AppNotification): Promise<void> {
-  if (process.env.EXPO_OS === 'web') return;
   try {
-    const Notifications = await import('expo-notifications');
+    const Notifications = await loadNotifications();
+    if (!Notifications) return;
     const perm = await Notifications.getPermissionsAsync();
     if (!perm.granted) return;
     if (!handlerSet) {

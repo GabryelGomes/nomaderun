@@ -100,6 +100,7 @@ describe('fila SQLite em arquivo', () => {
   it('pontos sobrevivem ao app ser fechado no meio da corrida (RNF-005)', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'nomade-queue-'));
     const file = join(dir, 'q.db');
+    let second: ReturnType<typeof openNodeSqlite> | null = null;
     try {
       const first = openNodeSqlite(file);
       const a = createSqliteStore(async () => first);
@@ -107,12 +108,16 @@ describe('fila SQLite em arquivo', () => {
       await a.appendPoints('run-1', Array.from({ length: 120 }, (_, i) => pt(i)));
       first.close();
 
-      const b = createSqliteStore(async () => openNodeSqlite(file));
+      // a 2ª conexão é fechada no finally: no Windows, apagar o arquivo aberto dá EBUSY/EPERM (DF13, 5ª bateria)
+      second = openNodeSqlite(file);
+      const reopened = second;
+      const b = createSqliteStore(async () => reopened);
       const r = await b.getRun('run-1');
       expect(r?.lastSeq).toBe(119);
       expect(await b.appendPoints('run-1', [pt(120)])).toEqual([120]);
       expect(await b.readPoints('run-1', 0, 1000)).toHaveLength(121);
     } finally {
+      second?.close();
       rmSync(dir, { recursive: true, force: true });
     }
   });

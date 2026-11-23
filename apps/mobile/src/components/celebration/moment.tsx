@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { AccessibilityInfo } from 'react-native';
-import type { CSSAnimationKeyframes, CSSAnimationTimingFunction } from 'react-native-reanimated';
+import type { CSSAnimationKeyframes } from 'react-native-reanimated';
 
 import { haptic } from '@/components/motion/haptics';
 import { useMotionPrefs } from '@/store/motion-prefs-store';
-import { celebrationLevels, cssEasings, durations, type CelebrationLevel, type HapticPattern } from '@/theme/motion';
+import { celebrationLevels, cssEasings, durations, type CelebrationLevel, type CssEasing, type HapticPattern } from '@/theme/motion';
 
 import { MOMENT_SPECS, type CelebrationKind } from './queue';
 
@@ -95,7 +95,7 @@ export function useMoment(
 }
 
 /** Fade curto (estado final e movimento reduzido). */
-export const FADE_IN: CSSAnimationKeyframes = { from: { opacity: 0 }, to: { opacity: 1 } };
+export const FADE_IN = { from: { opacity: 0 }, to: { opacity: 1 } } satisfies CSSAnimationKeyframes;
 
 const KEYFRAMES = new Map<string, object>();
 /** O mesmo objeto de quadros-chave para o mesmo conteúdo (a animação não reinicia a cada render). */
@@ -111,9 +111,10 @@ export function kf<T extends object>(keyframes: T): T {
 
 /**
  * Animação CSS de um passo: com `still`, só fade de 150 ms sem atraso; senão os quadros-chave pedidos.
- * Só transform e opacidade.
+ * Só transform e opacidade. Os quadros-chave ficam com o tipo concreto (genérico `K`): com o tipo largo
+ * `CSSAnimationKeyframes`, o `style` do `Animated.View` não encaixa quando o Expo gera os tipos da web (DF12).
  */
-export function step(still: boolean, keyframes: CSSAnimationKeyframes, duration: number, delay: number, easing: CSSAnimationTimingFunction = cssEasings.enter) {
+export function step<K extends CSSAnimationKeyframes>(still: boolean, keyframes: K, duration: number, delay: number, easing: CssEasing = cssEasings.enter) {
   if (still) {
     return { animationName: FADE_IN, animationDuration: durations.reducedFade, animationDelay: 0, animationTimingFunction: cssEasings.standard, animationFillMode: 'both' as const };
   }

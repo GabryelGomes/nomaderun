@@ -13,6 +13,7 @@ import { DEMO_F8_RPC_HANDLERS } from './f8';
 import { DEMO_GAME_V2_RPC_HANDLERS } from './game-v2';
 import { DEMO_SOCIAL_RPC_HANDLERS } from './social';
 import { ENGAGEMENT_RPC_HANDLERS } from './engagement';
+import { DEMO_HEAT_RPC_HANDLERS } from './heat';
 import { DEMO_TELEMETRY_RPC_HANDLERS } from './telemetry';
 
 type RpcHandler = (db: DemoDb, userId: string | null, args: Row) => unknown;
@@ -194,6 +195,7 @@ export const DEMO_RPC_HANDLERS: Record<string, RpcHandler> = {
   ...ENGAGEMENT_RPC_HANDLERS,
   // Telemetria opt-in (E7, T7.3.6): consentimento e eventos em lote.
   ...DEMO_TELEMETRY_RPC_HANDLERS,
+  ...DEMO_HEAT_RPC_HANDLERS,
   // F8 A2: faction_activity (D-96) e crew_echo.
   ...DEMO_F8_RPC_HANDLERS,
 };

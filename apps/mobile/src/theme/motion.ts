@@ -61,6 +61,13 @@ export const cssEasings = {
   exit: css(curves.exit),
 } as const;
 
+/**
+ * Curva aceita em `animationTimingFunction`: as do tema ou a de mola (`springCss`). Mais estreita que a
+ * `CSSAnimationTimingFunction` do Reanimated de propósito: com os tipos de estilo da web que o Expo gera
+ * (`expo-env.d.ts`), a união larga não encaixa no `style` do `Animated.View` (DF12, 5ª bateria).
+ */
+export type CssEasing = (typeof cssEasings)[keyof typeof cssEasings] | CSSTimingFunction;
+
 /** Função pura (JS) da curva — para quem anima fora de worklet, como o `CountUp`. */
 export function curveFn(name: CurveName): (t: number) => number {
   const c = curves[name];

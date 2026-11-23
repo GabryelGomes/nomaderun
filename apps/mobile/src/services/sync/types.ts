@@ -54,6 +54,8 @@ export type IngestBody = {
   startedAt?: number;
   mission?: string;
   ghostPace?: number;
+  /** Corrida do modo Simulação (DF06): o servidor guarda a marca e outro aparelho mostra "simulada". */
+  simulated?: true;
   fromSeq: number;
   toSeq: number;
   points: {

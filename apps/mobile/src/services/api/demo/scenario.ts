@@ -44,5 +44,52 @@ export function scenarioFromLocation(search?: string | null): DemoScenario {
 /** Latência simulada por roteiro, em ms. */
 export const scenarioLatency = (s: DemoScenario) => (s === 'lento' ? 2500 : 0);
 
+const SCENARIO_KEY = 'nomade-demo-cenario';
+
+/**
+ * Roteiro da aba: o `?cenario=` da URL vale e fica guardado na aba (`sessionStorage`); sem ele na URL, vale o
+ * guardado. Antes, recarregar a página (a URL já não tem `?cenario=` depois de navegar) voltava ao roteiro
+ * padrão e levava a pessoa para outra conta (5ª bateria: "time pendente some ao recarregar", "dados somem").
+ */
+export function tabScenario(search?: string | null, storage?: Pick<Storage, 'getItem' | 'setItem'> | null): DemoScenario {
+  let store = storage;
+  try {
+    if (store === undefined) store = typeof window !== 'undefined' ? window.sessionStorage : null;
+  } catch {
+    store = null;
+  }
+  let raw: string | null = null;
+  try {
+    const s = search ?? (typeof window !== 'undefined' && window.location ? window.location.search : '');
+    raw = s ? new URLSearchParams(s).get('cenario') : null;
+  } catch {
+    raw = null;
+  }
+  try {
+    if (isDemoScenario(raw)) {
+      store?.setItem(SCENARIO_KEY, raw);
+      return raw;
+    }
+    const saved = store?.getItem(SCENARIO_KEY);
+    if (isDemoScenario(saved)) return saved;
+  } catch {
+    // sem armazenamento (aba anônima bloqueada): só a URL vale
+  }
+  return isDemoScenario(raw) ? raw : DEFAULT_SCENARIO;
+}
+
+/**
+ * Entrou (cadastro ou login) num roteiro que começa sem conta: a aba passa a lembrar o roteiro com conta ('cheio'),
+ * para recarregar a página depois do cadastro não voltar à tela de boas-vindas (quem tem conta continua logado).
+ */
+export function rememberSignedIn(storage?: Pick<Storage, 'getItem' | 'setItem'> | null): void {
+  try {
+    const store = storage === undefined ? (typeof window !== 'undefined' ? window.sessionStorage : null) : storage;
+    if (store?.getItem(SCENARIO_KEY) === 'primeira-abertura') store.setItem(SCENARIO_KEY, DEFAULT_SCENARIO);
+  } catch {
+    // sem armazenamento: nada a lembrar
+  }
+}
+
 /** Lido uma vez, no carregamento do módulo: a navegação do expo-router pode trocar a URL depois. */
-export const INITIAL_SCENARIO: DemoScenario = scenarioFromLocation();
+export const INITIAL_SCENARIO: DemoScenario = tabScenario();

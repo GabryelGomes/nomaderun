@@ -5,6 +5,12 @@
 > **Fase 6 (T6.5, A5, 2026-10-21):** QA visual, motion e acessibilidade em 4 resoluções — **seção 14** (achados QA-18 a QA-25, checklist do aparelho).
 > **Atualização 2026-10-22 (A2):** QA-01, 02, 04, 05, 06, 07, 08, 09, 11 e 16 corrigidos no backend — status, teste que prova e riscos aceitos na **seção 12**.
 
+> **Estado atual (2026-11-23, 5ª bateria externa):** este arquivo é o histórico das rodadas de QA; as linhas antigas
+> que dizem "sem CI" ou "contraste não medido" (seções 9 e 11) valem só para a data delas. Hoje há CI em
+> `.github/workflows/ci.yml` (jobs `app`, `web` e `functions`, seção 15) e o contraste é medido e bloqueante
+> (`contraste.cjs --strict`, D-75, seção 16). Resultados de 2026-11-23: Jest 1.702, pgTAP 979, Deno 110,
+> fluxo web 62/62, `tsc` sem erros (inclusive com o `expo-env.d.ts` que o `expo start` gera).
+
 ## 1. Escopo
 
 | Área | O que foi revisado e testado |

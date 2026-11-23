@@ -44,6 +44,8 @@ export type ActivitySummary = {
   xp: number;
   flags: CheatFlag[];
   result: OfficialResult | null;
+  /** Corrida do modo Simulação (DF06). `false` no servidor antigo, sem a coluna. */
+  simulated?: boolean;
   /** `activities.v2_extras` (contrato v2): o `extras` da resposta oficial, guardado pelo servidor. `null` no servidor v1. */
   extras?: Record<string, unknown> | null;
 };
@@ -78,12 +80,15 @@ export function toActivity(row: Row): ActivitySummary {
     xp: num(row.xp),
     flags: Array.isArray(row.flags) ? (row.flags as CheatFlag[]) : [],
     result: row.result && typeof row.result === 'object' ? (row.result as OfficialResult) : null,
+    simulated: row.simulated === true,
     extras: row.v2_extras && typeof row.v2_extras === 'object' && !Array.isArray(row.v2_extras) ? (row.v2_extras as Record<string, unknown>) : null,
   };
 }
 
 const LEGACY_COLUMNS = 'id,status,mission,started_at,ended_at,meters,moving_seconds,avg_pace,rp_total,xp,flags,result';
-const COLUMNS = `${LEGACY_COLUMNS},v2_extras`;
+const V2_COLUMNS = `${LEGACY_COLUMNS},v2_extras`;
+/** Com a marca de simulação (DF06, migration 20261123120100). */
+const COLUMNS = `${V2_COLUMNS},simulated`;
 
 /** Servidor antigo (sem a coluna `v2_extras`): `42703` (Postgres) ou `PGRST204` (cache do PostgREST). */
 export const isMissingColumn = (e: unknown) => {
@@ -91,14 +96,18 @@ export const isMissingColumn = (e: unknown) => {
   return code === '42703' || code === 'PGRST204';
 };
 
-/** Lê com `v2_extras`; no servidor antigo, repete sem a coluna (o histórico nunca quebra por ela). */
+/**
+ * Lê com `v2_extras` e `simulated`; no servidor antigo (sem uma das colunas), repete sem a mais nova e depois sem
+ * as duas (o histórico nunca quebra por elas).
+ */
 async function selectActivities<T>(run: (columns: string) => PromiseLike<{ data: T; error: unknown }>): Promise<T> {
-  const first = await run(COLUMNS);
-  if (!first.error) return first.data;
-  if (!isMissingColumn(first.error)) throw first.error;
-  const legacy = await run(LEGACY_COLUMNS);
-  if (legacy.error) throw legacy.error;
-  return legacy.data;
+  const tries = [COLUMNS, V2_COLUMNS, LEGACY_COLUMNS];
+  for (let i = 0; i < tries.length; i++) {
+    const res = await run(tries[i]);
+    if (!res.error) return res.data;
+    if (!isMissingColumn(res.error) || i === tries.length - 1) throw res.error;
+  }
+  throw new Error('inalcançável');
 }
 
 /**

@@ -82,7 +82,7 @@ export function NeighborhoodFlip({ path, zones, team, routeColor, height = 180, 
       {scene?.zones.map((z) => <Circle key={z.id} cx={z.x} cy={z.y} r={scene.radius * 1.35} fill={fill(which === 'before' ? z.before : z.after)} />)}
     </Svg>
   );
-  const timing = (kfs: CSSAnimationKeyframes, ms: number, at: number) => ({
+  const timing = <K extends CSSAnimationKeyframes>(kfs: K, ms: number, at: number) => ({
     animationName: kf(kfs),
     animationDuration: reduced ? durations.reducedFade : ms,
     animationDelay: reduced ? 0 : at,

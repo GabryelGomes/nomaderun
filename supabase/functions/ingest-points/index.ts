@@ -44,5 +44,7 @@ Deno.serve(handler(['POST'], async (req) => {
     const [status, message] = ERRORS[res.error] ?? [409, 'Lote recusado.'];
     throw new HttpError(status, res.error, message, res.lastSeq !== undefined ? { lastSeq: res.lastSeq } : undefined);
   }
+  // DF06: a marca de simulação vai junto com a corrida, para outro aparelho não mostrá-la como corrida de verdade.
+  if (body.simulated) await rpc<boolean>('svc_mark_simulated', { p_user: user.id, p_activity: body.activityId });
   return json({ accepted: res.accepted, duplicates: res.duplicates, lastSeq: res.lastSeq }, 202);
 }));

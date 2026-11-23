@@ -91,6 +91,21 @@ Coluna **Depende de**: 📱 aparelho físico · ☁️ conta no Supabase Cloud �
 
 ## Log
 
+### 2026-11-23 — 5ª bateria de testes externos (19/11): correções
+
+**Lido:** 4 relatórios e a planilha da pasta "5 Semana" do Drive (grupos de Alexandry, Paulo e João, Valora, Ricardo/Lucas/David/Maria).
+**Feito:**
+- **DF11 (Android no Expo Go não abria):** `expo-notifications` só é carregado fora do Expo Go do Android (`features/notifications/load-notifications.ts`); os 4 lugares que importavam a biblioteca passam por ele.
+- **DF12 (44 erros de `tsc`):** só apareciam com o `expo-env.d.ts` que o `expo start` gera. Os quadros-chave das animações ficam com o tipo concreto (`step`/`timing` genéricos em `celebration/moment.tsx` e `neighborhood-flip.tsx`), `CssEasing` no tema e `TextStyle` no texto escondido. `tsc` sem erros com e sem o arquivo.
+- **DF13:** teste do SQLite fecha a 2ª conexão antes de apagar a pasta (EBUSY/EPERM no Windows).
+- **RF-013 (mapa de calor):** camada "Calor" no Mapa (24 h, 7 dias, temporada). Migration `20261123120000_zone_heat.sql` (D-100), `services/api/heat-repo.ts`, `demo/heat.ts`, `features/screens/map-heat*.ts*`, anéis suaves no mapa nativo e no web.
+- **DF06 (corrida simulada vista como real em outro aparelho):** migration `20261123120100_activity_simulated.sql` (D-101), `ingest-points` com `simulated`, envio no `sync-engine`, leitura no `activities-repo` (3 tentativas de colunas) e no histórico.
+- **Demonstração:** o `?cenario=` fica guardado na aba (recarregar não troca de conta nem perde o time pendente); a fila da demonstração fica no `sessionStorage` da aba (a corrida feita sem internet não some ao recarregar); depois do cadastro na primeira abertura, recarregar volta logado. Cadastro na demonstração mostra o nome, o e-mail e o time digitados.
+- **Moderação:** entrada "Moderação" também na aba Você (antes só em Ajustes).
+- **Não eram defeito do app:** fundo da folha da Liga (captura no meio da animação; na tela parada o fundo é opaco), "1" do pódio (mesma coisa, durante o crescimento da coluna), corte com fonte ×1,3 só na simulação web (no aparelho o número encolhe com `adjustsFontSizeToFit`), lacuna de 12 s entre pontos (o limite de 40 km/h por trecho continua valendo).
+**Testes:** Jest 1.702 (26 ignorados) · ESLint ok · `tsc` 0 erros · pgTAP 979/979 (`npm run db:test:local`) · Deno 110/110 e `deno check` das functions · fluxo web `demo-mode-flow` 62/62 · conferência no navegador: camada Calor, Moderação na aba Você, corrida offline no histórico, recarregar no cadastro.
+**Pendências:** aplicar as 2 migrations e publicar o `ingest-points` na nuvem (`npm run deploy`); trocar as senhas das contas de demonstração na nuvem (A-1); alerta de parada com o app em segundo plano e push com app fechado dependem do build EAS.
+
 ### 2026-11-17 — Correções dos testes externos (baterias 1 a 3) e zip Docker
 
 **Feito:** tempo e distância da pausa ou de quando o corredor fica parado não contam mais (`anti-cheat.ts` marca os trechos `idle`, e `run-engine.ts` faz o mesmo ao vivo; intervalo máximo de 15 s). Desafiante com exatamente 110% conquista (`reachesTakeover`). O resumo agora tem a seção "Desempenho": parciais por km ou milha, gráfico de ritmo e recordes pessoais, com `records.ts` movido para o domínio. A corrida ao vivo mostra o ritmo médio. A unidade escolhida (km ou mi) vale nas telas. Senha com 8 caracteres, letras e números, e campo de confirmação. Telefone do contato de segurança validado. O aviso do SOS nunca diz "enviado". Histórico e percurso agora são lidos em páginas, sem os limites de 200 corridas e 2.000 pontos. A folha da zona tem botão Fechar.

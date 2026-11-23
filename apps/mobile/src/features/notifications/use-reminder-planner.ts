@@ -6,6 +6,7 @@ import { recordRunResult, refreshEngagement } from '@/features/engagement/contro
 import { getSyncEngine } from '@/services/sync/sync-service';
 import { useSession } from '@/store/session-store';
 
+import { loadNotifications, notificationsAvailable } from './load-notifications';
 import { cancelAllReminders, recordReminderOpened, replanReminders } from './reminders';
 
 /** Recarrega o engajamento e replaneja (os lembretes falam do estado novo). */
@@ -44,10 +45,10 @@ export function useReminderPlanner(): void {
     });
     let response: { remove: () => void } | null = null;
     let alive = true;
-    if (process.env.EXPO_OS === 'ios' || process.env.EXPO_OS === 'android') {
-      void import('expo-notifications')
+    if (notificationsAvailable()) {
+      void loadNotifications()
         .then((N) => {
-          if (!alive) return;
+          if (!alive || !N) return;
           response = N.addNotificationResponseReceivedListener((r) => {
             const data = (r.notification.request.content.data ?? {}) as { reminderKey?: unknown; url?: unknown };
             if (typeof data.reminderKey !== 'string') return;
