@@ -1,4 +1,4 @@
-# Conteúdo do artigo (3ª versão), na estrutura do guia da professora (modelo SBC).
+# Conteúdo do artigo (4ª versão), na estrutura do guia da professora (modelo SBC).
 # Cada bloco é (tipo, ...). `montar_docx.py` escreve estes blocos dentro do template oficial da SBC.
 
 TITULO = "NOMADE RUN: Um Aplicativo Móvel de Corrida com Disputa de Território sobre o Mapa Real da Cidade"
@@ -17,7 +17,7 @@ ABSTRACT = (
     "running into a territory dispute between teams on the real city map. An iterative and incremental process "
     "was adopted, with nine phases closed by automated verification and 61 requirements prioritized with the MoSCoW "
     "technique. The solution uses React Native/Expo and Supabase, with an authoritative server. The final version "
-    "passed 1,672 unit tests and 964 database tests, and fully met 39 of the 61 requirements and partially "
+    "passed 1,702 unit tests and 979 database tests, and fully met 40 of the 61 requirements and partially "
     "another 17."
 )
 
@@ -26,8 +26,8 @@ RESUMO = (
     "de Software (PDS) que transforma a corrida em uma disputa de território entre equipes sobre o mapa real da "
     "cidade. Adotou-se um processo iterativo e incremental em nove fases, encerradas por verificação automatizada, "
     "com 61 requisitos priorizados pela técnica MoSCoW. A solução usa React Native/Expo e Supabase, com servidor "
-    "autoritativo. A versão final foi aprovada em 1.672 testes unitários e 964 de banco de dados e atendeu "
-    "integralmente 39 dos 61 requisitos e parcialmente outros 17."
+    "autoritativo. A versão final foi aprovada em 1.702 testes unitários e 979 de banco de dados e atendeu "
+    "integralmente 40 dos 61 requisitos e parcialmente outros 17."
 )
 
 # O modelo da SBC traz as palavras-chave logo após o Abstract e o Resumo ("Keywords—" e "Palavras-chave—").
@@ -73,6 +73,8 @@ p("O restante do artigo está organizado da seguinte forma. A Seção 2 apresent
 
 # ---------------------------------------------------------------- 2
 h1("2. Fundamentação Teórica")
+p("Esta seção reúne os conceitos que sustentam a proposta: como a gamificação pode motivar a atividade física, "
+  "os jogos baseados em localização e os cuidados com o GPS, as tecnologias utilizadas e os trabalhos relacionados.")
 h2("2.1. Gamificação e Motivação")
 p("Gamificação é o uso de elementos de design de jogos em contextos que não são jogos [Deterding et al. 2011]. "
   "A teoria da autodeterminação explica por que esses elementos podem motivar: o engajamento é duradouro quando a "
@@ -127,6 +129,8 @@ tab("Tabela 1. Comparação com Produtos Relacionados", [
 
 # ---------------------------------------------------------------- 3
 h1("3. Processo de Desenvolvimento de Software")
+p("Esta seção descreve como o NOMADE RUN foi construído no PDS: o ciclo de vida e a metodologia, a engenharia de "
+  "requisitos, a arquitetura e a modelagem, e a garantia da qualidade e os testes.")
 h2("3.1. Ciclo de Vida e Metodologia")
 p("Adotou-se um ciclo de vida iterativo e incremental [Sommerville 2019, Pressman e Maxim 2021], no qual o "
   "produto foi construído em fases curtas, cada uma entregando um incremento funcional e verificado. A Figura 1 "
@@ -135,19 +139,15 @@ p("Adotou-se um ciclo de vida iterativo e incremental [Sommerville 2019, Pressma
   "inspirado no Kanban [Anderson 2010]; a implementação ocorria em frentes paralelas, separadas por área do código; "
   "e a fase só era encerrada depois que todas as verificações automatizadas passassem, o que funcionou como portão "
   "de qualidade.")
-fig("processo.png", "Figura 1. Ciclo de Vida Adotado: Etapas de Cada Fase e Sequência de Fases do Projeto", 13.5)
+fig("processo.png", "Figura 1. Ciclo de Vida Adotado: Etapas de Cada Fase e Sequência de Fases do Projeto", 13.0)
 p("As fases F0 a F5 produziram o Produto Mínimo Viável (MVP): análise e base documental, infraestrutura de banco "
   "e autenticação, corrida de ponta a ponta com GPS, funcionalidades de jogo e sociais, qualidade e segurança, e "
   "entrega. As fases F6 a F8 evoluíram a solução: adequação da interface ao uso móvel, reformulação da experiência "
   "de jogo em quatro ondas de entrega e finalização com revisão adversarial. Ao fim de cada fase, um registro de "
   "progresso documentava o que foi feito, os testes executados e as pendências, e as decisões técnicas foram "
-  "registradas com contexto, justificativa e consequências, totalizando 99 decisões. O código foi versionado com "
+  "registradas com contexto, justificativa e consequências, totalizando 101 decisões. O código foi versionado com "
   "Git, integrado por pull requests e verificado por integração contínua no GitHub Actions, com 69 execuções no "
   "período de outubro a novembro de 2026.")
-p("A execução contou com ferramentas de inteligência artificial generativa para programação, organizadas em papéis "
-  "semelhantes aos de uma equipe (arquitetura, backend, frontend, integrações, qualidade e documentação), sob "
-  "coordenação e revisão dos autores. Todo artefato gerado passou pelas mesmas verificações automatizadas e pelas "
-  "revisões de cada fase.")
 
 h2("3.2. Engenharia de Requisitos")
 p("Os requisitos foram levantados a partir de pesquisa de mercado com aplicativos de corrida e jogos de "
@@ -157,8 +157,8 @@ p("Os requisitos foram levantados a partir de pesquisa de mercado com aplicativo
   "possível, um critério de aceite mensurável, para permitir a rastreabilidade até os testes por meio de uma matriz "
   "requisito-teste.")
 p("A priorização usou a técnica MoSCoW [Clegg e Barker 1994] em três níveis: P0, obrigatórios para a demonstração; "
-  "P1, importantes; e P2, desejáveis. Resultaram 25 requisitos P0, 24 P1 e 10 P2. Dois requisitos não funcionais, o "
-  "teste de carga e a medição de bateria, foram classificados como fora do MVP por dependerem de infraestrutura e de "
+  "P1, importantes; e P2, desejáveis. Resultaram 25 requisitos P0, 24 P1 e 10 P2, que somam 59; os outros dois, "
+  "requisitos não funcionais de teste de carga e de medição de bateria, completam os 61 e foram classificados como fora do MVP por dependerem de infraestrutura e de "
   "aparelhos indisponíveis. Mudanças posteriores, como as da reformulação da fase F7, foram registradas em uma "
   "proposta de revisão da ERS.")
 
@@ -169,18 +169,21 @@ p("A Figura 2 apresenta a arquitetura do sistema, composta pelo aplicativo móve
   "resultado oficial é sempre recalculado no servidor. Para evitar duas implementações das regras, o módulo de "
   "domínio foi escrito sem dependência de interface, banco ou rede e é executado tanto no aplicativo quanto nas Edge "
   "Functions.")
-fig("arquitetura.png", "Figura 2. Arquitetura do NOMADE RUN: o Mesmo Módulo de Regras Roda no Aplicativo e no Servidor", 15.0)
+fig("arquitetura.png", "Figura 2. Arquitetura do NOMADE RUN: o Mesmo Módulo de Regras Roda no Aplicativo e no Servidor", 14.0)
 p("Para funcionar sem internet, cada ponto de GPS é gravado primeiro em uma fila local SQLite e enviado em lotes "
   "assinados com HMAC-SHA256, com uma chave por aparelho; o servidor confere a assinatura, a ordem e a duplicidade "
   "de cada lote, de modo que o reenvio após uma queda não perde nem duplica pontos. Ao finalizar a corrida, o servidor "
   "aplica o antifraude e as regras de pontuação. Para cada zona percorrida, os pontos (Run Points, RP) seguem a regra:")
 formula("RP = metros válidos × 0,1 × Mesforço × Msequência × Mfantasma × Mgrupo × Mdefesa")
 p("O multiplicador de esforço é a razão entre o ritmo habitual do corredor e o ritmo da corrida, limitado entre 0,8 "
-  "e 1,3, de modo que correr no próprio limite vale o mesmo para um iniciante e para um atleta. Uma zona neutra é "
+  "e 1,3, de modo que correr no próprio limite vale o mesmo para um iniciante e para um atleta. Os demais valem 1 "
+  "quando não se aplicam: sequência, +5% por dia seguido, até 50%; fantasma, 1,5 ao vencer o próprio ritmo no modo "
+  "Fuga; grupo, 1,25 com três ou mais membros da crew juntos; e defesa, 2 em zona da equipe sob ataque, com teto de "
+  "300 pontos por zona e por dia. Uma zona neutra é "
   "conquistada com cerca de 300 metros corridos; uma zona com dono muda de mãos quando a desafiante atinge 110% da "
   "influência do dono, e a influência decai 10% ao dia. O antifraude descarta pontos com precisão pior que 30 m, "
   "invalida trechos acima de 40 km/h ou com saltos de posição, confere a cadência de passos e rejeita corridas com "
-  "localização simulada. O modelo de dados foi implementado em 30 migrações do PostgreSQL, com segurança por linha "
+  "localização simulada. O modelo de dados foi implementado em 32 migrações do PostgreSQL, com segurança por linha "
   "em todas as tabelas, e o cadastro atende à Lei Geral de Proteção de Dados [Brasil 2018], com idade mínima, "
   "consentimentos separados, exportação dos dados e exclusão da conta.")
 
@@ -219,22 +222,23 @@ p("A Figura 3 apresenta seis telas da versão final do aplicativo, capturadas no
   "principal no botão Correr. Na nova corrida escolhe-se o modo de jogo e a fonte de posição; ao final, o resumo "
   "mostra a distância, o tempo, o ritmo, os pontos e as zonas conquistadas. A Arena explica as regras do jogo, e o "
   "Clube reúne a crew, a meta da semana e os rankings.")
-fig("telas.png", "Figura 3. Telas da Versão Final: Escolha da Equipe, Mapa, Nova Corrida, Resumo, Como Jogar e Clube", 15.0)
+fig("telas.png", "Figura 3. Telas da Versão Final: Escolha da Equipe, Mapa, Nova Corrida, Resumo, Como Jogar e Clube", 14.0)
 p("A Tabela 3 reúne as métricas de qualidade obtidas. Em cada linha, \"aprovados\" indica casos de teste que "
   "produziram exatamente o resultado esperado, definido antes da execução; no formato X/Y, X é o número de casos "
   "aprovados e Y o de casos executados, de modo que X igual a Y indica que nenhum caso falhou. Os testes foram "
-  "executados novamente sobre a versão final. Os que dependem do servidor completo em execução local foram medidos "
+  "executados novamente sobre a versão final; a consulta de zonas foi medida no Supabase executado localmente. "
+  "Os que dependem do servidor completo em execução local foram medidos "
   "ao fim da fase F5: integração entre aplicativo e servidor (26/26), ponta a ponta da API (56/56) e auditoria de "
   "segurança (89/89).")
 tab("Tabela 3. Métricas de Qualidade e Significado de Cada Resultado", [
     ["Métrica", "Resultado", "Significado"],
-    ["Testes unitários e de propriedade", "1.672 aprovados", "Nenhuma falha nos casos executados"],
-    ["Cobertura do módulo de regras", "100% e 98,4%", "Linhas e ramos exercitados; meta de 90%"],
-    ["Testes do banco de dados", "964/964", "Permissões e regras do banco atendidas"],
-    ["Testes das funções do servidor", "108 aprovados", "Nenhuma falha (1 caso ignorado por depender de rede)"],
+    ["Testes unitários e de propriedade", "1.702 aprovados", "Nenhuma falha nos casos executados"],
+    ["Cobertura do módulo de regras", "100% e 98,0%", "Linhas e ramos exercitados; meta de 90%"],
+    ["Testes do banco de dados", "979/979", "Permissões e regras do banco atendidas"],
+    ["Testes das funções do servidor", "110 aprovados", "Nenhuma falha (1 ignorado, sem rede)"],
     ["Fluxo completo no navegador", "62/62", "Todas as etapas do roteiro concluídas"],
-    ["Consulta de zonas (2.000 zonas)", "35 ms", "Tempo em 95% das requisições; meta de 150 ms"],
-    ["Contraste de cores (pares de tokens)", "64/65", "Pares acima do mínimo; o único abaixo é do tema claro, não usado"],
+    ["Consulta de zonas (2.000 zonas)", "35 ms", "Percentil 95; meta de 150 ms"],
+    ["Contraste de cores", "64/65", "Pares acima do mínimo; 1 sem uso"],
 ], [5.6, 3.0, 6.4])
 p("A Tabela 4 resume as três primeiras baterias de testes externos, realizadas em 2026 e consolidadas a partir dos 18 relatórios "
   "entregues pelas equipes, 14 deles nessas baterias. Reprovados incluem os casos com ressalva ou atendidos em parte, "
@@ -242,9 +246,9 @@ p("A Tabela 4 resume as três primeiras baterias de testes externos, realizadas 
   "defeitos. A taxa de aprovação subiu de 28% para 47% entre a primeira e a terceira bateria, ainda que os "
   "conjuntos de casos não sejam idênticos. Os retestes mostraram as correções: dos 12 casos de uma equipe, 6 foram "
   "corrigidos e 5 corrigidos em parte entre a primeira e a segunda bateria, e os 3 defeitos de outra equipe foram "
-  "corrigidos; dos 8 defeitos de uma terceira equipe na segunda bateria, 3 foram corrigidos, 1 em parte e 3 "
-  "continuaram abertos. Na quarta bateria, as equipes receberam um pacote antigo ou sem alterações, e por isso ela "
-  "não foi considerada.")
+  "corrigidos. Na quarta bateria, as equipes receberam um pacote antigo ou sem alterações, e por isso ela "
+  "não foi considerada. Na quinta, sobre a versão com as correções, a equipe que reexecutou seus casos aprovou 10 "
+  "de 15, e os defeitos restantes, como a abertura no Expo Go do Android, foram tratados em seguida.")
 tab("Tabela 4. Baterias de Testes Externos Executadas por Equipes da Disciplina de Teste de Software", [
     ["Bateria", "Equipes", "Casos", "Aprovados", "Reprovados", "Bloqueados", "Defeitos Novos"],
     ["1ª (24 a 26/10)", "4", "25", "7 (28%)", "17", "1", "20"],
@@ -252,16 +256,16 @@ tab("Tabela 4. Baterias de Testes Externos Executadas por Equipes da Disciplina 
     ["3ª (6 e 7/11)", "5", "38", "18 (47%)", "16", "4", "17"],
 ], [3.2, 1.7, 1.3, 2.1, 2.4, 2.3, 2.0])
 p("Quanto ao atendimento aos requisitos, a Tabela 5 resume a situação final da ERS. Os 25 requisitos de prioridade "
-  "P0 foram atendidos, 18 integralmente e 7 de forma parcial, com o núcleo funcionando e as pendências documentadas. "
-  "Os três não implementados são o mapa de calor, o título de Prefeito de uma zona e uma meta de desempenho que exige "
-  "medição em aparelho. Assim, o objetivo de desenvolver e verificar a solução de ponta a ponta foi atingido; o "
+  "P0 foram atendidos, 18 integralmente e 7 de forma parcial, isto é, com o núcleo funcionando e as pendências "
+  "documentadas. Os dois não implementados "
+  "são o título de Prefeito de uma zona e uma meta de desempenho que exige medição em aparelho. Assim, o objetivo de desenvolver e verificar a solução de ponta a ponta foi atingido; o "
   "questionário de usabilidade descrito na Seção 3.4, no entanto, ainda não foi aplicado.")
 tab("Tabela 5. Situação Final dos Requisitos", [
     ["Tipo", "Implementado", "Parcial", "Não Implementado", "Fora do MVP"],
-    ["Requisitos Funcionais (27)", "18", "8", "1", "0"],
-    ["Requisitos Não Funcionais (15)", "6", "6", "1", "2"],
+    ["Funcionais (27)", "19", "8", "0", "0"],
+    ["Não Funcionais (15)", "6", "6", "1", "2"],
     ["Regras de Negócio (19)", "15", "3", "1", "0"],
-    ["Total (61)", "39", "17", "3", "2"],
+    ["Total (61)", "40", "17", "2", "2"],
 ], [4.4, 2.8, 1.8, 3.2, 2.4])
 
 # ---------------------------------------------------------------- 5
@@ -272,19 +276,25 @@ p("Este trabalho apresentou o NOMADE RUN, aplicativo que transforma a corrida de
   "reaproveita o mesmo módulo de regras do aplicativo e a gravação sem internet com sincronização assinada. Entre as "
   "lições aprendidas, destacam-se o valor do portão de verificação ao fim de cada fase, que impediu o acúmulo de "
   "defeitos, e do registro de decisões técnicas, que preservou o porquê de cada escolha ao longo das fases.")
-p("O sistema tem limitações. O mapa de calor não foi implementado, e o feed social, a Raid e as demais funções da "
+p("O sistema tem limitações. O mapa de calor, o feed social, a Raid e as demais funções da "
   "reformulação estão prontos e testados, mas ainda não foram publicados no servidor em nuvem. A gravação com a tela "
   "bloqueada e as notificações push dependem de uma versão compilada do aplicativo, pois o Expo Go não oferece essas "
   "interfaces nativas em todas as plataformas; no MVP, adotou-se a tela acesa durante a corrida e uma central de "
   "notificações interna. Os roteiros de teste em aparelho foram escritos, mas não executados em dispositivos físicos, "
-  "e não foram feitos o teste de carga nem a medição de bateria. Os testes externos deixaram defeitos em aberto, "
-  "como a distância percorrida durante a pausa ainda ser contada na corrida, a unidade em milhas não ser aplicada a "
-  "todas as métricas e o histórico omitir corridas acima de 200 registros. Por fim, a assinatura HMAC não prova que "
+  "e não foram feitos o teste de carga nem a medição de bateria. Os testes externos ainda apontaram melhorias de "
+  "acessibilidade, como controles com área de toque menor que 44 pontos. Por fim, a assinatura HMAC não prova que "
   "o cliente é o aplicativo oficial, e o questionário de usabilidade ainda não foi aplicado.")
 p("Como trabalhos futuros, propõem-se: corrigir os defeitos ainda abertos nos testes externos; aplicar o questionário de usabilidade; publicar o servidor da versão final e a versão compilada com gravação em "
-  "segundo plano e notificações push; implementar o mapa de calor; executar os testes em aparelhos físicos e o teste "
+  "segundo plano e notificações push; executar os testes em aparelhos físicos e o teste "
   "de carga; adotar a atestação do aparelho no antifraude; e conduzir um estudo com corredores reais para medir se a "
   "camada de jogo aumenta a regularidade de treino em relação a um aplicativo de corrida convencional.")
+
+# Agradecimentos, antes das referências (apontamento da avaliação), com a declaração do uso de IA.
+h1("Agradecimentos")
+p("Os autores agradecem às equipes da disciplina de Teste de Software, que testaram o aplicativo e relataram os "
+  "defeitos. Declara-se o uso de ferramentas de inteligência artificial generativa na programação, em papéis como os "
+  "de uma equipe (arquitetura, servidor, interface, qualidade e documentação), e na revisão do texto; as decisões e "
+  "os resultados foram definidos e conferidos pelos autores, e o código gerado passou pelas mesmas verificações.")
 
 REFERENCIAS = [
     "Althoff, T., White, R. W. e Horvitz, E. (2016). Influence of Pokémon Go on physical activity: study and implications. Journal of Medical Internet Research, 18(12):e315.",
